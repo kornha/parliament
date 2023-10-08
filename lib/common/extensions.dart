@@ -1,0 +1,124 @@
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
+import 'package:political_think/common/constants.dart';
+import 'package:political_think/common/models/post.dart';
+import 'package:political_think/common/models/zuser.dart';
+import 'package:political_think/common/providers/zprovider.dart';
+
+extension ProviderExt on WidgetRef {
+  get authWatch => watch(authProvider);
+  get authRead => read(authProvider);
+  AsyncValue<ZUser?> userWatch(uid) => watch(zuserProvider(uid));
+  AsyncValue<ZUser?> userRead(uid) => read(zuserProvider(uid));
+  AsyncValue<ZUser?> selfUserWatch() =>
+      watch(zuserProvider(authRead.authUser!.uid));
+  AsyncValue<ZUser?> selfUserWRead() =>
+      read(zuserProvider(authRead.authUser!.uid));
+  AsyncValue<Post?> postWatch(pid) => watch(postProvider(pid));
+  AsyncValue<Post?> postRead(pid) => read(postProvider(pid));
+}
+
+extension ThemeExt on BuildContext {
+  Color get primaryColor => Theme.of(this).colorScheme.primary;
+  Color get backgroundColor => Theme.of(this).colorScheme.background;
+  Color get surfaceColor => Theme.of(this).colorScheme.surface;
+  Color get onPrimaryColor => Theme.of(this).colorScheme.onPrimary;
+  Color get onBackgroundColor => Theme.of(this).colorScheme.onBackground;
+  Color get onSurfaceColor => Theme.of(this).colorScheme.onSurface;
+  Color get errorColor => Theme.of(this).colorScheme.error;
+  Color get onErrorColor => Theme.of(this).colorScheme.onError;
+  Color get secondaryColor => Theme.of(this).colorScheme.secondary;
+  Color get onSecondaryColor => Theme.of(this).colorScheme.onSecondary;
+  TargetPlatform get platform => Theme.of(this).platform;
+
+  bool get isAndroid => this.platform == TargetPlatform.android;
+  bool get isIOS => this.platform == TargetPlatform.iOS;
+  bool get isMacOS => this.platform == TargetPlatform.macOS;
+  bool get isWindows => this.platform == TargetPlatform.windows;
+  bool get isFuchsia => this.platform == TargetPlatform.fuchsia;
+  bool get isLinux => this.platform == TargetPlatform.linux;
+}
+
+extension MediaQueryExt on BuildContext {
+  Size get screenSize => MediaQuery.of(this).size;
+  MediaQueryData get mediaQueryData => MediaQuery.of(this);
+  EdgeInsets get mediaQueryPadding => MediaQuery.of(this).padding;
+  EdgeInsets get mediaQueryViewPadding => MediaQuery.of(this).viewPadding;
+  EdgeInsets get mediaQueryViewInsets => MediaQuery.of(this).viewInsets;
+  Orientation get orientation => MediaQuery.of(this).orientation;
+  bool get isLandscape => orientation == Orientation.landscape;
+  bool get isPortrait => orientation == Orientation.portrait;
+  bool get alwaysUse24HourFormat => MediaQuery.of(this).alwaysUse24HourFormat;
+  double get devicePixelRatio => MediaQuery.of(this).devicePixelRatio;
+  Brightness get platformBrightness => MediaQuery.of(this).platformBrightness;
+  double get textScaleFactor => MediaQuery.of(this).textScaleFactor;
+  double get mediaQueryShortestSide => screenSize.shortestSide;
+
+  /// True if the current device is Phone
+  bool get isMobile => screenSize.width < 600;
+  // TODO: higher res
+  bool get isDesktop => screenSize.width > 1000;
+
+  /// True if the current device is Tablet
+  bool get isTablet => !isMobile && !isDesktop;
+
+  /// True if the current device is Phone or Tablet
+  bool get isMobileOrTablet => isMobile || isTablet;
+  Brightness get brightness => MediaQuery.of(this).platformBrightness;
+  bool get isDarkMode => brightness == Brightness.dark;
+}
+
+extension Spacing on BuildContext {
+  EdgeInsets get pf => const EdgeInsets.symmetric(
+      horizontal: Margins.full, vertical: Margins.full);
+
+  EdgeInsets get pf3 => EdgeInsets.symmetric(
+      horizontal: screenSize.width * 0.33, vertical: Margins.half);
+  EdgeInsets get pfh => const EdgeInsets.symmetric(
+      vertical: Margins.half, horizontal: Margins.full);
+  EdgeInsets get ph => const EdgeInsets.symmetric(
+      horizontal: Margins.half, vertical: Margins.half);
+  EdgeInsets get pq => const EdgeInsets.symmetric(
+      horizontal: Margins.quarter, vertical: Margins.quarter);
+  EdgeInsets get pz => const EdgeInsets.all(0);
+  EdgeInsets get mf => const EdgeInsets.symmetric(
+      horizontal: Margins.full, vertical: Margins.full);
+  EdgeInsets get mh => const EdgeInsets.symmetric(
+      horizontal: Margins.half, vertical: Margins.half);
+  EdgeInsets get mz => const EdgeInsets.all(0);
+
+  EdgeInsets get blockMargin => const EdgeInsets.symmetric(
+      horizontal: Margins.full, vertical: Margins.half);
+  EdgeInsets get blockPadding => const EdgeInsets.symmetric(
+      horizontal: Margins.full, vertical: Margins.half);
+
+  double get blockWidth =>
+      isMobileOrTablet ? Block.blockWidthSmall : Block.blockWidthLarge;
+  SizedBox get st =>
+      const SizedBox(height: Margins.triple, width: Margins.triple);
+  SizedBox get sd =>
+      const SizedBox(height: Margins.twice, width: Margins.twice);
+  SizedBox get sf => const SizedBox(height: Margins.full, width: Margins.full);
+  SizedBox get sh => const SizedBox(height: Margins.half, width: Margins.half);
+  SizedBox get sq =>
+      const SizedBox(height: Margins.quarter, width: Margins.quarter);
+  SizedBox get sl =>
+      const SizedBox(height: Margins.least, width: Margins.least);
+}
+
+extension ModalExt on BuildContext {
+  void showModal(Widget child) {
+    showCupertinoModalBottomSheet(
+      barrierColor: backgroundColor.withOpacity(0.5),
+      context: this,
+      expand: false,
+      useRootNavigator: true,
+      builder: (context) => Material(
+        color: context.surfaceColor,
+        child: SafeArea(child: child),
+      ),
+    );
+  }
+}
