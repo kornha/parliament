@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:political_think/common/components/profile_icon.dart';
+import 'package:political_think/common/components/zscaffold.dart';
+import 'package:political_think/common/extensions.dart';
 import 'package:political_think/views/feed/feed.dart';
 import 'package:political_think/views/messages/messages.dart';
+import 'package:political_think/views/profile/profile.dart';
 import 'package:political_think/views/search/search.dart';
 
 class ZBottomBarScaffold extends ConsumerStatefulWidget {
@@ -19,36 +23,45 @@ class ZBottomBarScaffold extends ConsumerStatefulWidget {
 class _ZScaffoldState extends ConsumerState<ZBottomBarScaffold> {
   int _currentIndex = 0;
 
-  static const List<ZBottomBarNavigationItem> tabs = [
-    ZBottomBarNavigationItem(
-      icon: Icon(Icons.home),
-      activeIcon: Icon(Icons.home),
-      label: 'HOME',
-      initialLocation: Feed.location,
-    ),
-    ZBottomBarNavigationItem(
-      icon: Icon(Icons.storefront_outlined),
-      activeIcon: Icon(Icons.storefront),
-      label: 'SHOP',
-      initialLocation: Search.location,
-    ),
-    ZBottomBarNavigationItem(
-      icon: Icon(Icons.storefront_outlined),
-      activeIcon: Icon(Icons.storefront),
-      label: 'BUY',
-      initialLocation: Messages.location,
-    ),
-  ];
-
   @override
   Widget build(BuildContext context) {
+    var tabs = [
+      const ZBottomBarNavigationItem(
+        icon: Icon(Icons.home),
+        activeIcon: Icon(Icons.home),
+        label: 'HOME',
+        initialLocation: Feed.location,
+      ),
+      const ZBottomBarNavigationItem(
+        icon: Icon(Icons.storefront_outlined),
+        activeIcon: Icon(Icons.storefront),
+        label: 'SHOP',
+        initialLocation: Search.location,
+      ),
+      const ZBottomBarNavigationItem(
+        icon: Icon(Icons.storefront_outlined),
+        activeIcon: Icon(Icons.storefront),
+        label: 'BUY',
+        initialLocation: Messages.location,
+      ),
+      const ZBottomBarNavigationItem(
+        icon: ProfileIcon(),
+        activeIcon: ProfileIcon(),
+        label: 'Profile',
+        initialLocation: Profile.location,
+      ),
+    ];
     return Scaffold(
       body: SafeArea(child: widget.child),
+      backgroundColor: context.backgroundColor,
       bottomNavigationBar: BottomNavigationBar(
-        showUnselectedLabels: true,
+        backgroundColor: context.backgroundColor,
+        showUnselectedLabels: false,
+        elevation: 0,
+        showSelectedLabels: false,
         type: BottomNavigationBarType.fixed,
         onTap: (int index) {
-          _goOtherTab(context, index);
+          _goOtherTab(context, index, tabs);
         },
         currentIndex: _getCurrentIndex(widget.location),
         items: tabs,
@@ -56,7 +69,8 @@ class _ZScaffoldState extends ConsumerState<ZBottomBarScaffold> {
     );
   }
 
-  void _goOtherTab(BuildContext context, int index) {
+  void _goOtherTab(
+      BuildContext context, int index, List<ZBottomBarNavigationItem> tabs) {
     if (index == _currentIndex) return;
     if (index > tabs.length - 1) return;
     GoRouter router = GoRouter.of(context);
@@ -69,6 +83,8 @@ class _ZScaffoldState extends ConsumerState<ZBottomBarScaffold> {
 
   int _getCurrentIndex(String path) {
     switch (path) {
+      case Profile.location:
+        return 3;
       case Messages.location:
         return 2;
       case Search.location:

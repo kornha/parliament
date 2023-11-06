@@ -1,4 +1,36 @@
 {
-  "indexes": [],
+  "indexes": [
+    {
+      "collectionId": "posts",
+      "fields": [
+        {
+          "fieldPath": "creator",
+          "mode": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionId": "posts",
+      "fields": [
+        {
+          "fieldPath": "createdAt",
+          "mode": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionId": "messages",
+      "fields": [
+        {
+          "fieldPath": "createdAt",
+          "mode": "DESCENDING"
+        },
+        {
+          "fieldPath": "rid",
+          "mode": "ASCENDING"
+        }
+      ]
+    }
+  ],
   "fieldOverrides": []
 }

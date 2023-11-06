@@ -7,7 +7,7 @@ part 'post.g.dart';
 enum PostStatus { DRAFT, PUBLISHED }
 
 @JsonSerializable()
-class Post extends ChangeNotifier {
+class Post {
   final String pid;
   String creator;
   PostStatus status;
@@ -19,12 +19,15 @@ class Post extends ChangeNotifier {
 
   @JsonKey(fromJson: _timestampFromJson, toJson: _timestampToJson)
   Timestamp createdAt;
+  @JsonKey(fromJson: _timestampFromJson, toJson: _timestampToJson)
+  Timestamp updatedAt;
 
   Post({
     required this.pid,
     required this.creator,
     required this.status,
     required this.createdAt,
+    required this.updatedAt,
     this.title,
     this.description,
     this.imageUrl,

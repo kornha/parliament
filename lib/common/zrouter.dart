@@ -2,14 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:political_think/common/components/zbottom_bar_scaffold.dart';
-import 'package:political_think/common/providers/zprovider.dart';
+import 'package:political_think/common/components/zerror.dart';
+import 'package:political_think/common/models/position.dart';
+import 'package:political_think/common/services/zprovider.dart';
+import 'package:political_think/sharing.dart';
 import 'package:political_think/views/feed/feed.dart';
 import 'package:political_think/views/login/login.dart';
 import 'package:political_think/views/messages/messages.dart';
+import 'package:political_think/views/post/post_room.dart';
+import 'package:political_think/views/profile/profile.dart';
 import 'package:political_think/views/search/search.dart';
 
 class ZRouter {
-  static final _rootNavigatorKey = GlobalKey<NavigatorState>();
+  static final rootNavigatorKey = GlobalKey<NavigatorState>();
   static final _shellNavigatorKey = GlobalKey<NavigatorState>();
 
   static GoRouter instance(
@@ -17,7 +22,7 @@ class ZRouter {
   ) {
     return GoRouter(
       initialLocation: Login.location,
-      navigatorKey: _rootNavigatorKey,
+      navigatorKey: rootNavigatorKey,
       routes: [
         ShellRoute(
           navigatorKey: _shellNavigatorKey,
@@ -33,28 +38,48 @@ class ZRouter {
             GoRoute(
               parentNavigatorKey: _shellNavigatorKey,
               path: Feed.location,
-              pageBuilder: (context, state) =>
-                  const NoTransitionPage(child: Feed()),
+              pageBuilder: (context, state) => const NoTransitionPage(
+                child: Feed(),
+              ),
             ),
             GoRoute(
               parentNavigatorKey: _shellNavigatorKey,
               path: Search.location,
-              pageBuilder: (context, state) =>
-                  const NoTransitionPage(child: Search()),
+              pageBuilder: (context, state) => const NoTransitionPage(
+                child: Search(),
+              ),
             ),
             GoRoute(
               parentNavigatorKey: _shellNavigatorKey,
               path: Messages.location,
-              pageBuilder: (context, state) =>
-                  const NoTransitionPage(child: Messages()),
+              pageBuilder: (context, state) => const NoTransitionPage(
+                child: Messages(),
+              ),
+            ),
+            GoRoute(
+              parentNavigatorKey: _shellNavigatorKey,
+              path: Profile.location,
+              pageBuilder: (context, state) => const NoTransitionPage(
+                child: Profile(),
+              ),
             ),
           ],
         ),
         GoRoute(
-          parentNavigatorKey: _rootNavigatorKey,
+          parentNavigatorKey: rootNavigatorKey,
           path: Login.location,
-          pageBuilder: (context, state) =>
-              const NoTransitionPage(child: Login()),
+          pageBuilder: (context, state) => const NoTransitionPage(
+            child: Login(),
+          ),
+        ),
+        GoRoute(
+          parentNavigatorKey: rootNavigatorKey,
+          path: "${PostRoom.location}/:pid",
+          pageBuilder: (context, state) => NoTransitionPage(
+            child: PostRoom(
+              pid: state.pathParameters["pid"]!,
+            ),
+          ),
         ),
       ],
       refreshListenable: ref.watch(authProvider),
@@ -63,6 +88,9 @@ class ZRouter {
         final loggedIn = authState.isLoggedIn;
         final loginPath = state.fullPath?.startsWith(Login.location) ?? false;
         // final loading = authState.isLoading;
+        if (state.uri.path == '/') {
+          return Login.location;
+        }
 
         if (!loggedIn) {
           return Login.location;

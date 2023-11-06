@@ -8,16 +8,18 @@ import 'package:political_think/common/components/ztext_button.dart';
 import 'package:political_think/common/constants.dart';
 import 'package:political_think/common/extensions.dart';
 import 'package:political_think/common/models/position.dart';
+import 'package:political_think/common/models/post.dart';
+import 'package:political_think/common/services/functions.dart';
 import 'package:political_think/common/util/zimage.dart';
 import 'package:political_think/common/zrouter.dart';
-import 'package:political_think/views/post/post_view.dart';
+import 'package:political_think/views/post/post_room.dart';
 import 'package:shimmer/shimmer.dart';
 
 class PostItem extends ConsumerStatefulWidget {
   const PostItem({
     super.key,
     required this.pid,
-    this.showDebateButtons = true,
+    this.showDebateButtons = false,
   });
 
   final String pid;
@@ -39,11 +41,11 @@ class _PostViewState extends ConsumerState<PostItem> {
             padding: context.blockPadding,
             child: Column(
               children: [
-                Text(post!.title ?? ""),
+                Text(post?.title ?? ""),
                 context.sf,
-                ZImage(imageUrl: post.imageUrl ?? ""),
+                ZImage(imageUrl: post?.imageUrl ?? ""),
                 context.sf,
-                Text(post.description!),
+                Text(post?.description ?? ""),
                 Visibility(
                     visible: widget.showDebateButtons, child: context.sf),
                 Visibility(
@@ -57,8 +59,8 @@ class _PostViewState extends ConsumerState<PostItem> {
                           Icons.join_left,
                           color: Palette.white,
                         ),
-                        onPressed: () => context.push(
-                            "${PostView.location}/${post.pid}/${PoliticalPosition.LEFT.name.toLowerCase()}"),
+                        onPressed: () =>
+                            goToRoom(context, post!, Quadrant.LEFT),
                       ),
                       ZTextButton(
                         backgroundColor: Palette.red,
@@ -66,8 +68,8 @@ class _PostViewState extends ConsumerState<PostItem> {
                           Icons.join_right,
                           color: Palette.white,
                         ),
-                        onPressed: () => context.push(
-                            "${PostView.location}/${post.pid}/${PoliticalPosition.RIGHT.name.toLowerCase()}"),
+                        onPressed: () =>
+                            goToRoom(context, post!, Quadrant.RIGHT),
                       ),
                     ],
                   ),
@@ -75,5 +77,10 @@ class _PostViewState extends ConsumerState<PostItem> {
               ],
             ),
           );
+  }
+
+  goToRoom(BuildContext context, Post post, Quadrant pos) {
+    Functions.instance().joinRoom(post.pid, position: pos);
+    context.push("${PostRoom.location}/${post.pid}");
   }
 }

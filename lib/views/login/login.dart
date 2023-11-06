@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:political_think/common/components/zscaffold.dart';
 import 'package:political_think/common/services/auth.dart';
 
 class Login extends ConsumerStatefulWidget {
@@ -17,7 +18,7 @@ final providers = [];
 class _LoginState extends ConsumerState<Login> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return ZScaffold(
       body: Center(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,

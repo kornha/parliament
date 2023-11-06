@@ -47,6 +47,7 @@
 	<true/>
 	<!-- Put me in the [my_project]/ios/Runner/Info.plist file -->
 	<!-- Google Sign-in Section -->
+
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -59,6 +60,16 @@
 				<string>com.googleusercontent.apps.1086194423847-30864i1ebosr3v7i0gejpl280v2enlru</string>
 			</array>
 		</dict>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>ShareMedia</string>
+			</array>
+		</dict>
 	</array>
+  	<key>NSPhotoLibraryUsageDescription</key>
+	<string>To upload content, please allow permission to access your photo library.</string>
 </dict>
 </plist>

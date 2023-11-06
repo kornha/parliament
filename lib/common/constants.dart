@@ -1,4 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+
+class Constants {
+  static const MESSAGE_FETCH_LIMIT = 50;
+}
 
 class Palette {
   static const black = Color.fromRGBO(0, 0, 0, 1);
@@ -63,6 +68,7 @@ class Margins {
   static const double least = full / 8;
   static const double quarter = full / 4;
   static const double half = full / 2;
+  static const double threeQuarter = 3 * full / 4;
   static const double full = 16.0;
   static const double threeHalf = full * 1.5;
   static const double twice = full * 2;
@@ -76,6 +82,7 @@ class Curvature {
   static const Radius least = Radius.circular(2.0);
   static const Radius little = Radius.circular(4.0);
   static const Radius standard = Radius.circular(8.0);
+  static const Radius circular = Radius.circular(16.0);
   static const Radius steep = Radius.circular(32.0);
 }
 
@@ -84,12 +91,13 @@ class BRadius {
   static const least = BorderRadius.all(Curvature.least);
   static const little = BorderRadius.all(Curvature.little);
   static const standard = BorderRadius.all(Curvature.standard);
+  static const circular = BorderRadius.all(Curvature.circular);
   static const steep = BorderRadius.all(Curvature.steep);
 }
 
 class IconSize {
   static const double small = 12.5;
-  static const double standard = 25.0;
+  static const double standard = 20.0;
   static const double big = 33;
 }
 

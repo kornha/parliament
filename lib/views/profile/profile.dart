@@ -16,6 +16,8 @@ class Profile extends ConsumerStatefulWidget {
 class _ProfileState extends ConsumerState<Profile> {
   @override
   Widget build(BuildContext context) {
+    Auth().signOut();
+
     return ZScaffold(
       body: Center(
         child: Column(

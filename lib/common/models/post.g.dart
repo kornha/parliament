@@ -11,6 +11,7 @@ Post _$PostFromJson(Map<String, dynamic> json) => Post(
       creator: json['creator'] as String,
       status: $enumDecode(_$PostStatusEnumMap, json['status']),
       createdAt: Post._timestampFromJson(json['createdAt'] as int),
+      updatedAt: Post._timestampFromJson(json['updatedAt'] as int),
       title: json['title'] as String?,
       description: json['description'] as String?,
       imageUrl: json['imageUrl'] as String?,
@@ -26,6 +27,7 @@ Map<String, dynamic> _$PostToJson(Post instance) => <String, dynamic>{
       'imageUrl': instance.imageUrl,
       'url': instance.url,
       'createdAt': Post._timestampToJson(instance.createdAt),
+      'updatedAt': Post._timestampToJson(instance.updatedAt),
     };
 
 const _$PostStatusEnumMap = {

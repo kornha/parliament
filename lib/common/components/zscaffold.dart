@@ -11,6 +11,7 @@ class ZScaffold extends StatelessWidget {
   final Widget? drawer;
   final Widget? endDrawer;
   final Widget? bottomNavigationBar;
+  final ScrollController? scrollController;
 
   const ZScaffold({
     super.key,
@@ -23,6 +24,7 @@ class ZScaffold extends StatelessWidget {
     this.drawer,
     this.endDrawer,
     this.bottomNavigationBar,
+    this.scrollController,
   });
 
   @override
@@ -31,10 +33,12 @@ class ZScaffold extends StatelessWidget {
       child: Scaffold(
         appBar: null,
         body: NestedScrollView(
+          controller: scrollController,
           headerSliverBuilder: (context, innerBoxIsScrolled) {
             return [
               SliverAppBar(
                 backgroundColor: context.backgroundColor,
+                pinned: true,
                 title: appBar,
                 centerTitle: true,
                 floating: true,
@@ -46,7 +50,6 @@ class ZScaffold extends StatelessWidget {
           },
           body: body,
         ), //body,
-
         backgroundColor: context.backgroundColor,
         floatingActionButton: floatingActionButton,
         floatingActionButtonLocation: floatingActionButtonLocation,

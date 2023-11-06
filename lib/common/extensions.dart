@@ -4,8 +4,11 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:political_think/common/constants.dart';
 import 'package:political_think/common/models/post.dart';
+import 'package:political_think/common/models/room.dart';
 import 'package:political_think/common/models/zuser.dart';
-import 'package:political_think/common/providers/zprovider.dart';
+import 'package:political_think/common/services/zprovider.dart';
+import 'package:political_think/common/chat/chat_types/flutter_chat_types.dart'
+    as ct;
 
 extension ProviderExt on WidgetRef {
   get authWatch => watch(authProvider);
@@ -14,10 +17,20 @@ extension ProviderExt on WidgetRef {
   AsyncValue<ZUser?> userRead(uid) => read(zuserProvider(uid));
   AsyncValue<ZUser?> selfUserWatch() =>
       watch(zuserProvider(authRead.authUser!.uid));
-  AsyncValue<ZUser?> selfUserWRead() =>
+  AsyncValue<ZUser?> selfUserRead() =>
       read(zuserProvider(authRead.authUser!.uid));
-  AsyncValue<Post?> postWatch(pid) => watch(postProvider(pid));
-  AsyncValue<Post?> postRead(pid) => read(postProvider(pid));
+  ZUser user() => read(zuserProvider(authRead.authUser!.uid)).value!;
+  AsyncValue<Post?> postWatch(String pid) => watch(postProvider(pid));
+  AsyncValue<Post?> postRead(String pid) => read(postProvider(pid));
+  AsyncValue<Room?> roomWatch(String uid, String pid) =>
+      watch(roomProvider((uid, pid)));
+  AsyncValue<Room?> roomRead(String uid, String pid) =>
+      read(roomProvider((uid, pid)));
+
+  AsyncValue<List<ct.Message>?> messagesWatch(String rid, int limit) =>
+      watch(messagesProvider((rid, limit)));
+  refreshMessages(String rid, int limit) =>
+      refresh(messagesProvider((rid, limit)));
 }
 
 extension ThemeExt on BuildContext {
@@ -101,6 +114,10 @@ extension Spacing on BuildContext {
   SizedBox get sd =>
       const SizedBox(height: Margins.twice, width: Margins.twice);
   SizedBox get sf => const SizedBox(height: Margins.full, width: Margins.full);
+  SizedBox get sth =>
+      const SizedBox(height: Margins.threeHalf, width: Margins.threeHalf);
+  SizedBox get stq =>
+      const SizedBox(height: Margins.threeQuarter, width: Margins.threeQuarter);
   SizedBox get sh => const SizedBox(height: Margins.half, width: Margins.half);
   SizedBox get sq =>
       const SizedBox(height: Margins.quarter, width: Margins.quarter);
@@ -121,4 +138,9 @@ extension ModalExt on BuildContext {
       ),
     );
   }
+}
+
+extension ConstantsExt on BuildContext {
+  Widget get sendIcon => Icon(Icons.send, color: primaryColor);
+  Widget get deliveredIcon => Icon(Icons.receipt, color: primaryColor);
 }

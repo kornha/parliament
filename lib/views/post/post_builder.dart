@@ -32,9 +32,7 @@ class _PostBuilderState extends ConsumerState<PostBuilder> {
   @override
   void initState() {
     super.initState();
-    Database.instance()
-        .getFirstPostInDraft(ref.selfUserWRead().value!.uid)
-        .then((post) {
+    Database.instance().getFirstPostInDraft(ref.user().uid).then((post) {
       setState(() {
         _pid = post?.pid;
         _loading = false;
@@ -72,9 +70,10 @@ class _PostBuilderState extends ConsumerState<PostBuilder> {
             } else {
               Post p = Post(
                 pid: const Uuid().v4(),
-                creator: ref.selfUserWRead().value!.uid,
+                creator: ref.selfUserRead().value!.uid,
                 status: PostStatus.DRAFT,
                 createdAt: Timestamp.now(),
+                updatedAt: Timestamp.now(),
                 title: metadata.title,
                 description: metadata.description,
                 imageUrl: metadata.image,
