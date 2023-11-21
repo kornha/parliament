@@ -71,7 +71,7 @@ class _PostBuilderState extends ConsumerState<PostBuilder> {
               Post p = Post(
                 pid: const Uuid().v4(),
                 creator: ref.selfUserRead().value!.uid,
-                status: PostStatus.DRAFT,
+                status: PostStatus.draft,
                 createdAt: Timestamp.now(),
                 updatedAt: Timestamp.now(),
                 title: metadata.title,
@@ -115,7 +115,7 @@ class _PostBuilderState extends ConsumerState<PostBuilder> {
               ZTextButton(
                 onPressed: () {
                   Post p = postRef.value!;
-                  p.status = PostStatus.PUBLISHED;
+                  p.status = PostStatus.published;
                   Database.instance().updatePost(p);
                   context.pop();
                 },

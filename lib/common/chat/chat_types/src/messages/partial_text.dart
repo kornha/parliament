@@ -8,7 +8,7 @@ import 'text_message.dart';
 part 'partial_text.g.dart';
 
 /// A class that represents partial text message.
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 @immutable
 class PartialText {
   /// Creates a partial text message with all variables text can have.

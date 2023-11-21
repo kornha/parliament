@@ -31,6 +31,6 @@ Map<String, dynamic> _$PostToJson(Post instance) => <String, dynamic>{
     };
 
 const _$PostStatusEnumMap = {
-  PostStatus.DRAFT: 'DRAFT',
-  PostStatus.PUBLISHED: 'PUBLISHED',
+  PostStatus.draft: 'draft',
+  PostStatus.published: 'published',
 };

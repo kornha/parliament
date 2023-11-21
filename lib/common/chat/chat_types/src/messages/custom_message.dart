@@ -1,5 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
+import 'package:political_think/common/models/position.dart';
 
 import '../message.dart';
 import '../user.dart' show User;
@@ -9,7 +10,7 @@ part 'custom_message.g.dart';
 
 /// A class that represents custom message. Use [metadata] to store anything
 /// you want.
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 @immutable
 abstract class CustomMessage extends Message {
   /// Creates a custom message.
@@ -25,6 +26,7 @@ abstract class CustomMessage extends Message {
     super.status,
     MessageType? type,
     super.updatedAt,
+    // super.position,
   }) : super(type: type ?? MessageType.custom);
 
   const factory CustomMessage({
@@ -98,6 +100,7 @@ abstract class CustomMessage extends Message {
     bool? showStatus,
     Status? status,
     int? updatedAt,
+    Position? position,
   });
 
   /// Converts a custom message to the map representation,
@@ -120,6 +123,7 @@ class _CustomMessage extends CustomMessage {
     super.status,
     super.type,
     super.updatedAt,
+    // super.position,
   }) : super._();
 
   @override
@@ -134,6 +138,7 @@ class _CustomMessage extends CustomMessage {
     dynamic showStatus = _Unset,
     dynamic status = _Unset,
     dynamic updatedAt = _Unset,
+    dynamic position = _Unset,
   }) =>
       _CustomMessage(
         author: author ?? this.author,
@@ -151,6 +156,7 @@ class _CustomMessage extends CustomMessage {
             showStatus == _Unset ? this.showStatus : showStatus as bool?,
         status: status == _Unset ? this.status : status as Status?,
         updatedAt: updatedAt == _Unset ? this.updatedAt : updatedAt as int?,
+        // position: position == _Unset ? this.position : position as Position?,
       );
 }
 

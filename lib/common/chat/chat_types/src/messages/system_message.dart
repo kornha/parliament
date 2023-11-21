@@ -1,5 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
+import 'package:political_think/common/models/position.dart';
 
 import '../message.dart';
 import '../user.dart' show User;
@@ -25,6 +26,7 @@ abstract class SystemMessage extends Message {
     required this.text,
     MessageType? type,
     super.updatedAt,
+    // super.position,
   }) : super(type: type ?? MessageType.system);
 
   const factory SystemMessage({
@@ -78,6 +80,7 @@ abstract class SystemMessage extends Message {
     Status? status,
     String? text,
     int? updatedAt,
+    Position? position,
   });
 
   /// Converts a custom message to the map representation,
@@ -101,6 +104,7 @@ class _SystemMessage extends SystemMessage {
     required super.text,
     super.type,
     super.updatedAt,
+    // super.position,
   }) : super._();
 
   @override
@@ -116,6 +120,7 @@ class _SystemMessage extends SystemMessage {
     dynamic status = _Unset,
     String? text,
     dynamic updatedAt = _Unset,
+    dynamic position = _Unset,
   }) =>
       _SystemMessage(
         author: author ?? this.author,
@@ -134,6 +139,7 @@ class _SystemMessage extends SystemMessage {
         status: status == _Unset ? this.status : status as Status?,
         text: text ?? this.text,
         updatedAt: updatedAt == _Unset ? this.updatedAt : updatedAt as int?,
+        // position: position == _Unset ? this.position : position as Position?,
       );
 }
 

@@ -100,6 +100,7 @@ class Chat extends StatefulWidget {
     this.userAgent,
     this.useTopSafeAreaInset,
     this.videoMessageBuilder,
+    this.messageExpiryTime,
   });
 
   /// See [Message.audioMessageBuilder].
@@ -284,6 +285,10 @@ class Chat extends StatefulWidget {
   /// Builds a system message outside of any bubble.
   final Widget Function(types.SystemMessage)? systemMessageBuilder;
 
+  /// Time which to force color of messages
+  /// added by us for this project
+  final int? messageExpiryTime;
+
   /// See [Message.textMessageBuilder].
   final Widget Function(
     types.TextMessage, {
@@ -459,6 +464,7 @@ class ChatState extends State<Chat> {
           messageWidth: messageWidth,
           nameBuilder: widget.nameBuilder,
           onAvatarTap: widget.onAvatarTap,
+          messageExpiryTime: widget.messageExpiryTime,
           onMessageDoubleTap: widget.onMessageDoubleTap,
           onMessageLongPress: widget.onMessageLongPress,
           onMessageStatusLongPress: widget.onMessageStatusLongPress,

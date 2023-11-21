@@ -9,34 +9,49 @@ part 'position.g.dart';
 class Position {
   final double value;
 
-  Position({
+  const Position({
     this.value = 0.0,
   });
 
   factory Position.fromQuandrantDefault(Quadrant quadrant) {
     switch (quadrant) {
-      case Quadrant.LEFT:
-        return Position(value: 180.0);
-      case Quadrant.CENTER:
-        return Position(value: 90.0);
-      case Quadrant.EXTREME:
-        return Position(value: 270.0);
-      case Quadrant.RIGHT:
+      case Quadrant.left:
+        return const Position(value: 180.0);
+      case Quadrant.center:
+        return const Position(value: 90.0);
+      case Quadrant.extreme:
+        return const Position(value: 270.0);
+      case Quadrant.right:
       default:
-        return Position(value: 0.0);
+        return const Position(value: 0.0);
+    }
+  }
+
+  Color? get color {
+    switch (toQuadrant()) {
+      case Quadrant.right:
+        return Palette.red;
+      case Quadrant.left:
+        return Palette.blue;
+      case Quadrant.center:
+        return Palette.green;
+      case Quadrant.extreme:
+        return Palette.purple;
+      default:
+        return null;
     }
   }
 
   Quadrant toQuadrant() {
     var angle = value % 360;
     if (angle >= 315.0 || angle <= 45.0) {
-      return Quadrant.RIGHT;
+      return Quadrant.right;
     } else if (angle > 45 && angle < 135) {
-      return Quadrant.CENTER;
+      return Quadrant.center;
     } else if (angle >= 180 && angle <= 225) {
-      return Quadrant.LEFT;
+      return Quadrant.left;
     } else {
-      return Quadrant.EXTREME;
+      return Quadrant.extreme;
     }
   }
 
@@ -47,21 +62,21 @@ class Position {
 }
 
 enum Quadrant {
-  RIGHT,
-  LEFT,
-  CENTER,
-  EXTREME;
+  right,
+  left,
+  center,
+  extreme;
 
   static Quadrant? fromString(String? value) {
     switch (value?.toLowerCase()) {
       case 'right':
-        return Quadrant.RIGHT;
+        return Quadrant.right;
       case 'left':
-        return Quadrant.LEFT;
+        return Quadrant.left;
       case 'center':
-        return Quadrant.CENTER;
+        return Quadrant.center;
       case 'extreme':
-        return Quadrant.EXTREME;
+        return Quadrant.extreme;
       default:
         return null;
     }
@@ -69,13 +84,13 @@ enum Quadrant {
 
   Color get color {
     switch (this) {
-      case Quadrant.RIGHT:
+      case Quadrant.right:
         return Palette.red;
-      case Quadrant.LEFT:
+      case Quadrant.left:
         return Palette.blue;
-      case Quadrant.CENTER:
+      case Quadrant.center:
         return Palette.green;
-      case Quadrant.EXTREME:
+      case Quadrant.extreme:
         return Palette.purple;
     }
   }

@@ -1,5 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
+import 'package:political_think/common/models/position.dart';
 
 import '../message.dart';
 import '../user.dart' show User;
@@ -29,6 +30,7 @@ abstract class VideoMessage extends Message {
     super.updatedAt,
     required this.uri,
     this.width,
+    // super.position,
   }) : super(type: type ?? MessageType.video);
 
   const factory VideoMessage({
@@ -137,6 +139,7 @@ abstract class VideoMessage extends Message {
     int? updatedAt,
     String? uri,
     double? width,
+    Position? position,
   });
 
   /// Converts an video message to the map representation, encodable to JSON.
@@ -163,6 +166,7 @@ class _VideoMessage extends VideoMessage {
     super.updatedAt,
     required super.uri,
     super.width,
+    // super.position,
   }) : super._();
 
   @override
@@ -182,6 +186,7 @@ class _VideoMessage extends VideoMessage {
     dynamic updatedAt = _Unset,
     String? uri,
     dynamic width = _Unset,
+    dynamic position = _Unset,
   }) =>
       _VideoMessage(
         author: author ?? this.author,
@@ -204,6 +209,7 @@ class _VideoMessage extends VideoMessage {
         updatedAt: updatedAt == _Unset ? this.updatedAt : updatedAt as int?,
         uri: uri ?? this.uri,
         width: width == _Unset ? this.width : width as double?,
+        // position: position == _Unset ? this.position : position as Position?,
       );
 }
 

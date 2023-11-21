@@ -21,23 +21,14 @@ PartialAudio _$PartialAudioFromJson(Map<String, dynamic> json) => PartialAudio(
           .toList(),
     );
 
-Map<String, dynamic> _$PartialAudioToJson(PartialAudio instance) {
-  final val = <String, dynamic>{
-    'duration': instance.duration.inMicroseconds,
-  };
-
-  void writeNotNull(String key, dynamic value) {
-    if (value != null) {
-      val[key] = value;
-    }
-  }
-
-  writeNotNull('metadata', instance.metadata);
-  writeNotNull('mimeType', instance.mimeType);
-  val['name'] = instance.name;
-  writeNotNull('repliedMessage', instance.repliedMessage?.toJson());
-  val['size'] = instance.size;
-  val['uri'] = instance.uri;
-  writeNotNull('waveForm', instance.waveForm);
-  return val;
-}
+Map<String, dynamic> _$PartialAudioToJson(PartialAudio instance) =>
+    <String, dynamic>{
+      'duration': instance.duration.inMicroseconds,
+      'metadata': instance.metadata,
+      'mimeType': instance.mimeType,
+      'name': instance.name,
+      'repliedMessage': instance.repliedMessage?.toJson(),
+      'size': instance.size,
+      'uri': instance.uri,
+      'waveForm': instance.waveForm,
+    };

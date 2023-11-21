@@ -7,7 +7,7 @@ import 'custom_message.dart';
 part 'partial_custom.g.dart';
 
 /// A class that represents partial custom message.
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 @immutable
 class PartialCustom {
   /// Creates a partial custom message with metadata variable.

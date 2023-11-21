@@ -1,5 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
+import 'package:political_think/common/models/position.dart';
 
 import '../message.dart';
 import '../user.dart' show User;
@@ -8,7 +9,7 @@ import 'partial_image.dart';
 part 'image_message.g.dart';
 
 /// A class that represents image message.
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 @immutable
 abstract class ImageMessage extends Message {
   /// Creates an image message.
@@ -29,6 +30,7 @@ abstract class ImageMessage extends Message {
     super.updatedAt,
     required this.uri,
     this.width,
+    // super.position,
   }) : super(type: type ?? MessageType.image);
 
   const factory ImageMessage({
@@ -137,6 +139,7 @@ abstract class ImageMessage extends Message {
     int? updatedAt,
     String? uri,
     double? width,
+    Position? position,
   });
 
   /// Converts an image message to the map representation, encodable to JSON.
@@ -163,6 +166,7 @@ class _ImageMessage extends ImageMessage {
     super.updatedAt,
     required super.uri,
     super.width,
+    // super.position,
   }) : super._();
 
   @override
@@ -182,6 +186,7 @@ class _ImageMessage extends ImageMessage {
     dynamic updatedAt = _Unset,
     String? uri,
     dynamic width = _Unset,
+    dynamic position = _Unset,
   }) =>
       _ImageMessage(
         author: author ?? this.author,
@@ -204,6 +209,7 @@ class _ImageMessage extends ImageMessage {
         updatedAt: updatedAt == _Unset ? this.updatedAt : updatedAt as int?,
         uri: uri ?? this.uri,
         width: width == _Unset ? this.width : width as double?,
+        // position: position == _Unset ? this.position : position as Position?,
       );
 }
 

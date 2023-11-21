@@ -17,4 +17,13 @@ class Functions {
       print(e);
     }
   }
+
+  Future<HttpsCallableResult> startDebate(String rid,
+      {Quadrant? position}) async {
+    final HttpsCallable callable =
+        FirebaseFunctions.instance.httpsCallable('startDebate');
+    return await callable.call({
+      'rid': rid,
+    });
+  }
 }

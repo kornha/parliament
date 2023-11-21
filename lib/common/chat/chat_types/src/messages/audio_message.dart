@@ -1,5 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
+import 'package:political_think/common/models/position.dart';
 
 import '../message.dart';
 import '../user.dart' show User;
@@ -8,7 +9,7 @@ import 'partial_audio.dart';
 part 'audio_message.g.dart';
 
 /// A class that represents audio message.
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 @immutable
 abstract class AudioMessage extends Message {
   /// Creates an audio message.
@@ -30,6 +31,7 @@ abstract class AudioMessage extends Message {
     super.updatedAt,
     required this.uri,
     this.waveForm,
+    // super.position,
   }) : super(type: type ?? MessageType.audio);
 
   const factory AudioMessage({
@@ -145,6 +147,7 @@ abstract class AudioMessage extends Message {
     int? updatedAt,
     String? uri,
     List<double>? waveForm,
+    Position? position,
   });
 
   /// Converts an audio message to the map representation, encodable to JSON.
@@ -172,6 +175,7 @@ class _AudioMessage extends AudioMessage {
     super.updatedAt,
     required super.uri,
     super.waveForm,
+    // super.position,
   }) : super._();
 
   @override
@@ -192,6 +196,7 @@ class _AudioMessage extends AudioMessage {
     dynamic updatedAt = _Unset,
     String? uri,
     dynamic waveForm = _Unset,
+    dynamic position = _Unset,
   }) =>
       _AudioMessage(
         author: author ?? this.author,
@@ -216,6 +221,7 @@ class _AudioMessage extends AudioMessage {
         uri: uri ?? this.uri,
         waveForm:
             waveForm == _Unset ? this.waveForm : waveForm as List<double>?,
+        // position: position == _Unset ? this.position : position as Position?,
       );
 }
 

@@ -24,33 +24,28 @@ TextMessage _$TextMessageFromJson(Map<String, dynamic> json) => TextMessage(
       text: json['text'] as String,
       type: $enumDecodeNullable(_$MessageTypeEnumMap, json['type']),
       updatedAt: json['updatedAt'] as int?,
+      position: json['position'] == null
+          ? null
+          : Position.fromJson(json['position'] as Map<String, dynamic>),
     );
 
-Map<String, dynamic> _$TextMessageToJson(TextMessage instance) {
-  final val = <String, dynamic>{
-    'author': instance.author.toJson(),
-  };
-
-  void writeNotNull(String key, dynamic value) {
-    if (value != null) {
-      val[key] = value;
-    }
-  }
-
-  writeNotNull('createdAt', instance.createdAt);
-  val['id'] = instance.id;
-  writeNotNull('metadata', instance.metadata);
-  writeNotNull('remoteId', instance.remoteId);
-  writeNotNull('repliedMessage', instance.repliedMessage?.toJson());
-  writeNotNull('roomId', instance.roomId);
-  writeNotNull('showStatus', instance.showStatus);
-  writeNotNull('status', _$StatusEnumMap[instance.status]);
-  val['type'] = _$MessageTypeEnumMap[instance.type]!;
-  writeNotNull('updatedAt', instance.updatedAt);
-  writeNotNull('previewData', instance.previewData?.toJson());
-  val['text'] = instance.text;
-  return val;
-}
+Map<String, dynamic> _$TextMessageToJson(TextMessage instance) =>
+    <String, dynamic>{
+      'author': instance.author.toJson(),
+      'createdAt': instance.createdAt,
+      'id': instance.id,
+      'metadata': instance.metadata,
+      'remoteId': instance.remoteId,
+      'repliedMessage': instance.repliedMessage?.toJson(),
+      'roomId': instance.roomId,
+      'showStatus': instance.showStatus,
+      'status': _$StatusEnumMap[instance.status],
+      'type': _$MessageTypeEnumMap[instance.type]!,
+      'updatedAt': instance.updatedAt,
+      'position': instance.position?.toJson(),
+      'previewData': instance.previewData?.toJson(),
+      'text': instance.text,
+    };
 
 const _$StatusEnumMap = {
   Status.delivered: 'delivered',

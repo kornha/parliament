@@ -75,7 +75,7 @@ class Database {
   Future<Post?> getFirstPostInDraft(uid) {
     return postCollection
         .where("creator", isEqualTo: uid)
-        .where("status", isEqualTo: PostStatus.DRAFT.name)
+        .where("status", isEqualTo: PostStatus.draft.name)
         .orderBy("createdAt", descending: true)
         .limit(1)
         .get()

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:political_think/common/chat/chat_types/flutter_chat_types.dart'
     as types;
+import 'package:political_think/common/components/loading.dart';
+import 'package:political_think/common/components/zerror.dart';
 import 'package:political_think/common/constants.dart';
 import 'package:political_think/common/extensions.dart';
 import '../state/inherited_chat_theme.dart';
@@ -26,17 +28,9 @@ class MessageStatus extends StatelessWidget {
     switch (status) {
       case types.Status.delivered:
       case types.Status.sent:
-        return InheritedChatTheme.of(context).theme.deliveredIcon != null
-            ? InheritedChatTheme.of(context).theme.deliveredIcon!
-            : context.deliveredIcon;
+        return context.deliveredIcon;
       case types.Status.error:
-        return InheritedChatTheme.of(context).theme.errorIcon != null
-            ? InheritedChatTheme.of(context).theme.errorIcon!
-            : Image.asset(
-                'assets/icon-error.png',
-                color: InheritedChatTheme.of(context).theme.errorColor,
-                package: 'flutter_chat_ui',
-              );
+        return const ZError(size: IconSize.small);
       case types.Status.seen:
         return InheritedChatTheme.of(context).theme.seenIcon != null
             ? InheritedChatTheme.of(context).theme.seenIcon!
@@ -46,21 +40,9 @@ class MessageStatus extends StatelessWidget {
                 package: 'flutter_chat_ui',
               );
       case types.Status.sending:
-        return InheritedChatTheme.of(context).theme.sendingIcon != null
-            ? InheritedChatTheme.of(context).theme.sendingIcon!
-            : Center(
-                child: SizedBox(
-                  height: 10,
-                  width: 10,
-                  child: CircularProgressIndicator(
-                    backgroundColor: Colors.transparent,
-                    strokeWidth: 1.5,
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      InheritedChatTheme.of(context).theme.primaryColor,
-                    ),
-                  ),
-                ),
-              );
+        return const Loading(
+          size: IconSize.small,
+        );
       default:
         return const SizedBox(width: 8);
     }

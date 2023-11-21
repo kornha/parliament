@@ -29,34 +29,33 @@ class ZScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        appBar: null,
-        body: NestedScrollView(
-          controller: scrollController,
-          headerSliverBuilder: (context, innerBoxIsScrolled) {
-            return [
-              SliverAppBar(
-                backgroundColor: context.backgroundColor,
-                pinned: true,
-                title: appBar,
-                centerTitle: true,
-                floating: true,
-                snap: true,
-                automaticallyImplyLeading: false,
-                forceElevated: innerBoxIsScrolled,
-              ),
-            ];
-          },
-          body: body,
-        ), //body,
-        backgroundColor: context.backgroundColor,
-        floatingActionButton: floatingActionButton,
-        floatingActionButtonLocation: floatingActionButtonLocation,
-        floatingActionButtonAnimator: floatingActionButtonAnimator,
-        endDrawer: endDrawer,
-        bottomNavigationBar: bottomNavigationBar,
-      ),
+    return Scaffold(
+      appBar: null,
+      body: NestedScrollView(
+        controller: scrollController,
+        physics: const NeverScrollableScrollPhysics(),
+        headerSliverBuilder: (context, innerBoxIsScrolled) {
+          return [
+            SliverAppBar(
+              backgroundColor: context.backgroundColor,
+              pinned: true,
+              title: appBar,
+              centerTitle: true,
+              floating: true,
+              snap: true,
+              automaticallyImplyLeading: false,
+              forceElevated: innerBoxIsScrolled,
+            ),
+          ];
+        },
+        body: body,
+      ), //body,
+      backgroundColor: context.backgroundColor,
+      floatingActionButton: floatingActionButton,
+      floatingActionButtonLocation: floatingActionButtonLocation,
+      floatingActionButtonAnimator: floatingActionButtonAnimator,
+      endDrawer: endDrawer,
+      bottomNavigationBar: bottomNavigationBar,
     );
   }
 }

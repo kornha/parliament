@@ -1,23 +1,30 @@
-const logger = require("firebase-functions/logger");
-const functions = require('firebase-functions');
-const admin = require('firebase-admin');
-const { v4: uuidv4 } = require('uuid');
-const { authenticate } = require("./auth");
-const { Timestamp } = require('firebase-admin/firestore');
+/* eslint-disable require-jsdoc */
+const functions = require("firebase-functions");
+const {incrementMessages} = require("./rooms");
+const {Timestamp} = require("firebase-admin/firestore");
 
-exports.changeMessageStatus = functions.firestore
-    .document('messages/{messageId}')
+
+//
+// Db triggers
+//
+
+exports.onMessageChange = functions.firestore
+    .document("messages/{messageId}")
     .onWrite((change) => {
-        const message = change.after.data();
-        if (message) {
-            if (['delivered', 'seen', 'sent'].includes(message.status)) {
-                return null;
-            } else {
-                return change.after.ref.update({
-                    status: 'delivered',
-                })
-            }
+      const message = change.after.data();
+      if (message) {
+        if (["delivered", "seen"].includes(message.status)) {
+          return null;
         } else {
-            return null;
+          incrementMessages(message.roomId);
+          return change.after.ref.update({
+            status: "delivered",
+            // this is technically overwriting local set timestamp
+            createdAt: Timestamp.now().toMillis(),
+          });
         }
+      } else {
+        return null;
+      }
     });
+

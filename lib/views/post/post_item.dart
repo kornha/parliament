@@ -60,7 +60,7 @@ class _PostViewState extends ConsumerState<PostItem> {
                           color: Palette.white,
                         ),
                         onPressed: () =>
-                            goToRoom(context, post!, Quadrant.LEFT),
+                            goToRoom(context, post!, Quadrant.left),
                       ),
                       ZTextButton(
                         backgroundColor: Palette.red,
@@ -69,7 +69,7 @@ class _PostViewState extends ConsumerState<PostItem> {
                           color: Palette.white,
                         ),
                         onPressed: () =>
-                            goToRoom(context, post!, Quadrant.RIGHT),
+                            goToRoom(context, post!, Quadrant.right),
                       ),
                     ],
                   ),

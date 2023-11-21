@@ -1,5 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
+import 'package:political_think/common/models/position.dart';
 
 import '../message.dart';
 import '../preview_data.dart' show PreviewData;
@@ -9,7 +10,7 @@ import 'partial_text.dart';
 part 'text_message.g.dart';
 
 /// A class that represents text message.
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 @immutable
 abstract class TextMessage extends Message {
   /// Creates a text message.
@@ -27,6 +28,7 @@ abstract class TextMessage extends Message {
     required this.text,
     MessageType? type,
     super.updatedAt,
+    super.position,
   }) : super(type: type ?? MessageType.text);
 
   const factory TextMessage({
@@ -43,6 +45,7 @@ abstract class TextMessage extends Message {
     required String text,
     MessageType? type,
     int? updatedAt,
+    Position? position,
   }) = _TextMessage;
 
   /// Creates a text message from a map (decoded JSON).
@@ -60,6 +63,7 @@ abstract class TextMessage extends Message {
     bool? showStatus,
     Status? status,
     int? updatedAt,
+    Position? position,
   }) =>
       _TextMessage(
         author: author,
@@ -75,6 +79,7 @@ abstract class TextMessage extends Message {
         text: partialText.text,
         type: MessageType.text,
         updatedAt: updatedAt,
+        position: position,
       );
 
   /// See [PreviewData].
@@ -98,6 +103,7 @@ abstract class TextMessage extends Message {
         status,
         text,
         updatedAt,
+        position,
       ];
 
   @override
@@ -114,6 +120,7 @@ abstract class TextMessage extends Message {
     Status? status,
     String? text,
     int? updatedAt,
+    Position? position,
   });
 
   /// Converts a text message to the map representation, encodable to JSON.
@@ -137,6 +144,7 @@ class _TextMessage extends TextMessage {
     required super.text,
     super.type,
     super.updatedAt,
+    super.position,
   }) : super._();
 
   @override
@@ -153,6 +161,7 @@ class _TextMessage extends TextMessage {
     dynamic status = _Unset,
     String? text,
     dynamic updatedAt = _Unset,
+    dynamic position = _Unset,
   }) =>
       _TextMessage(
         author: author ?? this.author,
@@ -168,12 +177,13 @@ class _TextMessage extends TextMessage {
         repliedMessage: repliedMessage == _Unset
             ? this.repliedMessage
             : repliedMessage as Message?,
-        roomId: roomId == _Unset ? this.roomId : roomId as String?,
+        roomId: roomId ?? this.roomId,
         showStatus:
             showStatus == _Unset ? this.showStatus : showStatus as bool?,
         status: status == _Unset ? this.status : status as Status?,
         text: text ?? this.text,
         updatedAt: updatedAt == _Unset ? this.updatedAt : updatedAt as int?,
+        position: position == _Unset ? this.position : position as Position?,
       );
 }
 

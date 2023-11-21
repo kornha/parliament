@@ -7,7 +7,7 @@ import 'image_message.dart';
 part 'partial_image.g.dart';
 
 /// A class that represents partial image message.
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 @immutable
 class PartialImage {
   /// Creates a partial image message with all variables image can have.

@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:political_think/common/chat/chat_types/flutter_chat_types.dart'
     as types;
@@ -58,6 +59,7 @@ class Message extends StatelessWidget {
     required this.usePreviewData,
     this.userAgent,
     this.videoMessageBuilder,
+    this.messageExpiryTime,
   });
 
   /// Build an audio message inside predefined bubble.
@@ -187,6 +189,10 @@ class Message extends StatelessWidget {
   final Widget Function(types.VideoMessage, {required int messageWidth})?
       videoMessageBuilder;
 
+  /// The time at which the message renders the surface color
+  /// added to the library for this project
+  final int? messageExpiryTime;
+
   Widget _avatarBuilder() => showAvatar
       ? avatarBuilder?.call(message.author.id) ??
           ProfileIcon(size: IconSize.small, uid: message.author.id)
@@ -212,12 +218,15 @@ class Message extends StatelessWidget {
         maxWidth: context.screenSize.width * 0.6,
       ),
       decoration: BoxDecoration(
-        color: context.surfaceColor,
+        color: messageExpiryTime != null &&
+                (message.createdAt ?? 0) > messageExpiryTime!
+            ? context.surfaceColor
+            : message.position?.color ?? context.surfaceColor,
         borderRadius: _getMessageShape(currentUserIsAuthor),
       ),
       child: TextMessageText(
         text: (message as types.TextMessage).text,
-        bodyTextStyle: TextStyle(color: context.primaryColor),
+        bodyTextStyle: TextStyle(color: context.onSurfaceColor),
       ),
     );
 
@@ -398,7 +407,8 @@ class Message extends StatelessWidget {
                   MessageStatus.shouldShowMessageStatus(message.status) ||
               !showUserAvatars)
             Padding(
-              padding: InheritedChatTheme.of(context).theme.statusIconPadding,
+              padding:
+                  const EdgeInsets.symmetric(horizontal: IconSize.small / 2),
               child: showStatus
                   ? GestureDetector(
                       onLongPress: () =>

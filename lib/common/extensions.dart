@@ -46,12 +46,12 @@ extension ThemeExt on BuildContext {
   Color get onSecondaryColor => Theme.of(this).colorScheme.onSecondary;
   TargetPlatform get platform => Theme.of(this).platform;
 
-  bool get isAndroid => this.platform == TargetPlatform.android;
-  bool get isIOS => this.platform == TargetPlatform.iOS;
-  bool get isMacOS => this.platform == TargetPlatform.macOS;
-  bool get isWindows => this.platform == TargetPlatform.windows;
-  bool get isFuchsia => this.platform == TargetPlatform.fuchsia;
-  bool get isLinux => this.platform == TargetPlatform.linux;
+  bool get isAndroid => platform == TargetPlatform.android;
+  bool get isIOS => platform == TargetPlatform.iOS;
+  bool get isMacOS => platform == TargetPlatform.macOS;
+  bool get isWindows => platform == TargetPlatform.windows;
+  bool get isFuchsia => platform == TargetPlatform.fuchsia;
+  bool get isLinux => platform == TargetPlatform.linux;
 }
 
 extension MediaQueryExt on BuildContext {
@@ -109,6 +109,8 @@ extension Spacing on BuildContext {
 
   double get blockWidth =>
       isMobileOrTablet ? Block.blockWidthSmall : Block.blockWidthLarge;
+  SizedBox get sqd =>
+      const SizedBox(height: Margins.quadruple, width: Margins.quadruple);
   SizedBox get st =>
       const SizedBox(height: Margins.triple, width: Margins.triple);
   SizedBox get sd =>
@@ -143,4 +145,16 @@ extension ModalExt on BuildContext {
 extension ConstantsExt on BuildContext {
   Widget get sendIcon => Icon(Icons.send, color: primaryColor);
   Widget get deliveredIcon => Icon(Icons.receipt, color: primaryColor);
+}
+
+extension TextExt on BuildContext {
+  TextStyle get DL => Theme.of(this).textTheme.displayLarge!;
+  TextStyle get DM => Theme.of(this).textTheme.displayMedium!;
+  TextStyle get DS => Theme.of(this).textTheme.displaySmall!;
+  TextStyle get HL => Theme.of(this).textTheme.headlineLarge!;
+  TextStyle get HM => Theme.of(this).textTheme.headlineMedium!;
+  TextStyle get HS => Theme.of(this).textTheme.headlineSmall!;
+  TextStyle get BM => Theme.of(this).textTheme.bodyMedium!;
+  TextStyle get BS => Theme.of(this).textTheme.bodySmall!;
+  TextStyle get BL => Theme.of(this).textTheme.bodyLarge!;
 }

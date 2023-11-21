@@ -17,18 +17,10 @@ PartialText _$PartialTextFromJson(Map<String, dynamic> json) => PartialText(
       text: json['text'] as String,
     );
 
-Map<String, dynamic> _$PartialTextToJson(PartialText instance) {
-  final val = <String, dynamic>{};
-
-  void writeNotNull(String key, dynamic value) {
-    if (value != null) {
-      val[key] = value;
-    }
-  }
-
-  writeNotNull('metadata', instance.metadata);
-  writeNotNull('previewData', instance.previewData?.toJson());
-  writeNotNull('repliedMessage', instance.repliedMessage?.toJson());
-  val['text'] = instance.text;
-  return val;
-}
+Map<String, dynamic> _$PartialTextToJson(PartialText instance) =>
+    <String, dynamic>{
+      'metadata': instance.metadata,
+      'previewData': instance.previewData?.toJson(),
+      'repliedMessage': instance.repliedMessage?.toJson(),
+      'text': instance.text,
+    };

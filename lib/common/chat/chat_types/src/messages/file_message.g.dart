@@ -27,34 +27,25 @@ FileMessage _$FileMessageFromJson(Map<String, dynamic> json) => FileMessage(
       uri: json['uri'] as String,
     );
 
-Map<String, dynamic> _$FileMessageToJson(FileMessage instance) {
-  final val = <String, dynamic>{
-    'author': instance.author.toJson(),
-  };
-
-  void writeNotNull(String key, dynamic value) {
-    if (value != null) {
-      val[key] = value;
-    }
-  }
-
-  writeNotNull('createdAt', instance.createdAt);
-  val['id'] = instance.id;
-  writeNotNull('metadata', instance.metadata);
-  writeNotNull('remoteId', instance.remoteId);
-  writeNotNull('repliedMessage', instance.repliedMessage?.toJson());
-  writeNotNull('roomId', instance.roomId);
-  writeNotNull('showStatus', instance.showStatus);
-  writeNotNull('status', _$StatusEnumMap[instance.status]);
-  val['type'] = _$MessageTypeEnumMap[instance.type]!;
-  writeNotNull('updatedAt', instance.updatedAt);
-  writeNotNull('isLoading', instance.isLoading);
-  writeNotNull('mimeType', instance.mimeType);
-  val['name'] = instance.name;
-  val['size'] = instance.size;
-  val['uri'] = instance.uri;
-  return val;
-}
+Map<String, dynamic> _$FileMessageToJson(FileMessage instance) =>
+    <String, dynamic>{
+      'author': instance.author.toJson(),
+      'createdAt': instance.createdAt,
+      'id': instance.id,
+      'metadata': instance.metadata,
+      'remoteId': instance.remoteId,
+      'repliedMessage': instance.repliedMessage?.toJson(),
+      'roomId': instance.roomId,
+      'showStatus': instance.showStatus,
+      'status': _$StatusEnumMap[instance.status],
+      'type': _$MessageTypeEnumMap[instance.type]!,
+      'updatedAt': instance.updatedAt,
+      'isLoading': instance.isLoading,
+      'mimeType': instance.mimeType,
+      'name': instance.name,
+      'size': instance.size,
+      'uri': instance.uri,
+    };
 
 const _$StatusEnumMap = {
   Status.delivered: 'delivered',

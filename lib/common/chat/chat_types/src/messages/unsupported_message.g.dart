@@ -23,29 +23,20 @@ UnsupportedMessage _$UnsupportedMessageFromJson(Map<String, dynamic> json) =>
       updatedAt: json['updatedAt'] as int?,
     );
 
-Map<String, dynamic> _$UnsupportedMessageToJson(UnsupportedMessage instance) {
-  final val = <String, dynamic>{
-    'author': instance.author.toJson(),
-  };
-
-  void writeNotNull(String key, dynamic value) {
-    if (value != null) {
-      val[key] = value;
-    }
-  }
-
-  writeNotNull('createdAt', instance.createdAt);
-  val['id'] = instance.id;
-  writeNotNull('metadata', instance.metadata);
-  writeNotNull('remoteId', instance.remoteId);
-  writeNotNull('repliedMessage', instance.repliedMessage?.toJson());
-  writeNotNull('roomId', instance.roomId);
-  writeNotNull('showStatus', instance.showStatus);
-  writeNotNull('status', _$StatusEnumMap[instance.status]);
-  val['type'] = _$MessageTypeEnumMap[instance.type]!;
-  writeNotNull('updatedAt', instance.updatedAt);
-  return val;
-}
+Map<String, dynamic> _$UnsupportedMessageToJson(UnsupportedMessage instance) =>
+    <String, dynamic>{
+      'author': instance.author,
+      'createdAt': instance.createdAt,
+      'id': instance.id,
+      'metadata': instance.metadata,
+      'remoteId': instance.remoteId,
+      'repliedMessage': instance.repliedMessage,
+      'roomId': instance.roomId,
+      'showStatus': instance.showStatus,
+      'status': _$StatusEnumMap[instance.status],
+      'type': _$MessageTypeEnumMap[instance.type]!,
+      'updatedAt': instance.updatedAt,
+    };
 
 const _$StatusEnumMap = {
   Status.delivered: 'delivered',

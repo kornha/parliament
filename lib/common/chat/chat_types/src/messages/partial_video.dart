@@ -7,7 +7,7 @@ import 'video_message.dart';
 part 'partial_video.g.dart';
 
 /// A class that represents partial video message.
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 @immutable
 class PartialVideo {
   /// Creates a partial video message with all variables video can have.

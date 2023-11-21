@@ -1,5 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
+import 'package:political_think/common/models/position.dart';
 
 import '../message.dart';
 import '../user.dart' show User;
@@ -8,7 +9,7 @@ import 'partial_file.dart';
 part 'file_message.g.dart';
 
 /// A class that represents file message.
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 @immutable
 abstract class FileMessage extends Message {
   /// Creates a file message.
@@ -29,6 +30,7 @@ abstract class FileMessage extends Message {
     MessageType? type,
     super.updatedAt,
     required this.uri,
+    // super.position,
   }) : super(type: type ?? MessageType.file);
 
   const factory FileMessage({
@@ -138,6 +140,7 @@ abstract class FileMessage extends Message {
     Status? status,
     int? updatedAt,
     String? uri,
+    Position? position,
   });
 
   /// Converts a file message to the map representation, encodable to JSON.
@@ -164,6 +167,7 @@ class _FileMessage extends FileMessage {
     super.type,
     super.updatedAt,
     required super.uri,
+    // super.position,
   }) : super._();
 
   @override
@@ -185,6 +189,7 @@ class _FileMessage extends FileMessage {
     dynamic updatedAt = _Unset,
     String? uri,
     dynamic width = _Unset,
+    dynamic position = _Unset,
   }) =>
       _FileMessage(
         author: author ?? this.author,
@@ -207,6 +212,7 @@ class _FileMessage extends FileMessage {
         status: status == _Unset ? this.status : status as Status?,
         updatedAt: updatedAt == _Unset ? this.updatedAt : updatedAt as int?,
         uri: uri ?? this.uri,
+        // position: position == _Unset ? this.position : position as Position?,
       );
 }
 

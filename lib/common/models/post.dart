@@ -4,7 +4,7 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'post.g.dart';
 
-enum PostStatus { DRAFT, PUBLISHED }
+enum PostStatus { draft, published }
 
 @JsonSerializable()
 class Post {

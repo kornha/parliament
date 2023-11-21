@@ -6,7 +6,7 @@ import '../message.dart';
 part 'partial_audio.g.dart';
 
 /// A class that represents partial audio message.
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 @immutable
 class PartialAudio {
   /// Creates a partial audio message with all variables audio can have.

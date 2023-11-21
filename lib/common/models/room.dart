@@ -1,13 +1,16 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:political_think/common/models/clock.dart';
+import 'package:political_think/common/models/decision.dart';
 import 'package:political_think/common/models/position.dart';
 import 'package:political_think/common/models/zuser.dart';
 
 part 'room.g.dart';
 
-enum RoomStatus { DRAFT, PUBLISHED }
+enum RoomStatus { waiting, locked, live, judging, finished, errored }
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class Room {
   final String rid;
   final String pid;
@@ -15,28 +18,33 @@ class Room {
   List<String> users;
   List<String> leftUsers;
   List<String> rightUsers;
+  RoomStatus status;
+  int? messageCount;
+  Clock? clock;
+  Decision? decision;
 
   @JsonKey(fromJson: _timestampFromJson, toJson: _timestampToJson)
   Timestamp createdAt;
-  @JsonKey(fromJson: _timestampFromJson, toJson: _timestampToJson)
-  Timestamp updatedAt;
 
   Room({
     required this.rid,
     required this.pid,
+    required this.status,
     this.users = const [],
     this.leftUsers = const [],
     this.rightUsers = const [],
     this.messages = const [],
     required this.createdAt,
-    required this.updatedAt,
+    this.messageCount,
+    this.clock,
+    this.decision,
   });
 
   Position? getUserPosition(String uid) {
     if (leftUsers.contains(uid) && !rightUsers.contains(uid)) {
-      return Position.fromQuandrantDefault(Quadrant.LEFT);
+      return Position.fromQuandrantDefault(Quadrant.left);
     } else if (rightUsers.contains(uid) && !leftUsers.contains(uid)) {
-      return Position.fromQuandrantDefault(Quadrant.RIGHT);
+      return Position.fromQuandrantDefault(Quadrant.right);
     } else {
       return null;
     }

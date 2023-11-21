@@ -1,5 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
+import 'package:political_think/common/models/position.dart';
 
 import '../message.dart';
 import '../user.dart' show User;
@@ -26,6 +27,7 @@ abstract class UnsupportedMessage extends Message {
     super.status,
     MessageType? type,
     super.updatedAt,
+    // super.position,
   }) : super(type: type ?? MessageType.unsupported);
 
   const factory UnsupportedMessage({
@@ -73,6 +75,7 @@ abstract class UnsupportedMessage extends Message {
     bool? showStatus,
     Status? status,
     int? updatedAt,
+    Position? position,
   });
 
   /// Converts an unsupported message to the map representation,
@@ -95,6 +98,7 @@ class _UnsupportedMessage extends UnsupportedMessage {
     super.status,
     super.type,
     super.updatedAt,
+    // super.position,
   }) : super._();
 
   @override
@@ -109,6 +113,7 @@ class _UnsupportedMessage extends UnsupportedMessage {
     dynamic showStatus = _Unset,
     dynamic status = _Unset,
     dynamic updatedAt = _Unset,
+    dynamic position = _Unset,
   }) =>
       _UnsupportedMessage(
         author: author ?? this.author,
@@ -126,6 +131,7 @@ class _UnsupportedMessage extends UnsupportedMessage {
             showStatus == _Unset ? this.showStatus : showStatus as bool?,
         status: status == _Unset ? this.status : status as Status?,
         updatedAt: updatedAt == _Unset ? this.updatedAt : updatedAt as int?,
+        // position: position == _Unset ? this.position : position as Position?,
       );
 }
 

@@ -31,7 +31,7 @@ class ThemeConstants {
       background: Palette.black,
       onBackground: Palette.blue,
       surface: Palette.darkSlate,
-      onSurface: Palette.lightSlate,
+      onSurface: Palette.white,
     ),
     brightness: Brightness.dark,
   );
@@ -48,7 +48,7 @@ class ThemeConstants {
       background: Palette.white,
       onBackground: Palette.blue,
       surface: Palette.lightSlate,
-      onSurface: Palette.darkSlate,
+      onSurface: Palette.white,
     ),
     // highlightColor: Colors.transparent,
     // splashColor: Colors.transparent,
