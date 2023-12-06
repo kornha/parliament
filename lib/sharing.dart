@@ -22,10 +22,14 @@ class _SharingState extends State<Sharing> {
   void initState() {
     super.initState();
 
+    // Sharing not supported on web!
+    // simply return here instead of making 2 classes
+    if (context.isWeb) return;
+
     // For sharing images coming from outside the app while the app is in the memory
     _intentDataStreamSubscription = ReceiveSharingIntent.getMediaStream()
         .listen((List<SharedMediaFile> value) {
-      print("Shared:" + (_sharedFiles?.map((f) => f.path)?.join(",") ?? ""));
+      print("Shared:${_sharedFiles?.map((f) => f.path).join(",") ?? ""}");
     }, onError: (err) {
       //print("getIntentDataStream error: $err");
     });

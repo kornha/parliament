@@ -7,6 +7,15 @@
             "type": "dart"
         },
         {
+            "name": "web",
+            "request": "launch",
+            "type": "dart",
+            "args": [
+                "--web-port",
+                "7357"
+            ]
+        },
+        {
             "name": "iPhone14",
             "request": "launch",
             "type": "dart",

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -52,6 +53,7 @@ extension ThemeExt on BuildContext {
   bool get isWindows => platform == TargetPlatform.windows;
   bool get isFuchsia => platform == TargetPlatform.fuchsia;
   bool get isLinux => platform == TargetPlatform.linux;
+  bool get isWeb => kIsWeb;
 }
 
 extension MediaQueryExt on BuildContext {
