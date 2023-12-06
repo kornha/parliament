@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:meta/meta.dart';
-import 'package:political_think/common/models/position.dart';
+import 'package:political_think/common/models/political_position.dart';
 
 import 'messages/audio_message.dart';
 import 'messages/custom_message.dart';
@@ -108,7 +108,7 @@ abstract class Message extends Equatable {
   final int? updatedAt;
 
   // Position of this message (added).
-  final Position? position;
+  final PoliticalPosition? position;
 
   /// Creates a copy of the message with an updated data.
   Message copyWith({
@@ -122,7 +122,7 @@ abstract class Message extends Equatable {
     bool? showStatus,
     Status? status,
     int? updatedAt,
-    Position? position,
+    PoliticalPosition? position,
   });
 
   /// Converts a particular message to the map representation, serializable to JSON.

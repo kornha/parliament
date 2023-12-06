@@ -1,6 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
-import 'package:political_think/common/models/position.dart';
+import 'package:political_think/common/models/political_position.dart';
 
 import '../message.dart';
 import '../user.dart' show User;
@@ -147,7 +147,7 @@ abstract class AudioMessage extends Message {
     int? updatedAt,
     String? uri,
     List<double>? waveForm,
-    Position? position,
+    PoliticalPosition? position,
   });
 
   /// Converts an audio message to the map representation, encodable to JSON.

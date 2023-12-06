@@ -3,7 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:political_think/common/components/zbottom_bar_scaffold.dart';
 import 'package:political_think/common/components/zerror.dart';
-import 'package:political_think/common/models/position.dart';
+import 'package:political_think/common/models/political_position.dart';
 import 'package:political_think/common/services/zprovider.dart';
 import 'package:political_think/sharing.dart';
 import 'package:political_think/views/feed/feed.dart';

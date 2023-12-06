@@ -4,7 +4,7 @@ import 'package:flutter_countdown_timer/index.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:political_think/common/constants.dart';
 import 'package:political_think/common/extensions.dart';
-import 'package:political_think/common/models/position.dart';
+import 'package:political_think/common/models/political_position.dart';
 import 'package:political_think/common/models/room.dart';
 
 class DebateStatus extends StatelessWidget {
@@ -22,8 +22,7 @@ class DebateStatus extends StatelessWidget {
     return Container(
         margin: context.blockMargin,
         decoration: BoxDecoration(
-          color:
-              room.decision?.winner.toQuadrant().color ?? context.surfaceColor,
+          color: room.decision?.winner.quadrant.color ?? context.surfaceColor,
           borderRadius: BRadius.standard,
         ),
         height: context.sqd.height,
@@ -34,14 +33,14 @@ class DebateStatus extends StatelessWidget {
             _getSideCell(context, true),
             Container(
                 width: context.sq.width,
-                color: room.decision?.winner.toQuadrant().color ??
+                color: room.decision?.winner.quadrant.color ??
                     context.backgroundColor),
             const Spacer(),
             _getCenterCell(context),
             const Spacer(),
             Container(
                 width: context.sq.width,
-                color: room.decision?.winner.toQuadrant().color ??
+                color: room.decision?.winner.quadrant.color ??
                     context.backgroundColor),
             _getSideCell(context, false),
           ],
@@ -69,7 +68,7 @@ class DebateStatus extends StatelessWidget {
         return Text("Debate is being judged",
             style: context.HS.copyWith(color: context.onSurfaceColor));
       case RoomStatus.finished:
-        return Text("${room.decision!.winner.toQuadrant().name} wins",
+        return Text("${room.decision!.winner.quadrant.name} wins",
             style: context.HS.copyWith(color: context.onSurfaceColor));
       case RoomStatus.errored:
         return Text("Failed to get a winner",
@@ -108,13 +107,12 @@ class DebateStatus extends StatelessWidget {
       case RoomStatus.finished:
         return SideContainer(
             leftSide: leftSide,
-            color: room.decision?.winner.toQuadrant().color ??
-                context.surfaceColor,
+            color: room.decision?.winner.quadrant.color ?? context.surfaceColor,
             child: (leftSide && liberalIsLeft || !leftSide && !liberalIsLeft) &&
-                        room.decision?.winner.toQuadrant() == Quadrant.left ||
+                        room.decision?.winner.quadrant == Quadrant.left ||
                     (leftSide && !liberalIsLeft ||
                             !leftSide && liberalIsLeft) &&
-                        room.decision?.winner.toQuadrant() == Quadrant.right
+                        room.decision?.winner.quadrant == Quadrant.right
                 ? Icon(Icons.check,
                     color: context.onSurfaceColor, size: IconSize.big)
                 : const SizedBox.shrink());

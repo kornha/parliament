@@ -12,7 +12,7 @@ import 'package:political_think/common/models/zuser.dart';
 import 'package:political_think/common/services/zprovider.dart';
 import 'package:political_think/common/services/auth.dart';
 import 'package:political_think/views/post/post_builder.dart';
-import 'package:political_think/views/post/post_item.dart';
+import 'package:political_think/views/post/post_view.dart';
 import 'package:riverpod_infinite_scroll/riverpod_infinite_scroll.dart';
 
 class Feed extends ConsumerStatefulWidget {
@@ -55,7 +55,7 @@ class _FeedState extends ConsumerState<Feed> {
                         visible: index != 0,
                         child: const ZDivider(),
                       ),
-                      PostItem(pid: item.pid, showDebateButtons: true),
+                      PostView(pid: item.pid, showDebateButtons: true),
                     ],
                   );
                 },

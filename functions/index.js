@@ -1,9 +1,10 @@
 const admin = require("firebase-admin");
 const {joinRoom, onRoomChange, startDebate} = require("./rooms");
 const {onMessageChange} = require("./messages");
-const {createUserFunction} = require("./users");
+const {onAuthUserCreate} = require("./users");
 const {debateDidTimeOutTask, debateDidTimeOut} = require("./debate");
 const {TaskQueue} = require( "firebase-admin/functions");
+const {onPostCreate} = require("./posts");
 
 admin.initializeApp();
 
@@ -21,10 +22,11 @@ Object.assign(TaskQueue.prototype, {
 });
 
 module.exports = {
+  onAuthUserCreate,
+  onPostCreate,
+  onMessageChange,
   joinRoom,
   onRoomChange,
   startDebate,
   debateDidTimeOutTask,
-  onMessageChange,
-  createUserFunction,
 };

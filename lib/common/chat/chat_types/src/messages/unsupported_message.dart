@@ -1,6 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
-import 'package:political_think/common/models/position.dart';
+import 'package:political_think/common/models/political_position.dart';
 
 import '../message.dart';
 import '../user.dart' show User;
@@ -75,7 +75,7 @@ abstract class UnsupportedMessage extends Message {
     bool? showStatus,
     Status? status,
     int? updatedAt,
-    Position? position,
+    PoliticalPosition? position,
   });
 
   /// Converts an unsupported message to the map representation,

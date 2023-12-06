@@ -45,6 +45,7 @@ class ZScaffold extends StatelessWidget {
               snap: true,
               automaticallyImplyLeading: false,
               forceElevated: innerBoxIsScrolled,
+              elevation: 0,
             ),
           ];
         },

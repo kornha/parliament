@@ -10,12 +10,11 @@ class ZImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var width = context.screenSize.width - context.sd.width!;
     if (imageUrl.endsWith('.svg')) {
       return SvgPicture.network(
         imageUrl,
-        width: width,
-        height: width * 9 / 16,
+        width: context.imageSize.width,
+        height: context.imageSize.height,
         fit: BoxFit.fitHeight,
         placeholderBuilder: (context) => const LoadingShimmer(),
       );
@@ -26,8 +25,8 @@ class ZImage extends StatelessWidget {
           return loadingProgress == null ? child : const LoadingShimmer();
         },
         fit: BoxFit.fitHeight,
-        width: width,
-        height: width * 9 / 16,
+        width: context.imageSize.width,
+        height: context.imageSize.height,
         errorBuilder: (context, error, stackTrace) {
           return const LoadingShimmer();
         },

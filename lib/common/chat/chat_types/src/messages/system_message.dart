@@ -1,6 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
-import 'package:political_think/common/models/position.dart';
+import 'package:political_think/common/models/political_position.dart';
 
 import '../message.dart';
 import '../user.dart' show User;
@@ -80,7 +80,7 @@ abstract class SystemMessage extends Message {
     Status? status,
     String? text,
     int? updatedAt,
-    Position? position,
+    PoliticalPosition? position,
   });
 
   /// Converts a custom message to the map representation,
