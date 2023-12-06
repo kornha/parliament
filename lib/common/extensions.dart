@@ -68,6 +68,8 @@ extension MediaQueryExt on BuildContext {
   Brightness get platformBrightness => MediaQuery.of(this).platformBrightness;
   double get textScaleFactor => MediaQuery.of(this).textScaleFactor;
   double get mediaQueryShortestSide => screenSize.shortestSide;
+  Size get imageSize => Size(screenSize.width - sd.width!,
+      (screenSize.width - sd.width!) * 9.0 / 16.0);
 
   /// True if the current device is Phone
   bool get isMobile => screenSize.width < 600;
@@ -143,7 +145,7 @@ extension ModalExt on BuildContext {
 }
 
 extension ConstantsExt on BuildContext {
-  Widget get sendIcon => Icon(Icons.send, color: primaryColor);
+  Widget get sendIcon => Icon(Icons.send, color: onSurfaceColor);
   Widget get deliveredIcon => Icon(Icons.receipt, color: primaryColor);
 }
 

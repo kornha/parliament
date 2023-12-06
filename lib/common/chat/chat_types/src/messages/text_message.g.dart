@@ -26,7 +26,8 @@ TextMessage _$TextMessageFromJson(Map<String, dynamic> json) => TextMessage(
       updatedAt: json['updatedAt'] as int?,
       position: json['position'] == null
           ? null
-          : Position.fromJson(json['position'] as Map<String, dynamic>),
+          : PoliticalPosition.fromJson(
+              json['position'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$TextMessageToJson(TextMessage instance) =>

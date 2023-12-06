@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:political_think/common/models/clock.dart';
 import 'package:political_think/common/models/decision.dart';
-import 'package:political_think/common/models/position.dart';
+import 'package:political_think/common/models/political_position.dart';
 import 'package:political_think/common/models/zuser.dart';
 
 part 'room.g.dart';
@@ -40,11 +40,11 @@ class Room {
     this.decision,
   });
 
-  Position? getUserPosition(String uid) {
+  PoliticalPosition? getUserPosition(String uid) {
     if (leftUsers.contains(uid) && !rightUsers.contains(uid)) {
-      return Position.fromQuandrantDefault(Quadrant.left);
+      return PoliticalPosition.fromQuandrant(Quadrant.left);
     } else if (rightUsers.contains(uid) && !leftUsers.contains(uid)) {
-      return Position.fromQuandrantDefault(Quadrant.right);
+      return PoliticalPosition.fromQuandrant(Quadrant.right);
     } else {
       return null;
     }

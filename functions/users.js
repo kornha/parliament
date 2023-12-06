@@ -1,7 +1,7 @@
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 
-exports.createUserFunction = functions.auth.user().onCreate((user) => {
+exports.onAuthUserCreate = functions.auth.user().onCreate((user) => {
   const userDoc = {
     uid: user.uid,
     email: user.email,

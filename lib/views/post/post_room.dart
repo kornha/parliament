@@ -11,7 +11,7 @@ import 'package:political_think/common/components/zerror.dart';
 import 'package:political_think/common/components/zscaffold.dart';
 import 'package:political_think/common/constants.dart';
 import 'package:political_think/common/extensions.dart';
-import 'package:political_think/common/models/position.dart';
+import 'package:political_think/common/models/political_position.dart';
 import 'package:political_think/common/models/room.dart';
 import 'package:political_think/common/models/zuser.dart';
 import 'package:political_think/common/services/database.dart';
@@ -20,7 +20,7 @@ import 'package:political_think/common/services/zprovider.dart';
 import 'package:political_think/common/util/zimage.dart';
 import 'package:political_think/common/extensions.dart';
 
-import 'package:political_think/views/post/post_item.dart';
+import 'package:political_think/views/post/post_view.dart';
 import 'package:political_think/views/post/debate_status.dart';
 import 'package:scroll_to_index/scroll_to_index.dart';
 import 'package:uuid/uuid.dart';
@@ -63,7 +63,9 @@ class _PostViewState extends ConsumerState<PostRoom> {
     //
     var messagesRef = room == null ? null : ref.messagesWatch(room.rid, _limit);
     var messages = messagesRef?.value;
-    if (_messages.isNotEmpty && _messages.last == messages?.last) {
+    // I tried directly comparing messages but it would sometimes fail
+    // so I'm comparing the last message id instead
+    if (_messages.isNotEmpty && _messages.last.id == messages?.last.id) {
       _isLastMessage = true;
     }
     if (messages != null) {
@@ -96,7 +98,7 @@ class _PostViewState extends ConsumerState<PostRoom> {
                         Expanded(
                           child: Chat(
                             pinnedMessageHeader: !messagesRef!.isLoading
-                                ? PostItem(pid: post!.pid)
+                                ? PostView(pid: post!.pid)
                                 : const Loading(),
                             isLastPage: _isLastMessage,
                             //TODO: move this

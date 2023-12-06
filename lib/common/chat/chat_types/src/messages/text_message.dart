@@ -1,6 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
-import 'package:political_think/common/models/position.dart';
+import 'package:political_think/common/models/political_position.dart';
 
 import '../message.dart';
 import '../preview_data.dart' show PreviewData;
@@ -45,7 +45,7 @@ abstract class TextMessage extends Message {
     required String text,
     MessageType? type,
     int? updatedAt,
-    Position? position,
+    PoliticalPosition? position,
   }) = _TextMessage;
 
   /// Creates a text message from a map (decoded JSON).
@@ -63,7 +63,7 @@ abstract class TextMessage extends Message {
     bool? showStatus,
     Status? status,
     int? updatedAt,
-    Position? position,
+    PoliticalPosition? position,
   }) =>
       _TextMessage(
         author: author,
@@ -120,7 +120,7 @@ abstract class TextMessage extends Message {
     Status? status,
     String? text,
     int? updatedAt,
-    Position? position,
+    PoliticalPosition? position,
   });
 
   /// Converts a text message to the map representation, encodable to JSON.
@@ -183,7 +183,8 @@ class _TextMessage extends TextMessage {
         status: status == _Unset ? this.status : status as Status?,
         text: text ?? this.text,
         updatedAt: updatedAt == _Unset ? this.updatedAt : updatedAt as int?,
-        position: position == _Unset ? this.position : position as Position?,
+        position:
+            position == _Unset ? this.position : position as PoliticalPosition?,
       );
 }
 

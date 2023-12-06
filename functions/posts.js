@@ -1,21 +1,18 @@
-/* eslint-disable require-jsdoc */
 const functions = require("firebase-functions");
-const {incrementMessages} = require("./rooms");
 const {Timestamp} = require("firebase-admin/firestore");
 
 //
 // Db triggers
 //
 
-exports.onMessageChange = functions.firestore
-    .document("messages/{mid}")
-    .onWrite((change) => {
-      const message = change.after.data();
-      if (message) {
-        if (["delivered", "seen"].includes(message.status)) {
+exports.onPostCreate = functions.firestore
+    .document("posts/{pid}")
+    .onCreate((change) => {
+      const post = change.after.data();
+      if (post) {
+        if (["delivered", "seen"].includes(post.status)) {
           return null;
         } else {
-          incrementMessages(message.roomId);
           return change.after.ref.update({
             status: "delivered",
             // this is technically overwriting local set timestamp
@@ -26,4 +23,3 @@ exports.onMessageChange = functions.firestore
         return null;
       }
     });
-

@@ -44,6 +44,7 @@ dependencies:
   diffutil_dart: ^4.0.0
   date_count_down: ^3.0.0
   flutter_countdown_timer: ^4.1.0
+  flutter_joystick: ^0.0.4
 
 
 dev_dependencies:

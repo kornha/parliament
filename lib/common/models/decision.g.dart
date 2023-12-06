@@ -7,7 +7,8 @@ part of 'decision.dart';
 // **************************************************************************
 
 Decision _$DecisionFromJson(Map<String, dynamic> json) => Decision(
-      winner: Position.fromJson(json['winner'] as Map<String, dynamic>),
+      winner:
+          PoliticalPosition.fromJson(json['winner'] as Map<String, dynamic>),
       reason: json['reason'] as String,
     );
 

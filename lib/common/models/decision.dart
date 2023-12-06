@@ -1,12 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:political_think/common/models/position.dart';
+import 'package:political_think/common/models/political_position.dart';
 
 part 'decision.g.dart';
 
 @JsonSerializable(explicitToJson: true)
 class Decision {
-  Position winner;
+  PoliticalPosition winner;
   String reason;
 
   Decision({
