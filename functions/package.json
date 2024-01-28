@@ -10,14 +10,17 @@
     "logs": "firebase functions:log"
   },
   "engines": {
-    "node": "18"
+    "node": "20"
   },
   "main": "index.js",
   "dependencies": {
+    "@extractus/article-extractor": "^7.3.1",
+    "@pinecone-database/pinecone": "^1.1.2",
     "firebase-admin": "^11.8.0",
     "firebase-functions": "^4.3.1",
     "langchain": "^0.0.197-rc.1",
     "openai": "^4.17.4",
+    "puppeteer": "^19.11.1",
     "uuid": "^9.0.1"
   },
   "devDependencies": {

@@ -40,9 +40,7 @@ class MessageStatus extends StatelessWidget {
                 package: 'flutter_chat_ui',
               );
       case types.Status.sending:
-        return const Loading(
-          size: IconSize.small,
-        );
+        return const Loading(type: LoadingType.small);
       default:
         return const SizedBox(width: 8);
     }

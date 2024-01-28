@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -6,6 +8,8 @@ import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:political_think/common/constants.dart';
 import 'package:political_think/common/models/post.dart';
 import 'package:political_think/common/models/room.dart';
+import 'package:political_think/common/models/story.dart';
+import 'package:political_think/common/models/vote.dart';
 import 'package:political_think/common/models/zuser.dart';
 import 'package:political_think/common/services/zprovider.dart';
 import 'package:political_think/common/chat/chat_types/flutter_chat_types.dart'
@@ -16,22 +20,33 @@ extension ProviderExt on WidgetRef {
   get authRead => read(authProvider);
   AsyncValue<ZUser?> userWatch(uid) => watch(zuserProvider(uid));
   AsyncValue<ZUser?> userRead(uid) => read(zuserProvider(uid));
+  AsyncValue<Vote?> voteWatch(String pid, String uid, VoteType type) =>
+      watch(voteProvider((pid, uid, type)));
+  AsyncValue<Vote?> voteRead(String pid, String uid, VoteType type) =>
+      read(voteProvider((pid, uid, type)));
   AsyncValue<ZUser?> selfUserWatch() =>
       watch(zuserProvider(authRead.authUser!.uid));
   AsyncValue<ZUser?> selfUserRead() =>
       read(zuserProvider(authRead.authUser!.uid));
   ZUser user() => read(zuserProvider(authRead.authUser!.uid)).value!;
+  AsyncValue<Story?> storyWatch(String sid) => watch(storyProvider(sid));
+  AsyncValue<Story?> storyRead(String sid) => read(storyProvider(sid));
   AsyncValue<Post?> postWatch(String pid) => watch(postProvider(pid));
   AsyncValue<Post?> postRead(String pid) => read(postProvider(pid));
-  AsyncValue<Room?> roomWatch(String uid, String pid) =>
-      watch(roomProvider((uid, pid)));
-  AsyncValue<Room?> roomRead(String uid, String pid) =>
-      read(roomProvider((uid, pid)));
+  AsyncValue<List<Post>?> postsFromStoriesWatch(String sid) =>
+      watch(postsFromStoryProvider(sid));
+  AsyncValue<List<Post>?> postsFromStoriesRead(String sid) =>
+      read(postsFromStoryProvider(sid));
 
-  AsyncValue<List<ct.Message>?> messagesWatch(String rid, int limit) =>
-      watch(messagesProvider((rid, limit)));
-  refreshMessages(String rid, int limit) =>
-      refresh(messagesProvider((rid, limit)));
+  AsyncValue<Room?> activeRoomWatch(String parentId, RoomParentType type) =>
+      watch(latestRoomProvider((parentId, type.collectionName)));
+  AsyncValue<Room?> activeRoomRead(String parentId, RoomParentType type) =>
+      read(latestRoomProvider((parentId, type.collectionName)));
+
+  AsyncValue<List<ct.Message>?> messagesWatch(Room room, int limit) =>
+      watch(messagesProvider((room, limit)));
+  refreshMessages(Room room, int limit) =>
+      refresh(messagesProvider((room, limit)));
 }
 
 extension ThemeExt on BuildContext {
@@ -70,8 +85,22 @@ extension MediaQueryExt on BuildContext {
   Brightness get platformBrightness => MediaQuery.of(this).platformBrightness;
   double get textScaleFactor => MediaQuery.of(this).textScaleFactor;
   double get mediaQueryShortestSide => screenSize.shortestSide;
-  Size get imageSize => Size(screenSize.width - sd.width!,
-      (screenSize.width - sd.width!) * 9.0 / 16.0);
+  Size get imageSize => Size(
+      screenSize.width - blockPadding.horizontal - blockMargin.horizontal,
+      (screenSize.width - blockPadding.horizontal - blockMargin.horizontal) *
+          9.0 /
+          16.0);
+  Size get imageSizeSmall => Size(
+      screenSize.width / 2.5 - blockPadding.horizontal - blockMargin.horizontal,
+      (screenSize.width / 2.5 -
+              blockPadding.horizontal -
+              blockMargin.horizontal) *
+          9.0 /
+          16.0);
+  // note we use top and left instead of horizontal/vertical because this small
+  Size get blockSizeSmall => Size(
+      screenSize.width - blockMargin.horizontal - blockPadding.horizontal,
+      imageSizeSmall.height + blockMargin.top + blockPadding.top);
 
   /// True if the current device is Phone
   bool get isMobile => screenSize.width < 600;
@@ -107,12 +136,14 @@ extension Spacing on BuildContext {
   EdgeInsets get mz => const EdgeInsets.all(0);
 
   EdgeInsets get blockMargin => const EdgeInsets.symmetric(
-      horizontal: Margins.full, vertical: Margins.half);
+      horizontal: Margins.half, vertical: Margins.half);
   EdgeInsets get blockPadding => const EdgeInsets.symmetric(
-      horizontal: Margins.full, vertical: Margins.half);
+      horizontal: Margins.half, vertical: Margins.half);
+  EdgeInsets get blockPaddingExtra => const EdgeInsets.symmetric(
+      horizontal: Margins.full, vertical: Margins.full);
 
-  double get blockWidth =>
-      isMobileOrTablet ? Block.blockWidthSmall : Block.blockWidthLarge;
+  // double get blockWidth =>
+  //     isMobileOrTablet ? Block.blockWidthSmall : Block.blockWidthLarge;
   SizedBox get sqd =>
       const SizedBox(height: Margins.quadruple, width: Margins.quadruple);
   SizedBox get st =>
@@ -149,16 +180,23 @@ extension ModalExt on BuildContext {
 extension ConstantsExt on BuildContext {
   Widget get sendIcon => Icon(Icons.send, color: onSurfaceColor);
   Widget get deliveredIcon => Icon(Icons.receipt, color: primaryColor);
+
+  double get iconSizeSmall => IconSize.small;
+  double get iconSizeProfile => IconSize.profile;
+  double get iconSizeStandard => IconSize.standard;
+  double get iconSizeLarge => IconSize.large;
+  double get iconSizeXL => IconSize.xl;
 }
 
 extension TextExt on BuildContext {
-  TextStyle get DL => Theme.of(this).textTheme.displayLarge!;
-  TextStyle get DM => Theme.of(this).textTheme.displayMedium!;
-  TextStyle get DS => Theme.of(this).textTheme.displaySmall!;
-  TextStyle get HL => Theme.of(this).textTheme.headlineLarge!;
-  TextStyle get HM => Theme.of(this).textTheme.headlineMedium!;
-  TextStyle get HS => Theme.of(this).textTheme.headlineSmall!;
-  TextStyle get BM => Theme.of(this).textTheme.bodyMedium!;
-  TextStyle get BS => Theme.of(this).textTheme.bodySmall!;
-  TextStyle get BL => Theme.of(this).textTheme.bodyLarge!;
+  // TODO: overriding this here and not using from theme
+  TextStyle get d =>
+      TextStyle(fontSize: 24, color: primaryColor, fontFamily: "Hackney");
+  // Theme.of(this).textTheme.displayLarge!;
+  TextStyle get h1 => Theme.of(this).textTheme.headlineLarge!;
+  TextStyle get h2 => Theme.of(this).textTheme.headlineMedium!;
+  TextStyle get h3 => Theme.of(this).textTheme.headlineSmall!;
+  TextStyle get m => Theme.of(this).textTheme.bodyMedium!;
+  TextStyle get s => Theme.of(this).textTheme.bodySmall!;
+  TextStyle get l => Theme.of(this).textTheme.bodyLarge!;
 }

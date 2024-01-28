@@ -13,7 +13,7 @@ import 'package:political_think/common/components/ztext_button.dart';
 import 'package:political_think/common/extensions.dart';
 import 'package:political_think/common/models/post.dart';
 import 'package:political_think/common/services/database.dart';
-import 'package:political_think/views/post/post_view.dart';
+import 'package:political_think/views/post/post_item_view.dart';
 import 'package:super_clipboard/super_clipboard.dart';
 import 'package:uuid/uuid.dart';
 
@@ -69,6 +69,8 @@ class _PostBuilderState extends ConsumerState<PostBuilder> {
               });
             } else {
               Post p = Post(
+                // NEED TO CHANGE
+                // sourceType: SourceType.url,
                 pid: const Uuid().v4(),
                 creator: ref.selfUserRead().value!.uid,
                 status: PostStatus.draft,
@@ -96,7 +98,7 @@ class _PostBuilderState extends ConsumerState<PostBuilder> {
     return ModalContainer(
       child: Column(
         children: [
-          PostView(pid: _pid!, showDebateButtons: false),
+          PostItemView(pid: _pid!, showPostButtons: false),
           context.sf,
           Row(
             mainAxisAlignment: MainAxisAlignment.end,

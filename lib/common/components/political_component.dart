@@ -4,31 +4,52 @@ import 'package:flutter/material.dart';
 import 'package:political_think/common/extensions.dart';
 import 'package:political_think/common/models/political_position.dart';
 
-const double _radius = 50;
-const double _maxCirclesPerRing = 55;
-// 0.4 is magic number
-const double _radiusSmall = _radius / (_maxCirclesPerRing * 0.4);
-const int _rings = 4;
-// give is the amount of area we show around the political position
-const double _give = 0.2 * pi;
+/// Possible seats of a political position
+enum PoliticalOptions {
+  all,
+  leftRight,
+}
 
-class PoliticalComponent extends StatelessWidget {
+class PoliticalComponent extends StatefulWidget {
   final PoliticalPosition? position;
+  final PoliticalOptions options;
+  final double radius;
+  final int rings;
+  final double give;
+  final double maxCirclesPerRing;
+  final bool showUnselected;
 
   const PoliticalComponent({
     Key? key,
     this.position,
+    this.radius = 50,
+    this.options = PoliticalOptions.all,
+    this.rings = 4,
+    this.give = 0.26,
+    this.maxCirclesPerRing = 75,
+    this.showUnselected = true,
   }) : super(key: key);
 
   @override
+  State<PoliticalComponent> createState() => _PoliticalComponentState();
+}
+
+class _PoliticalComponentState extends State<PoliticalComponent> {
+  @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: _radius * 2,
-      height: _radius * 2,
+      width: widget.radius * 2,
+      height: widget.radius * 2,
       child: CustomPaint(
         painter: PoliticalPainter(
           context: context,
-          position: position,
+          position: widget.position,
+          options: widget.options,
+          radius: widget.radius,
+          rings: widget.rings,
+          maxCirclesPerRing: widget.maxCirclesPerRing,
+          showUnselected: widget.showUnselected,
+          give: widget.give,
         ),
       ),
     );
@@ -38,10 +59,26 @@ class PoliticalComponent extends StatelessWidget {
 class PoliticalPainter extends CustomPainter {
   final BuildContext context;
   final PoliticalPosition? position;
+  final PoliticalOptions options;
+  final double radius;
+  final double give;
+  final int rings;
+  final double maxCirclesPerRing;
+  final bool showUnselected;
+
+  late final double _radiusSmall = radius / (maxCirclesPerRing * 0.4);
+
+  late final _giveScaled = give * pi;
 
   PoliticalPainter({
     required this.context,
     this.position,
+    this.options = PoliticalOptions.all,
+    this.radius = 50,
+    this.rings = 4,
+    this.give = 0.26,
+    this.maxCirclesPerRing = 55,
+    this.showUnselected = true,
   });
 
   late final _paintOuter = Paint()
@@ -55,38 +92,55 @@ class PoliticalPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     canvas.drawCircle(
-      const Offset(_radius, _radius),
-      _radius,
+      Offset(radius, radius),
+      radius,
       _paintOuter,
     );
-    Point center = const Point(_radius, _radius);
-    for (int i = 0; i < _rings; i++) {
+    Point center = Point(radius, radius);
+    for (int i = 0; i < rings; i++) {
       _drawCircles(
         canvas,
         center,
-        _radius - _radiusSmall * 2 * i,
-        _maxCirclesPerRing - i * 5,
+        radius - _radiusSmall * 2 * i,
+        maxCirclesPerRing - i * 5,
       );
     }
   }
 
+  // USE IF FREQUENTLY UPDATING!
   @override
-  bool shouldRepaint(CustomPainter oldDelegate) => false;
+  bool shouldRepaint(PoliticalPainter oldDelegate) =>
+      oldDelegate.position != position;
 
-  _drawCircles(Canvas canvas, Point center, double distance, double count) {
+  _drawCircles(
+    Canvas canvas,
+    Point center,
+    double distance,
+    double count,
+  ) {
     for (double rdns = 0; rdns < 2 * pi; rdns += 2 * pi / count) {
       // -distance makes this circle go counter-clockwise which is how we count
       Point point = center + Point(distance * cos(rdns), -distance * sin(rdns));
 
       PoliticalPosition circlePosition =
-          PoliticalPosition(value: PoliticalPosition.toDegrees(rdns));
+          PoliticalPosition(angle: PoliticalPosition.toDegrees(rdns));
 
       Color color = context.surfaceColor;
 
+      // color only if we are close enough to the political position
+      // not to be confused with the geometric position!
       if (position != null &&
           PoliticalPosition.toRadians(position!.distance(circlePosition)) <
-              _give) {
+              _giveScaled) {
         color = circlePosition.color;
+      } else if (!showUnselected) {
+        continue;
+      }
+
+      // Skip drawing the center and extreme if we are only showing left/right
+      if (options == PoliticalOptions.leftRight &&
+          (circlePosition.isCenter || circlePosition.isExtreme)) {
+        continue;
       }
 
       canvas.drawCircle(

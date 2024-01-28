@@ -26,4 +26,17 @@ class Functions {
       'rid': rid,
     });
   }
+
+  Future<void> triggerContent() async {
+    final HttpsCallable callable =
+        FirebaseFunctions.instance.httpsCallable('onNewContent');
+
+    try {
+      final HttpsCallableResult result = await callable.call({
+        'source': 'perigon',
+      });
+    } catch (e) {
+      print(e);
+    }
+  }
 }

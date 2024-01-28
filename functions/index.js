@@ -1,10 +1,14 @@
 const admin = require("firebase-admin");
-const {joinRoom, onRoomChange, startDebate} = require("./rooms");
-const {onMessageChange} = require("./messages");
-const {onAuthUserCreate} = require("./users");
-const {debateDidTimeOutTask, debateDidTimeOut} = require("./debate");
+const {onRoomChange, startDebate} = require("./messages/room");
+const {onMessageChange} = require("./messages/message");
+const {onAuthUserCreate} = require("./models/user");
+const {debateDidTimeOutTask, debateDidTimeOut} = require("./ai/debate");
 const {TaskQueue} = require( "firebase-admin/functions");
-const {onPostCreate} = require("./posts");
+const {onPostCreate, onPostUpdate} = require("./models/post");
+const {onVoteBiasChange, onVoteCredibilityChange} = require("./models/vote");
+const {generateBiasTraining} = require("./ai/scripts");
+const {generateStories} = require("./ai/story_generator");
+const {onNewContent} = require("./content/content");
 
 admin.initializeApp();
 
@@ -23,10 +27,17 @@ Object.assign(TaskQueue.prototype, {
 
 module.exports = {
   onAuthUserCreate,
+  onVoteBiasChange,
+  onVoteCredibilityChange,
   onPostCreate,
+  onPostUpdate,
   onMessageChange,
-  joinRoom,
+  // joinRoom,
   onRoomChange,
   startDebate,
   debateDidTimeOutTask,
+  generateStories,
+  onNewContent,
+  // Scripts
+  generateBiasTraining,
 };

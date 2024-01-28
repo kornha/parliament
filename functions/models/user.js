@@ -1,5 +1,10 @@
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
+// const {computeBias} = require("../ai/bias");
+
+//
+// Db triggers
+//
 
 exports.onAuthUserCreate = functions.auth.user().onCreate((user) => {
   const userDoc = {
@@ -23,3 +28,4 @@ exports.onAuthUserCreate = functions.auth.user().onCreate((user) => {
         return;
       });
 });
+

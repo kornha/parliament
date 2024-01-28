@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class Constants {
   static const MESSAGE_FETCH_LIMIT = 50;
@@ -16,10 +17,12 @@ class Palette {
   static const green = Color.fromRGBO(0, 255, 0, 1);
   static const blue = Color.fromRGBO(0, 0, 255, 1);
   static const purple = Color.fromRGBO(255, 0, 255, 1);
+  static const orange = Color.fromRGBO(255, 85, 0, 1);
 }
 
 class ThemeConstants {
   static final darkTheme = ThemeData(
+    splashColor: Colors.transparent,
     colorScheme: const ColorScheme(
       brightness: Brightness.dark,
       primary: Palette.white,
@@ -33,23 +36,31 @@ class ThemeConstants {
       surface: Palette.darkSlate,
       onSurface: Palette.white,
     ),
+    textTheme: GoogleFonts.newsreaderTextTheme().apply(
+      bodyColor: Palette.white,
+      displayColor: Palette.white,
+    ),
+    fontFamily: GoogleFonts.newsreader().fontFamily,
     brightness: Brightness.dark,
   );
 
   static final lightTheme = ThemeData(
+    splashColor: Colors.transparent,
     colorScheme: const ColorScheme(
       brightness: Brightness.light,
       primary: Palette.black,
       onPrimary: Palette.blue,
-      secondary: Palette.red,
-      onSecondary: Palette.green,
+      secondary: Palette.green,
+      onSecondary: Palette.red,
       error: Palette.red,
       onError: Palette.white,
       background: Palette.white,
       onBackground: Palette.blue,
       surface: Palette.lightSlate,
-      onSurface: Palette.white,
+      onSurface: Palette.black,
     ),
+    textTheme: GoogleFonts.newsreaderTextTheme(),
+    fontFamily: GoogleFonts.newsreader().fontFamily,
     // highlightColor: Colors.transparent,
     // splashColor: Colors.transparent,
     // hoverColor: Colors.transparent,
@@ -82,8 +93,8 @@ class Curvature {
   static const Radius least = Radius.circular(2.0);
   static const Radius little = Radius.circular(4.0);
   static const Radius standard = Radius.circular(8.0);
-  static const Radius circular = Radius.circular(16.0);
   static const Radius steep = Radius.circular(32.0);
+  static const Radius circular = Radius.circular(64.0);
 }
 
 class BRadius {
@@ -91,14 +102,17 @@ class BRadius {
   static const least = BorderRadius.all(Curvature.least);
   static const little = BorderRadius.all(Curvature.little);
   static const standard = BorderRadius.all(Curvature.standard);
-  static const circular = BorderRadius.all(Curvature.circular);
   static const steep = BorderRadius.all(Curvature.steep);
+  static const circular = BorderRadius.all(Curvature.circular);
 }
 
+// Should be moved to context
 class IconSize {
   static const double small = 12.5;
-  static const double standard = 20.0;
-  static const double big = 33;
+  static const double profile = 20.0;
+  static const double standard = 33;
+  static const double large = 50;
+  static const double xl = 75;
 }
 
 class Block {

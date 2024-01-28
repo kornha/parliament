@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:political_think/common/components/profile_icon.dart';
 import 'package:political_think/common/components/zscaffold.dart';
 import 'package:political_think/common/extensions.dart';
 import 'package:political_think/views/feed/feed.dart';
-import 'package:political_think/views/messages/messages.dart';
+import 'package:political_think/views/games/games.dart';
+import 'package:political_think/views/message/message.dart';
 import 'package:political_think/views/profile/profile.dart';
-import 'package:political_think/views/search/search.dart';
+import 'package:political_think/views/maps/maps.dart';
 
 class ZBottomBarScaffold extends ConsumerStatefulWidget {
   const ZBottomBarScaffold(
@@ -26,23 +28,24 @@ class _ZScaffoldState extends ConsumerState<ZBottomBarScaffold> {
   @override
   Widget build(BuildContext context) {
     var tabs = [
-      const ZBottomBarNavigationItem(
-        icon: Icon(Icons.home),
-        activeIcon: Icon(Icons.home),
+      ZBottomBarNavigationItem(
+        icon: const Icon(FontAwesomeIcons.rss),
+        activeIcon: Icon(FontAwesomeIcons.rss, color: context.secondaryColor),
         label: 'HOME',
         initialLocation: Feed.location,
       ),
-      const ZBottomBarNavigationItem(
-        icon: Icon(Icons.storefront_outlined),
-        activeIcon: Icon(Icons.storefront),
-        label: 'SHOP',
-        initialLocation: Search.location,
+      ZBottomBarNavigationItem(
+        icon: const Icon(FontAwesomeIcons.earthEurope),
+        activeIcon:
+            Icon(FontAwesomeIcons.earthAmericas, color: context.secondaryColor),
+        label: 'MAPS',
+        initialLocation: Maps.location,
       ),
-      const ZBottomBarNavigationItem(
-        icon: Icon(Icons.storefront_outlined),
-        activeIcon: Icon(Icons.storefront),
-        label: 'BUY',
-        initialLocation: Messages.location,
+      ZBottomBarNavigationItem(
+        icon: const Icon(FontAwesomeIcons.solidChessRook),
+        activeIcon: Icon(FontAwesomeIcons.chess, color: context.secondaryColor),
+        label: 'GAMES',
+        initialLocation: Games.location,
       ),
       const ZBottomBarNavigationItem(
         icon: ProfileIcon(),
@@ -85,9 +88,9 @@ class _ZScaffoldState extends ConsumerState<ZBottomBarScaffold> {
     switch (path) {
       case Profile.location:
         return 3;
-      case Messages.location:
+      case Games.location:
         return 2;
-      case Search.location:
+      case Maps.location:
         return 1;
       default:
         return 0;

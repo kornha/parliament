@@ -32,5 +32,9 @@
       "enabled": true
     },
     "singleProjectMode": true
+  },
+  "extensions": {},
+  "storage": {
+    "rules": "storage.rules"
   }
 }

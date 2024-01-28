@@ -8,7 +8,8 @@ part of 'room.dart';
 
 Room _$RoomFromJson(Map<String, dynamic> json) => Room(
       rid: json['rid'] as String,
-      pid: json['pid'] as String,
+      parentId: json['parentId'] as String,
+      parentType: $enumDecode(_$RoomParentTypeEnumMap, json['parentType']),
       status: $enumDecode(_$RoomStatusEnumMap, json['status']),
       users:
           (json['users'] as List<dynamic>?)?.map((e) => e as String).toList() ??
@@ -18,10 +19,6 @@ Room _$RoomFromJson(Map<String, dynamic> json) => Room(
               .toList() ??
           const [],
       rightUsers: (json['rightUsers'] as List<dynamic>?)
-              ?.map((e) => e as String)
-              .toList() ??
-          const [],
-      messages: (json['messages'] as List<dynamic>?)
               ?.map((e) => e as String)
               .toList() ??
           const [],
@@ -37,8 +34,8 @@ Room _$RoomFromJson(Map<String, dynamic> json) => Room(
 
 Map<String, dynamic> _$RoomToJson(Room instance) => <String, dynamic>{
       'rid': instance.rid,
-      'pid': instance.pid,
-      'messages': instance.messages,
+      'parentId': instance.parentId,
+      'parentType': _$RoomParentTypeEnumMap[instance.parentType]!,
       'users': instance.users,
       'leftUsers': instance.leftUsers,
       'rightUsers': instance.rightUsers,
@@ -48,6 +45,10 @@ Map<String, dynamic> _$RoomToJson(Room instance) => <String, dynamic>{
       'decision': instance.decision?.toJson(),
       'createdAt': Room._timestampToJson(instance.createdAt),
     };
+
+const _$RoomParentTypeEnumMap = {
+  RoomParentType.post: 'post',
+};
 
 const _$RoomStatusEnumMap = {
   RoomStatus.waiting: 'waiting',

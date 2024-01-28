@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:political_think/common/chat/flutter_chat_ui.dart';
 import 'package:political_think/common/extensions.dart';
 
 class ZScaffold extends StatelessWidget {
@@ -37,8 +38,9 @@ class ZScaffold extends StatelessWidget {
         headerSliverBuilder: (context, innerBoxIsScrolled) {
           return [
             SliverAppBar(
-              backgroundColor: context.backgroundColor,
-              pinned: true,
+              surfaceTintColor: context.backgroundColor,
+              backgroundColor: context.backgroundColor.withOpacity(0.55),
+              // pinned: true,
               title: appBar,
               centerTitle: true,
               floating: true,

@@ -45,7 +45,16 @@ dependencies:
   date_count_down: ^3.0.0
   flutter_countdown_timer: ^4.1.0
   flutter_joystick: ^0.0.4
-
+  google_fonts: ^6.1.0
+  syncfusion_flutter_maps: ^24.1.41
+  countries_world_map: ^1.1.1
+  google_maps_flutter: ^2.5.0
+  http: ^1.1.2
+  syncfusion_flutter_sliders: ^24.1.44
+  flutter_xlider: ^3.5.0
+  syncfusion_flutter_core: ^24.1.44
+  country_picker: ^2.0.23
+  country_flags: ^2.2.0
 
 dev_dependencies:
   flutter_test:
@@ -54,11 +63,14 @@ dev_dependencies:
   flutter_lints: ^2.0.0
 
 flutter:
-
   uses-material-design: true
+  assets:
+    - assets/maps/dark_map.json
 
 fonts:
   - family: SocialIcons
     fonts:
       - asset: packages/firebase_ui_auth/fonts/SocialIcons.ttf
-
+  - family: Hackney
+    fonts:
+      - asset: assets/fonts/hackney.ttf

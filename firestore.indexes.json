@@ -4,7 +4,7 @@
       "collectionId": "posts",
       "fields": [
         {
-          "fieldPath": "creator",
+          "fieldPath": "sid",
           "mode": "ASCENDING"
         }
       ]
@@ -22,12 +22,43 @@
       "collectionId": "messages",
       "fields": [
         {
-          "fieldPath": "createdAt",
-          "mode": "DESCENDING"
-        },
-        {
           "fieldPath": "rid",
           "mode": "ASCENDING"
+        },
+        {
+          "fieldPath": "createdAt",
+          "mode": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionId": "rooms",
+      "fields": [
+        {
+          "fieldPath": "parentId",
+          "mode": "ASCENDING"
+        },
+        {
+          "fieldPath": "createdAt",
+          "mode": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionId": "votesCredibility",
+      "fields": [
+        {
+          "fieldPath": "createdAt",
+          "mode": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionId": "votesPosition",
+      "fields": [
+        {
+          "fieldPath": "createdAt",
+          "mode": "DESCENDING"
         }
       ]
     }

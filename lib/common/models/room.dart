@@ -8,13 +8,29 @@ import 'package:political_think/common/models/zuser.dart';
 
 part 'room.g.dart';
 
-enum RoomStatus { waiting, locked, live, judging, finished, errored }
+enum RoomStatus {
+  waiting,
+  locked,
+  live,
+  judging,
+  finished,
+  errored;
+
+  static List<String> activeStatuses = [waiting.name, locked.name, live.name];
+}
+
+enum RoomParentType {
+  post;
+
+  String get collectionName => "${name}s";
+}
 
 @JsonSerializable(explicitToJson: true)
 class Room {
   final String rid;
-  final String pid;
-  List<String> messages;
+  final String parentId;
+  final RoomParentType parentType;
+  //final List<String> messages;
   List<String> users;
   List<String> leftUsers;
   List<String> rightUsers;
@@ -28,12 +44,13 @@ class Room {
 
   Room({
     required this.rid,
-    required this.pid,
+    required this.parentId,
+    required this.parentType,
     required this.status,
     this.users = const [],
     this.leftUsers = const [],
     this.rightUsers = const [],
-    this.messages = const [],
+    // this.messages = const [],
     required this.createdAt,
     this.messageCount,
     this.clock,

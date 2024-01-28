@@ -2,18 +2,19 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:political_think/common/models/political_position.dart';
 
-part 'sentiment.g.dart';
+part 'bias.g.dart';
 
 @JsonSerializable(explicitToJson: true)
-class Sentiment {
-  PoliticalPosition position;
+class Bias {
+  final PoliticalPosition position;
+  final String? reason;
 
-  Sentiment({
+  Bias({
     required this.position,
+    this.reason,
   });
 
-  factory Sentiment.fromJson(Map<String, dynamic> json) =>
-      _$SentimentFromJson(json);
+  factory Bias.fromJson(Map<String, dynamic> json) => _$BiasFromJson(json);
 
-  Map<String, dynamic> toJson() => _$SentimentToJson(this);
+  Map<String, dynamic> toJson() => _$BiasToJson(this);
 }

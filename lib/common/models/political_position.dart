@@ -9,10 +9,10 @@ part 'political_position.g.dart';
 @JsonSerializable()
 @immutable
 class PoliticalPosition {
-  final double value;
+  final double angle;
 
   const PoliticalPosition({
-    this.value = 0.0,
+    this.angle = 0.0,
   });
 
   Color get color {
@@ -29,17 +29,24 @@ class PoliticalPosition {
   }
 
   Quadrant get quadrant {
-    var angle = value % 360;
-    if (angle >= 315.0 || angle <= 45.0) {
+    var temp = angle % 360;
+    if (temp >= 315.0 || temp <= 45.0) {
       return Quadrant.right;
-    } else if (angle >= 135 && angle <= 225) {
+    } else if (temp >= 135 && temp <= 225) {
       return Quadrant.left;
-    } else if (angle > 45.0 && angle < 135.0) {
+    } else if (temp > 45.0 && temp < 135.0) {
       return Quadrant.center;
     } else {
       return Quadrant.extreme;
     }
   }
+
+  bool get isLeft => quadrant == Quadrant.left;
+  bool get isRight => quadrant == Quadrant.right;
+  bool get isCenter => quadrant == Quadrant.center;
+  bool get isExtreme => quadrant == Quadrant.extreme;
+  //double get angle => value;
+  double get radians => toRadians(angle);
 
   static double toDegrees(double radians) {
     return radians * (180.0 / pi);
@@ -52,15 +59,19 @@ class PoliticalPosition {
   factory PoliticalPosition.fromQuandrant(Quadrant quadrant) {
     switch (quadrant) {
       case Quadrant.left:
-        return const PoliticalPosition(value: 180.0);
+        return const PoliticalPosition(angle: 180.0);
       case Quadrant.center:
-        return const PoliticalPosition(value: 90.0);
+        return const PoliticalPosition(angle: 90.0);
       case Quadrant.extreme:
-        return const PoliticalPosition(value: 270.0);
+        return const PoliticalPosition(angle: 270.0);
       case Quadrant.right:
       default:
-        return const PoliticalPosition(value: 0.0);
+        return const PoliticalPosition(angle: 0.0);
     }
+  }
+
+  factory PoliticalPosition.fromRadians(double radians) {
+    return PoliticalPosition(angle: toDegrees(radians));
   }
 
   // finds the angle against the X axis, up to 360 degrees
@@ -73,7 +84,7 @@ class PoliticalPosition {
       angle += 360.0;
     }
     angle = angle.abs();
-    return PoliticalPosition(value: angle);
+    return PoliticalPosition(angle: angle);
   }
 
   factory PoliticalPosition.fromJson(Map<String, dynamic> json) =>
@@ -82,9 +93,14 @@ class PoliticalPosition {
   Map<String, dynamic> toJson() => _$PoliticalPositionToJson(this);
 
   double distance(PoliticalPosition other) {
-    var delta = (value - other.value).abs();
+    var delta = (angle - other.angle).abs();
     return min(delta, 360.0 - delta);
   }
+
+  @override
+  bool operator ==(other) => other is PoliticalPosition && angle == other.angle;
+  @override
+  int get hashCode => angle.hashCode;
 }
 
 enum Quadrant {

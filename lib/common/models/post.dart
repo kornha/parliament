@@ -1,21 +1,41 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:political_think/common/models/bias.dart';
+import 'package:political_think/common/models/credibility.dart';
+import 'package:political_think/common/models/political_position.dart';
 
 part 'post.g.dart';
 
-enum PostStatus { draft, published }
+enum PostStatus { draft, published, deleted }
 
-@JsonSerializable()
+enum SourceType { article, twitter }
+
+@JsonSerializable(explicitToJson: true)
 class Post {
   final String pid;
-  String creator;
+  final String? sid;
+  String? creator;
   PostStatus status;
   //
   String? title;
   String? description;
+  String? body;
   String? imageUrl;
   String? url;
+  SourceType? sourceType;
+  List<String>
+      locations; // currently country codes but i want to make this more abstract
+  //
+  int voteCountBias;
+  int voteCountCredibility;
+  Bias? userBias;
+  Bias? aiBias;
+  Credibility? userCredibility;
+  Credibility? aiCredibility;
+  int? importance;
+  //
+  int? messageCount; // not sure if we want to keep this record but we do now
 
   @JsonKey(fromJson: _timestampFromJson, toJson: _timestampToJson)
   Timestamp createdAt;
@@ -24,14 +44,25 @@ class Post {
 
   Post({
     required this.pid,
-    required this.creator,
+    this.sid,
+    this.creator,
     required this.status,
     required this.createdAt,
     required this.updatedAt,
+    this.sourceType,
     this.title,
     this.description,
-    this.imageUrl,
+    this.body,
     this.url,
+    this.imageUrl,
+    this.locations = const [],
+    this.importance,
+    this.userBias,
+    this.aiBias,
+    this.userCredibility,
+    this.aiCredibility,
+    this.voteCountBias = 0,
+    this.voteCountCredibility = 0,
   });
 
   factory Post.fromJson(Map<String, dynamic> json) => _$PostFromJson(json);

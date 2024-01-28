@@ -51,31 +51,31 @@ class DebateStatus extends StatelessWidget {
     switch (room.status) {
       case RoomStatus.waiting:
         return Text("waiting",
-            style: context.HS.copyWith(color: context.onSurfaceColor));
+            style: context.h3.copyWith(color: context.onSurfaceColor));
       case RoomStatus.locked:
         return Text("message to start",
-            style: context.HS.copyWith(color: context.onSurfaceColor));
+            style: context.h3.copyWith(color: context.onSurfaceColor));
       case RoomStatus.live:
         return CountdownTimer(
           endTime: room.clock!.end!.millisecondsSinceEpoch,
           widgetBuilder: (context, time) => time == null
-              ? Text("time", style: context.HS)
+              ? Text("time", style: context.h3)
               : Text("${time.sec}",
-                  style: context.HS.copyWith(color: context.onSurfaceColor)),
+                  style: context.h3.copyWith(color: context.onSurfaceColor)),
           onEnd: () => print("end"),
         );
       case RoomStatus.judging:
         return Text("Debate is being judged",
-            style: context.HS.copyWith(color: context.onSurfaceColor));
+            style: context.h3.copyWith(color: context.onSurfaceColor));
       case RoomStatus.finished:
         return Text("${room.decision!.winner.quadrant.name} wins",
-            style: context.HS.copyWith(color: context.onSurfaceColor));
+            style: context.h3.copyWith(color: context.onSurfaceColor));
       case RoomStatus.errored:
         return Text("Failed to get a winner",
-            style: context.HS.copyWith(color: context.onSurfaceColor));
+            style: context.h3.copyWith(color: context.onSurfaceColor));
       default:
         return Text("-----",
-            style: context.HS.copyWith(color: context.onSurfaceColor));
+            style: context.h3.copyWith(color: context.onSurfaceColor));
     }
   }
 
@@ -98,7 +98,8 @@ class DebateStatus extends StatelessWidget {
                             !leftSide && liberalIsLeft) &&
                         room.rightUsers.isNotEmpty
                 ? Icon(Icons.chair,
-                    color: context.onSurfaceColor, size: IconSize.big)
+                    color: context.onSurfaceColor,
+                    size: context.iconSizeStandard)
                 : const SizedBox.shrink());
       case RoomStatus.live:
         return const SizedBox.shrink();
@@ -114,7 +115,8 @@ class DebateStatus extends StatelessWidget {
                             !leftSide && liberalIsLeft) &&
                         room.decision?.winner.quadrant == Quadrant.right
                 ? Icon(Icons.check,
-                    color: context.onSurfaceColor, size: IconSize.big)
+                    color: context.onSurfaceColor,
+                    size: context.iconSizeStandard)
                 : const SizedBox.shrink());
       case RoomStatus.errored:
       default:

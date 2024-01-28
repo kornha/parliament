@@ -7,11 +7,12 @@ import 'package:political_think/common/models/political_position.dart';
 import 'package:political_think/common/services/zprovider.dart';
 import 'package:political_think/sharing.dart';
 import 'package:political_think/views/feed/feed.dart';
+import 'package:political_think/views/games/games.dart';
 import 'package:political_think/views/login/login.dart';
-import 'package:political_think/views/messages/messages.dart';
-import 'package:political_think/views/post/post_room.dart';
+import 'package:political_think/views/message/message.dart';
+import 'package:political_think/views/post/post_view.dart';
 import 'package:political_think/views/profile/profile.dart';
-import 'package:political_think/views/search/search.dart';
+import 'package:political_think/views/maps/maps.dart';
 
 class ZRouter {
   static final rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -44,9 +45,16 @@ class ZRouter {
             ),
             GoRoute(
               parentNavigatorKey: _shellNavigatorKey,
-              path: Search.location,
+              path: Maps.location,
               pageBuilder: (context, state) => const NoTransitionPage(
-                child: Search(),
+                child: Maps(),
+              ),
+            ),
+            GoRoute(
+              parentNavigatorKey: _shellNavigatorKey,
+              path: Games.location,
+              pageBuilder: (context, state) => const NoTransitionPage(
+                child: Games(),
               ),
             ),
             GoRoute(
@@ -63,6 +71,15 @@ class ZRouter {
                 child: Profile(),
               ),
             ),
+            GoRoute(
+              parentNavigatorKey: _shellNavigatorKey,
+              path: "${PostView.location}/:pid",
+              pageBuilder: (context, state) => NoTransitionPage(
+                child: PostView(
+                  pid: state.pathParameters["pid"]!,
+                ),
+              ),
+            ),
           ],
         ),
         GoRoute(
@@ -72,15 +89,15 @@ class ZRouter {
             child: Login(),
           ),
         ),
-        GoRoute(
-          parentNavigatorKey: rootNavigatorKey,
-          path: "${PostRoom.location}/:pid",
-          pageBuilder: (context, state) => NoTransitionPage(
-            child: PostRoom(
-              pid: state.pathParameters["pid"]!,
-            ),
-          ),
-        ),
+        // GoRoute(
+        //   parentNavigatorKey: rootNavigatorKey,
+        //   path: "${PostView.location}/:pid",
+        //   pageBuilder: (context, state) => NoTransitionPage(
+        //     child: PostView(
+        //       pid: state.pathParameters["pid"]!,
+        //     ),
+        //   ),
+        // ),
       ],
       refreshListenable: ref.watch(authProvider),
       redirect: (context, state) {

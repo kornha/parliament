@@ -9,7 +9,7 @@ class ProfileIcon extends ConsumerStatefulWidget {
   const ProfileIcon({
     super.key,
     this.uid,
-    this.size = IconSize.standard,
+    this.size = IconSize.profile,
   });
   final String? uid;
   final double size;
@@ -23,9 +23,10 @@ class _ZScaffoldState extends ConsumerState<ProfileIcon> {
   Widget build(BuildContext context) {
     final user =
         widget.uid == null ? ref.selfUserWatch() : ref.userWatch(widget.uid);
-    return user.value?.photoURL != null
+    return user.value?.photoURL?.isNotEmpty ?? false
         ? CircleAvatar(
-            foregroundImage: NetworkImage(user.value?.photoURL ?? ''),
+            backgroundColor: context.surfaceColor,
+            foregroundImage: NetworkImage(user.value!.photoURL!),
             radius: widget.size,
           )
         : const Icon(FontAwesomeIcons.circle);

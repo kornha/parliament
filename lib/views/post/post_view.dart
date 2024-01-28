@@ -1,152 +1,153 @@
+import 'dart:math';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_joystick/flutter_joystick.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:political_think/common/components/loading.dart';
-import 'package:political_think/common/components/loading_shimmer.dart';
-import 'package:political_think/common/components/political_component.dart';
-import 'package:political_think/common/components/ztext_button.dart';
+import 'package:political_think/common/components/zapp_bar.dart';
+import 'package:political_think/common/components/zerror.dart';
+import 'package:political_think/common/components/zscaffold.dart';
 import 'package:political_think/common/constants.dart';
 import 'package:political_think/common/extensions.dart';
-import 'package:political_think/common/models/political_position.dart';
-import 'package:political_think/common/models/post.dart';
-import 'package:political_think/common/services/functions.dart';
-import 'package:political_think/common/util/swipe_area.dart';
-import 'package:political_think/common/util/zimage.dart';
-import 'package:political_think/common/zrouter.dart';
-import 'package:political_think/views/post/post_room.dart';
-import 'package:shimmer/shimmer.dart';
+import 'package:political_think/common/models/room.dart';
+import 'package:political_think/common/services/database.dart';
+
+import 'package:political_think/views/post/post_item_view.dart';
+import 'package:scroll_to_index/scroll_to_index.dart';
+import 'package:uuid/uuid.dart';
+import '../../common/chat/chat_types/flutter_chat_types.dart' as ct;
+import '../../common/chat/flutter_chat_ui.dart';
 
 class PostView extends ConsumerStatefulWidget {
   const PostView({
     super.key,
     required this.pid,
-    this.showDebateButtons = false,
   });
 
   final String pid;
-  final bool showDebateButtons;
+
+  static const location = '/post';
 
   @override
   ConsumerState<ConsumerStatefulWidget> createState() => _PostViewState();
 }
 
 class _PostViewState extends ConsumerState<PostView> {
+  final AutoScrollController _autoScrollController = AutoScrollController();
+  // final ScrollController _scrollController = ScrollController();
+
+  //List<chat.User> _users = [];
+  List<ct.Message> _messages = [];
+  final List<ct.Message> _localMessages = [];
+  bool _isLastMessage = false;
+  int _limit = Constants.MESSAGE_FETCH_LIMIT;
+  bool _isLoaded = false;
+
   @override
   Widget build(BuildContext context) {
+    //
     var postRef = ref.postWatch(widget.pid);
     var post = postRef.value;
-    return postRef.isLoading
-        ? const Loading()
-        : Container(
-            margin: context.blockMargin,
-            padding: context.blockPadding,
-            // constraints: BoxConstraints(
-            //   maxWidth: context.imageSize.width,
-            //   maxHeight: context.imageSize.height * 2.2,
-            // ),
-            child: Column(
-              children: [
-                Text(post?.title ?? ""),
-                context.sf,
-                ZImage(imageUrl: post?.imageUrl ?? ""),
-                context.sf,
-                Text(post?.description ?? ""),
-                Visibility(
-                    visible: widget.showDebateButtons, child: context.sf),
-                Visibility(
-                  visible: widget.showDebateButtons,
-                  child: Container(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        const PoliticalComponent(),
-                        DebateJoystick(
-                          onPositionSelected: (pos) {},
-                        ),
-                        const PoliticalComponent(),
-
-                        // ZTextButton(
-                        //   backgroundColor: Palette.blue,
-                        //   child: const Icon(
-                        //     Icons.join_left,
-                        //     color: Palette.white,
-                        //   ),
-                        //   onPressed: () =>
-                        //       goToRoom(context, post!, Quadrant.left),
-                        // ),
-                        // ZTextButton(
-                        //   backgroundColor: Palette.red,
-                        //   child: const Icon(
-                        //     Icons.join_right,
-                        //     color: Palette.white,
-                        //   ),
-                        //   onPressed: () =>
-                        //       goToRoom(context, post!, Quadrant.right),
-                        // ),
-                      ],
+    //
+    var roomRef = ref.activeRoomWatch(widget.pid, RoomParentType.post);
+    var room = roomRef.value;
+    //
+    var messagesRef = room == null ? null : ref.messagesWatch(room, _limit);
+    var messages = messagesRef?.value;
+    // I tried directly comparing messages but it would sometimes fail
+    // so I'm comparing the last message id instead
+    if (_messages.isNotEmpty && _messages.last.id == messages?.last.id) {
+      _isLastMessage = true;
+    }
+    if (messages != null) {
+      _messages = messages;
+      _isLoaded = true;
+    }
+    //
+    var isError = postRef.hasError ||
+        roomRef.hasError ||
+        (messagesRef?.hasError ?? false);
+    //
+    var isLoading = !_isLoaded &&
+        (postRef.isLoading ||
+            roomRef.isLoading ||
+            // this is because we assume there's always an active room!
+            room == null ||
+            (messagesRef?.isLoading ?? false));
+    //
+    return ZScaffold(
+      // scrollController: _scrollController,
+      appBar: ZAppBar(showBackButton: true),
+      body: isLoading
+          ? const Loading()
+          : isError
+              ? const ZError()
+              : Chat(
+                  scrollController: _autoScrollController,
+                  pinnedMessageHeader: Container(
+                    margin: context.blockMargin,
+                    padding: context.blockPaddingExtra,
+                    decoration: BoxDecoration(
+                      color: context.backgroundColor,
+                      borderRadius: BRadius.standard,
                     ),
+                    child: PostItemView(pid: post!.pid, showPostButtons: true),
                   ),
+                  // pinnedMessageHeader: !messagesRef!.isLoading
+                  //     ? PostItemView(pid: post!.pid)
+                  //     : const Loading(),
+                  isLastPage: _isLastMessage,
+                  //TODO: move this
+                  theme: DefaultChatTheme(
+                    backgroundColor: context.backgroundColor,
+                  ),
+                  messages: _messages,
+                  messageExpiryTime: room!.clock?.end?.millisecondsSinceEpoch,
+                  onSendPressed: (pt) {
+                    final msg = ct.TextMessage(
+                      roomId: room.rid,
+                      author: ct.User(
+                          id: ref.user().uid), // ref.user().toChatUser(),
+                      id: const Uuid().v4(),
+                      text: pt.text,
+                      createdAt: Timestamp.now().millisecondsSinceEpoch,
+                      position: room.getUserPosition(ref.user().uid),
+                      status: ct.Status.sending,
+                    );
+                    Database.instance().createMessage(
+                      room,
+                      msg.copyWith(status: ct.Status.sent),
+                    );
+                    setState(() {
+                      _localMessages.add(msg);
+                    });
+                  },
+                  onEndReached: () async {
+                    setState(() {
+                      _limit += Constants.MESSAGE_FETCH_LIMIT;
+                    });
+                  },
+                  user: ref.user().toChatUser(),
                 ),
-              ],
-            ),
-          );
-  }
-
-  _goToRoom(BuildContext context, Post post, Quadrant pos) {
-    Functions.instance().joinRoom(post.pid, position: pos);
-    context.push("${PostRoom.location}/${post.pid}");
-  }
-}
-
-class DebateJoystick extends StatefulWidget {
-  const DebateJoystick({
-    super.key,
-    this.onPositionSelected,
-  });
-
-  final ValueChanged<PoliticalPosition>? onPositionSelected;
-
-  @override
-  State<DebateJoystick> createState() => _DebateJoystickState();
-}
-
-class _DebateJoystickState extends State<DebateJoystick> {
-  PoliticalPosition? _position;
-  @override
-  Widget build(BuildContext context) {
-    return Joystick(
-      stick: Container(
-        width: 50,
-        height: 50,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          boxShadow: [
-            BoxShadow(
-              color: context.surfaceColor.withOpacity(0.5),
-              spreadRadius: 1,
-              blurRadius: 1,
-              offset: const Offset(0, 1),
-            )
-          ],
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              context.surfaceColor,
-              context.backgroundColor,
-            ],
-          ),
-        ),
-      ),
-      base: PoliticalComponent(position: _position),
-      listener: (StickDragDetails details) {
-        setState(() {
-          _position = PoliticalPosition.fromCoordinate(details.x, details.y);
-        });
-        //widget.onPositionSelected?.call(_position!);
-      },
     );
+  }
+
+  List<ct.Message> get _combinedMessages {
+    var ret = [..._messages];
+    var loc = [..._localMessages];
+    for (int i = 0; i < min(loc.length, 10); i++) {
+      var msg = loc[i];
+      for (int j = 0; j < ret.length; j++) {
+        if (msg.id == ret[j].id) {
+          _localMessages.removeWhere((lm) => lm.id == msg.id);
+          break;
+        }
+        if (msg.createdAt! > ret[j].createdAt!) {
+          ret.insert(j, msg);
+          break;
+        }
+      }
+    }
+    return ret;
   }
 }
