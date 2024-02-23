@@ -6,12 +6,7 @@
         {
           "fieldPath": "sid",
           "mode": "ASCENDING"
-        }
-      ]
-    },
-    {
-      "collectionId": "posts",
-      "fields": [
+        },
         {
           "fieldPath": "createdAt",
           "mode": "DESCENDING"
@@ -19,12 +14,17 @@
       ]
     },
     {
-      "collectionId": "messages",
+      "collectionId": "stories",
       "fields": [
         {
-          "fieldPath": "rid",
-          "mode": "ASCENDING"
-        },
+          "fieldPath": "updatedAt",
+          "mode": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionId": "messages",
+      "fields": [
         {
           "fieldPath": "createdAt",
           "mode": "DESCENDING"

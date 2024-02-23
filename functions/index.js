@@ -2,13 +2,14 @@ const admin = require("firebase-admin");
 const {onRoomChange, startDebate} = require("./messages/room");
 const {onMessageChange} = require("./messages/message");
 const {onAuthUserCreate} = require("./models/user");
-const {debateDidTimeOutTask, debateDidTimeOut} = require("./ai/debate");
 const {TaskQueue} = require( "firebase-admin/functions");
-const {onPostCreate, onPostUpdate} = require("./models/post");
+const {onPostUpdate} = require("./models/post");
 const {onVoteBiasChange, onVoteCredibilityChange} = require("./models/vote");
 const {generateBiasTraining} = require("./ai/scripts");
-const {generateStories} = require("./ai/story_generator");
-const {onNewContent} = require("./content/content");
+const {onTriggerContent, onLinkPaste} = require("./content/content");
+const {debateDidTimeOut, debateDidTimeOutTask} = require("./messages/clock");
+
+// const {generateStories} = require("./ai/story_generator");
 
 admin.initializeApp();
 
@@ -29,15 +30,16 @@ module.exports = {
   onAuthUserCreate,
   onVoteBiasChange,
   onVoteCredibilityChange,
-  onPostCreate,
+  // onPostCreate,
   onPostUpdate,
   onMessageChange,
   // joinRoom,
   onRoomChange,
   startDebate,
   debateDidTimeOutTask,
-  generateStories,
-  onNewContent,
+  // generateStories,
+  onTriggerContent,
+  onLinkPaste,
   // Scripts
   generateBiasTraining,
 };

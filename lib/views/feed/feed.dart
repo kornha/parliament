@@ -3,7 +3,9 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 import 'package:political_think/common/components/loading.dart';
+import 'package:political_think/common/components/logo.dart';
 import 'package:political_think/common/components/zapp_bar.dart';
+import 'package:political_think/common/components/zback_button.dart';
 import 'package:political_think/common/components/zdivider.dart';
 import 'package:political_think/common/components/zscaffold.dart';
 import 'package:political_think/common/extensions.dart';
@@ -34,14 +36,13 @@ class _FeedState extends ConsumerState<Feed> {
 
     return ZScaffold(
       appBar: ZAppBar(
-        //showAppName: true,
+        showLogo: true,
         actions: [
           IconButton(
             icon: const Icon(FontAwesomeIcons.plus),
             color: context.primaryColor,
             onPressed: () {
-              Functions.instance().triggerContent();
-              //context.showModal(const PostBuilder());
+              context.showFullScreenModal(const PostBuilder());
             },
           ),
         ],

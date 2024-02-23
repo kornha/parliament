@@ -14,23 +14,29 @@ exports.generatePostAiFields = async function(post) {
   const posts = await getPostsForStory(post.sid);
   const story = await getStory(post.sid);
 
+  if (!story) {
+    functions.logger.error(`Could not generate AI fields for post: ${post.pid}`);
+    return;
+  }
+
   const prompt =
     `
         You are given a post, which can be an article or social media posting, 
         and the story that this post is a subset of.
         You will also be given other posts in the same story for context.
-        Determine the importance, credibility, and importance of the post.
+        Determine the credibility, bias, and importance of the post.
 
         CREDIBILITY:
         Additionally, assess the credibility of the overall story.
-        Creditability should range from 0.0 - 10.0.
-        If ALL claims are backed by other posts in the story give it a ten.
+        Creditability should range from 0.0 - 1.0.
+        If ALL claims are backed by other posts in the story give it a 1.0, but this should be rare.
+        Very credible content should be given a 0.8-0.9.
         Use other posts in the story to validate claims.
         If that is not sufficient, search on the internet to validate claims.
-        If you are unsure or claims are still developing, give it a 5.
+        If you are unsure or claims are still developing, give it a 0.5.
         If claims are proven entirely false, give it a 0.0. In beteween values use your judgement.
         Also, include a reason for your credibility assessment.
-        output: {"credibility": 0.0-10.0, "reason": "why"}
+        output: {"credibility": 0.0-1.0, "reason": "why"}
 
         BIAS:
         Additionally, determine the bias of the story. Output should be the following:
@@ -51,19 +57,19 @@ exports.generatePostAiFields = async function(post) {
         Also consider the source of the post, if available. 
         Credible sources, determined by the credibility above, should be given a higher importance. 
         You may also consider the importance of other posts in the story.
-        Importance should range from 0 - 10 (integers only).
+        Importance should range from 0 - 1.0 (integers only).
         0 would be a completely pointless post. 
-        5 would be well written content 
+        0.5 would be well written content 
         that does not distinguish much from other posts in the story.
-        7 would be distinguished content in an an important story.
-        10 would be extremely distinguished content in an extremely important story.
-        output: {"importance": 0-10}
+        0.7 would be distinguished content in an an important story.
+        1.0 would be extremely distinguished content in an extremely important story.
+        output: {"importance": 0.0-1.0}
 
         HERE IS THE POST IN QUESTION:
         TITLE: ${post.title}
         BODY: ${post.description}
 
-        HERE IS THE STORY:
+        HERE IS THE STORY (it may have dummy values if the story is not yet created. In this case ignore it):
         TITLE: ${story.title}
         DESCRIPTION: ${story.description}
 
@@ -72,7 +78,7 @@ exports.generatePostAiFields = async function(post) {
          "TITLE" + _post.title + "\nBODY:" + _post.description).join("\n")}
 
         Output the following JSON;
-        {"credibility": {"value": 0.0-10.0, "reason": "why"}, "bias": {"position": {"angle": 0.0-360.0}, "reason": "why"}, "importance": 0-10}
+        {"credibility": {"value": 0.0-1.0, "reason": "why"}, "bias": {"position": {"angle": 0.0-360.0}, "reason": "why"}, "importance": 0.0-1.0}
    `;
 
   const completion = await new OpenAI().chat.completions.create({

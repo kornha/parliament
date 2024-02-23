@@ -37,6 +37,7 @@ class Chat extends StatefulWidget {
   const Chat({
     super.key,
     this.pinnedMessageHeader,
+    this.pinnedMessageFooter,
     this.audioMessageBuilder,
     this.avatarBuilder,
     this.bubbleBuilder,
@@ -322,6 +323,9 @@ class Chat extends StatefulWidget {
   /// Pins a widget to the top of the chat.
   final Widget? pinnedMessageHeader;
 
+  /// Pins a widget to the bottom of the chat.
+  final Widget? pinnedMessageFooter;
+
   /// See [ChatList.useTopSafeAreaInset].
   final bool? useTopSafeAreaInset;
 
@@ -589,7 +593,9 @@ class ChatState extends State<Chat> {
                   child: Column(
                     children: [
                       Flexible(
-                        child: widget.messages.isEmpty
+                        child: (widget.messages.isEmpty &&
+                                widget.pinnedMessageHeader == null &&
+                                widget.pinnedMessageFooter == null)
                             ? SizedBox.expand(
                                 child: _emptyStateBuilder(),
                               )
@@ -616,6 +622,8 @@ class ChatState extends State<Chat> {
                                     ),
                                     pinnedMessageHeader:
                                         widget.pinnedMessageHeader,
+                                    pinnedMessageFooter:
+                                        widget.pinnedMessageFooter,
                                     items: _chatMessages,
                                     keyboardDismissBehavior:
                                         widget.keyboardDismissBehavior,

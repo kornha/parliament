@@ -16,6 +16,7 @@ class PoliticalPositionJoystick extends StatefulWidget {
   final double give;
   final double maxCirclesPerRing;
   final bool showUnselected;
+  final bool showStick;
 
   const PoliticalPositionJoystick({
     super.key,
@@ -27,6 +28,7 @@ class PoliticalPositionJoystick extends StatefulWidget {
     this.give = 0.26,
     this.maxCirclesPerRing = 75,
     this.showUnselected = true,
+    this.showStick = false,
   });
 
   @override
@@ -57,7 +59,9 @@ class _PoliticalPositionJoystickState extends State<PoliticalPositionJoystick> {
           shape: BoxShape.circle,
           boxShadow: [
             BoxShadow(
-              color: context.surfaceColor.withOpacity(0.5),
+              color: widget.showStick
+                  ? context.surfaceColor.withOpacity(0.5)
+                  : Colors.transparent,
               spreadRadius: 1,
               blurRadius: 1,
               offset: const Offset(0, 1),
@@ -67,8 +71,8 @@ class _PoliticalPositionJoystickState extends State<PoliticalPositionJoystick> {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              context.surfaceColor,
-              context.backgroundColor,
+              widget.showStick ? context.surfaceColor : Colors.transparent,
+              widget.showStick ? context.backgroundColor : Colors.transparent,
             ],
           ),
         ),

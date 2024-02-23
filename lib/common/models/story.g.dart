@@ -12,7 +12,7 @@ Story _$StoryFromJson(Map<String, dynamic> json) => Story(
       description: json['description'] as String,
       createdAt: Story._timestampFromJson(json['createdAt'] as int),
       updatedAt: Story._timestampFromJson(json['updatedAt'] as int),
-      importance: json['importance'] as int?,
+      importance: (json['importance'] as num?)?.toDouble(),
       locations: (json['locations'] as List<dynamic>?)
               ?.map((e) => e as String)
               .toList() ??

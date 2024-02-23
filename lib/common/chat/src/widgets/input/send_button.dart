@@ -20,20 +20,18 @@ class SendButton extends StatelessWidget {
   /// Padding around the button.
   final EdgeInsets padding;
 
+  // : TODO: Hacky, splash not working right in light mode
   @override
   Widget build(BuildContext context) => Container(
         margin: InheritedChatTheme.of(context).theme.sendButtonMargin ??
             const EdgeInsetsDirectional.fromSTEB(0, 0, 8, 0),
         child: IconButton(
-          constraints: const BoxConstraints(
-            minHeight: 24,
-            minWidth: 24,
-          ),
-          icon: context.sendIcon,
+          splashColor: context.primaryColor,
+          iconSize: IconSize.small,
+          icon: InheritedChatTheme.of(context).theme.sendButtonIcon!,
           onPressed: onPressed,
-          padding: padding,
-          splashRadius: 24,
-          tooltip: InheritedL10n.of(context).l10n.sendButtonAccessibilityLabel,
+          // padding: padding,
+          // tooltip: InheritedL10n.of(context).l10n.sendButtonAccessibilityLabel,
         ),
       );
 }

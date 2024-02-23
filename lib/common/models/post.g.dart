@@ -10,6 +10,7 @@ Post _$PostFromJson(Map<String, dynamic> json) => Post(
       pid: json['pid'] as String,
       sid: json['sid'] as String?,
       creator: json['creator'] as String?,
+      poster: json['poster'] as String?,
       status: $enumDecode(_$PostStatusEnumMap, json['status']),
       createdAt: Post._timestampFromJson(json['createdAt'] as int),
       updatedAt: Post._timestampFromJson(json['updatedAt'] as int),
@@ -23,7 +24,7 @@ Post _$PostFromJson(Map<String, dynamic> json) => Post(
               ?.map((e) => e as String)
               .toList() ??
           const [],
-      importance: json['importance'] as int?,
+      importance: (json['importance'] as num?)?.toDouble(),
       userBias: json['userBias'] == null
           ? null
           : Bias.fromJson(json['userBias'] as Map<String, dynamic>),
@@ -45,6 +46,7 @@ Map<String, dynamic> _$PostToJson(Post instance) => <String, dynamic>{
       'pid': instance.pid,
       'sid': instance.sid,
       'creator': instance.creator,
+      'poster': instance.poster,
       'status': _$PostStatusEnumMap[instance.status]!,
       'title': instance.title,
       'description': instance.description,
@@ -69,9 +71,10 @@ const _$PostStatusEnumMap = {
   PostStatus.draft: 'draft',
   PostStatus.published: 'published',
   PostStatus.deleted: 'deleted',
+  PostStatus.error: 'error',
 };
 
 const _$SourceTypeEnumMap = {
   SourceType.article: 'article',
-  SourceType.twitter: 'twitter',
+  SourceType.x: 'x',
 };

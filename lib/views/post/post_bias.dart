@@ -10,14 +10,20 @@ import 'package:political_think/common/models/bias.dart';
 import 'package:political_think/common/models/post.dart';
 import 'package:political_think/common/models/vote.dart';
 import 'package:political_think/common/services/database.dart';
+import 'package:political_think/views/bias/bias_view.dart';
 
 class PostBias extends ConsumerStatefulWidget {
   final Post post;
   final double radius;
+  final bool showText;
+  final bool showModalOnPress;
+
   const PostBias({
     super.key,
     required this.radius,
     required this.post,
+    this.showText = false,
+    this.showModalOnPress = true,
   });
 
   @override
@@ -47,57 +53,84 @@ class _PostBiasViewState extends ConsumerState<PostBias> {
             _localVote!.createdAt.millisecondsSinceEpoch) {
       _localVote = null;
     }
-    return Stack(
-      alignment: AlignmentDirectional.center,
-      children: [
-        widget.post.aiBias == null
-            ? LoadingPoliticalPositionAnimation(
-                size: widget.radius * 2,
+    return GestureDetector(
+      // the ontap does not intercept the joystick
+      onTap: widget.showModalOnPress
+          ? () {
+              context.showModal(BiasView(pid: widget.post.pid));
+            }
+          : null,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          Stack(
+            alignment: AlignmentDirectional.center,
+            children: [
+              widget.post.aiBias == null
+                  ? LoadingPoliticalPositionAnimation(
+                      size: widget.radius * 2,
+                      rings: 1,
+                      give: 0.2,
+                    )
+                  : PoliticalComponent(
+                      radius: widget.radius,
+                      rings: 1,
+                      position: widget.post.aiBias?.position,
+                      give: 0.2,
+                      showUnselected: false,
+                    ),
+              PoliticalComponent(
+                radius: widget.radius * 5.0 / 6.0,
                 rings: 1,
-                give: 0.2,
-              )
-            : PoliticalComponent(
-                radius: widget.radius,
-                rings: 1,
-                position: widget.post.aiBias?.position,
-                give: 0.2,
+                position: widget.post.userBias?.position,
+                give: 0.195,
                 showUnselected: false,
               ),
-        PoliticalComponent(
-          radius: widget.radius * 5.0 / 6.0,
-          rings: 1,
-          position: widget.post.userBias?.position,
-          give: 0.195,
-          showUnselected: false,
-        ),
-        PoliticalPositionJoystick(
-          selectedPosition: _localVote?.bias?.position ?? vote?.bias?.position,
-          radius: widget.radius * 2.0 / 3.0,
-          give: 0.19,
-          rings: 1,
-          onPositionSelected: (pos) {
-            Vote v = Vote(
-              uid: ref.user().uid,
-              pid: widget.post.pid,
-              createdAt: Timestamp.now(),
-              type: VoteType.bias,
-              bias: Bias(position: pos),
-            );
-            Database.instance()
-                .vote(widget.post.pid, v, VoteType.bias)
-                .onError((error, stackTrace) {
-              setState(() {
-                _localVote = null;
-                // TODO: toast
-              });
-            });
+              PoliticalPositionJoystick(
+                selectedPosition:
+                    _localVote?.bias?.position ?? vote?.bias?.position,
+                radius: widget.radius * 2.0 / 3.0,
+                give: 0.19,
+                rings: 1,
+                showStick: false,
+                onPositionSelected: (pos) {
+                  Vote v = Vote(
+                    uid: ref.user().uid,
+                    pid: widget.post.pid,
+                    createdAt: Timestamp.now(),
+                    type: VoteType.bias,
+                    bias: Bias(position: pos),
+                  );
+                  Database.instance()
+                      .vote(widget.post.pid, v, VoteType.bias)
+                      .onError((error, stackTrace) {
+                    setState(() {
+                      _localVote = null;
+                      // TODO: toast
+                    });
+                  });
 
-            setState(() {
-              _localVote = v;
-            });
-          },
-        ),
-      ],
+                  setState(() {
+                    _localVote = v;
+                  });
+                },
+              ),
+            ],
+          ),
+          !widget.showText || widget.post.userBias == null
+              ? const SizedBox.shrink()
+              : SizedBox(
+                  width: widget.radius * 2.0,
+                  child: Text(
+                    widget.post.userBias!.position.name,
+                    style: widget.radius >= context.iconSizeXL
+                        ? context.mb
+                        : context.sb,
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+        ],
+      ),
     );
   }
 }

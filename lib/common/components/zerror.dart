@@ -29,7 +29,7 @@ class ZError extends StatelessWidget {
             child: Icon(
               FontAwesomeIcons.faceAngry,
               color: context.errorColor,
-              size: context.iconSizeLarge,
+              size: context.iconSizeXL,
             ),
           ),
         );
@@ -45,7 +45,7 @@ class ZError extends StatelessWidget {
             child: Icon(
               FontAwesomeIcons.faceAngry,
               color: context.errorColor,
-              size: context.iconSizeProfile,
+              size: context.iconSizeStandard,
             ),
           ),
         );
@@ -55,8 +55,8 @@ class ZError extends StatelessWidget {
           FontAwesomeIcons.faceAngry,
           color: context.errorColor,
           size: type == ErrorType.profile
-              ? context.iconSizeProfile
-              : context.iconSizeLarge,
+              ? context.iconSizeStandard
+              : context.iconSizeXL,
         );
     }
   }

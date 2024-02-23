@@ -100,7 +100,7 @@ class Loading extends StatelessWidget {
         return Container(
           child: Center(
             child: LoadingPoliticalPositionAnimation(
-              size: context.iconSizeProfile,
+              size: context.iconSizeStandard,
               duration: const Duration(milliseconds: 1200),
             ),
           ),
@@ -109,7 +109,7 @@ class Loading extends StatelessWidget {
         return Container(
           child: Center(
             child: LoadingPoliticalPositionAnimation(
-              size: context.iconSizeStandard,
+              size: context.iconSizeLarge,
               duration: const Duration(milliseconds: 1200),
             ),
           ),
@@ -119,7 +119,7 @@ class Loading extends StatelessWidget {
         return Container(
           child: Center(
             child: LoadingPoliticalPositionAnimation(
-              size: context.iconSizeLarge,
+              size: context.iconSizeXL,
               duration: const Duration(milliseconds: 1200),
             ),
           ),
@@ -188,7 +188,7 @@ class _LoadingPoliticalPositionAnimationState
   Widget build(BuildContext context) {
     return PoliticalComponent(
       showUnselected: widget.showUnselected,
-      rings: widget.rings ?? (widget.size >= context.iconSizeStandard ? 4 : 2),
+      rings: widget.rings ?? (widget.size >= context.iconSizeLarge ? 4 : 2),
       position: PoliticalPosition.fromRadians((_animation.value) * pi * 2),
       radius: widget.size / 2,
     );
@@ -268,7 +268,7 @@ class _LoadingCredibilityAnimationState
       width: widget.width,
       height: widget.height,
       credibility: Credibility.fromValue(
-          topdown ? 10 - _animation.value * 10 : _animation.value * 10),
+          topdown ? 1.0 - _animation.value : _animation.value),
     );
   }
 }

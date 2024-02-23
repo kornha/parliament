@@ -16,7 +16,7 @@ dependencies:
   firebase_auth: ^4.9.0
   firebase_ui_auth: ^1.8.0
   google_sign_in: ^6.1.5
-  font_awesome_flutter: ^10.5.0
+  font_awesome_flutter: ^10.7.0
   cloud_firestore: ^4.9.1
   json_serializable: ^6.7.1
   flutter_spinkit: ^5.2.0
@@ -55,6 +55,8 @@ dependencies:
   syncfusion_flutter_core: ^24.1.44
   country_picker: ^2.0.23
   country_flags: ^2.2.0
+  image_stack: ^2.1.1
+  json_annotation: ^4.8.1
 
 dev_dependencies:
   flutter_test:
@@ -65,12 +67,19 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
-    - assets/maps/dark_map.json
+    - assets/images/
+    - assets/maps/
 
-fonts:
-  - family: SocialIcons
-    fonts:
-      - asset: packages/firebase_ui_auth/fonts/SocialIcons.ttf
-  - family: Hackney
-    fonts:
-      - asset: assets/fonts/hackney.ttf
+  fonts:
+    - family: Technology
+      fonts:
+        - asset: assets/fonts/technology.regular.ttf
+    - family: Hackney
+      fonts:
+        - asset: assets/fonts/hackney.ttf
+    - family: Minecart
+      fonts:
+        - asset: assets/fonts/Minecart_LCD.ttf
+    - family: SocialIcons
+      fonts:
+        - asset: packages/firebase_ui_auth/fonts/SocialIcons.ttf

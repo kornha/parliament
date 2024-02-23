@@ -11,6 +11,7 @@ class ZBackButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return IconButton(
+      iconSize: context.iconSizeStandard,
       icon: const Icon(FontAwesomeIcons.chevronLeft),
       color: context.primaryColor,
       onPressed: () {

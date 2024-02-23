@@ -8,7 +8,7 @@ class Story {
   final String sid;
   String title;
   String description;
-  int? importance;
+  double? importance;
   List<String> locations;
 
   @JsonKey(fromJson: _timestampFromJson, toJson: _timestampToJson)

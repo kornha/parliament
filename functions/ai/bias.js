@@ -1,61 +1,7 @@
 /* eslint-disable require-jsdoc */
-const {OpenAI} = require("openai");
 const admin = require("firebase-admin");
 const functions = require("firebase-functions");
-const {getTextContentForPost} = require("../common/utils");
 const {FieldValue} = require("firebase-admin/firestore");
-
-exports.computeBias = async function(post) {
-  const content = await getTextContentForPost(post);
-
-  if (!content) {
-    functions.logger.error(`Invalid content for ${post.url}, ${content}`);
-    return;
-  }
-  const prompt = `You will be given text from a webpage.
-      Determine the bias of a webpage. Output should be the following:
-      {"angle": 0.0-360.0}
-      0 represents a 'right wing bias'. 180 represents a 'left wing bias'.
-      270 represents an extremist bias. 90 represents a centrist bias.
-      Note that 359 is 1 away from 0 so would be a right wing bias.
-      For example, if the webpage is an extremist right wing webpage,
-      the output should be between 0 and 270, something like:
-      {"angle": 315}.
-      Everything else in this prompt is the text:
-      ${content}
-    `;
-
-  const completion = await new OpenAI().chat.completions.create({
-    messages: [
-      {
-        role: "system",
-        content: `You are a machine that only returns and replies with valid,
-              iterable RFC8259 compliant JSON in your responses`,
-      },
-      {
-        role: "user", content: prompt,
-      },
-    ],
-    model: "gpt-4", // gpt-3.5-turbo is cheap, trying 4-turbo
-  });
-  try {
-    const position = JSON.parse(completion.choices[0].message.content);
-    if (position.angle == null) {
-      functions.logger.error(`Invalid decision: ${position}`);
-      return;
-    }
-    admin.firestore()
-        .collection("posts")
-        .doc(post.pid)
-        .update({
-          aiBias: {position: position},
-        });
-  } catch (e) {
-    functions.logger.error(`Invalid decision: ${e}`);
-    functions.logger.error(completion);
-    return;
-  }
-};
 
 
 exports.applyVoteToBias = async function(pid, vote, {add = true}) {
@@ -158,4 +104,58 @@ const addPosition = function(currAngle, magnitude, direction) {
 
   return (newAngle + 360) % 360;
 };
+
+
+// DEPRECATED
+// exports.computeBias = async function(post) {
+//   const content = await getTextContentForPost(post);
+
+//   if (!content) {
+//     functions.logger.error(`Invalid content for ${post.url}, ${content}`);
+//     return;
+//   }
+//   const prompt = `You will be given text from a webpage.
+//         Determine the bias of a webpage. Output should be the following:
+//         {"angle": 0.0-360.0}
+//         0 represents a 'right wing bias'. 180 represents a 'left wing bias'.
+//         270 represents an extremist bias. 90 represents a centrist bias.
+//         Note that 359 is 1 away from 0 so would be a right wing bias.
+//         For example, if the webpage is an extremist right wing webpage,
+//         the output should be between 0 and 270, something like:
+//         {"angle": 315}.
+//         Everything else in this prompt is the text:
+//         ${content}
+//       `;
+
+//   const completion = await new OpenAI().chat.completions.create({
+//     messages: [
+//       {
+//         role: "system",
+//         content: `You are a machine that only returns and replies with valid,
+//                 iterable RFC8259 compliant JSON in your responses`,
+//       },
+//       {
+//         role: "user", content: prompt,
+//       },
+//     ],
+//     model: "gpt-4", // gpt-3.5-turbo is cheap, trying 4-turbo
+//   });
+//   try {
+//     const position = JSON.parse(completion.choices[0].message.content);
+//     if (position.angle == null) {
+//       functions.logger.error(`Invalid decision: ${position}`);
+//       return;
+//     }
+//     admin.firestore()
+//         .collection("posts")
+//         .doc(post.pid)
+//         .update({
+//           aiBias: {position: position},
+//         });
+//   } catch (e) {
+//     functions.logger.error(`Invalid decision: ${e}`);
+//     functions.logger.error(completion);
+//     return;
+//   }
+// };
 

@@ -18,57 +18,7 @@ class Palette {
   static const blue = Color.fromRGBO(0, 0, 255, 1);
   static const purple = Color.fromRGBO(255, 0, 255, 1);
   static const orange = Color.fromRGBO(255, 85, 0, 1);
-}
-
-class ThemeConstants {
-  static final darkTheme = ThemeData(
-    splashColor: Colors.transparent,
-    colorScheme: const ColorScheme(
-      brightness: Brightness.dark,
-      primary: Palette.white,
-      onPrimary: Palette.blue,
-      secondary: Palette.green,
-      onSecondary: Palette.red,
-      error: Palette.red,
-      onError: Palette.white,
-      background: Palette.black,
-      onBackground: Palette.blue,
-      surface: Palette.darkSlate,
-      onSurface: Palette.white,
-    ),
-    textTheme: GoogleFonts.newsreaderTextTheme().apply(
-      bodyColor: Palette.white,
-      displayColor: Palette.white,
-    ),
-    fontFamily: GoogleFonts.newsreader().fontFamily,
-    brightness: Brightness.dark,
-  );
-
-  static final lightTheme = ThemeData(
-    splashColor: Colors.transparent,
-    colorScheme: const ColorScheme(
-      brightness: Brightness.light,
-      primary: Palette.black,
-      onPrimary: Palette.blue,
-      secondary: Palette.green,
-      onSecondary: Palette.red,
-      error: Palette.red,
-      onError: Palette.white,
-      background: Palette.white,
-      onBackground: Palette.blue,
-      surface: Palette.lightSlate,
-      onSurface: Palette.black,
-    ),
-    textTheme: GoogleFonts.newsreaderTextTheme(),
-    fontFamily: GoogleFonts.newsreader().fontFamily,
-    // highlightColor: Colors.transparent,
-    // splashColor: Colors.transparent,
-    // hoverColor: Colors.transparent,
-    // unselectedWidgetColor: Palette.lightSlate,
-    // textTheme: const TextTheme()
-    //     .apply(bodyColor: Palette.black, displayColor: Palette.black),
-    brightness: Brightness.light,
-  );
+  static const teal = Color.fromRGBO(0, 255, 255, 1);
 }
 
 class Durations {
@@ -109,10 +59,10 @@ class BRadius {
 // Should be moved to context
 class IconSize {
   static const double small = 12.5;
-  static const double profile = 20.0;
-  static const double standard = 33;
-  static const double large = 50;
-  static const double xl = 75;
+  static const double standard = 24.0;
+  static const double large = 33;
+  static const double xl = 50;
+  static const double xxl = 75;
 }
 
 class Block {

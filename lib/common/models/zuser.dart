@@ -9,12 +9,13 @@ part 'zuser.g.dart';
 @JsonSerializable()
 class ZUser {
   final String uid;
+  int elo;
   String? email;
   String? phoneNumber;
   String? photoURL;
   String? username;
 
-  ZUser({required this.uid});
+  ZUser({required this.uid, this.elo = 1500});
 
   factory ZUser.fromJson(Map<String, dynamic> json) => _$ZUserFromJson(json);
 

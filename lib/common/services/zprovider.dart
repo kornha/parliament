@@ -28,6 +28,11 @@ final zuserProvider = StreamProvider.family<ZUser?, String>((ref, uid) {
   return Database.instance().getUser(uid);
 });
 
+final zusersProvider =
+    StreamProvider.family<List<ZUser>?, List<String>>((ref, uids) {
+  return Database.instance().getUsers(uids);
+});
+
 // Searches 2 diff tables depending on the vote type
 final voteProvider = StreamProvider.family<Vote?, (String, String, VoteType)>(
     (ref, piduidcollection) {
@@ -133,11 +138,9 @@ final postsFromStoryProvider =
 
 // need a tuple as this only takes in one param
 // returns only the first room as there should be one per user/post
-final latestRoomProvider = StreamProvider.family<Room?, (String, String)>(
-    (ref, parentIdparentCollection) {
-  String parentId = parentIdparentCollection.$1;
-  String parentCollection = parentIdparentCollection.$2;
-  return Database.instance().streamLatestRoom(parentId, parentCollection);
+final latestRoomProvider =
+    StreamProvider.family<Room?, String>((ref, parentId) {
+  return Database.instance().streamLatestRoom(parentId);
 });
 
 //////////////////////////////////////////////////////////////
@@ -145,8 +148,8 @@ final latestRoomProvider = StreamProvider.family<Room?, (String, String)>(
 //////////////////////////////////////////////////////////////
 
 final messagesProvider =
-    StreamProvider.family<List<ct.Message>?, (Room, int)>((ref, roomlimit) {
-  Room room = roomlimit.$1;
-  int limit = roomlimit.$2;
-  return Database.instance().streamMessages(room, limit);
+    StreamProvider.family<List<ct.Message>?, (String, int)>((ref, ridlimit) {
+  String rid = ridlimit.$1;
+  int limit = ridlimit.$2;
+  return Database.instance().streamMessages(rid, limit);
 });

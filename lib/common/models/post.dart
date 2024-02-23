@@ -7,15 +7,18 @@ import 'package:political_think/common/models/political_position.dart';
 
 part 'post.g.dart';
 
-enum PostStatus { draft, published, deleted }
+enum PostStatus { draft, published, deleted, error }
 
-enum SourceType { article, twitter }
+enum SourceType { article, x }
 
 @JsonSerializable(explicitToJson: true)
 class Post {
   final String pid;
   final String? sid;
+  // creator domain or handle of the originator
   String? creator;
+  // user who posted the post, if any
+  String? poster;
   PostStatus status;
   //
   String? title;
@@ -29,11 +32,16 @@ class Post {
   //
   int voteCountBias;
   int voteCountCredibility;
+  // between 0.0 and 359.99
   Bias? userBias;
+  // between 0.0 and 359.99
   Bias? aiBias;
+  // between 0.0 and 1.0
   Credibility? userCredibility;
+  // between 0.0 and 1.0
   Credibility? aiCredibility;
-  int? importance;
+  // between 0.0 and 1.0
+  double? importance;
   //
   int? messageCount; // not sure if we want to keep this record but we do now
 
@@ -45,7 +53,8 @@ class Post {
   Post({
     required this.pid,
     this.sid,
-    this.creator,
+    this.creator, // todo, move to entities table!
+    this.poster,
     required this.status,
     required this.createdAt,
     required this.updatedAt,

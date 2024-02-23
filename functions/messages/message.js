@@ -8,20 +8,21 @@ const {Timestamp} = require("firebase-admin/firestore");
 //
 
 exports.onMessageChange = functions.firestore
-    .document("/{collectionId}/{parentId}/rooms/{rid}/messages/{mid}")
+    .document("rooms/{rid}/messages/{mid}")
     .onWrite((change, context) => {
       const message = change.after.data();
-      const collectionId = context.params.collectionId;
-      const parentId = context.params.parentId;
       const rid = context.params.rid;
       if (message) {
         if (["delivered", "seen"].includes(message.status)) {
           return null;
         } else {
-          incrementRoomMessages(rid, parentId, collectionId);
+          incrementRoomMessages(rid, message.author.id);
           return change.after.ref.update({
             status: "delivered",
             // this is technically overwriting local set timestamp
+            // can use updatedAt instead
+            // but need to change DB..
+            // for now keeping createdAt as the source of truth
             createdAt: Timestamp.now().toMillis(),
           });
         }

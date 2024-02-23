@@ -141,14 +141,13 @@ class PostViewButtons extends StatelessWidget {
           visible: showMap,
           child: Padding(
               padding: EdgeInsets.symmetric(
-                  horizontal:
-                      (context.iconSizeXL - context.iconSizeLarge) / 2.0),
+                  horizontal: (context.iconSizeXXL - context.iconSizeXL) / 2.0),
               child: LocationMap(
                 locations: post.locations.isNotEmpty
                     ? post.locations
                     : story?.locations ?? [],
-                width: context.iconSizeLarge,
-                height: context.iconSizeLarge,
+                width: context.iconSizeXL,
+                height: context.iconSizeXL,
               )),
         ),
         Visibility(
@@ -160,12 +159,11 @@ class PostViewButtons extends StatelessWidget {
           visible: showCredibility,
           child: Padding(
               padding: EdgeInsets.symmetric(
-                  horizontal:
-                      (context.iconSizeXL - context.iconSizeLarge) / 2.0),
+                  horizontal: (context.iconSizeXXL - context.iconSizeXL) / 2.0),
               child: PostCredibility(
                 post: post,
-                height: context.iconSizeXL,
-                width: context.iconSizeLarge,
+                height: context.iconSizeXXL,
+                width: context.iconSizeXL,
               )),
         ),
         Visibility(

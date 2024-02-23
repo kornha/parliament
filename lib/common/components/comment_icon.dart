@@ -18,8 +18,8 @@ class CommentIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: size ?? context.iconSizeLarge,
-      height: (size ?? context.iconSizeLarge),
+      width: size ?? context.iconSizeXL,
+      height: (size ?? context.iconSizeXL),
       //padding: const EdgeInsets.all(Margins.quarter),
       decoration: const BoxDecoration(
           //borderRadius: BRadius.standard,
@@ -31,11 +31,11 @@ class CommentIcon extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Text(
-              (comments ?? 0) > 999
-                  ? "${(comments ?? 0) ~/ 1000}K+"
-                  : (comments ?? 0).toString(),
-              style: context.h3.copyWith(
-                  color: context.primaryColor, fontWeight: FontWeight.bold)),
+            (comments ?? 0) > 999
+                ? "${(comments ?? 0) ~/ 1000}K+"
+                : (comments ?? 0).toString(),
+            style: context.h3.copyWith(color: context.primaryColor),
+          ),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -49,11 +49,11 @@ class CommentIcon extends StatelessWidget {
               context.sl,
               Text(
                 position?.quadrant.name ?? "n/a",
-                style: context.s.copyWith(
-                    color: position == null
-                        ? context.secondaryColor.withOpacity(0.5)
-                        : position?.quadrant.color,
-                    fontWeight: FontWeight.bold),
+                style: context.sb.copyWith(
+                  color: position == null
+                      ? context.secondaryColor.withOpacity(0.5)
+                      : position?.quadrant.color,
+                ),
               ),
             ],
           ),

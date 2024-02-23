@@ -9,10 +9,12 @@ class ProfileIcon extends ConsumerStatefulWidget {
   const ProfileIcon({
     super.key,
     this.uid,
-    this.size = IconSize.profile,
+    this.size,
+    this.watch = true,
   });
   final String? uid;
-  final double size;
+  final double? size;
+  final bool watch;
 
   @override
   ConsumerState<ConsumerStatefulWidget> createState() => _ZScaffoldState();
@@ -21,13 +23,18 @@ class ProfileIcon extends ConsumerStatefulWidget {
 class _ZScaffoldState extends ConsumerState<ProfileIcon> {
   @override
   Widget build(BuildContext context) {
-    final user =
-        widget.uid == null ? ref.selfUserWatch() : ref.userWatch(widget.uid);
+    final user = widget.uid == null
+        ? widget.watch
+            ? ref.selfUserWatch()
+            : ref.selfUserRead()
+        : widget.watch
+            ? ref.userWatch(widget.uid)
+            : ref.userRead(widget.uid);
     return user.value?.photoURL?.isNotEmpty ?? false
         ? CircleAvatar(
             backgroundColor: context.surfaceColor,
             foregroundImage: NetworkImage(user.value!.photoURL!),
-            radius: widget.size,
+            radius: widget.size ?? context.iconSizeStandard,
           )
         : const Icon(FontAwesomeIcons.circle);
   }

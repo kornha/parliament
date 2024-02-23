@@ -1,10 +1,14 @@
 import 'dart:math';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
+import 'package:political_think/common/components/zapp_bar.dart';
+import 'package:political_think/common/components/zscaffold.dart';
 import 'package:political_think/common/constants.dart';
 import 'package:political_think/common/models/post.dart';
 import 'package:political_think/common/models/room.dart';
@@ -20,6 +24,8 @@ extension ProviderExt on WidgetRef {
   get authRead => read(authProvider);
   AsyncValue<ZUser?> userWatch(uid) => watch(zuserProvider(uid));
   AsyncValue<ZUser?> userRead(uid) => read(zuserProvider(uid));
+  AsyncValue<List<ZUser>?> usersWatch(uids) => watch(zusersProvider(uids));
+  AsyncValue<List<ZUser>?> usersRead(uids) => read(zusersProvider(uids));
   AsyncValue<Vote?> voteWatch(String pid, String uid, VoteType type) =>
       watch(voteProvider((pid, uid, type)));
   AsyncValue<Vote?> voteRead(String pid, String uid, VoteType type) =>
@@ -38,24 +44,27 @@ extension ProviderExt on WidgetRef {
   AsyncValue<List<Post>?> postsFromStoriesRead(String sid) =>
       read(postsFromStoryProvider(sid));
 
-  AsyncValue<Room?> activeRoomWatch(String parentId, RoomParentType type) =>
-      watch(latestRoomProvider((parentId, type.collectionName)));
-  AsyncValue<Room?> activeRoomRead(String parentId, RoomParentType type) =>
-      read(latestRoomProvider((parentId, type.collectionName)));
+  AsyncValue<Room?> activeRoomWatch(String parentId) =>
+      watch(latestRoomProvider((parentId)));
+  AsyncValue<Room?> activeRoomRead(String parentId) =>
+      read(latestRoomProvider((parentId)));
 
-  AsyncValue<List<ct.Message>?> messagesWatch(Room room, int limit) =>
-      watch(messagesProvider((room, limit)));
-  refreshMessages(Room room, int limit) =>
-      refresh(messagesProvider((room, limit)));
+  AsyncValue<List<ct.Message>?> messagesWatch(String rid, int limit) =>
+      watch(messagesProvider((rid, limit)));
+  refreshMessages(String rid, int limit) =>
+      refresh(messagesProvider((rid, limit)));
 }
 
 extension ThemeExt on BuildContext {
   Color get primaryColor => Theme.of(this).colorScheme.primary;
+  Color get primaryColorWithOpacity => primaryColor.withOpacity(0.55);
   Color get backgroundColor => Theme.of(this).colorScheme.background;
+  Color get backgroundColorWithOpacity => backgroundColor.withOpacity(0.55);
   Color get surfaceColor => Theme.of(this).colorScheme.surface;
   Color get onPrimaryColor => Theme.of(this).colorScheme.onPrimary;
   Color get onBackgroundColor => Theme.of(this).colorScheme.onBackground;
   Color get onSurfaceColor => Theme.of(this).colorScheme.onSurface;
+  Color get onSurfaceColorWithOpacity => onSurfaceColor.withOpacity(0.55);
   Color get errorColor => Theme.of(this).colorScheme.error;
   Color get onErrorColor => Theme.of(this).colorScheme.onError;
   Color get secondaryColor => Theme.of(this).colorScheme.secondary;
@@ -137,6 +146,8 @@ extension Spacing on BuildContext {
 
   EdgeInsets get blockMargin => const EdgeInsets.symmetric(
       horizontal: Margins.half, vertical: Margins.half);
+  EdgeInsets get blockPaddingSmall => const EdgeInsets.symmetric(
+      horizontal: Margins.quarter, vertical: Margins.quarter);
   EdgeInsets get blockPadding => const EdgeInsets.symmetric(
       horizontal: Margins.half, vertical: Margins.half);
   EdgeInsets get blockPaddingExtra => const EdgeInsets.symmetric(
@@ -144,6 +155,8 @@ extension Spacing on BuildContext {
 
   // double get blockWidth =>
   //     isMobileOrTablet ? Block.blockWidthSmall : Block.blockWidthLarge;
+  SizedBox get sqt =>
+      const SizedBox(height: Margins.quintuple, width: Margins.quintuple);
   SizedBox get sqd =>
       const SizedBox(height: Margins.quadruple, width: Margins.quadruple);
   SizedBox get st =>
@@ -163,35 +176,88 @@ extension Spacing on BuildContext {
 }
 
 extension ModalExt on BuildContext {
+  void showFullScreenModal(Widget child) {
+    showCupertinoDialog(
+      context: this,
+      useRootNavigator: true,
+      //useSafeArea: true,
+      builder: (BuildContext context) {
+        return ZScaffold(
+          appBar: ZAppBar(
+            leading: IconButton(
+              icon: Icon(FontAwesomeIcons.xmark, color: context.primaryColor),
+              onPressed: () {
+                context.pop();
+              },
+            ),
+          ),
+          body: child,
+        );
+      },
+    );
+  }
+
   void showModal(Widget child) {
     showCupertinoModalBottomSheet(
-      barrierColor: backgroundColor.withOpacity(0.5),
+      barrierColor: surfaceColor.withOpacity(0.9),
       context: this,
       expand: false,
       useRootNavigator: true,
       builder: (context) => Material(
-        color: context.surfaceColor,
+        color: context.backgroundColor,
         child: SafeArea(child: child),
+      ),
+    );
+  }
+
+  void showToast(String message) {
+    ScaffoldMessenger.of(this).showSnackBar(
+      SnackBar(
+        content: Text(message),
       ),
     );
   }
 }
 
 extension ConstantsExt on BuildContext {
-  Widget get sendIcon => Icon(Icons.send, color: onSurfaceColor);
-  Widget get deliveredIcon => Icon(Icons.receipt, color: primaryColor);
+  //Widget get sendIcon => Icon(Icons.send, color: onSurfaceColor);
+  //Widget get deliveredIcon => Icon(Icons.receipt, color: primaryColor);
 
   double get iconSizeSmall => IconSize.small;
-  double get iconSizeProfile => IconSize.profile;
   double get iconSizeStandard => IconSize.standard;
   double get iconSizeLarge => IconSize.large;
   double get iconSizeXL => IconSize.xl;
+  double get iconSizeXXL => IconSize.xxl;
 }
 
 extension TextExt on BuildContext {
   // TODO: overriding this here and not using from theme
-  TextStyle get d =>
-      TextStyle(fontSize: 24, color: primaryColor, fontFamily: "Hackney");
+  TextStyle get ah2 => TextStyle(
+      fontSize: Theme.of(this).textTheme.headlineMedium!.fontSize,
+      color: primaryColor,
+      fontFamily: "Minecart");
+  TextStyle get ah3 => TextStyle(
+      fontSize: Theme.of(this).textTheme.headlineSmall!.fontSize,
+      color: primaryColor,
+      fontFamily: "Minecart");
+  TextStyle get al => TextStyle(
+      fontSize: Theme.of(this).textTheme.bodyLarge!.fontSize,
+      color: primaryColor,
+      fontFamily: "Minecart");
+  TextStyle get am => TextStyle(
+      fontSize: Theme.of(this).textTheme.bodyMedium!.fontSize,
+      color: primaryColor,
+      fontFamily: "Minecart");
+  TextStyle get as => TextStyle(
+      fontSize: Theme.of(this).textTheme.bodySmall!.fontSize,
+      color: primaryColor,
+      fontFamily: "Minecart");
+
+  TextStyle get sb => s.copyWith(fontWeight: FontWeight.bold);
+  TextStyle get mb => m.copyWith(fontWeight: FontWeight.bold);
+  TextStyle get lb => l.copyWith(fontWeight: FontWeight.bold);
+  TextStyle get h3b => h3.copyWith(fontWeight: FontWeight.bold);
+
   // Theme.of(this).textTheme.displayLarge!;
   TextStyle get h1 => Theme.of(this).textTheme.headlineLarge!;
   TextStyle get h2 => Theme.of(this).textTheme.headlineMedium!;

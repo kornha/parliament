@@ -12,21 +12,11 @@ class PoliticalPosition {
   final double angle;
 
   const PoliticalPosition({
-    this.angle = 0.0,
+    this.angle = 90.0,
   });
 
-  Color get color {
-    switch (quadrant) {
-      case Quadrant.right:
-        return Palette.red;
-      case Quadrant.left:
-        return Palette.blue;
-      case Quadrant.center:
-        return Palette.green;
-      case Quadrant.extreme:
-        return Palette.purple;
-    }
-  }
+  Color get color => quadrant.color;
+  Color get onColor => quadrant.onColor;
 
   Quadrant get quadrant {
     var temp = angle % 360;
@@ -38,6 +28,35 @@ class PoliticalPosition {
       return Quadrant.center;
     } else {
       return Quadrant.extreme;
+    }
+  }
+
+  String get name {
+    var temp = angle % 360;
+    if (temp >= 345.0 || temp <= 15.0) {
+      return "Right";
+    } else if (temp > 15.0 && temp <= 45.0) {
+      return "Center Right";
+    } else if (temp > 45.0 && temp < 75.0) {
+      return "Center Right";
+    } else if (temp >= 75.0 && temp <= 105.0) {
+      return "Center";
+    } else if (temp > 105.0 && temp < 135.0) {
+      return "Center Left";
+    } else if (temp >= 135.0 && temp <= 165.0) {
+      return "Center Left";
+    } else if (temp > 165.0 && temp < 195.0) {
+      return "Left";
+    } else if (temp >= 195.0 && temp <= 225.0) {
+      return "Far Left";
+    } else if (temp > 225.0 && temp < 255.0) {
+      return "Extreme Left";
+    } else if (temp >= 255.0 && temp <= 285.0) {
+      return "Extreme";
+    } else if (temp > 285.0 && temp < 315.0) {
+      return "Extreme Right";
+    } else {
+      return "Far Right";
     }
   }
 
@@ -56,6 +75,19 @@ class PoliticalPosition {
     return degrees * (pi / 180.0);
   }
 
+  // finds the angle against the X axis, up to 360 degrees
+  // kind of hacky but it should work
+  // .abs() is used because I saw -0.00
+  static PoliticalPosition? fromCoordinate(double x, double y) {
+    if (x == 0 && y == 0) return null;
+    var angle = toDegrees(-atan2(y, x));
+    if (angle < 0) {
+      angle += 360.0;
+    }
+    angle = angle.abs();
+    return PoliticalPosition(angle: angle);
+  }
+
   factory PoliticalPosition.fromQuandrant(Quadrant quadrant) {
     switch (quadrant) {
       case Quadrant.left:
@@ -70,21 +102,24 @@ class PoliticalPosition {
     }
   }
 
-  factory PoliticalPosition.fromRadians(double radians) {
-    return PoliticalPosition(angle: toDegrees(radians));
+  factory PoliticalPosition.left() {
+    return const PoliticalPosition(angle: 180.0);
   }
 
-  // finds the angle against the X axis, up to 360 degrees
-  // kind of hacky but it should work
-  // .abs() is used because I saw -0.00
-  static PoliticalPosition? fromCoordinate(double x, double y) {
-    if (x == 0 && y == 0) return null;
-    var angle = toDegrees(-atan2(y, x));
-    if (angle < 0) {
-      angle += 360.0;
-    }
-    angle = angle.abs();
-    return PoliticalPosition(angle: angle);
+  factory PoliticalPosition.right() {
+    return const PoliticalPosition(angle: 0.0);
+  }
+
+  factory PoliticalPosition.center() {
+    return const PoliticalPosition(angle: 90.0);
+  }
+
+  factory PoliticalPosition.extreme() {
+    return const PoliticalPosition(angle: 270.0);
+  }
+
+  factory PoliticalPosition.fromRadians(double radians) {
+    return PoliticalPosition(angle: toDegrees(radians));
   }
 
   factory PoliticalPosition.fromJson(Map<String, dynamic> json) =>
@@ -134,6 +169,19 @@ enum Quadrant {
         return Palette.green;
       case Quadrant.extreme:
         return Palette.purple;
+    }
+  }
+
+  Color get onColor {
+    switch (this) {
+      case Quadrant.right:
+        return Palette.white;
+      case Quadrant.left:
+        return Palette.white;
+      case Quadrant.center:
+        return Palette.black;
+      case Quadrant.extreme:
+        return Palette.black;
     }
   }
 }

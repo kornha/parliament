@@ -39,9 +39,10 @@ class ZScaffold extends StatelessWidget {
           return [
             SliverAppBar(
               surfaceTintColor: context.backgroundColor,
-              backgroundColor: context.backgroundColor.withOpacity(0.55),
+              backgroundColor: context.backgroundColorWithOpacity,
               // pinned: true,
               title: appBar,
+              titleSpacing: context.sh.width,
               centerTitle: true,
               floating: true,
               snap: true,

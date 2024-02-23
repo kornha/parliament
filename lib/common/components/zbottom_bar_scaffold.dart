@@ -3,11 +3,9 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:political_think/common/components/profile_icon.dart';
-import 'package:political_think/common/components/zscaffold.dart';
 import 'package:political_think/common/extensions.dart';
 import 'package:political_think/views/feed/feed.dart';
 import 'package:political_think/views/games/games.dart';
-import 'package:political_think/views/message/message.dart';
 import 'package:political_think/views/profile/profile.dart';
 import 'package:political_think/views/maps/maps.dart';
 
@@ -56,7 +54,7 @@ class _ZScaffoldState extends ConsumerState<ZBottomBarScaffold> {
     ];
     return Scaffold(
       body: SafeArea(child: widget.child),
-      backgroundColor: context.backgroundColor,
+      backgroundColor: Colors.transparent,
       bottomNavigationBar: BottomNavigationBar(
         backgroundColor: context.backgroundColor,
         showUnselectedLabels: false,

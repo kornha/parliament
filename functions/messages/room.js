@@ -3,6 +3,12 @@ const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const {FieldValue} = require("firebase-admin/firestore");
 const {incrementPostMessages} = require("../models/post");
+const {reevaluateRoom, startDebate, finalizeDebate} =
+require("../ai/debate_ai");
+const {isFibonacciNumber} = require("../common/utils");
+const {roomTimeIsExpired,
+  debateDidTimeOut, incrementDebateTimer} = require("./clock");
+const {applyEloScores} = require("../models/user");
 
 //
 // Db triggers
@@ -10,43 +16,79 @@ const {incrementPostMessages} = require("../models/post");
 
 exports.onRoomChange = functions.firestore
     .document("rooms/{rid}")
-    .onWrite((change) => {
-      console.log("room change no parent");
-      // if (lockDebate(change)) {
-      //   return null;
-      // } else if (startDebate(change)) {
-      //   return null;
-      // } else if (finalizeDebate(change)) {
-      //   return null;
-      // }
-      // return null;
-    });
-
-exports.onRoomChange = functions.firestore
-    .document("/{collectionId}/{parentId}/rooms/{rid}")
     .onWrite((change, context) => {
+      if (!change.after.exists) {
+        return Promise.resolve();
+      }
       const before = change.before.data();
       const after = change.after.data();
-      const collectionId = context.params.collectionId;
-      const parentId = context.params.parentId;
+      const collectionId = after.parentCollection;
+      const parentId = after.parentId;
+      const rid = context.params.rid;
 
-      // if (lockDebate(change)) {
-      //   return null;
-      // } else if (startDebate(change)) {
-      //   return null;
-      // } else if (finalizeDebate(change)) {
-      //   return null;
-      // }
-      // return null;
+      // if our timer messed up...
+      if (after.status == "live" && roomTimeIsExpired(after)) {
+        debateDidTimeOut({rid: rid});
+      }
 
+      // if elo scores were added
+      // TODO: make this txn in the future with room finish
+      if (after.eloScore != null && before.eloScore == null) {
+        applyEloScores(after.eloScore);
+      }
+
+      // if message incremented
+      // increment post message count
+      // update timer increment
+      // possibly reevaluate room
       if (_messageDidIncrement(before, after)) {
+        // post messages versus room messages
+        // we have different counts since 1 post can have many rooms
         if (collectionId === "posts") {
-          // post messages not room messages
-          // we have different counts since 1 post can have many rooms
           incrementPostMessages(parentId);
         }
+
+        // if the room is not timed out, we want to increase timer
+        if (after.status == "live" && after.clock &&
+        after.clock.duration && after.clock.increment) {
+          incrementDebateTimer(after);
+        }
+
+        // handle reevaluation, does not change status
+        if (isFibonacciNumber(after.messageCount) &&
+        (after.status == "waiting" || after.status == "live")) {
+          reevaluateRoom(after);
+        }
       }
+
+      // if/else on debate status
+      const roomsWithUser =
+        (after.leftUsers.length > 0 ? 1 : 0) +
+        (after.rightUsers.length > 0 ? 1 : 0) +
+        (after.centerUsers.length > 0 ? 1 : 0) +
+        (after.extremeUsers.length > 0 ? 1 : 0);
+
+      // waiting to live
+      // task manager sets live to judging
+      // on judging we then finalize the debate and set to final
+      if (after.status == "waiting" && roomsWithUser > 1) {
+        startDebate(after); // live-judging set by timer
+      } else if (after.status == "judging" && before.status == "live") {
+        finalizeDebate(after);
+      } else if (after.status == "finished" && after.winners === null ||
+      after.status == "judging" && before.status == "judging") {
+        // SANITY CHECK
+        // we dont check for winning position since if thats null
+        // its a draw
+        finalizeDebate(after);
+      }
+
+      return Promise.resolve();
     });
+
+//
+// Helpers
+//
 
 function _messageDidIncrement(before, after) {
   return after &&
@@ -60,108 +102,12 @@ function _messageDidIncrement(before, after) {
 // Export Helpers
 //
 
-exports.incrementRoomMessages = function(rid, parentId, collectionId) {
+exports.incrementRoomMessages = function(rid, uid) {
   return admin.firestore()
-      .collection(collectionId)
-      .doc(parentId)
       .collection("rooms")
       .doc(rid)
       .update({
         messageCount: FieldValue.increment(1),
+        users: FieldValue.arrayUnion(uid),
       });
 };
-
-//
-// Http functions
-//
-
-// exports.joinRoom = functions.https.onCall(async (data, context) => {
-//   authenticate(context);
-
-//   const uid = context.auth.uid;
-//   const pid = data.pid;
-//   const userSide = data.position === "left" ? "leftUsers" : "rightUsers";
-//   const otherSide = data.position === "left" ? "rightUsers" : "leftUsers";
-
-//   let rid = await joinExistingRoom(pid, uid);
-//   if (rid) {
-//     return {rid: rid};
-//   }
-
-//   rid = await joinCandidateRoom(pid, userSide, otherSide, uid);
-//   if (rid) {
-//     return {rid: rid};
-//   }
-
-//   rid = await joinNewRoom(pid, uid, userSide, otherSide);
-//   return {rid: rid};
-// });
-
-
-//
-// Internal Helpers
-//
-
-// async function joinExistingRoom(pid, uid) {
-//   const roomSnapshot = await admin.firestore()
-//       .collection("rooms")
-//       .where("pid", "==", pid)
-//       .where("users", "array-contains", uid)
-//       .limit(1)
-//       .get();
-
-//   if (!roomSnapshot.empty) {
-//     const rid = roomSnapshot.docs[0].data().rid;
-//     functions.logger.info(`User ${uid} is joining room ${rid}`);
-//     return rid;
-//   }
-
-//   return null;
-// // }
-
-// async function joinCandidateRoom(pid, userSide, otherSide, uid) {
-//   const roomSnapshot = await admin.firestore()
-//       .collection("rooms")
-//       .where("pid", "==", pid)
-//       .where(userSide, "==", [])
-//       .where(otherSide, "!=", [])
-//       .limit(1)
-//       .get();
-
-//   if (!roomSnapshot.empty) {
-//     const room = roomSnapshot.docs[0].data();
-//     if (room[otherSide].includes(uid) || room["users"].includes(uid)) {
-//       // Handle error
-//     }
-//     const rid = room.rid;
-
-//     admin.firestore()
-//         .collection("rooms")
-//         .doc(rid)
-//         .update({
-//           users: FieldValue.arrayUnion(uid),
-//           [userSide]: FieldValue.arrayUnion(uid),
-//         });
-//     functions.logger.info(`User ${uid} is joining room ${rid}`);
-//     return rid;
-//   }
-
-//   return null;
-// }
-
-// async function joinNewRoom(pid, uid, userSide, otherSide) {
-//   const rid = uuidv4();
-//   await admin.firestore()
-//       .collection("rooms")
-//       .doc(rid)
-//       .set({
-//         rid: rid,
-//         pid: pid,
-//         createdAt: Timestamp.now().toMillis(),
-//         users: [uid],
-//         [userSide]: [uid],
-//         [otherSide]: [],
-//         status: "waiting",
-//       });
-//   return rid;
-// }

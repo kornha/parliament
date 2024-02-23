@@ -106,7 +106,7 @@ class _CredibilitySliderState extends State<CredibilitySlider> {
                 overlayRadius: 0),
             child: SfSlider.vertical(
               trackShape: _SfTrackShape(),
-              max: 10.0,
+              max: 1.0,
               min: 0.0,
               value: _credibility?.value ??
                   widget.selectedCredibility?.value ??

@@ -9,10 +9,11 @@ import 'package:political_think/common/components/zerror.dart';
 import 'package:political_think/common/components/zscaffold.dart';
 import 'package:political_think/common/constants.dart';
 import 'package:political_think/common/extensions.dart';
-import 'package:political_think/common/models/room.dart';
 import 'package:political_think/common/services/database.dart';
+import 'package:political_think/common/ztheme.dart';
 
 import 'package:political_think/views/post/post_item_view.dart';
+import 'package:political_think/views/post/room_clock.dart';
 import 'package:scroll_to_index/scroll_to_index.dart';
 import 'package:uuid/uuid.dart';
 import '../../common/chat/chat_types/flutter_chat_types.dart' as ct;
@@ -49,10 +50,10 @@ class _PostViewState extends ConsumerState<PostView> {
     var postRef = ref.postWatch(widget.pid);
     var post = postRef.value;
     //
-    var roomRef = ref.activeRoomWatch(widget.pid, RoomParentType.post);
+    var roomRef = ref.activeRoomWatch(widget.pid);
     var room = roomRef.value;
     //
-    var messagesRef = room == null ? null : ref.messagesWatch(room, _limit);
+    var messagesRef = room == null ? null : ref.messagesWatch(room.rid, _limit);
     var messages = messagesRef?.value;
     // I tried directly comparing messages but it would sometimes fail
     // so I'm comparing the last message id instead
@@ -83,6 +84,9 @@ class _PostViewState extends ConsumerState<PostView> {
           : isError
               ? const ZError()
               : Chat(
+                  theme: context.isDarkMode
+                      ? ZTheme.darkChatTheme
+                      : ZTheme.lightChatTheme,
                   scrollController: _autoScrollController,
                   pinnedMessageHeader: Container(
                     margin: context.blockMargin,
@@ -93,14 +97,9 @@ class _PostViewState extends ConsumerState<PostView> {
                     ),
                     child: PostItemView(pid: post!.pid, showPostButtons: true),
                   ),
-                  // pinnedMessageHeader: !messagesRef!.isLoading
-                  //     ? PostItemView(pid: post!.pid)
-                  //     : const Loading(),
+                  pinnedMessageFooter:
+                      _messages.isNotEmpty ? RoomClock(room: room!) : null,
                   isLastPage: _isLastMessage,
-                  //TODO: move this
-                  theme: DefaultChatTheme(
-                    backgroundColor: context.backgroundColor,
-                  ),
                   messages: _messages,
                   messageExpiryTime: room!.clock?.end?.millisecondsSinceEpoch,
                   onSendPressed: (pt) {
@@ -115,7 +114,7 @@ class _PostViewState extends ConsumerState<PostView> {
                       status: ct.Status.sending,
                     );
                     Database.instance().createMessage(
-                      room,
+                      room.rid,
                       msg.copyWith(status: ct.Status.sent),
                     );
                     setState(() {

@@ -14,6 +14,7 @@ class ChatList extends StatefulWidget {
     super.key,
     this.bottomWidget,
     this.pinnedMessageHeader,
+    this.pinnedMessageFooter,
     required this.bubbleRtlAlignment,
     this.isLastPage,
     required this.itemBuilder,
@@ -35,8 +36,13 @@ class ChatList extends StatefulWidget {
   final BubbleRtlAlignment bubbleRtlAlignment;
 
   /// A custom widget at the top of the list.
-  /// Usually used to display pinned message.
+  /// Usually used to display pinned message. Added by us.
   final Widget? pinnedMessageHeader;
+
+  /// A custom widget at the bottom of the list.
+  /// Usually used to display pinned message. Added by us.
+  /// See [pinnedMessageHeader].
+  final Widget? pinnedMessageFooter;
 
   /// Used for pagination (infinite scroll) together with [onEndReached].
   /// When true, indicates that there are no more pages to load and
@@ -302,12 +308,15 @@ class _ChatListState extends State<ChatList>
                   return null;
                 },
                 initialItemCount: widget.items.length +
-                    (widget.pinnedMessageHeader == null ? 0 : 1),
+                    (widget.pinnedMessageHeader == null ? 0 : 1) +
+                    (widget.pinnedMessageFooter == null ? 0 : 1),
                 key: _listKey,
                 itemBuilder: (_, index, animation) {
                   if (index == widget.items.length &&
                       widget.pinnedMessageHeader != null) {
                     return widget.pinnedMessageHeader!;
+                  } else if (index == 0 && widget.pinnedMessageFooter != null) {
+                    return widget.pinnedMessageFooter!;
                   }
                   return _newMessageBuilder(index, animation);
                 },

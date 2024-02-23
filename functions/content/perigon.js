@@ -15,7 +15,7 @@ const maxArticlesPerFetch = 3; // needed to not throttle gpt
 // Perigon APIs
 // ////////////////////////////
 
-const updateFromPerigon = async function() {
+const fetchFromPerigon = async function() {
   const pstories = await getPerigonStories();
   if (!pstories) {
     return;
@@ -132,5 +132,5 @@ const _toPost = function(story, article) {
 };
 
 module.exports = {
-  updateFromPerigon,
+  fetchFromPerigon,
 };

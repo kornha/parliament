@@ -199,11 +199,11 @@ class Message extends StatelessWidget {
       : const SizedBox(width: IconSize.small * 2);
 
   _getMessageShape(bool currentUserIsAuthor) => BorderRadius.only(
-        topLeft: currentUserIsAuthor ? Curvature.circular : Curvature.little,
-        topRight: currentUserIsAuthor ? Curvature.little : Curvature.circular,
-        bottomLeft: currentUserIsAuthor ? Curvature.circular : Curvature.little,
+        topLeft: currentUserIsAuthor ? Curvature.standard : Curvature.little,
+        topRight: currentUserIsAuthor ? Curvature.little : Curvature.standard,
+        bottomLeft: currentUserIsAuthor ? Curvature.standard : Curvature.little,
         bottomRight:
-            currentUserIsAuthor ? Curvature.little : Curvature.circular,
+            currentUserIsAuthor ? Curvature.little : Curvature.standard,
       );
 
   Widget _bubbleBuilder(
@@ -220,13 +220,33 @@ class Message extends StatelessWidget {
       decoration: BoxDecoration(
         color: messageExpiryTime != null &&
                 (message.createdAt ?? 0) > messageExpiryTime!
-            ? context.surfaceColor
-            : message.position?.color ?? context.surfaceColor,
+            // expired
+            ? currentUserIsAuthor
+                ? context.surfaceColor
+                : context.primaryColor
+            // active
+            : message.position?.color ??
+                (currentUserIsAuthor
+                    ? context.surfaceColor
+                    : context.primaryColor),
         borderRadius: _getMessageShape(currentUserIsAuthor),
       ),
       child: TextMessageText(
         text: (message as types.TextMessage).text,
-        bodyTextStyle: TextStyle(color: context.onSurfaceColor),
+        bodyTextStyle: TextStyle(
+          color: messageExpiryTime != null &&
+                  (message.createdAt ?? 0) > messageExpiryTime!
+              // expired
+              ? currentUserIsAuthor
+                  ? context.onSurfaceColor
+                  : context.onPrimaryColor
+              // active
+              : message.position != null
+                  ? message.position!.onColor
+                  : (currentUserIsAuthor
+                      ? context.onSurfaceColor
+                      : context.onPrimaryColor),
+        ),
       ),
     );
 

@@ -32,7 +32,7 @@ class _StoryViewState extends ConsumerState<StoryView> {
         !(storyRef.isLoading || postsRef.isLoading) &&
             posts != null &&
             posts.length > 1 &&
-            (story?.importance ?? 5) > 1;
+            (story?.importance ?? 0.5) > 0.1;
 
     return storyRef.isLoading || postsRef.isLoading
         ? const Loading(type: LoadingType.post)

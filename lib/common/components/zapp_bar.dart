@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:political_think/common/components/logo.dart';
 import 'package:political_think/common/components/zback_button.dart';
+import 'package:political_think/common/constants.dart';
 import 'package:political_think/common/extensions.dart';
 
 class ZAppBar extends ConsumerStatefulWidget implements PreferredSizeWidget {
@@ -10,9 +12,11 @@ class ZAppBar extends ConsumerStatefulWidget implements PreferredSizeWidget {
     this.leading,
     this.center,
     this.showBackButton = false,
+    this.showLogo = false,
     this.showAppName = false,
   });
   final bool showBackButton;
+  final bool showLogo;
   final bool showAppName;
   final Widget? leading;
   final Widget? center;
@@ -38,16 +42,29 @@ class _ZAppBarState extends ConsumerState<ZAppBar> {
           children: [
             widget.showBackButton
                 ? const ZBackButton()
-                : widget.leading ?? const SizedBox.shrink(),
+                : widget.showAppName
+                    // TODO: Padding because IconButton ZBackButton is padded
+                    ? const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: Margins.half),
+                        child: LogoName(),
+                      )
+                    // TODO: Padding because IconButton in ZBackButton is padded
+                    : Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: Margins.half),
+                        child: widget.leading ?? const SizedBox.shrink(),
+                      ),
             const Spacer(),
             ...widget.actions ?? [],
           ],
         ),
-        Center(
-          child: widget.showAppName
-              ? Text("PARLIAMENT",
-                  style: context.d, textAlign: TextAlign.center)
-              : widget.center ?? const SizedBox.shrink(),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            widget.showLogo
+                ? const Logo()
+                : widget.center ?? const SizedBox.shrink(),
+          ],
         ),
       ],
     );

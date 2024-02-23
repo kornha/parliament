@@ -8,7 +8,7 @@ part of 'political_position.dart';
 
 PoliticalPosition _$PoliticalPositionFromJson(Map<String, dynamic> json) =>
     PoliticalPosition(
-      angle: (json['angle'] as num?)?.toDouble() ?? 0.0,
+      angle: (json['angle'] as num?)?.toDouble() ?? 90.0,
     );
 
 Map<String, dynamic> _$PoliticalPositionToJson(PoliticalPosition instance) =>

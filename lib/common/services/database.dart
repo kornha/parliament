@@ -21,11 +21,8 @@ class Database {
   final CollectionReference postCollection =
       FirebaseFirestore.instance.collection('posts');
 
-  CollectionReference roomCollection(String parentId, RoomParentType type) =>
-      FirebaseFirestore.instance
-          .collection(type.collectionName)
-          .doc(parentId)
-          .collection("rooms");
+  final CollectionReference roomCollection =
+      FirebaseFirestore.instance.collection("rooms");
 
   final CollectionReference messageCollection =
       FirebaseFirestore.instance.collection('messages');
@@ -38,6 +35,23 @@ class Database {
       if (snapshot.exists) {
         final data = snapshot.data() as Map<String, dynamic>;
         return ZUser.fromJson(data);
+      } else {
+        return null;
+      }
+    });
+  }
+
+  Stream<List<ZUser>?> getUsers(List<String> uids, {limit = 25}) {
+    return userCollection
+        .where(FieldPath.documentId, whereIn: uids)
+        .limit(limit)
+        .snapshots()
+        .map((querySnapshot) {
+      if (querySnapshot.docs.isNotEmpty) {
+        return querySnapshot.docs.map((doc) {
+          final data = doc.data() as Map<String, dynamic>;
+          return ZUser.fromJson(data);
+        }).toList();
       } else {
         return null;
       }
@@ -143,7 +157,7 @@ class Database {
 
   Future<Post?> getFirstPostInDraft(uid) {
     return postCollection
-        .where("creator", isEqualTo: uid)
+        .where("poster", isEqualTo: uid)
         .where("status", isEqualTo: PostStatus.draft.name)
         .orderBy("createdAt", descending: true)
         .limit(1)
@@ -190,8 +204,12 @@ class Database {
     return postCollection.doc(post.pid).delete();
   }
 
-  Future updatePost(Post post) async {
-    return postCollection.doc(post.pid).update(post.toJson());
+  // Future updatePost(Post post) async {
+  //   return postCollection.doc(post.pid).update(post.toJson());
+  // }
+
+  Future updatePostRaw(String pid, Map<Object, Object?> value) async {
+    return postCollection.doc(pid).update(value);
   }
 
   Future likePost(Post post, String uid) async {
@@ -204,27 +222,22 @@ class Database {
   // Rooms
   //////////////////////////////////////////////////////////////
 
-  Future createRoom(Room room, String parentCollection) async {
-    return roomCollection(room.parentId, room.parentType)
-        .doc(room.rid)
-        .set(room.toJson());
+  Future createRoom(Room room) async {
+    return roomCollection.doc(room.rid).set(room.toJson());
   }
 
-  Future deleteRoom(Room room, String parentCollection) async {
-    return roomCollection(room.parentId, room.parentType)
-        .doc(room.rid)
-        .delete();
+  Future deleteRoom(Room room) async {
+    return roomCollection.doc(room.rid).delete();
   }
 
-  Future updateRoom(Room room, String parentCollection) async {
-    return roomCollection(room.parentId, RoomParentType.post)
-        .doc(room.rid)
-        .update(room.toJson());
+  Future updateRoom(Room room) async {
+    return roomCollection.doc(room.rid).update(room.toJson());
   }
 
-  Stream<Room?> streamLatestRoom(String parentId, String parentCollection) {
-    return roomCollection(parentId, RoomParentType.post)
-        .where('status', whereIn: RoomStatus.activeStatuses)
+  Stream<Room?> streamLatestRoom(String parentId) {
+    return roomCollection
+        .where('parentId', isEqualTo: parentId)
+        // .where('status', whereIn: RoomStatus.activeStatuses)
         .orderBy("createdAt", descending: true)
         .limit(1)
         .snapshots()
@@ -242,11 +255,11 @@ class Database {
   /// Messages
   /////////////////////////////////////////////////////////////
 
-  Stream<List<Message>?> streamMessages(Room room, int limit) {
+  Stream<List<Message>?> streamMessages(String rid, int limit) {
     // use "roomId" since this is the chat message object
     return Database.instance()
-        .roomCollection(room.parentId, room.parentType)
-        .doc(room.rid)
+        .roomCollection
+        .doc(rid)
         .collection("messages")
         .orderBy("createdAt", descending: true)
         .limit(limit)
@@ -263,9 +276,9 @@ class Database {
     });
   }
 
-  Future createMessage(Room room, ct.Message message) async {
-    return roomCollection(room.parentId, room.parentType)
-        .doc(room.rid)
+  Future createMessage(String rid, ct.Message message) async {
+    return roomCollection
+        .doc(rid)
         .collection("messages")
         .doc(message.id)
         .set(message.toJson());

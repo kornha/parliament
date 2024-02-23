@@ -4,8 +4,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:political_think/common/constants.dart';
 import 'package:political_think/common/services/database.dart';
+import 'package:political_think/common/ztheme.dart';
 import 'package:political_think/firebase_options.dart';
 import 'package:political_think/sharing.dart';
 import 'common/zrouter.dart';
@@ -41,8 +41,8 @@ class MyApp extends ConsumerWidget {
     return MaterialApp.router(
       title: 'Political Think',
       routerConfig: router,
-      theme: ThemeConstants.lightTheme,
-      darkTheme: ThemeConstants.darkTheme,
+      theme: ZTheme.lightTheme,
+      darkTheme: ZTheme.darkTheme,
       debugShowCheckedModeBanner: false,
     );
   }

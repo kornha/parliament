@@ -28,7 +28,7 @@ class MessageStatus extends StatelessWidget {
     switch (status) {
       case types.Status.delivered:
       case types.Status.sent:
-        return context.deliveredIcon;
+        return InheritedChatTheme.of(context).theme.deliveredIcon!;
       case types.Status.error:
         return const ZError(size: IconSize.small);
       case types.Status.seen:

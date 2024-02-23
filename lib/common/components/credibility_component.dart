@@ -17,6 +17,9 @@ class CredibilityComponent extends StatefulWidget {
   late final int _rows = rows ?? 28;
   late final int _columns = columns ?? width ~/ height * _rows;
   final bool showUnselected;
+  final Color? setColor;
+  final double decay;
+  final bool fadeAbove;
 
   CredibilityComponent({
     Key? key,
@@ -25,6 +28,9 @@ class CredibilityComponent extends StatefulWidget {
     this.credibility3, // deprecated
     required this.width,
     required this.height,
+    this.fadeAbove = true,
+    this.setColor,
+    this.decay = 0.77,
     this.rows, // rows and columns must match width and height ratio
     this.columns,
     this.showUnselected = true,
@@ -48,6 +54,9 @@ class _CredibilityComponentState extends State<CredibilityComponent> {
           credibility3: widget.credibility3,
           width: widget.width,
           height: widget.height,
+          setColor: widget.setColor,
+          decay: widget.decay,
+          fadeAbove: widget.fadeAbove,
           rows: widget.rows ?? 28,
           columns:
               widget.columns ?? (widget.width / widget.height * 28.0).toInt(),
@@ -68,17 +77,22 @@ class CredibilityPainter extends CustomPainter {
   final bool showUnselected;
   final double width;
   final double height;
-  final double decay = 0.77;
+  final double decay;
+  final Color? setColor;
+  final bool fadeAbove;
 
   CredibilityPainter({
     required this.context,
     this.credibility,
     this.credibility2,
     this.credibility3,
+    this.setColor,
+    this.fadeAbove = true,
     required this.width,
     required this.height,
     required this.rows, // rows and columns must match width and height ratio
     required this.columns,
+    this.decay = 0.77,
     this.showUnselected = true,
   });
 
@@ -100,18 +114,21 @@ class CredibilityPainter extends CustomPainter {
             showUnselected ? context.surfaceColor : context.backgroundColor;
         if (currentCredibility != null) {
           var credibleRow = (rows - 1) -
-              (currentCredibility.value / 10.0 * (rows - 1)).toInt();
+              (currentCredibility.value / 1.0 * (rows - 1)).toInt();
           double exp = pow(decay, (credibleRow - j).abs()).toDouble();
-          color = Color.fromRGBO(
-            currentCredibility.value < 5
-                ? 255 * (10 - currentCredibility.value) ~/ 10
-                : 0,
-            currentCredibility.value >= 5
-                ? 255 * currentCredibility.value ~/ 10
-                : 0,
-            255 * (10 - currentCredibility.value) ~/ 10,
-            exp,
-          );
+          color = !fadeAbove && credibleRow > j
+              ? Colors.transparent
+              : setColor?.withOpacity(exp) ??
+                  Color.fromRGBO(
+                    currentCredibility.value < 0.5
+                        ? 255 * (1.0 - currentCredibility.value) ~/ 1.0
+                        : 0,
+                    currentCredibility.value >= 0.5
+                        ? 255 * currentCredibility.value ~/ 1.0
+                        : 0,
+                    255 * (1.0 - currentCredibility.value) ~/ 1.0,
+                    exp,
+                  );
         } else {
           var credibleRow = (rows - 1) - (0.5 * (rows - 1)).toInt();
           double exp = pow(decay, (credibleRow - j).abs()).toDouble();
@@ -163,4 +180,26 @@ class CredibilityPainter extends CustomPainter {
   @override
   bool shouldRepaint(CredibilityPainter oldDelegate) =>
       oldDelegate.credibility?.value != credibility?.value;
+}
+
+class PercentComponent extends CredibilityComponent {
+  PercentComponent({
+    Key? key,
+    required width,
+    required height,
+    required color,
+    required double percent,
+    decay = 0.83,
+    fadeAbove = false,
+    showUnselected = false,
+  }) : super(
+          key: key,
+          width: width,
+          height: height,
+          showUnselected: showUnselected,
+          setColor: color,
+          decay: decay,
+          fadeAbove: fadeAbove,
+          credibility: Credibility(value: percent),
+        );
 }
