@@ -58,6 +58,7 @@ class BRadius {
 
 // Should be moved to context
 class IconSize {
+  static const double tiny = 6.0;
   static const double small = 12.5;
   static const double standard = 24.0;
   static const double large = 33;
@@ -100,4 +101,9 @@ class ImageSize {
 
 class DotsSize {
   static const double large = 200;
+}
+
+class ZIcons {
+  static const IconData error = FontAwesomeIcons.faceAngry;
+  static const IconData info = FontAwesomeIcons.info;
 }

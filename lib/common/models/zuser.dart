@@ -14,8 +14,13 @@ class ZUser {
   String? phoneNumber;
   String? photoURL;
   String? username;
+  bool isAdmin;
 
-  ZUser({required this.uid, this.elo = 1500});
+  ZUser({
+    required this.uid,
+    this.elo = 1500,
+    this.isAdmin = false,
+  });
 
   factory ZUser.fromJson(Map<String, dynamic> json) => _$ZUserFromJson(json);
 

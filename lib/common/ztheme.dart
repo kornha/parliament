@@ -18,7 +18,7 @@ class ZTheme {
       error: Palette.purple,
       onError: Palette.black,
       background: Palette.black,
-      onBackground: Palette.blue,
+      onBackground: Palette.black,
       surface: Palette.darkSlate,
       onSurface: Palette.white, // SAME IN LIGHT AND DARK
     ),
@@ -45,7 +45,7 @@ class ZTheme {
       error: Palette.purple,
       onError: Palette.black,
       background: Palette.white,
-      onBackground: Palette.blue,
+      onBackground: Palette.black,
       surface: Palette.lightSlate,
       onSurface: Palette.white, // SAME IN LIGHT AND DARK
     ),
@@ -77,7 +77,7 @@ class ZTheme {
     inputBackgroundColor: darkTheme.colorScheme.background,
     inputTextColor: darkTheme.colorScheme.primary,
     inputTextCursorColor: darkTheme.colorScheme.secondary,
-    sendingIcon: const Loading(type: LoadingType.profile),
+    sendingIcon: const Loading(type: LoadingType.tiny),
     // TODO: Hack, semi-random values
     sendButtonMargin:
         const EdgeInsets.only(right: Margins.threeQuarter, left: Margins.half),
@@ -86,12 +86,13 @@ class ZTheme {
       FontAwesomeIcons.chevronRight,
       color: darkTheme.colorScheme.secondary,
     ),
-    inputPadding: const EdgeInsets.symmetric(
-      horizontal: Margins.full,
-      vertical: Margins.full,
-    ),
+    // inputPadding: const EdgeInsets.symmetric(
+    //   horizontal: Margins.full,
+    //   vertical: Margins.full,
+    // ),
+    //inputMargin: const EdgeInsets.symmetric(horizontal: Margins.half),
+
     statusIconPadding: const EdgeInsets.all(0),
-    inputMargin: const EdgeInsets.symmetric(horizontal: Margins.half),
     inputContainerDecoration: BoxDecoration(
       color: darkTheme.colorScheme.background,
       borderRadius: BRadius.standard,
@@ -110,7 +111,7 @@ class ZTheme {
     inputBackgroundColor: lightTheme.colorScheme.background,
     inputTextColor: lightTheme.colorScheme.primary,
     inputTextCursorColor: lightTheme.colorScheme.secondary,
-    sendingIcon: const Loading(type: LoadingType.profile),
+    sendingIcon: const Loading(type: LoadingType.tiny),
     // TODO: Hack, semi-random values
     sendButtonMargin:
         const EdgeInsets.only(right: Margins.threeQuarter, left: Margins.half),
@@ -119,12 +120,12 @@ class ZTheme {
       FontAwesomeIcons.chevronRight,
       color: lightTheme.colorScheme.secondary,
     ),
-    inputPadding: const EdgeInsets.symmetric(
-      horizontal: Margins.full,
-      vertical: Margins.full,
-    ),
+    // inputPadding: const EdgeInsets.symmetric(
+    //   horizontal: Margins.full,
+    //   vertical: Margins.full,
+    // ),
+    // inputMargin: const EdgeInsets.symmetric(horizontal: Margins.half),
     statusIconPadding: const EdgeInsets.all(0),
-    inputMargin: const EdgeInsets.symmetric(horizontal: Margins.half),
     inputContainerDecoration: BoxDecoration(
       color: lightTheme.colorScheme.background,
       borderRadius: BRadius.standard,

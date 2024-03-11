@@ -54,4 +54,18 @@ class Functions {
     }
     return null;
   }
+
+  // setusername
+  Future<void> setUsername(String username) async {
+    final HttpsCallable callable =
+        FirebaseFunctions.instance.httpsCallable('setUsername');
+
+    try {
+      final HttpsCallableResult result = await callable.call({
+        'username': username,
+      });
+    } catch (e) {
+      print(e);
+    }
+  }
 }

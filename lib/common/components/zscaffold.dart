@@ -13,6 +13,9 @@ class ZScaffold extends StatelessWidget {
   final Widget? endDrawer;
   final Widget? bottomNavigationBar;
   final ScrollController? scrollController;
+  final bool defaultPadding;
+  final bool defaultMargin;
+  final bool defaultSafeArea;
 
   const ZScaffold({
     super.key,
@@ -26,6 +29,9 @@ class ZScaffold extends StatelessWidget {
     this.endDrawer,
     this.bottomNavigationBar,
     this.scrollController,
+    this.defaultPadding = true,
+    this.defaultMargin = true,
+    this.defaultSafeArea = true,
   });
 
   @override
@@ -52,7 +58,23 @@ class ZScaffold extends StatelessWidget {
             ),
           ];
         },
-        body: body,
+        body: SafeArea(
+          left: defaultSafeArea,
+          right: defaultSafeArea,
+          top: defaultSafeArea,
+          bottom: defaultSafeArea,
+          child: Container(
+            margin: defaultMargin
+                ? context.blockMargin.copyWith(top: 0, bottom: 0)
+                : EdgeInsets.zero,
+            padding: defaultPadding
+                ? context.blockPadding.copyWith(top: 0, bottom: 0)
+                : EdgeInsets.zero,
+            width: context.blockSize.width,
+            height: context.blockSize.height,
+            child: body,
+          ),
+        ),
       ), //body,
       backgroundColor: context.backgroundColor,
       floatingActionButton: floatingActionButton,

@@ -62,6 +62,20 @@ class Database {
     return userCollection.doc(uid).update(data);
   }
 
+  Stream<ZUser?> getUserByUsername(String username) {
+    return userCollection
+        .where("username", isEqualTo: username)
+        .snapshots()
+        .map((snapshot) {
+      if (snapshot.docs.isNotEmpty) {
+        final data = snapshot.docs.first.data() as Map<String, dynamic>;
+        return ZUser.fromJson(data);
+      } else {
+        return null;
+      }
+    });
+  }
+
   //////////////////////////////////////////////////////////////
   // Stories
   //////////////////////////////////////////////////////////////
@@ -188,12 +202,25 @@ class Database {
     });
   }
 
-  Future vote(String pid, Vote vote, VoteType type) {
+  Future vote(Vote vote) {
+    return postCollection
+        .doc(vote.pid)
+        .collection(vote.type.collectionName)
+        .doc(vote.uid)
+        .set(
+          vote.toJson(),
+          SetOptions(merge: true),
+        ); // note we set @JsonSerializable(explicitToJson: true, includeIfNull: false)
+    // in vote.dart to avoid overwriting fields with null, and SetOptions(merge: true), here
+  }
+
+  Future updateVote(
+      String pid, String uid, VoteType type, Map<Object, Object?> value) {
     return postCollection
         .doc(pid)
         .collection(type.collectionName)
-        .doc(vote.uid)
-        .set(vote.toJson());
+        .doc(uid)
+        .update(value);
   }
 
   Future createPost(Post post) async {
@@ -208,7 +235,7 @@ class Database {
   //   return postCollection.doc(post.pid).update(post.toJson());
   // }
 
-  Future updatePostRaw(String pid, Map<Object, Object?> value) async {
+  Future updatePost(String pid, Map<Object, Object?> value) async {
     return postCollection.doc(pid).update(value);
   }
 

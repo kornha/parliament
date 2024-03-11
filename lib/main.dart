@@ -3,6 +3,7 @@ import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:political_think/common/services/database.dart';
 import 'package:political_think/common/ztheme.dart';
@@ -39,10 +40,11 @@ class MyApp extends ConsumerWidget {
     var router = ZRouter.instance(ref);
     //_delete();
     return MaterialApp.router(
-      title: 'Political Think',
+      title: 'Parliament',
       routerConfig: router,
       theme: ZTheme.lightTheme,
       darkTheme: ZTheme.darkTheme,
+      builder: FToastBuilder(),
       debugShowCheckedModeBanner: false,
     );
   }

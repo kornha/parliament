@@ -83,6 +83,16 @@ class Auth {
     }
   }
 
+  Future delete() async {
+    try {
+      return await _auth.currentUser?.delete();
+    } catch (error) {
+      // TODO toast
+      print(error.toString());
+      return null;
+    }
+  }
+
   Future resetPassword(String email) async {
     await _auth.sendPasswordResetEmail(email: email);
   }

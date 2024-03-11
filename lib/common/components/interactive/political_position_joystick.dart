@@ -24,8 +24,8 @@ class PoliticalPositionJoystick extends StatefulWidget {
     this.onPositionSelected,
     this.options = PoliticalOptions.all,
     this.radius = 50,
-    this.rings = 4,
-    this.give = 0.26,
+    this.rings = 1,
+    this.give = 0.25,
     this.maxCirclesPerRing = 75,
     this.showUnselected = true,
     this.showStick = false,
@@ -40,7 +40,7 @@ class _PoliticalPositionJoystickState extends State<PoliticalPositionJoystick> {
   PoliticalPosition? _position;
   // somewhat duplicated logic but colors and triggers are different
   final int _period = 100;
-  final int _holdPeriod = 200;
+  final int _holdPeriod = 100; // 100 means no hold period
 
   int _counter = 0;
   bool _shouldTrigger = false;

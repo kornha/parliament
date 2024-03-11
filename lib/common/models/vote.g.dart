@@ -15,18 +15,30 @@ Vote _$VoteFromJson(Map<String, dynamic> json) => Vote(
       credibility: json['credibility'] == null
           ? null
           : Credibility.fromJson(json['credibility'] as Map<String, dynamic>),
+      reason: json['reason'] as String?,
       type: $enumDecode(_$VoteTypeEnumMap, json['type']),
       createdAt: Vote._timestampFromJson(json['createdAt'] as int),
     );
 
-Map<String, dynamic> _$VoteToJson(Vote instance) => <String, dynamic>{
-      'uid': instance.uid,
-      'pid': instance.pid,
-      'bias': instance.bias?.toJson(),
-      'credibility': instance.credibility?.toJson(),
-      'createdAt': Vote._timestampToJson(instance.createdAt),
-      'type': _$VoteTypeEnumMap[instance.type]!,
-    };
+Map<String, dynamic> _$VoteToJson(Vote instance) {
+  final val = <String, dynamic>{
+    'uid': instance.uid,
+    'pid': instance.pid,
+  };
+
+  void writeNotNull(String key, dynamic value) {
+    if (value != null) {
+      val[key] = value;
+    }
+  }
+
+  writeNotNull('bias', instance.bias?.toJson());
+  writeNotNull('credibility', instance.credibility?.toJson());
+  writeNotNull('reason', instance.reason);
+  writeNotNull('createdAt', Vote._timestampToJson(instance.createdAt));
+  val['type'] = _$VoteTypeEnumMap[instance.type]!;
+  return val;
+}
 
 const _$VoteTypeEnumMap = {
   VoteType.bias: 'bias',

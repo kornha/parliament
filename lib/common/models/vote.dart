@@ -17,13 +17,18 @@ enum VoteType {
       "votes${name[0].toUpperCase()}${name.substring(1).toLowerCase()}";
 }
 
-@JsonSerializable(explicitToJson: true)
+// TODO: BEWARE! INCLUDEIFNULL: FALSE is only used here,
+// this is needed because of how we do the vote() function in the frontend
+// which is used as an "update" pattern
+// which can accidentally overwrite fields with null
+@JsonSerializable(explicitToJson: true, includeIfNull: false)
 @JsonSerializable()
 class Vote {
   final String uid; // this is the docId of the vote
   final String pid;
   Bias? bias;
   Credibility? credibility;
+  String? reason;
   @JsonKey(fromJson: _timestampFromJson, toJson: _timestampToJson)
   Timestamp createdAt;
   VoteType type;
@@ -33,6 +38,7 @@ class Vote {
     required this.pid, // only needed to override == afaik
     this.bias,
     this.credibility,
+    this.reason,
     required this.type,
     required this.createdAt,
   });

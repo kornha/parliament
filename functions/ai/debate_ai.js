@@ -2,7 +2,8 @@
 /* eslint-disable require-jsdoc */
 const functions = require("firebase-functions");
 const {OpenAI} = require("openai");
-const {getMessages, getDBDocument, setRoom, updateRoom, getUsers} = require("../common/database");
+const {getMessages, getDBDocument,
+  setRoom, updateRoom, getUsers} = require("../common/database");
 const {Timestamp} = require("firebase-admin/firestore");
 const {queueDebateTimer, getEnd} = require("../messages/clock");
 const {getElo} = require("../common/utils");
@@ -232,38 +233,10 @@ const scoreDebate = async function(room) {
     // return;
   }
 
-  const leftScore = room.leftUsers
-      .map((uid) => room.score.values[uid] || 0)
-      .reduce((acc, value) => acc + value, 0);
-  const rightScore = room.rightUsers
-      .map((uid) => room.score.values[uid] || 0)
-      .reduce((acc, value) => acc + value, 0);
-  const centerScore = room.centerUsers
-      .map((uid) => room.score.values[uid] || 0)
-      .reduce((acc, value) => acc + value, 0);
-  const extremeScore = room.extremeUsers
-      .map((uid) => room.score.values[uid] || 0)
-      .reduce((acc, value) => acc + value, 0);
-
-  functions.logger.info(`Debate ${room.rid} scored`);
-  functions.logger.info(`Left: ${leftScore}, Right: ${rightScore}, Center: ${centerScore}, Extreme: ${extremeScore}`);
-
-  let winningPositionAngle = null;
-  let winners = [];
-  if (leftScore > rightScore && leftScore > centerScore && leftScore > extremeScore) {
-    winningPositionAngle = 180.0;
-    winners = room.leftUsers;
-  } else if (rightScore > leftScore && rightScore > centerScore && rightScore > extremeScore) {
-    winningPositionAngle = 0.0;
-    winners = room.rightUsers;
-  } else if (centerScore > leftScore && centerScore > rightScore && centerScore > extremeScore) {
-    winningPositionAngle = 90.0;
-    winners = room.centerUsers;
-  } else if (extremeScore > leftScore && extremeScore > rightScore && extremeScore > centerScore) {
-    winningPositionAngle = 270.0;
-    winners = room.extremeUsers;
-  }
-  const winningPosition = winningPositionAngle != null ? {angle: winningPositionAngle} : null;
+  const win = getWinningPosition(room);
+  const winningPosition = win.winningPosition;
+  const winners = win.winners;
+  //
   const eloScores = await calculateEloDelta(room, winners);
   // atomic operation
   await setRoom(room.rid, {
@@ -277,6 +250,48 @@ const scoreDebate = async function(room) {
     //
     status: "finished",
   });
+};
+
+const getWinningPosition = function(room) {
+  if (room == null || room.score == null) {
+    return {winningPosition: null, winners: []};
+  }
+
+  const leftScore = room
+      .leftUsers?.map((uid) => room.score.values[uid] || 0)
+      .reduce((acc, value) => acc + value, 0) ?? 0;
+  const rightScore = room
+      .rightUsers?.map((uid) => room.score.values[uid] || 0)
+      .reduce((acc, value) => acc + value, 0) ?? 0;
+  const centerScore = room
+      .centerUsers?.map((uid) => room.score.values[uid] || 0)
+      .reduce((acc, value) => acc + value, 0) ?? 0;
+  const extremeScore = room
+      .extremeUsers?.map((uid) => room.score.values[uid] || 0)
+      .reduce((acc, value) => acc + value, 0) ?? 0;
+
+  let winningPositionAngle = null;
+  let winners = [];
+  if (leftScore > rightScore && leftScore > centerScore &&
+    leftScore > extremeScore) {
+    winningPositionAngle = 180.0;
+    winners = room.leftUsers;
+  } else if (rightScore > leftScore && rightScore > centerScore &&
+    rightScore > extremeScore) {
+    winningPositionAngle = 0.0;
+    winners = room.rightUsers;
+  } else if (centerScore > leftScore && centerScore > rightScore &&
+    centerScore > extremeScore) {
+    winningPositionAngle = 90.0;
+    winners = room.centerUsers;
+  } else if (extremeScore > leftScore && extremeScore > rightScore &&
+    extremeScore > centerScore) {
+    winningPositionAngle = 270.0;
+    winners = room.extremeUsers;
+  }
+  const winningPosition = winningPositionAngle != null ?
+  {angle: winningPositionAngle} : null;
+  return {winningPosition: winningPosition, winners: winners};
 };
 
 const calculateEloDelta = async function(room, winners) {
@@ -337,12 +352,14 @@ const calculateEloDelta = async function(room, winners) {
     }
     eloScores[user.uid] = newElo - user.elo;
   }
-  functions.logger.info(`Elo for ${room.rid} calculated, ${JSON.stringify(eloScores)}`);
+  functions.logger.info(`Elo for ${room.rid} calculated, 
+  ${JSON.stringify(eloScores)}`);
   return eloScores;
 };
 
 module.exports = exports = {
   reevaluateRoom,
   finalizeDebate,
+  getWinningPosition,
   startDebate,
 };

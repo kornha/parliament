@@ -4,8 +4,10 @@ const {authenticate} = require("../common/auth");
 const {urlToPost} = require("./url");
 
 // ////////////////////////////
-// for fetching content from the internet
+// API's
 // ////////////////////////////
+
+// for fetching content from the internet
 const onTriggerContent = functions.https.onCall(async (data, context) => {
   authenticate(context);
 
@@ -26,9 +28,8 @@ const fetchContent = async function(source) {
   return {complete: true};
 };
 
-// ////////////////////////////
+
 // for content pasted by users
-// ////////////////////////////
 const onLinkPaste = functions.https.onCall(async (data, context) => {
   authenticate(context);
   if (!data.link) {

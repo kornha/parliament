@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:political_think/common/components/credibility_component.dart';
 import 'package:political_think/common/components/interactive/political_position_joystick.dart';
 import 'package:political_think/common/components/loading.dart';
 import 'package:political_think/common/components/logo.dart';
@@ -11,26 +12,27 @@ import 'package:political_think/common/components/profile_icon.dart';
 import 'package:political_think/common/components/zerror.dart';
 import 'package:political_think/common/components/ztext_button.dart';
 import 'package:political_think/common/extensions.dart';
-import 'package:political_think/common/models/bias.dart';
+import 'package:political_think/common/models/credibility.dart';
 import 'package:political_think/common/models/political_position.dart';
 import 'package:political_think/common/models/post.dart';
 import 'package:political_think/common/models/vote.dart';
 import 'package:political_think/common/services/database.dart';
-import 'package:political_think/views/bias/bias_widget.dart';
+import 'package:political_think/views/credibility/credibility_widget.dart';
 
-class BiasView extends ConsumerStatefulWidget {
+class CredibilityView extends ConsumerStatefulWidget {
   final String pid;
 
-  const BiasView({
+  const CredibilityView({
     super.key,
     required this.pid,
   });
 
   @override
-  ConsumerState<ConsumerStatefulWidget> createState() => _BiasViewViewState();
+  ConsumerState<ConsumerStatefulWidget> createState() =>
+      _CredibilityViewViewState();
 }
 
-class _BiasViewViewState extends ConsumerState<BiasView> {
+class _CredibilityViewViewState extends ConsumerState<CredibilityView> {
   final bool _expanded = false;
 
   @override
@@ -44,7 +46,7 @@ class _BiasViewViewState extends ConsumerState<BiasView> {
           .voteWatch(
             post.pid,
             ref.user().uid,
-            VoteType.bias,
+            VoteType.credibility,
           )
           .value;
     }
@@ -63,20 +65,22 @@ class _BiasViewViewState extends ConsumerState<BiasView> {
                   mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text("${post!.aiBias?.position.name ?? "Political"} Bias",
+                    Text(post!.primaryCredibility?.name ?? "Credibility Score",
                         style: context.h1, textAlign: TextAlign.start),
                     context.sf,
                     Row(
                       children: [
-                        BiasWidget(
-                          radius: context.iconSizeXL,
+                        CredibilityWidget(
+                          width: context.iconSizeXL,
+                          height: context.iconSizeXL,
                           post: post,
+                          showValue: false,
                           showModalOnPress: false,
                         ),
                         context.sf,
                         Expanded(
                           child: Text(
-                            post.aiBias!.reason!,
+                            post.primaryCredibility?.reason ?? "",
                             overflow: TextOverflow.ellipsis,
                             maxLines: 25, // TODO: Make scrollable!
                           ),
@@ -91,8 +95,8 @@ class _BiasViewViewState extends ConsumerState<BiasView> {
                             context.blockPadding.copyWith(top: 0, bottom: 0),
                         child: Logo(size: context.iconSizeStandard),
                       ), // TODO: HACK FOR UI CHANGE TO GRID
-                      post.aiBias?.position,
-                      post.aiBias?.position.name,
+                      post.aiCredibility?.value,
+                      post.aiCredibility?.name,
                     ),
                     _infoRow(
                       context,
@@ -101,16 +105,16 @@ class _BiasViewViewState extends ConsumerState<BiasView> {
                             context.blockPadding
                                 .horizontal, // TODO: HACK FOR UI CHANGE TO GRID
                         child: Text(
-                            post.voteCountBias < 1000
-                                ? post.voteCountBias.toString()
-                                : "${(post.voteCountBias / 1000).toStringAsFixed(1)}k",
+                            post.voteCountCredibility < 1000
+                                ? post.voteCountCredibility.toString()
+                                : "${(post.voteCountCredibility / 1000).toStringAsFixed(1)}k",
                             style: context.am.copyWith(
-                                color: post.userBias?.position.color ??
+                                color: post.userCredibility?.color ??
                                     context.primaryColor),
                             textAlign: TextAlign.center),
                       ),
-                      post.userBias?.position,
-                      post.userBias?.position.name,
+                      post.userCredibility?.value,
+                      post.userCredibility?.name,
                     ),
                     _infoRow(
                       context,
@@ -120,8 +124,8 @@ class _BiasViewViewState extends ConsumerState<BiasView> {
                         child: ProfileIcon(
                             watch: false, size: context.iconSizeStandard),
                       ), // TODO: HACK FOR UI CHANGE TO GRID
-                      vote?.bias?.position,
-                      vote?.bias?.position.name,
+                      vote?.credibility?.value,
+                      vote?.credibility?.name,
                     ),
                   ],
                 ),
@@ -131,7 +135,7 @@ class _BiasViewViewState extends ConsumerState<BiasView> {
   Widget _infoRow(
     BuildContext context,
     Widget first,
-    PoliticalPosition? second,
+    double? second,
     String? third,
   ) {
     return Container(
@@ -141,9 +145,10 @@ class _BiasViewViewState extends ConsumerState<BiasView> {
         children: [
           first,
           context.sd,
-          PoliticalComponent(
-            position: second,
-            radius: context.iconSizeSmall,
+          CredibilityComponent(
+            credibility: Credibility.fromValue(second ?? 0.0),
+            width: context.iconSizeStandard,
+            height: context.iconSizeStandard,
           ),
           context.sd,
           Expanded(

@@ -61,7 +61,6 @@ class _PostBuilderState extends ConsumerState<PostBuilder> {
 
     if (postRef != null && postRef.hasValue) {
       return ModalContainer(
-        padding: context.blockPaddingExtra,
         child: Column(
           children: [
             PostItemView(pid: _pid!, showPostButtons: false),
@@ -88,7 +87,7 @@ class _PostBuilderState extends ConsumerState<PostBuilder> {
                     if (p == null) {
                       context.pop();
                     } else {
-                      Database.instance().updatePostRaw(p.pid, {
+                      Database.instance().updatePost(p.pid, {
                         "status": PostStatus.published.name,
                         "updatedAt": Timestamp.now().millisecondsSinceEpoch,
                       });
@@ -108,57 +107,59 @@ class _PostBuilderState extends ConsumerState<PostBuilder> {
     }
 
     return ModalContainer(
-      padding: context.blockPadding,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.max,
         children: [
           Expanded(
             child: PasteArea(
               loading: _loading,
               error: _isError,
               errorText: _errorText,
-              onPaste: () async {
-                final reader = await ClipboardReader.readClipboard();
-                final url = await reader.readValue(Formats.uri);
-                // pre-validation that there's a url
-                if (url == null) {
-                  setState(() {
-                    _isError = true;
-                    _errorText = "No url on clipboard";
-                  });
-                  return;
-                }
-                setState(() {
-                  _loading = true;
-                });
-                String? pid =
-                    await Functions.instance().pasteLink(url.uri.toString());
-                if (pid == null) {
-                  setState(() {
-                    _isError = true;
-                    _errorText = "Can't unfurl";
-                    _loading = false;
-                  });
-                  return;
-                }
-                setState(() {
-                  _pid = pid;
-                });
-                // we don't need to set loading to false because the postRef will
-              },
+              onPaste: _loading
+                  ? null
+                  : () async {
+                      final reader = await ClipboardReader.readClipboard();
+                      final url = await reader.readValue(Formats.uri);
+                      // pre-validation that there's a url
+                      if (url == null) {
+                        setState(() {
+                          _isError = true;
+                          _errorText = "No url on clipboard";
+                        });
+                        return;
+                      }
+                      setState(() {
+                        _loading = true;
+                      });
+                      String? pid = await Functions.instance()
+                          .pasteLink(url.uri.toString());
+                      if (pid == null) {
+                        setState(() {
+                          _isError = true;
+                          _errorText = "Can't unfurl";
+                          _loading = false;
+                        });
+                        return;
+                      }
+                      setState(() {
+                        _pid = pid;
+                      });
+                      // we don't need to set loading to false because the postRef will
+                    },
             ),
           ),
-          context.sf,
-          ZTextButton(
-            backgroundColor: context.secondaryColor,
-            foregroundColor: context.onSecondaryColor,
-            type: ZButtonTypes.wide,
-            onPressed: () {
-              Functions.instance().triggerContent();
-              context.pop();
-            },
-            child: const Text("Generate"),
-          ),
+          // context.sf,
+          // ZTextButton(
+          //   backgroundColor: context.secondaryColor,
+          //   foregroundColor: context.onSecondaryColor,
+          //   type: ZButtonTypes.wide,
+          //   onPressed: () {
+          //     Functions.instance().triggerContent();
+          //     context.pop();
+          //   },
+          //   child: const Text("Generate"),
+          // ),
         ],
       ),
     );
@@ -168,13 +169,13 @@ class _PostBuilderState extends ConsumerState<PostBuilder> {
 class PasteArea extends StatelessWidget {
   const PasteArea({
     super.key,
-    required this.onPaste,
+    this.onPaste,
     this.error = false,
     this.loading = false,
     this.errorText = "There's an error",
   });
 
-  final Function() onPaste;
+  final Function()? onPaste;
   final bool error;
   final bool loading;
   final String errorText;
@@ -194,7 +195,7 @@ class PasteArea extends StatelessWidget {
         foregroundColor: context.primaryColor,
         onPressed: onPaste,
         child: loading
-            ? const Loading()
+            ? const Loading(type: LoadingType.large)
             : Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [

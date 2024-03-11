@@ -31,6 +31,9 @@ Post _$PostFromJson(Map<String, dynamic> json) => Post(
       aiBias: json['aiBias'] == null
           ? null
           : Bias.fromJson(json['aiBias'] as Map<String, dynamic>),
+      debateBias: json['debateBias'] == null
+          ? null
+          : Bias.fromJson(json['debateBias'] as Map<String, dynamic>),
       userCredibility: json['userCredibility'] == null
           ? null
           : Credibility.fromJson(
@@ -40,6 +43,7 @@ Post _$PostFromJson(Map<String, dynamic> json) => Post(
           : Credibility.fromJson(json['aiCredibility'] as Map<String, dynamic>),
       voteCountBias: json['voteCountBias'] as int? ?? 0,
       voteCountCredibility: json['voteCountCredibility'] as int? ?? 0,
+      debateCountBias: json['debateCountBias'] as int? ?? 0,
     )..messageCount = json['messageCount'] as int?;
 
 Map<String, dynamic> _$PostToJson(Post instance) => <String, dynamic>{
@@ -57,8 +61,10 @@ Map<String, dynamic> _$PostToJson(Post instance) => <String, dynamic>{
       'locations': instance.locations,
       'voteCountBias': instance.voteCountBias,
       'voteCountCredibility': instance.voteCountCredibility,
+      'debateCountBias': instance.debateCountBias,
       'userBias': instance.userBias?.toJson(),
       'aiBias': instance.aiBias?.toJson(),
+      'debateBias': instance.debateBias?.toJson(),
       'userCredibility': instance.userCredibility?.toJson(),
       'aiCredibility': instance.aiCredibility?.toJson(),
       'importance': instance.importance,

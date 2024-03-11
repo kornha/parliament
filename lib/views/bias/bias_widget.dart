@@ -11,26 +11,29 @@ import 'package:political_think/common/models/post.dart';
 import 'package:political_think/common/models/vote.dart';
 import 'package:political_think/common/services/database.dart';
 import 'package:political_think/views/bias/bias_view.dart';
+import 'package:political_think/views/credibility/vote_view.dart';
 
-class PostBias extends ConsumerStatefulWidget {
+class BiasWidget extends ConsumerStatefulWidget {
   final Post post;
   final double radius;
-  final bool showText;
+  final bool showPositionName;
+  final bool showPositionAngle;
   final bool showModalOnPress;
 
-  const PostBias({
+  const BiasWidget({
     super.key,
     required this.radius,
     required this.post,
-    this.showText = false,
-    this.showModalOnPress = true,
+    this.showPositionName = false,
+    this.showPositionAngle = false,
+    this.showModalOnPress = false,
   });
 
   @override
   ConsumerState<ConsumerStatefulWidget> createState() => _PostBiasViewState();
 }
 
-class _PostBiasViewState extends ConsumerState<PostBias> {
+class _PostBiasViewState extends ConsumerState<BiasWidget> {
   Vote? _localVote;
 
   @override
@@ -101,9 +104,7 @@ class _PostBiasViewState extends ConsumerState<PostBias> {
                     type: VoteType.bias,
                     bias: Bias(position: pos),
                   );
-                  Database.instance()
-                      .vote(widget.post.pid, v, VoteType.bias)
-                      .onError((error, stackTrace) {
+                  Database.instance().vote(v).onError((error, stackTrace) {
                     setState(() {
                       _localVote = null;
                       // TODO: toast
@@ -113,16 +114,24 @@ class _PostBiasViewState extends ConsumerState<PostBias> {
                   setState(() {
                     _localVote = v;
                   });
+                  context.showModal(VoteView(
+                    pid: widget.post.pid,
+                    uid: ref.user().uid,
+                    type: VoteType.bias,
+                  ));
                 },
               ),
             ],
           ),
-          !widget.showText || widget.post.userBias == null
+          !widget.showPositionAngle && !widget.showPositionName ||
+                  widget.post.userBias == null
               ? const SizedBox.shrink()
               : SizedBox(
                   width: widget.radius * 2.0,
                   child: Text(
-                    widget.post.userBias!.position.name,
+                    widget.showPositionAngle
+                        ? "${widget.post.aiBias!.position.angle.round()}°"
+                        : widget.post.userBias!.position.name,
                     style: widget.radius >= context.iconSizeXL
                         ? context.mb
                         : context.sb,

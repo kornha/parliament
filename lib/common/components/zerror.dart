@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:political_think/common/constants.dart';
 import 'package:political_think/common/extensions.dart';
 
 enum ErrorType { profile, standard, large, imageSmall, image, post }
@@ -27,7 +28,7 @@ class ZError extends StatelessWidget {
           ),
           child: Center(
             child: Icon(
-              FontAwesomeIcons.faceAngry,
+              ZIcons.error,
               color: context.errorColor,
               size: context.iconSizeXL,
             ),
@@ -43,7 +44,7 @@ class ZError extends StatelessWidget {
           ),
           child: Center(
             child: Icon(
-              FontAwesomeIcons.faceAngry,
+              ZIcons.error,
               color: context.errorColor,
               size: context.iconSizeStandard,
             ),
@@ -52,7 +53,7 @@ class ZError extends StatelessWidget {
 
       default:
         return Icon(
-          FontAwesomeIcons.faceAngry,
+          ZIcons.error,
           color: context.errorColor,
           size: type == ErrorType.profile
               ? context.iconSizeStandard

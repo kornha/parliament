@@ -35,7 +35,7 @@ class ZTextButton extends StatelessWidget {
         minimumSize: type == ZButtonTypes.area
             ? null
             : type == ZButtonTypes.wide
-                ? Size(context.blockSizeSmall.width, context.sd.height!)
+                ? Size(context.blockSize.width, context.sd.height!)
                 : null,
       ),
       child: Padding(

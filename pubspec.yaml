@@ -57,6 +57,7 @@ dependencies:
   country_flags: ^2.2.0
   image_stack: ^2.1.1
   json_annotation: ^4.8.1
+  fluttertoast: ^8.2.4
 
 dev_dependencies:
   flutter_test:

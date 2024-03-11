@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -24,17 +25,18 @@ extension ProviderExt on WidgetRef {
   get authRead => read(authProvider);
   AsyncValue<ZUser?> userWatch(uid) => watch(zuserProvider(uid));
   AsyncValue<ZUser?> userRead(uid) => read(zuserProvider(uid));
+  AsyncValue<ZUser?> selfUserWatch() =>
+      watch(zuserProvider(authRead.authUser!.uid));
+  AsyncValue<ZUser?> selfUserRead() =>
+      read(zuserProvider(authRead.authUser!.uid));
+  // gets the user assuming logged in
+  ZUser user() => read(zuserProvider(authRead.authUser!.uid)).value!;
   AsyncValue<List<ZUser>?> usersWatch(uids) => watch(zusersProvider(uids));
   AsyncValue<List<ZUser>?> usersRead(uids) => read(zusersProvider(uids));
   AsyncValue<Vote?> voteWatch(String pid, String uid, VoteType type) =>
       watch(voteProvider((pid, uid, type)));
   AsyncValue<Vote?> voteRead(String pid, String uid, VoteType type) =>
       read(voteProvider((pid, uid, type)));
-  AsyncValue<ZUser?> selfUserWatch() =>
-      watch(zuserProvider(authRead.authUser!.uid));
-  AsyncValue<ZUser?> selfUserRead() =>
-      read(zuserProvider(authRead.authUser!.uid));
-  ZUser user() => read(zuserProvider(authRead.authUser!.uid)).value!;
   AsyncValue<Story?> storyWatch(String sid) => watch(storyProvider(sid));
   AsyncValue<Story?> storyRead(String sid) => read(storyProvider(sid));
   AsyncValue<Post?> postWatch(String pid) => watch(postProvider(pid));
@@ -57,10 +59,11 @@ extension ProviderExt on WidgetRef {
 
 extension ThemeExt on BuildContext {
   Color get primaryColor => Theme.of(this).colorScheme.primary;
-  Color get primaryColorWithOpacity => primaryColor.withOpacity(0.55);
+  Color get primaryColorWithOpacity => primaryColor.withOpacity(0.2);
   Color get backgroundColor => Theme.of(this).colorScheme.background;
   Color get backgroundColorWithOpacity => backgroundColor.withOpacity(0.55);
   Color get surfaceColor => Theme.of(this).colorScheme.surface;
+  Color get surfaceColorWithOpacity => surfaceColor.withOpacity(0.55);
   Color get onPrimaryColor => Theme.of(this).colorScheme.onPrimary;
   Color get onBackgroundColor => Theme.of(this).colorScheme.onBackground;
   Color get onSurfaceColor => Theme.of(this).colorScheme.onSurface;
@@ -107,7 +110,7 @@ extension MediaQueryExt on BuildContext {
           9.0 /
           16.0);
   // note we use top and left instead of horizontal/vertical because this small
-  Size get blockSizeSmall => Size(
+  Size get blockSize => Size(
       screenSize.width - blockMargin.horizontal - blockPadding.horizontal,
       imageSizeSmall.height + blockMargin.top + blockPadding.top);
 
@@ -180,9 +183,12 @@ extension ModalExt on BuildContext {
     showCupertinoDialog(
       context: this,
       useRootNavigator: true,
-      //useSafeArea: true,
       builder: (BuildContext context) {
+        // Note: we make this a scaffold so we can easily pop for any child
+        // TODO: Any child needs to be a DialogContainer (see in that class why)
+        // should perhaps refactor for better abstraction
         return ZScaffold(
+          defaultSafeArea: false,
           appBar: ZAppBar(
             leading: IconButton(
               icon: Icon(FontAwesomeIcons.xmark, color: context.primaryColor),
@@ -205,16 +211,79 @@ extension ModalExt on BuildContext {
       useRootNavigator: true,
       builder: (context) => Material(
         color: context.backgroundColor,
-        child: SafeArea(child: child),
+        // Note: we use this to show above keyboard
+        child: SingleChildScrollView(
+          padding:
+              EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+          child: child,
+        ),
       ),
     );
   }
 
-  void showToast(String message) {
+  // TODO: We use this custom library since Material snackbar shows behind modals
+  void showToast(String message, {bool isError = true}) {
+    FToast().init(this).showToast(
+          child: Container(
+            padding: blockPadding,
+            width: blockSize.width,
+            decoration: BoxDecoration(
+              borderRadius: BRadius.least,
+              color: isError ? errorColor : surfaceColor,
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisSize: MainAxisSize.max,
+              children: [
+                Icon(
+                  isError ? ZIcons.error : ZIcons.info,
+                  color: isError ? onErrorColor : onSurfaceColor,
+                  size: iconSizeSmall,
+                ),
+                sh,
+                Text(
+                  message,
+                  style: TextStyle(
+                    color: isError ? onErrorColor : onSurfaceColor,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+  }
+
+  void showSnackbar(String message) {
+    // cupertino has no snackbar
     ScaffoldMessenger.of(this).showSnackBar(
       SnackBar(
         content: Text(message),
       ),
+    );
+  }
+
+  void showDialog(
+    String title,
+    String message,
+  ) {
+    showCupertinoDialog(
+      context: this,
+      builder: (BuildContext context) {
+        return CupertinoAlertDialog(
+          title: Text(title),
+          content: Text(message),
+          actions: <Widget>[
+            CupertinoDialogAction(
+              isDefaultAction: true,
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text("OK"),
+            ),
+          ],
+        );
+      },
     );
   }
 }
@@ -223,6 +292,7 @@ extension ConstantsExt on BuildContext {
   //Widget get sendIcon => Icon(Icons.send, color: onSurfaceColor);
   //Widget get deliveredIcon => Icon(Icons.receipt, color: primaryColor);
 
+  double get iconSizeTiny => IconSize.tiny;
   double get iconSizeSmall => IconSize.small;
   double get iconSizeStandard => IconSize.standard;
   double get iconSizeLarge => IconSize.large;

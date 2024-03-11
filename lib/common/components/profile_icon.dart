@@ -34,8 +34,12 @@ class _ZScaffoldState extends ConsumerState<ProfileIcon> {
         ? CircleAvatar(
             backgroundColor: context.surfaceColor,
             foregroundImage: NetworkImage(user.value!.photoURL!),
-            radius: widget.size ?? context.iconSizeStandard,
+            radius: widget.size == null ? null : widget.size! / 2,
+            // if null defaults to 20, not iconSizeStandard which is 24
+            // 20 looks better so I'm keeping it.. not sure why material doesn't use 24 here
+            // which seems to be their default size
           )
-        : const Icon(FontAwesomeIcons.circle);
+        : Icon(FontAwesomeIcons.circle,
+            size: widget.size ?? context.iconSizeStandard);
   }
 }

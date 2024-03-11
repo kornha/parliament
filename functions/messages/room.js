@@ -3,12 +3,13 @@ const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const {FieldValue} = require("firebase-admin/firestore");
 const {incrementPostMessages} = require("../models/post");
-const {reevaluateRoom, startDebate, finalizeDebate} =
+const {reevaluateRoom, startDebate, finalizeDebate, getWinningPosition} =
 require("../ai/debate_ai");
 const {isFibonacciNumber} = require("../common/utils");
 const {roomTimeIsExpired,
   debateDidTimeOut, incrementDebateTimer} = require("./clock");
 const {applyEloScores} = require("../models/user");
+const {applyDebateToBias} = require("../ai/bias");
 
 //
 // Db triggers
@@ -16,7 +17,7 @@ const {applyEloScores} = require("../models/user");
 
 exports.onRoomChange = functions.firestore
     .document("rooms/{rid}")
-    .onWrite((change, context) => {
+    .onWrite(async (change, context) => {
       if (!change.after.exists) {
         return Promise.resolve();
       }
@@ -25,6 +26,8 @@ exports.onRoomChange = functions.firestore
       const collectionId = after.parentCollection;
       const parentId = after.parentId;
       const rid = context.params.rid;
+
+      _roomDidChangeWinner(before, after);
 
       // if our timer messed up...
       if (after.status == "live" && roomTimeIsExpired(after)) {
@@ -87,6 +90,19 @@ exports.onRoomChange = functions.firestore
     });
 
 //
+// Export Helpers
+//
+exports.incrementRoomMessages = function(rid, uid) {
+  return admin.firestore()
+      .collection("rooms")
+      .doc(rid)
+      .update({
+        messageCount: FieldValue.increment(1),
+        users: FieldValue.arrayUnion(uid),
+      });
+};
+
+//
 // Helpers
 //
 
@@ -98,16 +114,20 @@ function _messageDidIncrement(before, after) {
           after.messageCount > before.messageCount);
 }
 
-//
-// Export Helpers
-//
+async function _roomDidChangeWinner(before, after) {
+  const bPos = getWinningPosition(before).winningPosition;
+  const aPos = getWinningPosition(after).winningPosition;
+  if (aPos == null && bPos == null ||
+    aPos && bPos && aPos.angle == bPos.angle) {
+    return;
+  }
+  if (!bPos && aPos) {
+    await applyDebateToBias(after.parentId, aPos, {add: true});
+  } else if (bPos && !aPos) {
+    await applyDebateToBias(after.parentId, bPos, {add: false});
+  } else {
+    await applyDebateToBias(after.parentId, bPos, {add: false});
+    await applyDebateToBias(after.parentId, aPos, {add: true});
+  }
+}
 
-exports.incrementRoomMessages = function(rid, uid) {
-  return admin.firestore()
-      .collection("rooms")
-      .doc(rid)
-      .update({
-        messageCount: FieldValue.increment(1),
-        users: FieldValue.arrayUnion(uid),
-      });
-};

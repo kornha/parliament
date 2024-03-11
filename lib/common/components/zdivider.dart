@@ -13,8 +13,7 @@ class ZDivider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: context.blockPadding.copyWith(top: 0, bottom: 0),
+    return Container(
       child: type == DividerType.VERTICAL
           ? VerticalDivider(
               color: context.surfaceColor,
@@ -26,7 +25,7 @@ class ZDivider extends StatelessWidget {
               color: type == DividerType.PRIMARY
                   ? context.primaryColor
                   : context.surfaceColor,
-              thickness: type == DividerType.PRIMARY ? 7 : 2,
+              thickness: type == DividerType.PRIMARY ? 4 : 2,
             ),
     );
   }

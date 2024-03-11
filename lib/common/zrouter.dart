@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:political_think/common/components/loading.dart';
 import 'package:political_think/common/components/zbottom_bar_scaffold.dart';
 import 'package:political_think/common/components/zerror.dart';
 import 'package:political_think/common/models/political_position.dart';
@@ -87,6 +88,13 @@ class ZRouter {
           path: Login.location,
           pageBuilder: (context, state) => const NoTransitionPage(
             child: Login(),
+          ),
+        ),
+        GoRoute(
+          parentNavigatorKey: rootNavigatorKey,
+          path: LoadingPage.location,
+          pageBuilder: (context, state) => const NoTransitionPage(
+            child: LoadingPage(),
           ),
         ),
         // GoRoute(

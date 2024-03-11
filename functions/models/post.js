@@ -77,3 +77,19 @@ const setPostBody = async function(post) {
     updatePost(post.pid, {body: "Could not fetch content"});
   }
 };
+
+//
+// DEPRECATED
+//
+
+// We don't store roomcount with posts
+// We store debateBiasCount instead which only tracks room reporting score
+
+// exports.incrementRoomCount = function(pid, value = 1) {
+//   return admin.firestore()
+//       .collection("posts")
+//       .doc(pid)
+//       .update({
+//         roomCount: FieldValue.increment(value),
+//       });
+// };

@@ -20,6 +20,7 @@ class CredibilityComponent extends StatefulWidget {
   final Color? setColor;
   final double decay;
   final bool fadeAbove;
+  final bool showEndRows;
 
   CredibilityComponent({
     Key? key,
@@ -34,6 +35,7 @@ class CredibilityComponent extends StatefulWidget {
     this.rows, // rows and columns must match width and height ratio
     this.columns,
     this.showUnselected = true,
+    this.showEndRows = true,
   }) : super(key: key);
 
   @override
@@ -61,6 +63,7 @@ class _CredibilityComponentState extends State<CredibilityComponent> {
           columns:
               widget.columns ?? (widget.width / widget.height * 28.0).toInt(),
           showUnselected: widget.showUnselected,
+          showEndRows: widget.showEndRows,
         ),
       ),
     );
@@ -80,6 +83,7 @@ class CredibilityPainter extends CustomPainter {
   final double decay;
   final Color? setColor;
   final bool fadeAbove;
+  final bool showEndRows;
 
   CredibilityPainter({
     required this.context,
@@ -94,6 +98,7 @@ class CredibilityPainter extends CustomPainter {
     required this.columns,
     this.decay = 0.77,
     this.showUnselected = true,
+    this.showEndRows = true,
   });
 
   late final _paint = Paint()
@@ -119,20 +124,25 @@ class CredibilityPainter extends CustomPainter {
           color = !fadeAbove && credibleRow > j
               ? Colors.transparent
               : setColor?.withOpacity(exp) ??
-                  Color.fromRGBO(
-                    currentCredibility.value < 0.5
-                        ? 255 * (1.0 - currentCredibility.value) ~/ 1.0
-                        : 0,
-                    currentCredibility.value >= 0.5
-                        ? 255 * currentCredibility.value ~/ 1.0
-                        : 0,
-                    255 * (1.0 - currentCredibility.value) ~/ 1.0,
-                    exp,
-                  );
+                  currentCredibility.color.withOpacity(exp);
+          if (showEndRows) {
+            if (j == 0) {
+              color = Palette.green;
+            } else if (j == rows - 1) {
+              color = Palette.purple;
+            }
+          }
         } else {
           var credibleRow = (rows - 1) - (0.5 * (rows - 1)).toInt();
           double exp = pow(decay, (credibleRow - j).abs()).toDouble();
           color = context.surfaceColor.withOpacity(exp);
+          if (showEndRows) {
+            if (j == 0) {
+              color = Palette.green;
+            } else if (j == rows - 1) {
+              color = Palette.purple;
+            }
+          }
         }
 
         var offsetx = 2 * _radiusSmall * i + _radiusSmall;

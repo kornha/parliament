@@ -50,6 +50,21 @@ exports.updateUser = async function(uid, values) {
   }
 };
 
+exports.deleteUser = async function(uid) {
+  if (!uid) {
+    functions.logger.error(`Could not delete user: ${uid}`);
+    return;
+  }
+  const userRef = admin.firestore().collection("users").doc(uid);
+  try {
+    await userRef.delete();
+    return true;
+  } catch (e) {
+    functions.logger.error(e);
+    return false;
+  }
+};
+
 // /////////////////////////////////////////
 // post
 // /////////////////////////////////////////

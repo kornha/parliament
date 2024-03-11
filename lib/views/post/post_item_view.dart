@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:political_think/common/components/comment_icon.dart';
+import 'package:political_think/common/components/comment_widget.dart';
 import 'package:political_think/common/components/loading.dart';
 import 'package:political_think/common/components/location_map.dart';
 import 'package:political_think/common/constants.dart';
@@ -12,9 +12,10 @@ import 'package:political_think/common/models/post.dart';
 import 'package:political_think/common/models/story.dart';
 import 'package:political_think/common/services/functions.dart';
 import 'package:political_think/common/util/zimage.dart';
-import 'package:political_think/views/post/post_credibility.dart';
+import 'package:political_think/views/credibility/credibility_widget.dart';
 import 'package:political_think/views/post/post_view.dart';
-import 'package:political_think/views/post/post_bias.dart';
+import 'package:political_think/views/bias/bias_widget.dart';
+import 'package:political_think/views/post/post_view_buttons.dart';
 
 class PostItemView extends ConsumerStatefulWidget {
   final String pid;
@@ -66,8 +67,15 @@ class _PostViewState extends ConsumerState<PostItemView> {
                       storyImportance > 4
                           ? ZImage(imageUrl: post?.imageUrl ?? "")
                           : const SizedBox.shrink(),
-                      context.sf,
-                      Text(post?.description ?? "", style: context.m),
+                      Visibility(
+                          visible: post?.description != null &&
+                              (post!.description?.isNotEmpty ?? false),
+                          child: context.sf),
+                      Visibility(
+                          visible: post?.description != null &&
+                              (post!.description?.isNotEmpty ?? false),
+                          child:
+                              Text(post?.description ?? "", style: context.m)),
                       Visibility(
                           visible: widget.showPostButtons, child: context.sf),
                       Visibility(
@@ -90,12 +98,13 @@ class _PostViewState extends ConsumerState<PostItemView> {
                       SizedBox(
                         height: context.imageSizeSmall.height,
                         // heuristic, trying to match screen size
-                        width: context.blockSizeSmall.width -
+                        width: context.blockSize.width -
                             context.imageSizeSmall.width -
                             context.sd.width! -
                             2.0,
                         child: Text(
-                          post?.description ?? "",
+                          // some posts dont have descriptions
+                          post?.description ?? post?.title ?? "",
                           style: (post?.importance ?? 5) > 9
                               ? context.l
                               : (post?.importance ?? 5) > 7
@@ -108,72 +117,5 @@ class _PostViewState extends ConsumerState<PostItemView> {
                     ],
                   ),
           );
-  }
-}
-
-class PostViewButtons extends StatelessWidget {
-  final Post post;
-  final Story? story;
-  final bool showMap;
-  final bool showCredibility;
-  final bool showBias;
-  final bool showComments;
-  //final bool showComments;
-
-  const PostViewButtons({
-    super.key,
-    required this.post,
-    this.showMap = true,
-    this.showCredibility = true,
-    this.showBias = true,
-    this.showComments = true,
-    this.story,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        // padding to space evently with post bias
-        Visibility(
-          visible: showMap,
-          child: Padding(
-              padding: EdgeInsets.symmetric(
-                  horizontal: (context.iconSizeXXL - context.iconSizeXL) / 2.0),
-              child: LocationMap(
-                locations: post.locations.isNotEmpty
-                    ? post.locations
-                    : story?.locations ?? [],
-                width: context.iconSizeXL,
-                height: context.iconSizeXL,
-              )),
-        ),
-        Visibility(
-          visible: showCredibility,
-          child: CommentIcon(comments: post.messageCount),
-        ),
-        // padding to space evently with post bias
-        Visibility(
-          visible: showCredibility,
-          child: Padding(
-              padding: EdgeInsets.symmetric(
-                  horizontal: (context.iconSizeXXL - context.iconSizeXL) / 2.0),
-              child: PostCredibility(
-                post: post,
-                height: context.iconSizeXXL,
-                width: context.iconSizeXL,
-              )),
-        ),
-        Visibility(
-          visible: showBias,
-          child: PostBias(
-            post: post,
-            radius: context.iconSizeXL / 2,
-          ),
-        ),
-      ],
-    );
   }
 }

@@ -56,7 +56,7 @@ class _StoryViewState extends ConsumerState<StoryView> {
                   Visibility(
                     visible: shouldShowSecondaryPosts,
                     child: SizedBox(
-                      height: context.blockSizeSmall.height,
+                      height: context.blockSize.height,
                       child: ListView.separated(
                           shrinkWrap: true,
                           scrollDirection: Axis.horizontal,

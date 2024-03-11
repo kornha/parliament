@@ -91,8 +91,12 @@ class _LocationMapState extends State<LocationMap> {
         ),
         CountryFlag.fromCountryCode(
           widget.locations.isEmpty ? "us" : widget.locations.first,
-          height: 15,
-          width: 15,
+          height: side > IconSize.large
+              ? context.iconSizeStandard
+              : context.iconSizeSmall,
+          width: side > IconSize.large
+              ? context.iconSizeStandard
+              : context.iconSizeSmall,
           borderRadius: 2,
         ),
       ],

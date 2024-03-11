@@ -1,7 +1,8 @@
 const admin = require("firebase-admin");
 const {onRoomChange, startDebate} = require("./messages/room");
 const {onMessageChange} = require("./messages/message");
-const {onAuthUserCreate} = require("./models/user");
+const {onAuthUserCreate, onAuthUserDelete,
+  setUsername} = require("./models/user");
 const {TaskQueue} = require( "firebase-admin/functions");
 const {onPostUpdate} = require("./models/post");
 const {onVoteBiasChange, onVoteCredibilityChange} = require("./models/vote");
@@ -28,6 +29,8 @@ Object.assign(TaskQueue.prototype, {
 
 module.exports = {
   onAuthUserCreate,
+  onAuthUserDelete,
+  setUsername,
   onVoteBiasChange,
   onVoteCredibilityChange,
   // onPostCreate,

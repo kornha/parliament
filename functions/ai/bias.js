@@ -3,8 +3,8 @@ const admin = require("firebase-admin");
 const functions = require("firebase-functions");
 const {FieldValue} = require("firebase-admin/firestore");
 
-
-exports.applyVoteToBias = async function(pid, vote, {add = true}) {
+// TODO: could abstract these
+const applyVoteToBias = async function(pid, vote, {add = true}) {
   const postRef = admin.firestore().collection("posts").doc(pid);
 
   try {
@@ -55,6 +55,58 @@ exports.applyVoteToBias = async function(pid, vote, {add = true}) {
   }
 };
 
+const applyDebateToBias = async function(pid, winningPosition, {add = true}) {
+  const postRef = admin.firestore().collection("posts").doc(pid);
+
+  try {
+    await admin.firestore().runTransaction(async (t) => {
+      const doc = await t.get(postRef);
+
+      if (!doc.exists) {
+        functions.logger.error(`Post ${pid} does not exist!`);
+        return;
+      }
+
+      const post = doc.data();
+      let newBiasPosVal;
+
+      if (post.debateCountBias == null ||
+        post.debateCountBias <= 0 ||
+        post.debateBias === null) {
+        if (!add) {
+          functions.logger.error(`Cannot remove debate bias in ${pid}, empty!`);
+          return;
+        }
+        newBiasPosVal = winningPosition.angle;
+      } else if (post.debateCountBias == 1 && !add) {
+        newBiasPosVal = null;
+      } else {
+        let direction = getDirection(post.debateBias.position.angle,
+            winningPosition.angle);
+        direction = add ? direction :
+          direction == "clockwise" ? "counterclockwise" : "clockwise";
+        //
+        const dist = getDistance(post.debateBias.position.angle,
+            winningPosition.angle);
+        const magnitude = dist / (post.debateCountBias + (add ? 1.0 : -1.0));
+
+        //
+        newBiasPosVal = addPosition(post.debateBias.position.angle, magnitude,
+            direction);
+      }
+
+      t.update(postRef, {
+        debateBias: newBiasPosVal !== null ?
+        {position: {"angle": newBiasPosVal}} : null,
+        debateCountBias: FieldValue.increment(add ? 1 : -1),
+      });
+    });
+  } catch (e) {
+    functions.logger.error(e);
+  }
+};
+
+
 // tests
 // console.log(getDirection(0,230)); //clockwise
 // console.log(getDirection(270,275)); //counterclockwise
@@ -103,6 +155,14 @@ const addPosition = function(currAngle, magnitude, direction) {
       currAngle - magnitude : currAngle + magnitude;
 
   return (newAngle + 360) % 360;
+};
+
+module.exports = {
+  applyVoteToBias,
+  applyDebateToBias,
+  getDirection,
+  getDistance,
+  addPosition,
 };
 
 

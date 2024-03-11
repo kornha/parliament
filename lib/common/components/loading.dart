@@ -5,14 +5,15 @@ import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:political_think/common/components/credibility_component.dart';
 import 'package:political_think/common/components/loading_shimmer.dart';
 import 'package:political_think/common/components/political_component.dart';
+import 'package:political_think/common/components/zscaffold.dart';
 import 'package:political_think/common/constants.dart';
 import 'package:political_think/common/extensions.dart';
 import 'package:political_think/common/models/credibility.dart';
 import 'package:political_think/common/models/political_position.dart';
 
 enum LoadingType {
+  tiny,
   small,
-  profile,
   standard,
   large,
   imageSmall,
@@ -87,6 +88,15 @@ class Loading extends StatelessWidget {
             ),
           ),
         );
+      case LoadingType.tiny:
+        return Container(
+          child: Center(
+            child: LoadingPoliticalPositionAnimation(
+              size: context.iconSizeTiny,
+              duration: const Duration(milliseconds: 1200),
+            ),
+          ),
+        );
       case LoadingType.small:
         return Container(
           child: Center(
@@ -96,20 +106,11 @@ class Loading extends StatelessWidget {
             ),
           ),
         );
-      case LoadingType.profile:
-        return Container(
-          child: Center(
-            child: LoadingPoliticalPositionAnimation(
-              size: context.iconSizeStandard,
-              duration: const Duration(milliseconds: 1200),
-            ),
-          ),
-        );
       case LoadingType.standard:
         return Container(
           child: Center(
             child: LoadingPoliticalPositionAnimation(
-              size: context.iconSizeLarge,
+              size: context.iconSizeStandard,
               duration: const Duration(milliseconds: 1200),
             ),
           ),
@@ -119,7 +120,7 @@ class Loading extends StatelessWidget {
         return Container(
           child: Center(
             child: LoadingPoliticalPositionAnimation(
-              size: context.iconSizeXL,
+              size: context.iconSizeLarge,
               duration: const Duration(milliseconds: 1200),
             ),
           ),
@@ -188,8 +189,9 @@ class _LoadingPoliticalPositionAnimationState
   Widget build(BuildContext context) {
     return PoliticalComponent(
       showUnselected: widget.showUnselected,
-      rings: widget.rings ?? (widget.size >= context.iconSizeLarge ? 4 : 2),
-      position: PoliticalPosition.fromRadians((_animation.value) * pi * 2),
+      rings: widget.rings ?? (widget.size >= context.iconSizeStandard ? 3 : 2),
+      position:
+          PoliticalPosition.fromRadians((1.0 - _animation.value) * pi * 2),
       radius: widget.size / 2,
     );
   }
@@ -269,6 +271,19 @@ class _LoadingCredibilityAnimationState
       height: widget.height,
       credibility: Credibility.fromValue(
           topdown ? 1.0 - _animation.value : _animation.value),
+    );
+  }
+}
+
+class LoadingPage extends StatelessWidget {
+  static const location = "/feed";
+
+  const LoadingPage({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return const ZScaffold(
+      body: Center(child: Loading()),
     );
   }
 }

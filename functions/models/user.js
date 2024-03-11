@@ -1,7 +1,9 @@
 const functions = require("firebase-functions");
-const {createUser, updateUser} = require("../common/database");
+const {createUser, updateUser, deleteUser} = require("../common/database");
 const {FieldValue} = require("firebase-admin/firestore");
+const {authenticate} = require("../common/auth");
 // const {computeBias} = require("../ai/bias");
+
 
 //
 // Db triggers
@@ -19,6 +21,28 @@ exports.onAuthUserCreate = functions.auth.user().onCreate((user) => {
   return createUser(userDoc);
 });
 
+exports.onAuthUserDelete = functions.auth.user().onDelete((user) => {
+  return deleteUser(user.uid);
+});
+
+//
+// API's
+//
+
+// api to setUsername, since we need to check uniqueness
+exports.setUsername = functions.https.onCall(async (data, context) => {
+  authenticate(context);
+
+  if (!data.username) {
+    throw new functions.https.HttpsError(
+        "invalid-argument", "No username provided.");
+  }
+  return updateUser(context.auth.uid, {username: data.username});
+});
+
+//
+// helpers
+//
 exports.applyEloScores = async function(eloScore) {
   if (!eloScore || !eloScore.values || eloScore.values.size == 0) {
     return;
@@ -33,4 +57,5 @@ exports.applyEloScores = async function(eloScore) {
     }
   }
 };
+
 

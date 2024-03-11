@@ -75,11 +75,13 @@ exports.generatePostAiFields = async function(post) {
 
         HERE ARE THE OTHER POSTS IN THE STORY, IF ANY:
         ${posts.map((_post) => _post.pid == post.pid ? "" :
-         "TITLE" + _post.title + "\nBODY:" + _post.description).join("\n")}
+         "TITLE " + _post.title + "\nBODY (if any): " + _post.description).join("\n")}
 
         Output the following JSON;
         {"credibility": {"value": 0.0-1.0, "reason": "why"}, "bias": {"position": {"angle": 0.0-360.0}, "reason": "why"}, "importance": 0.0-1.0}
    `;
+
+  console.log(prompt);
 
   const completion = await new OpenAI().chat.completions.create({
     messages: [

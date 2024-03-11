@@ -9,6 +9,7 @@ part of 'zuser.dart';
 ZUser _$ZUserFromJson(Map<String, dynamic> json) => ZUser(
       uid: json['uid'] as String,
       elo: json['elo'] as int? ?? 1500,
+      isAdmin: json['isAdmin'] as bool? ?? false,
     )
       ..email = json['email'] as String?
       ..phoneNumber = json['phoneNumber'] as String?
@@ -22,4 +23,5 @@ Map<String, dynamic> _$ZUserToJson(ZUser instance) => <String, dynamic>{
       'phoneNumber': instance.phoneNumber,
       'photoURL': instance.photoURL,
       'username': instance.username,
+      'isAdmin': instance.isAdmin,
     };

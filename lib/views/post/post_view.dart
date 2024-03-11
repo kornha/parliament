@@ -89,8 +89,8 @@ class _PostViewState extends ConsumerState<PostView> {
                       : ZTheme.lightChatTheme,
                   scrollController: _autoScrollController,
                   pinnedMessageHeader: Container(
-                    margin: context.blockMargin,
-                    padding: context.blockPaddingExtra,
+                    // margin: context.blockMargin,
+                    // padding: context.blockPaddingExtra,
                     decoration: BoxDecoration(
                       color: context.backgroundColor,
                       borderRadius: BRadius.standard,
