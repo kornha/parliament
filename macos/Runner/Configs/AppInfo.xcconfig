@@ -8,7 +8,7 @@
 PRODUCT_NAME = political_think
 
 // The application's bundle identifier
-PRODUCT_BUNDLE_IDENTIFIER = com.example.politicalThink
+PRODUCT_BUNDLE_IDENTIFIER = app.TheParliament
 
 // The copyright displayed in application information
-PRODUCT_COPYRIGHT = Copyright © 2023 com.example. All rights reserved.
+PRODUCT_COPYRIGHT = Copyright © 2023 app.TheParliament All rights reserved.
