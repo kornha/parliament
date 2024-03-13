@@ -25,6 +25,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "6.2.0"
+  ansicolor:
+    dependency: transitive
+    description:
+      name: ansicolor
+      sha256: "8bf17a8ff6ea17499e40a2d2542c2f481cd7615760c6d34065cb22bfd22e6880"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.2"
   any_link_preview:
     dependency: "direct main"
     description:
@@ -33,6 +41,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.1"
+  archive:
+    dependency: transitive
+    description:
+      name: archive
+      sha256: "22600aa1e926be775fa5fe7e6894e7fb3df9efda8891c73f70fb3262399a432d"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.4.10"
   args:
     dependency: transitive
     description:
@@ -153,6 +169,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.3"
+  cli_util:
+    dependency: transitive
+    description:
+      name: cli_util
+      sha256: c05b7406fdabc7a49a3929d4af76bcaccbbffcbcdcf185b082e1ae07da323d19
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.4.1"
   clock:
     dependency: transitive
     description:
@@ -558,6 +582,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.0.4"
+  flutter_launcher_icons:
+    dependency: "direct dev"
+    description:
+      name: flutter_launcher_icons
+      sha256: "526faf84284b86a4cb36d20a5e45147747b7563d921373d4ee0559c54fcdbcea"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.13.1"
   flutter_link_previewer:
     dependency: "direct main"
     description:
@@ -587,6 +619,14 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  flutter_native_splash:
+    dependency: "direct main"
+    description:
+      name: flutter_native_splash
+      sha256: "558f10070f03ee71f850a78f7136ab239a67636a294a44a06b6b7345178edb1e"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.3.10"
   flutter_parsed_text:
     dependency: "direct main"
     description:
@@ -845,6 +885,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.0.2"
+  image:
+    dependency: transitive
+    description:
+      name: image
+      sha256: "4c68bfd5ae83e700b5204c1e74451e7bf3cf750e6843c6e158289cf56bda018e"
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.1.7"
   image_picker:
     dependency: transitive
     description:
@@ -1161,10 +1209,10 @@ packages:
     dependency: transitive
     description:
       name: petitparser
-      sha256: cb3798bef7fc021ac45b308f4b51208a152792445cce0448c9a4ba5879dd8750
+      sha256: c15605cd28af66339f8eb6fbe0e541bfe2d1b72d5825efc6598f3e0a31b9ad27
       url: "https://pub.dev"
     source: hosted
-    version: "5.4.0"
+    version: "6.0.2"
   photo_view:
     dependency: "direct main"
     description:
@@ -1710,10 +1758,10 @@ packages:
     dependency: transitive
     description:
       name: xml
-      sha256: "5bc72e1e45e941d825fd7468b9b4cc3b9327942649aeb6fc5cdbf135f0a86e84"
+      sha256: b015a8ad1c488f66851d762d3090a21c600e479dc75e68328c52774040cf9226
       url: "https://pub.dev"
     source: hosted
-    version: "6.3.0"
+    version: "6.5.0"
   yaml:
     dependency: transitive
     description:

@@ -724,6 +724,8 @@ PODS:
   - FirebaseMessagingInterop (10.15.0)
   - FirebaseSharedSwift (10.15.0)
   - Flutter (1.0.0)
+  - flutter_native_splash (0.0.1):
+    - Flutter
   - fluttertoast (0.0.2):
     - Flutter
     - Toast
@@ -858,6 +860,7 @@ DEPENDENCIES:
   - firebase_core (from `.symlinks/plugins/firebase_core/ios`)
   - firebase_dynamic_links (from `.symlinks/plugins/firebase_dynamic_links/ios`)
   - Flutter (from `Flutter`)
+  - flutter_native_splash (from `.symlinks/plugins/flutter_native_splash/ios`)
   - fluttertoast (from `.symlinks/plugins/fluttertoast/ios`)
   - google_maps_flutter_ios (from `.symlinks/plugins/google_maps_flutter_ios/ios`)
   - google_sign_in_ios (from `.symlinks/plugins/google_sign_in_ios/ios`)
@@ -919,6 +922,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/firebase_dynamic_links/ios"
   Flutter:
     :path: Flutter
+  flutter_native_splash:
+    :path: ".symlinks/plugins/flutter_native_splash/ios"
   fluttertoast:
     :path: ".symlinks/plugins/fluttertoast/ios"
   google_maps_flutter_ios:
@@ -966,6 +971,7 @@ SPEC CHECKSUMS:
   FirebaseMessagingInterop: 83f7b1a363bfe30ec8bbff1aa708d38e9d456373
   FirebaseSharedSwift: 34b11d9e675e14ee55e160cb7645bba30a192d14
   Flutter: f04841e97a9d0b0a8025694d0796dd46242b2854
+  flutter_native_splash: 52501b97d1c0a5f898d687f1646226c1f93c56ef
   fluttertoast: fafc4fa4d01a6a9e4f772ecd190ffa525e9e2d9c
   google_maps_flutter_ios: 590249c67f34f422122c232f2a626192adbc78ee
   google_sign_in_ios: 1256ff9d941db546373826966720b0c24804bcdd

@@ -69,7 +69,7 @@ class DefaultFirebaseOptions {
     storageBucket: 'political-think.appspot.com',
     iosClientId:
         '1086194423847-30864i1ebosr3v7i0gejpl280v2enlru.apps.googleusercontent.com',
-    iosBundleId: 'com.example.politicalThink',
+    iosBundleId: 'app.TheParliament',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
@@ -80,6 +80,6 @@ class DefaultFirebaseOptions {
     storageBucket: 'political-think.appspot.com',
     iosClientId:
         '1086194423847-30864i1ebosr3v7i0gejpl280v2enlru.apps.googleusercontent.com',
-    iosBundleId: 'com.example.politicalThink',
+    iosBundleId: 'app.TheParliament',
   );
 }

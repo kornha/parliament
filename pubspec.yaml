@@ -58,12 +58,14 @@ dependencies:
   image_stack: ^2.1.1
   json_annotation: ^4.8.1
   fluttertoast: ^8.2.4
+  flutter_native_splash: ^2.3.10
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   build_runner: ^2.4.6  
   flutter_lints: ^2.0.0
+  flutter_launcher_icons: ^0.13.1
 
 flutter:
   uses-material-design: true
@@ -84,3 +86,27 @@ flutter:
     - family: SocialIcons
       fonts:
         - asset: packages/firebase_ui_auth/fonts/SocialIcons.ttf
+
+# run this command to regenerate
+# flutter pub run flutter_launcher_icons
+# TODO: we need to change the image here to have a background (not transparent)
+# since ios does not allow background configuration
+# also need the source image to be 512x512 I think, if its not already
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/images/logo_white.png"
+  min_sdk_android: 21 # android min sdk min:16, default 21
+  adaptive_icon_background: "#000000" # Set background color for Android adaptive icons
+  web:
+    generate: true
+    image_path: "assets/images/logo_white.png"
+    background_color: "#000000" # Set background color for web icons
+    theme_color: "#000000" # Optionally, set theme color for web
+
+# dart run flutter_native_splash:create
+flutter_native_splash:
+  color: "#FFFFFF" # White background for light mode
+  image: assets/images/logo_black.png # Logo for light mode
+  color_dark: "#000000" # Black background for dark mode
+  image_dark: assets/images/logo_white.png # Logo for dark mode
