@@ -14,7 +14,7 @@
       },
       "oauth_client": [
         {
-          "client_id": "1086194423847-leffvsgbu3fi5bgqa2l18n2orojtakiq.apps.googleusercontent.com",
+          "client_id": "1086194423847-ec410ql2qq8eop0etks83ad35vbbnp83.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
@@ -27,8 +27,15 @@
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "1086194423847-leffvsgbu3fi5bgqa2l18n2orojtakiq.apps.googleusercontent.com",
+              "client_id": "1086194423847-ec410ql2qq8eop0etks83ad35vbbnp83.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "1086194423847-30864i1ebosr3v7i0gejpl280v2enlru.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.politicalThink"
+              }
             }
           ]
         }

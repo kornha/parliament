@@ -63,23 +63,21 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyBGG9WeljnVJwbKOJEKrBE_wQNYFHTSEto',
-    appId: '1:1086194423847:ios:1ae5d46e15600cc531d602',
+    appId: '1:1086194423847:ios:4207d44703d1e4cf31d602',
     messagingSenderId: '1086194423847',
     projectId: 'political-think',
     storageBucket: 'political-think.appspot.com',
-    iosClientId:
-        '1086194423847-30864i1ebosr3v7i0gejpl280v2enlru.apps.googleusercontent.com',
+    iosClientId: '1086194423847-9na7ip01gus2ar1qou1vchp69srp471k.apps.googleusercontent.com',
     iosBundleId: 'app.TheParliament',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
     apiKey: 'AIzaSyBGG9WeljnVJwbKOJEKrBE_wQNYFHTSEto',
-    appId: '1:1086194423847:ios:1ae5d46e15600cc531d602',
+    appId: '1:1086194423847:ios:4207d44703d1e4cf31d602',
     messagingSenderId: '1086194423847',
     projectId: 'political-think',
     storageBucket: 'political-think.appspot.com',
-    iosClientId:
-        '1086194423847-30864i1ebosr3v7i0gejpl280v2enlru.apps.googleusercontent.com',
+    iosClientId: '1086194423847-9na7ip01gus2ar1qou1vchp69srp471k.apps.googleusercontent.com',
     iosBundleId: 'app.TheParliament',
   );
 }
