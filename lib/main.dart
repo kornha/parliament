@@ -37,7 +37,6 @@ class MyApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     var router = ZRouter.instance(ref);
-    //_delete();
     return MaterialApp.router(
       title: 'Parliament',
       routerConfig: router,
@@ -46,13 +45,5 @@ class MyApp extends ConsumerWidget {
       builder: FToastBuilder(),
       debugShowCheckedModeBanner: false,
     );
-  }
-
-  _delete() async {
-    final querySnapshot = await Database.instance().userCollection.get();
-
-    for (var document in querySnapshot.docs) {
-      document.reference.delete();
-    }
   }
 }
