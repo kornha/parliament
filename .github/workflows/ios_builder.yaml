@@ -85,4 +85,4 @@ jobs:
       with:
         appId: ${{secrets.FIREBASE_IOS_APP_ID}}
         serviceCredentialsFileContent: ${{ secrets.CREDENTIAL_FILE_CONTENT }}
-        file: /Users/runner/work/political_think/political_think/build/ios/ipa/political_think.ipa
+        file: political_think.ipa
