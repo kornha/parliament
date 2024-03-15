@@ -10,12 +10,14 @@ const {roomTimeIsExpired,
   debateDidTimeOut, incrementDebateTimer} = require("./clock");
 const {applyEloScores} = require("../models/user");
 const {applyDebateToBias} = require("../ai/bias");
+const {defaultConfig} = require("../common/functions");
 
 //
 // Db triggers
 //
 
-exports.onRoomChange = functions.firestore
+exports.onRoomChange = functions.runWith(defaultConfig)
+    .firestore
     .document("rooms/{rid}")
     .onWrite(async (change, context) => {
       if (!change.after.exists) {

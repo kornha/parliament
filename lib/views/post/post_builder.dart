@@ -35,15 +35,16 @@ class _PostBuilderState extends ConsumerState<PostBuilder> {
   @override
   void initState() {
     super.initState();
-    Database.instance().getFirstPostInDraft(ref.user().uid).then((post) {
-      // Check if the widget is still mounted
-      if (mounted) {
-        setState(() {
-          _pid = post?.pid;
-          _loading = false;
-        });
-      }
-    });
+    // todo: localstate
+    // Database.instance().getFirstPostInDraft(ref.user().uid).then((post) {
+    //   // Check if the widget is still mounted
+    //   if (mounted) {
+    //     setState(() {
+    //       _pid = post?.pid;
+    //       _loading = false;
+    //     });
+    //   }
+    // });
   }
 
   @override

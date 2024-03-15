@@ -169,6 +169,8 @@ class Database {
         );
   }
 
+  // DEPRECATED
+  // USE LOCAL STATE INSTEAD
   Future<Post?> getFirstPostInDraft(uid) {
     return postCollection
         .where("poster", isEqualTo: uid)

@@ -7,8 +7,12 @@ const {FieldValue} = require("firebase-admin/firestore");
 const admin = require("firebase-admin");
 const {generateStoryForPost, generateStoryAiFields} = require("../ai/story_ai");
 const {getTextContentFromBrowser} = require("../common/utils");
+const {gbConfig} = require("../common/functions");
 
-exports.onPostUpdate = functions.firestore
+
+exports.onPostUpdate = functions
+    .runWith(gbConfig) // uses pupetteer and requires 1GB to run
+    .firestore
     .document("posts/{pid}")
     .onWrite(async (change) => {
       const before = change.before.data();

@@ -187,7 +187,9 @@ module.exports = {
 //         ${content}
 //       `;
 
-//   const completion = await new OpenAI().chat.completions.create({
+//   const completion = await new OpenAI(
+//   getOpenApiKey(),
+// ).chat.completions.create({
 //     messages: [
 //       {
 //         role: "system",

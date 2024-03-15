@@ -15,7 +15,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  const bool local = true;
+  const bool local = false;
 
   if (local) {
     FirebaseFirestore.instance.useFirestoreEmulator("localhost", 8080);

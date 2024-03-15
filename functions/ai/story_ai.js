@@ -4,6 +4,7 @@ const {OpenAI} = require("openai");
 const {updatePost, getRecentStories, createStory, getPostsForStory, updateStory, getStory} = require("../common/database");
 const {Timestamp} = require("firebase-admin/firestore");
 const {v4} = require("uuid");
+const {getOpenApiKey} = require("./llm");
 
 exports.generateStoryForPost = async function(post) {
   // last 2 days
@@ -35,7 +36,7 @@ exports.generateStoryForPost = async function(post) {
         IF THE POST DOES NOT BELONG TO A STORY: {"sid": null}
    `;
 
-  const completion = await new OpenAI().chat.completions.create({
+  const completion = await new OpenAI(getOpenApiKey()).chat.completions.create({
     messages: [
       {
         role: "system",
@@ -138,7 +139,7 @@ exports.generateStoryAiFields = async function(sid) {
        {"title": "title", "description": "description", "locations": ["2 letter counter code"]}
    `;
 
-  const completion = await new OpenAI().chat.completions.create({
+  const completion = await new OpenAI(getOpenApiKey()).chat.completions.create({
     messages: [
       {
         role: "system",

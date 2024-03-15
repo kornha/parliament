@@ -10,23 +10,9 @@
         {
           "fieldPath": "createdAt",
           "mode": "DESCENDING"
-        }
-      ]
-    },
-    {
-      "collectionId": "stories",
-      "fields": [
+        },
         {
-          "fieldPath": "updatedAt",
-          "mode": "DESCENDING"
-        }
-      ]
-    },
-    {
-      "collectionId": "messages",
-      "fields": [
-        {
-          "fieldPath": "createdAt",
+          "fieldPath": "importance",
           "mode": "DESCENDING"
         }
       ]
@@ -38,24 +24,6 @@
           "fieldPath": "parentId",
           "mode": "ASCENDING"
         },
-        {
-          "fieldPath": "createdAt",
-          "mode": "DESCENDING"
-        }
-      ]
-    },
-    {
-      "collectionId": "votesCredibility",
-      "fields": [
-        {
-          "fieldPath": "createdAt",
-          "mode": "DESCENDING"
-        }
-      ]
-    },
-    {
-      "collectionId": "votesPosition",
-      "fields": [
         {
           "fieldPath": "createdAt",
           "mode": "DESCENDING"

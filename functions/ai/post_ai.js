@@ -2,6 +2,8 @@
 const functions = require("firebase-functions");
 const {OpenAI} = require("openai");
 const {getPostsForStory, getStory, updatePost} = require("../common/database");
+const {getOpenApiKey} = require("./llm");
+
 
 // bias, credibility, importance
 exports.generatePostAiFields = async function(post) {
@@ -81,9 +83,9 @@ exports.generatePostAiFields = async function(post) {
         {"credibility": {"value": 0.0-1.0, "reason": "why"}, "bias": {"position": {"angle": 0.0-360.0}, "reason": "why"}, "importance": 0.0-1.0}
    `;
 
-  console.log(prompt);
-
-  const completion = await new OpenAI().chat.completions.create({
+  const completion = await new OpenAI(
+      getOpenApiKey(),
+  ).chat.completions.create({
     messages: [
       {
         role: "system",

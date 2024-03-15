@@ -5,13 +5,12 @@ const {Timestamp} = require("firebase-admin/firestore");
 const {createPost} = require("../common/database");
 const {urlToDomain, getTextContentFromX} = require("../common/utils");
 
-
+// Requires 1GB to run
 const urlToPost = async function(url, uid) {
   if (!url) {
     throw new functions.https
         .HttpsError("invalid-argument", "No link provided.");
   }
-
 
   const domain = urlToDomain(url);
   if (domain == "x.com" || domain == "twitter.com") {
@@ -21,6 +20,7 @@ const urlToPost = async function(url, uid) {
   }
 };
 
+// Requires 1GB to run
 const xToPost = async function(url, uid) {
   const xMetaData = await getTextContentFromX(url);
   if (!xMetaData || !xMetaData.title) {

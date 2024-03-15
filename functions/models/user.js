@@ -2,6 +2,7 @@ const functions = require("firebase-functions");
 const {createUser, updateUser, deleteUser} = require("../common/database");
 const {FieldValue} = require("firebase-admin/firestore");
 const {authenticate} = require("../common/auth");
+const {defaultConfig} = require("../common/functions");
 // const {computeBias} = require("../ai/bias");
 
 
@@ -9,36 +10,39 @@ const {authenticate} = require("../common/auth");
 // Db triggers
 //
 
-exports.onAuthUserCreate = functions.auth.user().onCreate((user) => {
-  const userDoc = {
-    uid: user.uid,
-    email: user.email,
-    username: null,
-    phoneNumber: user.phoneNumber,
-    photoURL: user.photoURL,
-    elo: 1500,
-  };
-  return createUser(userDoc);
-});
+exports.onAuthUserCreate = functions.runWith(defaultConfig)
+    .auth.user().onCreate((user) => {
+      const userDoc = {
+        uid: user.uid,
+        email: user.email,
+        username: null,
+        phoneNumber: user.phoneNumber,
+        photoURL: user.photoURL,
+        elo: 1500,
+      };
+      return createUser(userDoc);
+    });
 
-exports.onAuthUserDelete = functions.auth.user().onDelete((user) => {
-  return deleteUser(user.uid);
-});
+exports.onAuthUserDelete = functions.runWith(defaultConfig)
+    .auth.user().onDelete((user) => {
+      return deleteUser(user.uid);
+    });
 
 //
 // API's
 //
 
 // api to setUsername, since we need to check uniqueness
-exports.setUsername = functions.https.onCall(async (data, context) => {
-  authenticate(context);
+exports.setUsername = functions.runWith(defaultConfig)
+    .https.onCall(async (data, context) => {
+      authenticate(context);
 
-  if (!data.username) {
-    throw new functions.https.HttpsError(
-        "invalid-argument", "No username provided.");
-  }
-  return updateUser(context.auth.uid, {username: data.username});
-});
+      if (!data.username) {
+        throw new functions.https.HttpsError(
+            "invalid-argument", "No username provided.");
+      }
+      return updateUser(context.auth.uid, {username: data.username});
+    });
 
 //
 // helpers

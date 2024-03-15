@@ -2,12 +2,14 @@
 const functions = require("firebase-functions");
 const {incrementRoomMessages} = require("./room");
 const {Timestamp} = require("firebase-admin/firestore");
+const {defaultConfig} = require("../common/functions");
 
 //
 // Db triggers
 //
 
-exports.onMessageChange = functions.firestore
+exports.onMessageChange = functions.runWith(defaultConfig)
+    .firestore
     .document("rooms/{rid}/messages/{mid}")
     .onWrite((change, context) => {
       const message = change.after.data();

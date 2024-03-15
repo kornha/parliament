@@ -3,9 +3,12 @@
   "description": "Cloud Functions for Firebase",
   "scripts": {
     "lint": "eslint .",
+    "postinstall": "node node_modules/puppeteer/install.js",
+    "gcp-build": "node node_modules/puppeteer/install.js",
     "serve": "firebase emulators:start --inspect-functions",
     "shell": "firebase functions:shell",
     "start": "npm run shell",
+    "predeploy": "npm run gcp-build",
     "deploy": "firebase deploy --only functions",
     "logs": "firebase functions:log"
   },

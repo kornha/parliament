@@ -3,6 +3,8 @@ const admin = require("firebase-admin");
 const puppeteer = require("puppeteer");
 
 /**
+ * DEPRECATED!
+ * REQUIRES 1GB TO RUN!
  * Main method for fetching text content.
  * Checks/saves to storage before using browser scraper
  * @param {post} post the post in question.
@@ -25,6 +27,8 @@ const getTextContentForPost = async function(post) {
 };
 
 /**
+ * DEPRECATED!
+ * REQUIRES 1GB TO RUN!
  * Creates/overwrites the content in storage from browser scrape.
  * @param {post} post the post in question.
  */
@@ -41,6 +45,7 @@ const setTextContentFromBrowser = async function(post) {
 };
 
 /**
+ * REQUIRES 1GB TO RUN!
  * Method from scraping webpage text content with headless browswer
  * @param {string} url in the post in question.
  */
@@ -66,6 +71,7 @@ const getTextContentFromBrowser = async function(url) {
 };
 
 /**
+ * REQUIRES 1GB TO RUN (currently)!
  * Method from scraping webpage text content with headless browswer
  * @param {string} url in the post in question.
  * @return {string} with title

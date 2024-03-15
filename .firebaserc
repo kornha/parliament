@@ -1,5 +1,11 @@
 {
   "projects": {
     "default": "political-think"
+  },
+  "targets": {},
+  "etags": {
+    "political-think": {
+      "extensionInstances": {}
+    }
   }
 }

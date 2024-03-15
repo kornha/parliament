@@ -4,22 +4,24 @@ const functions = require("firebase-functions");
 const {getFunctions} = require("firebase-admin/functions");
 const {Timestamp, FieldValue} = require("firebase-admin/firestore");
 const {getRoom, updateRoom} = require("../common/database");
+const {defaultConfig} = require("../common/functions");
 
 // /////////////////////////////////////////
 // timer
 // /////////////////////////////////////////
 
-exports.debateDidTimeOutTask = functions.tasks.taskQueue({
-  retryConfig: {
-    maxAttempts: 5,
-    minBackoffSeconds: 30,
-  },
-  rateLimits: {
-    maxConcurrentDispatches: 12,
-  },
-}).onDispatch(async (data) => {
-  this.debateDidTimeOut(data);
-});
+exports.debateDidTimeOutTask = functions.runWith(defaultConfig)
+    .tasks.taskQueue({
+      retryConfig: {
+        maxAttempts: 5,
+        minBackoffSeconds: 30,
+      },
+      rateLimits: {
+        maxConcurrentDispatches: 12,
+      },
+    }).onDispatch(async (data) => {
+      this.debateDidTimeOut(data);
+    });
 
 const debateDidTimeOut = async function(data) {
   if (!data.rid) {

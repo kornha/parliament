@@ -1,4 +1,4 @@
-name: iOS Builder
+name: CICD
 on:
   push: 
     branches: [ "main" ]
@@ -64,8 +64,9 @@ jobs:
         run: |
           security delete-keychain $RUNNER_TEMP/app-signing.keychain-db
           rm ~/Library/MobileDevice/Provisioning\ Profiles/build_pp.mobileprovision
+
   # Release job, upload the ipa to Firebase App Distribution
-  release:
+  deploy_ios:
     name: Release ipa to Firebase
     needs: [ build ]
     runs-on: ubuntu-latest
@@ -85,3 +86,26 @@ jobs:
         appId: ${{secrets.FIREBASE_IOS_APP_ID}}
         serviceCredentialsFileContent: ${{ secrets.CREDENTIAL_FILE_CONTENT }}
         file: political_think.ipa
+
+  deploy_functions:
+    runs-on: ubuntu-latest
+    needs: [ build ]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Login to Firebase
+        uses: w9jds/firebase-action@master
+        with:
+          args: deploy
+        env:
+          GCP_SA_KEY: ${{ secrets.CREDENTIAL_FILE_CONTENT }}

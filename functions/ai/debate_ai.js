@@ -7,6 +7,7 @@ const {getMessages, getDBDocument,
 const {Timestamp} = require("firebase-admin/firestore");
 const {queueDebateTimer, getEnd} = require("../messages/clock");
 const {getElo} = require("../common/utils");
+const {getOpenApiKey} = require("./llm");
 
 // /////////////////////////////////////////
 // debate controls
@@ -121,7 +122,7 @@ const reevaluateRoom = async function(room) {
   }).join("\n   ")};
   `;
 
-  const completion = await new OpenAI().chat.completions.create({
+  const completion = await new OpenAI(getOpenApiKey()).chat.completions.create({
     messages: [
       {
         role: "system",
