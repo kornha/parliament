@@ -103,7 +103,7 @@ jobs:
         run: npm install
 
       - name: Login to Firebase
-        uses: w9jds/firebase-action@12.7.0
+        uses: w9jds/firebase-action@v12.9.0
         with:
           args: deploy
         env:
