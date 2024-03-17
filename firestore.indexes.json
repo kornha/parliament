@@ -8,10 +8,6 @@
           "mode": "ASCENDING"
         },
         {
-          "fieldPath": "createdAt",
-          "mode": "DESCENDING"
-        },
-        {
           "fieldPath": "importance",
           "mode": "DESCENDING"
         }
