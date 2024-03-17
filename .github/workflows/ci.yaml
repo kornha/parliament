@@ -5,7 +5,7 @@ on:
 
 jobs:
   build:
-    runs-on: macos-latest
+    runs-on: macos-latest-large
 
     steps:
       - name: Checkout repository
@@ -48,7 +48,7 @@ jobs:
 
       # Build and sign the ipa using a single flutter command
       - name: Building IPA
-        run: flutter build ipa --profile --export-options-plist=ios/Runner/ExportOptionsSTG.plist
+        run: flutter build ipa --export-options-plist=ios/Runner/ExportOptionsSTG.plist
           
       # Collect the file and upload as artifact         
       - name: collect ipa artifacts
