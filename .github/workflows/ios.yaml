@@ -6,7 +6,7 @@ on:
       - 'lib/**'
       - 'ios/**'
       - 'pubspec.yaml'
-
+      - '.github/workflows/ios.yaml'
 
 jobs:
   build:
