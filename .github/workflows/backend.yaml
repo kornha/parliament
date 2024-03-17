@@ -2,11 +2,7 @@ name: Deploy Backend
 on:
   push: 
     branches: [ "main" ]
-    paths: 
-      - 'functions/**'
-      - '**/*.json'
-      - '**/*.rules'
-      - '.github/workflows/backend.yaml'
+
 
   deploy_functions:
     runs-on: ubuntu-latest
