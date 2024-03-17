@@ -25,6 +25,7 @@ class Profile extends ConsumerStatefulWidget {
 
 class _ProfileState extends ConsumerState<Profile> {
   bool isEditing = false;
+  String? _localUsername;
 
   @override
   Widget build(BuildContext context) {
@@ -33,6 +34,10 @@ class _ProfileState extends ConsumerState<Profile> {
     bool isError = userRef.hasError || userRef.value == null;
     // set isEditing to false if user changed (but did not go from null to not null)
     ZUser? user = userRef.value;
+
+    if (_localUsername == user?.username) {
+      _localUsername = null;
+    }
 
     return ZScaffold(
       body: isLoading
@@ -56,13 +61,26 @@ class _ProfileState extends ConsumerState<Profile> {
                           onSave: (text) {
                             setState(() {
                               isEditing = false;
+                              _localUsername = text;
+                            });
+                          },
+                          onSaveError: () {
+                            setState(() {
+                              _localUsername = null;
+                            });
+                          },
+                          onSaveSuccess: () {
+                            context.showToast("Username updated",
+                                isError: false);
+                            setState(() {
+                              _localUsername = null;
                             });
                           },
                         )
                       : Row(
                           children: [
                             Text("@ ", style: context.h3),
-                            Text(user?.username ?? "username",
+                            Text(_localUsername ?? user?.username ?? "username",
                                 style: context.l), // matches hint style
                             const Spacer(),
                             IconButton(

@@ -114,6 +114,12 @@ extension MediaQueryExt on BuildContext {
       screenSize.width - blockMargin.horizontal - blockPadding.horizontal,
       imageSizeSmall.height + blockMargin.top + blockPadding.top);
 
+  // block for screen size areas
+  Size get screenBlock => Size(
+        screenSize.width - blockMargin.horizontal - blockPadding.horizontal,
+        screenSize.height * 0.8,
+      );
+
   /// True if the current device is Phone
   bool get isMobile => screenSize.width < 600;
   // TODO: higher res
@@ -197,7 +203,7 @@ extension ModalExt on BuildContext {
               },
             ),
           ),
-          body: child,
+          body: SingleChildScrollView(child: child),
         );
       },
     );
@@ -213,6 +219,7 @@ extension ModalExt on BuildContext {
         color: context.backgroundColor,
         // Note: we use this to show above keyboard
         child: SingleChildScrollView(
+          //always bounce
           padding:
               EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
           child: child,
@@ -222,14 +229,22 @@ extension ModalExt on BuildContext {
   }
 
   // TODO: We use this custom library since Material snackbar shows behind modals
-  void showToast(String message, {bool isError = true}) {
+  void showToast(String message, {bool isError = false}) {
     FToast().init(this).showToast(
+          positionedToastBuilder: (context, child) {
+            return Positioned(
+              bottom: Margins.full,
+              left: Margins.full,
+              child: child,
+            );
+          },
           child: Container(
             padding: blockPadding,
             width: blockSize.width,
+            height: st.height,
             decoration: BoxDecoration(
               borderRadius: BRadius.least,
-              color: isError ? errorColor : surfaceColor,
+              color: isError ? errorColor : secondaryColor,
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.start,
@@ -237,15 +252,15 @@ extension ModalExt on BuildContext {
               mainAxisSize: MainAxisSize.max,
               children: [
                 Icon(
-                  isError ? ZIcons.error : ZIcons.info,
-                  color: isError ? onErrorColor : onSurfaceColor,
-                  size: iconSizeSmall,
+                  isError ? ZIcons.error : ZIcons.check,
+                  color: isError ? onErrorColor : onSecondaryColor,
+                  size: iconSizeStandard,
                 ),
                 sh,
                 Text(
                   message,
                   style: TextStyle(
-                    color: isError ? onErrorColor : onSurfaceColor,
+                    color: isError ? onErrorColor : onSecondaryColor,
                   ),
                 ),
               ],
@@ -254,38 +269,38 @@ extension ModalExt on BuildContext {
         );
   }
 
-  void showSnackbar(String message) {
-    // cupertino has no snackbar
-    ScaffoldMessenger.of(this).showSnackBar(
-      SnackBar(
-        content: Text(message),
-      ),
-    );
-  }
+  // void showSnackbar(String message) {
+  //   // cupertino has no snackbar
+  //   ScaffoldMessenger.of(this).showSnackBar(
+  //     SnackBar(
+  //       content: Text(message),
+  //     ),
+  //   );
+  // }
 
-  void showDialog(
-    String title,
-    String message,
-  ) {
-    showCupertinoDialog(
-      context: this,
-      builder: (BuildContext context) {
-        return CupertinoAlertDialog(
-          title: Text(title),
-          content: Text(message),
-          actions: <Widget>[
-            CupertinoDialogAction(
-              isDefaultAction: true,
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text("OK"),
-            ),
-          ],
-        );
-      },
-    );
-  }
+  // void showDialog(
+  //   String title,
+  //   String message,
+  // ) {
+  //   showCupertinoDialog(
+  //     context: this,
+  //     builder: (BuildContext context) {
+  //       return CupertinoAlertDialog(
+  //         title: Text(title),
+  //         content: Text(message),
+  //         actions: <Widget>[
+  //           CupertinoDialogAction(
+  //             isDefaultAction: true,
+  //             onPressed: () {
+  //               Navigator.of(context).pop();
+  //             },
+  //             child: const Text("OK"),
+  //           ),
+  //         ],
+  //       );
+  //     },
+  //   );
+  // }
 }
 
 extension ConstantsExt on BuildContext {

@@ -6,6 +6,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:political_think/common/components/loading.dart';
 import 'package:political_think/common/components/ztext_button.dart';
 import 'package:political_think/common/components/ztextfield.dart';
+import 'package:political_think/common/constants.dart';
 import 'package:political_think/common/extensions.dart';
 import 'package:political_think/common/models/zuser.dart';
 import 'package:political_think/common/services/database.dart';
@@ -15,12 +16,16 @@ import 'package:political_think/common/services/functions.dart';
 // as well as state as to wether this is shown because user clicked edit or there is no username
 class CreateUsernameComponent extends ConsumerStatefulWidget {
   final void Function(String text)? onSave;
+  final void Function()? onSaveSuccess;
+  final void Function()? onSaveError;
   final void Function()? onClose;
 
   const CreateUsernameComponent({
     super.key,
     this.onSave,
     this.onClose,
+    this.onSaveSuccess,
+    this.onSaveError,
   });
 
   @override
@@ -100,11 +105,15 @@ class _CreateUsernameComponentState
         Visibility(
           visible: showCheck,
           child: IconButton(
-            icon: const Icon(FontAwesomeIcons.check),
+            icon: const Icon(ZIcons.check),
             color: context.secondaryColor,
             onPressed: () {
               // update the user's username
-              Functions.instance().setUsername(_controller.text);
+              Functions.instance().setUsername(_controller.text).then((value) {
+                if (widget.onSaveSuccess != null) widget.onSaveSuccess!();
+              }).onError((error, stackTrace) {
+                if (widget.onSaveError != null) widget.onSaveError!();
+              });
               if (widget.onSave != null) {
                 widget.onSave!(_controller.text);
               }

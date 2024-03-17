@@ -63,6 +63,7 @@ class _PostBuilderState extends ConsumerState<PostBuilder> {
     if (postRef != null && postRef.hasValue) {
       return ModalContainer(
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
             PostItemView(pid: _pid!, showPostButtons: false),
             context.sf,
@@ -110,9 +111,11 @@ class _PostBuilderState extends ConsumerState<PostBuilder> {
     return ModalContainer(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        mainAxisSize: MainAxisSize.max,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Expanded(
+          Flexible(
+            fit: FlexFit.loose,
+            flex: 2,
             child: PasteArea(
               loading: _loading,
               error: _isError,
@@ -184,6 +187,8 @@ class PasteArea extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      width: context.screenBlock.width,
+      height: context.screenBlock.height,
       decoration: BoxDecoration(
         borderRadius: BRadius.steep,
         border: Border.fromBorderSide(BorderSide(

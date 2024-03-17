@@ -12,6 +12,7 @@ class ZTextfield extends StatelessWidget {
   final TextCapitalization textCapitalization;
   final FocusNode? focusNode;
   final bool enabled;
+  final Function(PointerDownEvent)? onTapOutside;
 
   const ZTextfield({
     super.key,
@@ -25,6 +26,7 @@ class ZTextfield extends StatelessWidget {
     this.focusNode,
     this.textCapitalization = TextCapitalization.sentences,
     this.enabled = true,
+    this.onTapOutside,
   });
 
   @override
@@ -45,9 +47,10 @@ class ZTextfield extends StatelessWidget {
       ),
       cursorColor: cursorColor,
       onChanged: onChanged,
-      onTapOutside: (event) {
-        FocusScope.of(context).unfocus();
-      },
+      onTapOutside: onTapOutside ??
+          (event) {
+            FocusScope.of(context).unfocus();
+          },
     );
   }
 }
