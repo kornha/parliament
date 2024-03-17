@@ -3,7 +3,7 @@ on:
   push: 
     branches: [ "main" ]
 
-
+jobs:
   deploy_functions:
     runs-on: ubuntu-latest
     steps:
