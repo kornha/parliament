@@ -1,20 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:political_think/common/components/comment_widget.dart';
 import 'package:political_think/common/components/loading.dart';
-import 'package:political_think/common/components/location_map.dart';
-import 'package:political_think/common/constants.dart';
 import 'package:political_think/common/extensions.dart';
-import 'package:political_think/common/models/political_position.dart';
-import 'package:political_think/common/models/post.dart';
 import 'package:political_think/common/models/story.dart';
-import 'package:political_think/common/services/functions.dart';
 import 'package:political_think/common/util/zimage.dart';
-import 'package:political_think/views/credibility/credibility_widget.dart';
 import 'package:political_think/views/post/post_view.dart';
-import 'package:political_think/views/bias/bias_widget.dart';
 import 'package:political_think/views/post/post_view_buttons.dart';
 
 class PostItemView extends ConsumerStatefulWidget {
@@ -64,7 +55,7 @@ class _PostViewState extends ConsumerState<PostItemView> {
                       storyImportance > 4
                           ? context.sf
                           : const SizedBox.shrink(),
-                      storyImportance > 4
+                      storyImportance > 4 && post?.imageUrl != null
                           ? ZImage(imageUrl: post?.imageUrl ?? "")
                           : const SizedBox.shrink(),
                       Visibility(
@@ -89,19 +80,25 @@ class _PostViewState extends ConsumerState<PostItemView> {
                   )
                 : Row(
                     mainAxisAlignment: MainAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      ZImage(
-                        imageUrl: post?.imageUrl ?? "",
-                        imageSize: ZImageSize.small,
-                      ),
-                      context.sh,
+                      post?.imageUrl != null
+                          ? ZImage(
+                              imageUrl: post?.imageUrl ?? "",
+                              imageSize: ZImageSize.small,
+                            )
+                          : const SizedBox.shrink(),
+                      post?.imageUrl != null
+                          ? context.sh
+                          : const SizedBox.shrink(),
                       SizedBox(
                         height: context.imageSizeSmall.height,
                         // heuristic, trying to match screen size
-                        width: context.blockSize.width -
-                            context.imageSizeSmall.width -
-                            context.sd.width! -
-                            2.0,
+                        width: (context.blockSize.width -
+                                context.imageSizeSmall.width -
+                                context.sd.width! -
+                                2.0) *
+                            (post?.imageUrl != null ? 1 : 0.7),
                         child: Text(
                           // some posts dont have descriptions
                           post?.description ?? post?.title ?? "",

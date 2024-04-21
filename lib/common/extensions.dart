@@ -11,6 +11,7 @@ import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:political_think/common/components/zapp_bar.dart';
 import 'package:political_think/common/components/zscaffold.dart';
 import 'package:political_think/common/constants.dart';
+import 'package:political_think/common/models/claim.dart';
 import 'package:political_think/common/models/post.dart';
 import 'package:political_think/common/models/room.dart';
 import 'package:political_think/common/models/story.dart';
@@ -46,6 +47,11 @@ extension ProviderExt on WidgetRef {
   AsyncValue<List<Post>?> postsFromStoriesRead(String sid) =>
       read(postsFromStoryProvider(sid));
 
+  AsyncValue<List<Claim>?> claimsFromStoriesWatch(String sid) =>
+      watch(claimsFromStoryProvider(sid));
+  AsyncValue<List<Claim>?> claimsFromStoriesRead(String sid) =>
+      read(claimsFromStoryProvider(sid));
+
   AsyncValue<Room?> activeRoomWatch(String parentId) =>
       watch(latestRoomProvider((parentId)));
   AsyncValue<Room?> activeRoomRead(String parentId) =>
@@ -80,7 +86,6 @@ extension ThemeExt on BuildContext {
   bool get isWindows => platform == TargetPlatform.windows;
   bool get isFuchsia => platform == TargetPlatform.fuchsia;
   bool get isLinux => platform == TargetPlatform.linux;
-  bool get isWeb => kIsWeb;
 }
 
 extension MediaQueryExt on BuildContext {
@@ -97,36 +102,42 @@ extension MediaQueryExt on BuildContext {
   Brightness get platformBrightness => MediaQuery.of(this).platformBrightness;
   double get textScaleFactor => MediaQuery.of(this).textScaleFactor;
   double get mediaQueryShortestSide => screenSize.shortestSide;
-  Size get imageSize => Size(
-      screenSize.width - blockPadding.horizontal - blockMargin.horizontal,
-      (screenSize.width - blockPadding.horizontal - blockMargin.horizontal) *
-          9.0 /
-          16.0);
-  Size get imageSizeSmall => Size(
-      screenSize.width / 2.5 - blockPadding.horizontal - blockMargin.horizontal,
-      (screenSize.width / 2.5 -
-              blockPadding.horizontal -
-              blockMargin.horizontal) *
-          9.0 /
-          16.0);
+
   // note we use top and left instead of horizontal/vertical because this small
   Size get blockSize => Size(
-      screenSize.width - blockMargin.horizontal - blockPadding.horizontal,
-      imageSizeSmall.height + blockMargin.top + blockPadding.top);
+        min(screenSize.width - blockMargin.horizontal - blockPadding.horizontal,
+            800),
+        min(screenSize.width - blockMargin.horizontal - blockPadding.horizontal,
+                800) *
+            9 /
+            16,
+      );
+
+  Size get blockSizeLarge => Size(
+      min(screenSize.width - blockMargin.horizontal, 1000),
+      min(screenSize.width - blockMargin.horizontal, 1000) * 9 / 16);
+
+  Size get imageSize => blockSize;
+  Size get imageSizeSmall =>
+      Size(imageSize.width / 2.5, imageSize.height / 2.5);
 
   // block for screen size areas
   Size get screenBlock => Size(
-        screenSize.width - blockMargin.horizontal - blockPadding.horizontal,
-        screenSize.height * 0.8,
-      );
+      screenSize.width - blockMargin.horizontal - blockPadding.horizontal,
+      screenSize.height -
+          blockMargin.vertical * 2 -
+          blockPadding.vertical * 2 -
+          kToolbarHeight * 2);
 
-  /// True if the current device is Phone
+  // size
   bool get isMobile => screenSize.width < 600;
-  // TODO: higher res
+  bool get isTablet => !isMobile && screenSize.width < 1000;
   bool get isDesktop => screenSize.width > 1000;
 
-  /// True if the current device is Tablet
-  bool get isTablet => !isMobile && !isDesktop;
+  // platform
+  bool get isWeb => kIsWeb;
+  bool get isTrueMobile => isMobile && !kIsWeb;
+  bool get isTrueTablet => isTablet && !kIsWeb;
 
   /// True if the current device is Phone or Tablet
   bool get isMobileOrTablet => isMobile || isTablet;
@@ -210,6 +221,24 @@ extension ModalExt on BuildContext {
   }
 
   void showModal(Widget child) {
+    if (isDesktop) {
+      showCupertinoModalPopup(
+        context: this,
+        builder: (BuildContext context) {
+          return Center(
+            child: Material(
+              color: context.backgroundColor,
+              child: SizedBox(
+                width: 400,
+                height: 400,
+                child: child,
+              ),
+            ),
+          );
+        },
+      );
+      return;
+    }
     showCupertinoModalBottomSheet(
       barrierColor: surfaceColor.withOpacity(0.9),
       context: this,

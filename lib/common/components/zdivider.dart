@@ -13,7 +13,10 @@ class ZDivider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SizedBox(
+      width: type == DividerType.VERTICAL
+          ? context.sd.width
+          : context.blockSizeLarge.width,
       child: type == DividerType.VERTICAL
           ? VerticalDivider(
               color: context.surfaceColor,

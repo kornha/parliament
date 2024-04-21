@@ -1,12 +1,12 @@
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
-const {Timestamp} = require("firebase-admin/firestore");
+const {Timestamp, FieldPath} = require("firebase-admin/firestore");
 const {v4} = require("uuid");
 
 // /////////////////////////////////////////
 // User
 // /////////////////////////////////////////
-exports.createUser = async function(user) {
+const createUser = async function(user) {
   if (!user.uid) {
     functions.logger.error(`Could not create user: ${user}`);
     return;
@@ -21,7 +21,7 @@ exports.createUser = async function(user) {
   }
 };
 
-exports.getUsers = async function(uids) {
+const getUsers = async function(uids) {
   if (!uids) {
     functions.logger.error(`Could not get users: ${uids}`);
     return;
@@ -35,7 +35,7 @@ exports.getUsers = async function(uids) {
   }
 };
 
-exports.updateUser = async function(uid, values) {
+const updateUser = async function(uid, values) {
   if (!uid || !values) {
     functions.logger.error(`Could not update user: ${uid}`);
     return;
@@ -50,7 +50,7 @@ exports.updateUser = async function(uid, values) {
   }
 };
 
-exports.deleteUser = async function(uid) {
+const deleteUser = async function(uid) {
   if (!uid) {
     functions.logger.error(`Could not delete user: ${uid}`);
     return;
@@ -69,7 +69,8 @@ exports.deleteUser = async function(uid) {
 // post
 // /////////////////////////////////////////
 
-exports.createPost = async function(post) {
+// Important! For most cases use atomicCreatePost instead
+const createPost = async function(post) {
   if (!post.pid || !post.createdAt || !post.updatedAt || !post.status ) {
     functions.logger.error(`Could not create post: ${post}`);
     return;
@@ -84,7 +85,7 @@ exports.createPost = async function(post) {
   }
 };
 
-exports.updatePost = async function(pid, values) {
+const updatePost = async function(pid, values) {
   if (!pid || !values) {
     functions.logger.error(`Could not update post: ${pid}`);
     return;
@@ -99,7 +100,114 @@ exports.updatePost = async function(pid, values) {
   }
 };
 
-exports.bulkSetPosts = async function(posts) {
+const setPost = async function(pid, values) {
+  if (!pid || !values) {
+    functions.logger.error(`Could not set post: ${pid}`);
+    return;
+  }
+  const postRef = admin.firestore().collection("posts").doc(pid);
+  try {
+    await postRef.set(values, {merge: true});
+    return true;
+  } catch (e) {
+    functions.logger.error(e);
+    return false;
+  }
+};
+
+
+const getPost = async function(pid) {
+  if (!pid) {
+    functions.logger.error(`Could not get post: ${pid}`);
+    return;
+  }
+  const postRef = admin.firestore().collection("posts").doc(pid);
+  try {
+    const post = await postRef.get();
+    return post.data();
+  } catch (e) {
+    return null;
+  }
+};
+
+const getPosts = async function(pids) {
+  if (!pids) {
+    functions.logger.error(`Could not get posts: ${pids}`);
+    return;
+  }
+
+  if (pids.length > 10) {
+    functions.logger.error(`Too many pids! ${pids}`);
+    return;
+  }
+
+  const postsRef = admin.firestore().collection("posts");
+  try {
+    const posts = await postsRef.where(FieldPath.documentId(),
+        "in", pids).get();
+    return posts.docs.map((post) => post.data());
+  } catch (e) {
+    return null;
+  }
+};
+
+/**
+ * fetches primary posts for story (faster than getAllPostsForStory)
+ * @param {*} sid
+ * @return {Array} of posts
+ */
+const getPostsForStory = async function(sid) {
+  if (!sid) {
+    functions.logger.error(`Could not get posts for story: ${sid}`);
+    return;
+  }
+  const postsRef = admin.firestore().collection("posts")
+      .where("sid", "==", sid);
+  try {
+    const posts = await postsRef.get();
+    return posts.docs.map((post) => post.data());
+  } catch (e) {
+    return null;
+  }
+};
+
+/**
+ * fetches primary and secondary posts for story
+ * @param {*} sid
+ * @return {Array} of posts
+ */
+const getAllPostsForStory = async function(sid) {
+  if (!sid) {
+    functions.logger.error(`Could not get posts mentioning story: ${sid}`);
+    return;
+  }
+  const postsRef = admin.firestore().collection("posts")
+      .where("sids", "array-contains", sid);
+  try {
+    const posts = await postsRef.get();
+    return posts.docs.map((post) => post.data());
+  } catch (e) {
+    return null;
+  }
+};
+
+const deletePost = async function(pid) {
+  if (!pid) {
+    functions.logger.error(`Could not delete post: ${pid}`);
+    return;
+  }
+  const postRef = admin.firestore().collection("posts").doc(pid);
+  try {
+    await postRef.delete();
+    return true;
+  } catch (e) {
+    functions.logger.error(e);
+    return false;
+  }
+};
+
+// Deprecated
+const bulkSetPosts = async function(posts) {
   if (!posts) {
     functions.logger.error(`Could not bulk update posts: ${posts}`);
     return;
@@ -118,40 +226,11 @@ exports.bulkSetPosts = async function(posts) {
   }
 };
 
-exports.getPost = async function(pid) {
-  if (!pid) {
-    functions.logger.error(`Could not get post: ${pid}`);
-    return;
-  }
-  const postRef = admin.firestore().collection("posts").doc(pid);
-  try {
-    const post = await postRef.get();
-    return post.data();
-  } catch (e) {
-    return null;
-  }
-};
-
-exports.getPostsForStory = async function(sid) {
-  if (!sid) {
-    functions.logger.error(`Could not get posts for story: ${sid}`);
-    return;
-  }
-  const postsRef = admin.firestore().collection("posts")
-      .where("sid", "==", sid);
-  try {
-    const posts = await postsRef.get();
-    return posts.docs.map((post) => post.data());
-  } catch (e) {
-    return null;
-  }
-};
-
 // /////////////////////////////////////////
 // Story
 // /////////////////////////////////////////
 
-exports.createStory = async function(story) {
+const createStory = async function(story) {
   if (!story.sid || !story.createdAt) {
     functions.logger.error(`Could not create story: ${story}`);
     return;
@@ -166,15 +245,14 @@ exports.createStory = async function(story) {
   }
 };
 
-// TODO: change to sid, values instead of whole story object
-exports.setStory = async function(story) {
-  if (!story.sid || !story.createdAt || !story.updatedAt) {
-    functions.logger.error(`Could not create story: ${story}`);
+const setStory = async function(sid, values) {
+  if (!sid || !values) {
+    functions.logger.error(`Could not set story: ${sid}`);
     return;
   }
-  const storyRef = admin.firestore().collection("stories").doc(story.sid);
+  const storyRef = admin.firestore().collection("stories").doc(sid);
   try {
-    await storyRef.set(story, {merge: true});
+    await storyRef.set(values, {merge: true});
     return true;
   } catch (e) {
     functions.logger.error(e);
@@ -182,7 +260,7 @@ exports.setStory = async function(story) {
   }
 };
 
-exports.updateStory = async function(sid, values) {
+const updateStory = async function(sid, values) {
   if (!sid || !values) {
     functions.logger.error(`Could not update story: ${sid}`);
     return;
@@ -197,7 +275,7 @@ exports.updateStory = async function(sid, values) {
   }
 };
 
-exports.getStory = async function(sid) {
+const getStory = async function(sid) {
   if (!sid) {
     functions.logger.error(`Could not get story: ${sid}`);
     return;
@@ -207,11 +285,12 @@ exports.getStory = async function(sid) {
     const story = await storyRef.get();
     return story.data();
   } catch (e) {
+    functions.logger.error(e);
     return null;
   }
 };
 
-exports.getRecentStories = async function(time) {
+const getRecentStories = async function(time) {
   const storiesRef = admin.firestore().collection("stories")
       .where("createdAt", ">", time)
       .orderBy("createdAt", "desc")
@@ -224,11 +303,54 @@ exports.getRecentStories = async function(time) {
   }
 };
 
+const getStories = async function(sids) {
+  if (!sids) {
+    functions.logger.error(`Could not get stories: ${sids}`);
+    return;
+  }
+
+  if (sids.length > 10) {
+    functions.logger.error(`Too many sids! ${sids}`);
+    return;
+  }
+
+  const storiesRef = admin.firestore().collection("stories");
+  try {
+    const stories = await storiesRef.where(FieldPath.documentId(),
+        "in", sids).get();
+    return stories.docs.map((story) => story.data());
+  } catch (e) {
+    return null;
+  }
+};
+
+/**
+ * fetches all stories that mention a post
+ * opposite of getAllPostsForStory
+ * fetches primary and secondary posts
+ * @param {*} pid
+ * @return {Array<Story>} of stories
+ * */
+const getAllStoriesForPost = async function(pid) {
+  if (!pid) {
+    functions.logger.error(`Could not get stories for post: ${pid}`);
+    return;
+  }
+  const storiesRef = admin.firestore().collection("stories")
+      .where("pids", "array-contains", pid);
+  try {
+    const stories = await storiesRef.get();
+    return stories.docs.map((story) => story.data());
+  } catch (e) {
+    return null;
+  }
+};
+
 // /////////////////////////////////////////
 // Room
 // /////////////////////////////////////////
 
-exports.createNewRoom = async function(parentId, parentCollection) {
+const createNewRoom = async function(parentId, parentCollection) {
   const rid = v4();
   const createdAt = Timestamp.now().toMillis();
 
@@ -255,7 +377,7 @@ exports.createNewRoom = async function(parentId, parentCollection) {
   }
 };
 
-exports.getRoom = async function(rid) {
+const getRoom = async function(rid) {
   if (!rid) {
     functions.logger.error(`Could not get room: ${rid}`);
     return;
@@ -269,7 +391,7 @@ exports.getRoom = async function(rid) {
   }
 };
 
-exports.setRoom = async function(rid, values) {
+const setRoom = async function(rid, values) {
   if (!rid || !values) {
     functions.logger.error(`Could not bulk update room: ${rid}`);
     return;
@@ -287,7 +409,7 @@ exports.setRoom = async function(rid, values) {
   }
 };
 
-exports.updateRoom = async function(rid, values) {
+const updateRoom = async function(rid, values) {
   if (!rid || !values) {
     functions.logger.error(`Could not update room: ${rid}`);
     return;
@@ -309,7 +431,7 @@ exports.updateRoom = async function(rid, values) {
 // Messages
 // /////////////////////////////////////////
 
-exports.getMessages = async function(rid, end = null, limit = 100) {
+const getMessages = async function(rid, end = null, limit = 100) {
   if (!rid) {
     functions.logger.error(`Could not get messages for room`);
     return;
@@ -334,12 +456,136 @@ exports.getMessages = async function(rid, end = null, limit = 100) {
   }
 };
 
+// /////////////////////////////////////////
+// Claims
+// /////////////////////////////////////////
+
+const createClaim = async function(claim) {
+  if (!claim.cid || !claim.value || !claim.createdAt || !claim.updatedAt) {
+    functions.logger.error(`Could not create claim: ${claim}`);
+    return;
+  }
+  const claimRef = admin.firestore().collection("claims").doc(claim.cid);
+  try {
+    await claimRef.create(claim);
+    return true;
+  } catch (e) {
+    functions.logger.error(e);
+    return false;
+  }
+};
+
+const updateClaim = async function(cid, values) {
+  if (!cid || !values) {
+    functions.logger.error(`Could not update claim: ${cid}`);
+    return;
+  }
+  const claimRef = admin.firestore().collection("claims").doc(cid);
+  try {
+    await claimRef.update(values);
+    return true;
+  } catch (e) {
+    functions.logger.error(e);
+    return false;
+  }
+};
+
+const getClaims = async function(cids) {
+  if (!cids) {
+    functions.logger.error(`Could not get Claims: ${cids}`);
+    return;
+  }
+
+  if (cids.length > 10) {
+    functions.logger.error(`Too many cids! ${cids}`);
+    return;
+  }
+
+  const claimsRef = admin.firestore().collection("claims");
+  try {
+    const claims = await claimsRef.where(FieldPath.documentId(),
+        "in", cids).get();
+    return claims.docs.map((claim) => claim.data());
+  } catch (e) {
+    return null;
+  }
+};
+
+const setClaim = async function(claim) {
+  if (!claim.cid || !claim.createdAt || !claim.updatedAt) {
+    functions.logger.error(`Could not create claim: ${claim}`);
+    return;
+  }
+  const claimRef = admin.firestore().collection("claims").doc(claim.cid);
+  try {
+    await claimRef.set(claim, {merge: true});
+    return true;
+  } catch (e) {
+    functions.logger.error(e);
+    return false;
+  }
+};
+
+const deleteClaim = async function(cid) {
+  if (!cid) {
+    functions.logger.error(`Could not delete claim: ${cid}`);
+    return;
+  }
+  const claimRef = admin.firestore().collection("claims").doc(cid);
+  try {
+    await claimRef.delete();
+    return true;
+  } catch (e) {
+    functions.logger.error(e);
+    return false;
+  }
+};
+
+/**
+ * fetches all claims for a post
+ * @param {*} pid
+ * @return {Array<Claim>} of claims
+ * */
+const getAllClaimsForPost = async function(pid) {
+  if (!pid) {
+    functions.logger.error(`Could not get claims for post: ${pid}`);
+    return;
+  }
+  const claimsRef = admin.firestore().collection("claims")
+      .where("pids", "array-contains", pid);
+  try {
+    const claims = await claimsRef.get();
+    return claims.docs.map((claim) => claim.data());
+  } catch (e) {
+    return null;
+  }
+};
+
+/**
+ * fetches all claims for a story
+ * @param {*} sid
+ * @return {Array<Claim>} of claims
+ * */
+const getAllClaimsForStory = async function(sid) {
+  if (!sid) {
+    functions.logger.error(`Could not get claims for story: ${sid}`);
+    return;
+  }
+  const claimsRef = admin.firestore().collection("claims")
+      .where("sids", "array-contains", sid);
+  try {
+    const claims = await claimsRef.get();
+    return claims.docs.map((claim) => claim.data());
+  } catch (e) {
+    return null;
+  }
+};
 
 // /////////////////////////////////////////
 // Generic
 // /////////////////////////////////////////
 
-exports.getDBDocument = async function(id, collectionId) {
+const getDBDocument = async function(id, collectionId) {
   if (!id || !collectionId) {
     functions.logger.error(`Could not get: ${id}`);
     return;
@@ -351,4 +597,46 @@ exports.getDBDocument = async function(id, collectionId) {
   } catch (e) {
     return null;
   }
+};
+
+module.exports = {
+  createUser,
+  getUsers,
+  updateUser,
+  deleteUser,
+  //
+  createPost,
+  updatePost,
+  setPost,
+  deletePost,
+  getPost,
+  getPosts,
+  getPostsForStory,
+  getAllPostsForStory,
+  bulkSetPosts,
+  //
+  createStory,
+  setStory,
+  updateStory,
+  getStory,
+  getRecentStories,
+  getStories,
+  getAllStoriesForPost,
+  //
+  createNewRoom,
+  getRoom,
+  setRoom,
+  updateRoom,
+  //
+  createClaim,
+  updateClaim,
+  getClaims,
+  setClaim,
+  deleteClaim,
+  getAllClaimsForPost,
+  getAllClaimsForStory,
+  //
+  getMessages,
+  //
+  getDBDocument,
 };

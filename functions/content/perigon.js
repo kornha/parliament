@@ -1,7 +1,7 @@
 const functions = require("firebase-functions");
 const {Timestamp} = require("firebase-admin/firestore");
-const {getPost, bulkSetPosts,
-  getStory, setStory} = require("../common/database");
+const {getPost,
+  getStory} = require("../common/database");
 
 
 const apiKey = "4e075db6-ebca-4ded-8faf-313affbd7650";
@@ -45,11 +45,13 @@ const fetchFromPerigon = async function() {
       }
       posts.push(post);
     }
-    return setStory(story).then((result) => {
-      if (result) {
-        bulkSetPosts(posts);
-      }
-    });
+    // DEPRECATED
+    // return setStory(story).then((result) => {
+    //   if (result) {
+    //     bulkSetPosts(posts);
+    //   }
+    // });
+    return null;
   }
 };
 

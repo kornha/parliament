@@ -8,16 +8,22 @@ part of 'post.dart';
 
 Post _$PostFromJson(Map<String, dynamic> json) => Post(
       pid: json['pid'] as String,
-      sid: json['sid'] as String?,
-      creator: json['creator'] as String?,
-      poster: json['poster'] as String?,
       status: $enumDecode(_$PostStatusEnumMap, json['status']),
       createdAt: Post._timestampFromJson(json['createdAt'] as int),
       updatedAt: Post._timestampFromJson(json['updatedAt'] as int),
-      sourceType: $enumDecodeNullable(_$SourceTypeEnumMap, json['sourceType']),
+      sid: json['sid'] as String?,
       title: json['title'] as String?,
       description: json['description'] as String?,
       body: json['body'] as String?,
+      creator: json['creator'] as String?,
+      poster: json['poster'] as String?,
+      sids:
+          (json['sids'] as List<dynamic>?)?.map((e) => e as String).toList() ??
+              const [],
+      cids:
+          (json['cids'] as List<dynamic>?)?.map((e) => e as String).toList() ??
+              const [],
+      sourceType: $enumDecodeNullable(_$SourceTypeEnumMap, json['sourceType']),
       url: json['url'] as String?,
       imageUrl: json['imageUrl'] as String?,
       locations: (json['locations'] as List<dynamic>?)
@@ -49,6 +55,8 @@ Post _$PostFromJson(Map<String, dynamic> json) => Post(
 Map<String, dynamic> _$PostToJson(Post instance) => <String, dynamic>{
       'pid': instance.pid,
       'sid': instance.sid,
+      'sids': instance.sids,
+      'cids': instance.cids,
       'creator': instance.creator,
       'poster': instance.poster,
       'status': _$PostStatusEnumMap[instance.status]!,

@@ -186,82 +186,84 @@ class PasteArea extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: context.screenBlock.width,
-      height: context.screenBlock.height,
-      decoration: BoxDecoration(
-        borderRadius: BRadius.steep,
-        border: Border.fromBorderSide(BorderSide(
-          color: context.primaryColorWithOpacity,
-        )),
-      ),
-      child: ZTextButton(
-        type: ZButtonTypes.area,
-        backgroundColor: context.backgroundColor,
-        foregroundColor: context.primaryColor,
-        onPressed: onPaste,
-        child: loading
-            ? const Loading(type: LoadingType.large)
-            : Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // TODO: NEED A ROW TO FILL SCREEN
-                  const Row(),
-                  error
-                      ? Column(
-                          children: [
-                            Text(errorText,
-                                style: context.h3
-                                    .copyWith(color: context.errorColor)),
-                            context.sq,
-                            Text("Please try again", style: context.l),
-                          ],
-                        )
-                      : Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            context.sh,
-                            Text("Paste a link here", style: context.h2),
-                            context.sq,
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Icon(FontAwesomeIcons.solidNewspaper),
-                                context.sq,
-                                Text(" Article", style: context.l),
-                              ],
-                            ),
-                            context.sh,
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Icon(FontAwesomeIcons.xTwitter),
-                                context.sq,
-                                Text(" X/Twitter", style: context.l),
-                              ],
-                            ),
-                            context.sd,
-                            const Text("Coming soon"),
-                            context.sq,
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Icon(FontAwesomeIcons.tiktok),
-                                context.sq,
-                                const Icon(FontAwesomeIcons.reddit),
-                                context.sq,
-                                const Icon(FontAwesomeIcons.instagram),
-                                context.sq,
-                                const Icon(FontAwesomeIcons.facebook),
-                                context.sq,
-                                const Icon(FontAwesomeIcons.youtube),
-                              ],
-                            ),
-                            context.sq,
-                          ],
-                        ),
-                ],
-              ),
+    return Center(
+      child: Container(
+        width: context.screenBlock.width,
+        height: context.screenBlock.height,
+        decoration: BoxDecoration(
+          borderRadius: BRadius.steep,
+          border: Border.fromBorderSide(BorderSide(
+            color: context.primaryColorWithOpacity,
+          )),
+        ),
+        child: ZTextButton(
+          type: ZButtonTypes.area,
+          backgroundColor: context.backgroundColor,
+          foregroundColor: context.primaryColor,
+          onPressed: onPaste,
+          child: loading
+              ? const Loading(type: LoadingType.large)
+              : Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // TODO: NEED A ROW TO FILL SCREEN
+                    const Row(),
+                    error
+                        ? Column(
+                            children: [
+                              Text(errorText,
+                                  style: context.h3
+                                      .copyWith(color: context.errorColor)),
+                              context.sq,
+                              Text("Please try again", style: context.l),
+                            ],
+                          )
+                        : Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              context.sh,
+                              Text("Paste a link here", style: context.h2),
+                              context.sq,
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(FontAwesomeIcons.solidNewspaper),
+                                  context.sq,
+                                  Text(" Article", style: context.l),
+                                ],
+                              ),
+                              context.sh,
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(FontAwesomeIcons.xTwitter),
+                                  context.sq,
+                                  Text(" X/Twitter", style: context.l),
+                                ],
+                              ),
+                              context.sd,
+                              const Text("Coming soon"),
+                              context.sq,
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(FontAwesomeIcons.tiktok),
+                                  context.sq,
+                                  const Icon(FontAwesomeIcons.reddit),
+                                  context.sq,
+                                  const Icon(FontAwesomeIcons.instagram),
+                                  context.sq,
+                                  const Icon(FontAwesomeIcons.facebook),
+                                  context.sq,
+                                  const Icon(FontAwesomeIcons.youtube),
+                                ],
+                              ),
+                              context.sq,
+                            ],
+                          ),
+                  ],
+                ),
+        ),
       ),
     );
   }

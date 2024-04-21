@@ -1,99 +1,222 @@
 /* eslint-disable require-jsdoc */
 
 const functions = require("firebase-functions");
-const {generatePostAiFields} = require("../ai/post_ai");
-const {createNewRoom, updatePost} = require("../common/database");
+const {defaultConfig, gbConfig} = require("../common/functions");
+const {
+  savePostEmbeddings, findStoriesAndClaims} = require("../ai/post_ai");
+const {publishMessage, POST_PUBLISHED,
+  POST_CHANGED_VECTOR} = require("../common/pubsub");
+const {getPost, setPost, deletePost,
+  createNewRoom,
+  updatePost} = require("../common/database");
+const {retryAsyncFunction} = require("../common/utils");
+const {deleteVector, POST_INDEX} = require("../common/vector_database");
+const _ = require("lodash");
 const {FieldValue} = require("firebase-admin/firestore");
-const admin = require("firebase-admin");
-const {generateStoryForPost, generateStoryAiFields} = require("../ai/story_ai");
-const {getTextContentFromBrowser} = require("../common/utils");
-const {gbConfig} = require("../common/functions");
 
 
+//
+// Firestore
+//
 exports.onPostUpdate = functions
-    .runWith(gbConfig) // uses pupetteer and requires 1GB to run
+    .runWith(defaultConfig) // uses pupetteer and requires 1GB to run
     .firestore
     .document("posts/{pid}")
     .onWrite(async (change) => {
       const before = change.before.data();
       const after = change.after.data();
-
-      if (!after) {
+      if (!before && !after) {
         return Promise.resolve();
       }
 
-      // IFF a post was given a new story, notify the story
-      // does NOT notify if the post was just created
-      // to prevent perigon use case
-      if (before && before.sid != after.sid) {
-        generateStoryAiFields(after.sid);
+      // Executes all matches always!
+
+      const _create = !before && after;
+      const _delete = before && !after;
+      const _update = before && after;
+
+      if (_create) {
+        onPostCreate(after);
       }
 
-      // On publish, create a new room
-      // agnostic of the states below
-      if (after.status == "published" &&
+      if (_delete) {
+        onPostDelete(before);
+      }
+
+      if (after && after.status == "published" &&
       (!before || before.status != "published")) {
-        createNewRoom(after.pid, "posts");
+        publishMessage(POST_PUBLISHED, {pid: after.pid});
       }
 
-      // STATES
-      // 1. Post is published, but has no body (and requires one)
-      // 2. Post is published, but has no story
-      // 3. Post is published, and has a story
-      // 4. Post description or title is updated
+      if (
+        _create && after.sid ||
+        _update && (before.sid != after.sid ||
+          !_.isEqual(before.sids, after.sids)) ||
+        _delete && before.sid) {
+        // postChangedStories(before, after);
+      }
 
-      if (after.status == "published" &&
-       after.body == null &&
-       after.sourceType == "article") {
-        // if this fails, it sets a dummy body!
-        // TODO: Make articles not require body
-        setPostBody(after);
-      } else if (after.status == "published" && after.sid == null) {
-        // if this fails the post is errored..
-        // generates story if not existant
-        generateStoryForPost(after);
-      } else if (after.sid && (!before || before.sid != after.sid)) {
-        generatePostAiFields(after);
-      } else if (before && (before.description != after.description ||
-        before.title != after.title)) {
-        generatePostAiFields(after);
+      if (
+        _create && !_.isEmpty(after.cids) ||
+        _update && !_.isEqual(before.cids, after.cids) ||
+        _delete && !_.isEmpty(before.cids)) {
+        // postChangedClaims(before, after);
+      }
+
+      if (
+        _create && (after.title || after.body || after.description) ||
+        _delete && (before.title || before.body || before.description) ||
+        _update &&
+        (before.description != after.description ||
+        before.title != after.title ||
+        before.body != after.body)) {
+        postChangedContent(before, after);
       }
 
       return Promise.resolve();
     });
 
-exports.incrementPostMessages = function(pid) {
-  return admin.firestore()
-      .collection("posts")
-      .doc(pid)
-      .update({
-        messageCount: FieldValue.increment(1),
-      });
+//
+// PubSub
+//
+
+/**
+ * called when a post is published
+ * need to find stories and claims
+ * uses GB config because heavy ops
+ */
+exports.onPostPublished = functions
+    .runWith(gbConfig)
+    .pubsub
+    .topic(POST_PUBLISHED)
+    .onPublish(async (message) => {
+      const pid = message.json.pid;
+      const post = await getPost(pid);
+      createNewRoom(pid, "posts");
+
+      findStoriesAndClaims(post);
+
+      return Promise.resolve();
+    });
+
+exports.onPostChangedVector = functions
+    .runWith(defaultConfig)
+    .pubsub
+    .topic(POST_CHANGED_VECTOR)
+    .onPublish(async (message) => {
+      // const pid = message.json.pid;
+    });
+
+//
+// Events. Recall that multiple may get triggered for a single update!
+// no need to retrigger each other below.
+//
+
+const onPostCreate = function(post) {};
+
+const onPostDelete = function(post) {
+  deleteVector(post.pid, POST_INDEX);
+  return Promise.resolve();
 };
 
-const setPostBody = async function(post) {
-  const content = await getTextContentFromBrowser(post.url);
-  if (content) {
-    updatePost(post.pid, {body: content});
-  } else {
-    // HACK: Content always updated for article
-    // to prevent infinite loop
-    updatePost(post.pid, {body: "Could not fetch content"});
+/**
+ * TXN
+ * Transactional update to store vector
+ * Not done as pubsub because we need access to the before and after
+ * @param {Post} before
+ * @param {Post} after
+ */
+const postChangedContent = async function(before, after) {
+  if (!after) {
+    // delete handled in delete embeddings
+    return;
+  }
+  const save = await savePostEmbeddings(after);
+  if (!save) {
+    functions.logger.error(`Could not save post embeddings: ${after.pid}`);
+    if (before) {
+      return await retryAsyncFunction(() => setPost(before));
+    } else {
+      return await retryAsyncFunction(() => deletePost(after.pid));
+    }
   }
 };
 
-//
-// DEPRECATED
-//
+/**
+ * 'TXN' - called from story.js
+ * Updates the stories that this post is part of
+ * @param {Story} before
+ * @param {Story} after
+ * @return {Promise<void>}
+ * @async
+ * */
+exports.storyChangedPosts = async function(before, after) {
+  if (!after) {
+    (before.pids || []).forEach((pid) => {
+      retryAsyncFunction(() => updatePost(pid, {
+        sids: FieldValue.arrayRemove(before.sid),
+      }));
+    });
+  } else if (!before) {
+    (after.pids || []).forEach((pid) => {
+      retryAsyncFunction(() => updatePost(pid, {
+        sids: FieldValue.arrayUnion(after.sid),
+      }));
+    });
+  } else {
+    const removed = (before.pids || [])
+        .filter((pid) => !(after.pids || []).includes(pid));
+    const added = (after.pids || [])
+        .filter((pid) => !(before.pids || []).includes(pid));
 
-// We don't store roomcount with posts
-// We store debateBiasCount instead which only tracks room reporting score
+    removed.forEach((pid) => {
+      retryAsyncFunction(() => updatePost(pid, {
+        sids: FieldValue.arrayRemove(after.sid),
+      }));
+    });
+    added.forEach((pid) => {
+      retryAsyncFunction(() => updatePost(pid, {
+        sids: FieldValue.arrayUnion(after.sid),
+      }));
+    });
+  }
+};
 
-// exports.incrementRoomCount = function(pid, value = 1) {
-//   return admin.firestore()
-//       .collection("posts")
-//       .doc(pid)
-//       .update({
-//         roomCount: FieldValue.increment(value),
-//       });
-// };
+/**
+ * 'TXN' - called from claim.js
+ * Updates the claims that this Post is part of
+ * @param {Claim} before
+ * @param {Claim} after
+ */
+exports.claimChangedPosts = function(before, after) {
+  if (!after) {
+    (before.pids || []).forEach((pid) => {
+      retryAsyncFunction(() => updatePost(pid, {
+        cids: FieldValue.arrayRemove(before.cid),
+      }));
+    });
+  } else if (!before) {
+    (after.pids || []).forEach((pid) => {
+      retryAsyncFunction(() => updatePost(pid, {
+        cids: FieldValue.arrayUnion(after.cid),
+      }));
+    });
+  } else {
+    const removed = (before.pids || [])
+        .filter((pid) => !(after.pids || []).includes(pid));
+    const added = (after.pids || [])
+        .filter((pid) => !(before.pids || []).includes(pid));
+
+    removed.forEach((pid) => {
+      retryAsyncFunction(() => updatePost(pid, {
+        cids: FieldValue.arrayRemove(after.cid),
+      }));
+    });
+    added.forEach((pid) => {
+      retryAsyncFunction(() => updatePost(pid, {
+        cids: FieldValue.arrayUnion(after.cid),
+      }));
+    });
+  }
+};
+

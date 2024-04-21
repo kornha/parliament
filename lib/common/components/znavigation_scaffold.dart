@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
@@ -9,8 +11,8 @@ import 'package:political_think/views/games/games.dart';
 import 'package:political_think/views/profile/profile.dart';
 import 'package:political_think/views/maps/maps.dart';
 
-class ZBottomBarScaffold extends ConsumerStatefulWidget {
-  const ZBottomBarScaffold(
+class ZNavigationScaffold extends ConsumerStatefulWidget {
+  const ZNavigationScaffold(
       {super.key, required this.child, required this.location});
 
   final String location;
@@ -20,27 +22,36 @@ class ZBottomBarScaffold extends ConsumerStatefulWidget {
   ConsumerState<ConsumerStatefulWidget> createState() => _ZScaffoldState();
 }
 
-class _ZScaffoldState extends ConsumerState<ZBottomBarScaffold> {
+class _ZScaffoldState extends ConsumerState<ZNavigationScaffold> {
   int _currentIndex = 0;
 
   @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    // TODO: tabs should be abstracted from ZBottomBarNavigationItem and
+    // NavigationRailDestination
+    // TODO: move tabs to initstate
     var tabs = [
       ZBottomBarNavigationItem(
-        icon: const Icon(FontAwesomeIcons.rss),
+        icon: Icon(FontAwesomeIcons.rss, color: context.surfaceColor),
         activeIcon: Icon(FontAwesomeIcons.rss, color: context.secondaryColor),
         label: 'HOME',
         initialLocation: Feed.location,
       ),
       ZBottomBarNavigationItem(
-        icon: const Icon(FontAwesomeIcons.earthEurope),
+        icon: Icon(FontAwesomeIcons.earthEurope, color: context.surfaceColor),
         activeIcon:
             Icon(FontAwesomeIcons.earthAmericas, color: context.secondaryColor),
         label: 'MAPS',
         initialLocation: Maps.location,
       ),
       ZBottomBarNavigationItem(
-        icon: const Icon(FontAwesomeIcons.solidChessRook),
+        icon:
+            Icon(FontAwesomeIcons.solidChessRook, color: context.surfaceColor),
         activeIcon: Icon(FontAwesomeIcons.chess, color: context.secondaryColor),
         label: 'GAMES',
         initialLocation: Games.location,
@@ -53,26 +64,49 @@ class _ZScaffoldState extends ConsumerState<ZBottomBarScaffold> {
       ),
     ];
     return Scaffold(
-      body: SafeArea(child: widget.child),
-      backgroundColor: Colors.transparent,
-      bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: context.backgroundColor,
-        showUnselectedLabels: false,
-        elevation: 0,
-        showSelectedLabels: false,
-        type: BottomNavigationBarType.fixed,
-        onTap: (int index) {
-          _goOtherTab(context, index, tabs);
-        },
-        currentIndex: _getCurrentIndex(widget.location),
-        items: tabs,
+      body: SafeArea(
+        child: Row(children: [
+          context.isDesktop
+              ? NavigationRail(
+                  indicatorColor: Colors.transparent,
+                  indicatorShape: const CircleBorder(),
+                  backgroundColor: context.backgroundColor,
+                  selectedIndex: _getCurrentIndex(widget.location),
+                  onDestinationSelected: (int index) {
+                    _goOtherTab(context, index, tabs);
+                  },
+                  destinations: tabs
+                      .map((e) => NavigationRailDestination(
+                            icon: e.icon,
+                            selectedIcon: e.activeIcon,
+                            label: Text(e.label!),
+                          ))
+                      .toList(),
+                )
+              : const SizedBox.shrink(),
+          Expanded(child: widget.child),
+        ]),
       ),
+      bottomNavigationBar: context.isDesktop
+          ? const SizedBox.shrink()
+          : BottomNavigationBar(
+              backgroundColor: context.backgroundColor,
+              showUnselectedLabels: false,
+              elevation: 0,
+              showSelectedLabels: false,
+              type: BottomNavigationBarType.fixed,
+              onTap: (int index) {
+                _goOtherTab(context, index, tabs);
+              },
+              currentIndex: _getCurrentIndex(widget.location),
+              items: tabs,
+            ),
     );
   }
 
   void _goOtherTab(
       BuildContext context, int index, List<ZBottomBarNavigationItem> tabs) {
-    if (index == _currentIndex) return;
+    // if (index == _currentIndex) return;
     if (index > tabs.length - 1) return;
     GoRouter router = GoRouter.of(context);
     String location = tabs[index].initialLocation;

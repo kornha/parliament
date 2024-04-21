@@ -1,19 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:political_think/common/components/loading.dart';
+import 'package:political_think/common/components/zapp_bar.dart';
 import 'package:political_think/common/components/zdivider.dart';
+import 'package:political_think/common/components/zscaffold.dart';
 import 'package:political_think/common/extensions.dart';
-import 'package:political_think/common/models/post.dart';
-import 'package:political_think/common/util/zimage.dart';
-import 'package:political_think/views/post/post_item_view.dart';
 
 class StoryView extends ConsumerStatefulWidget {
+  final String sid;
+
   const StoryView({
     super.key,
     required this.sid,
   });
 
-  final String sid;
+  static const location = '/story';
 
   @override
   ConsumerState<ConsumerStatefulWidget> createState() => _StoryViewState();
@@ -24,58 +25,61 @@ class _StoryViewState extends ConsumerState<StoryView> {
   Widget build(BuildContext context) {
     var storyRef = ref.storyWatch(widget.sid);
     var story = storyRef.value;
-    //
-    var postsRef = ref.postsFromStoriesWatch(widget.sid);
-    var posts = postsRef.value;
-    //
-    bool shouldShowSecondaryPosts =
-        !(storyRef.isLoading || postsRef.isLoading) &&
-            posts != null &&
-            posts.length > 1 &&
-            (story?.importance ?? 0.5) > 0.1;
+    var claimsRef = ref.claimsFromStoriesWatch(widget.sid);
+    var claims = claimsRef.value;
 
-    return storyRef.isLoading || postsRef.isLoading
-        ? const Loading(type: LoadingType.post)
-        : !postsRef.hasValue || (posts?.isEmpty ?? true)
-            ? const SizedBox.shrink()
-            : Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  PostItemView(
-                    pid: posts!.first.pid,
-                    story: story,
-                    showPostButtons: true,
-                  ),
-                  Visibility(
-                      visible: shouldShowSecondaryPosts, child: context.sh),
-                  Visibility(
-                      visible: shouldShowSecondaryPosts,
-                      child: const ZDivider(type: DividerType.SECONDARY)),
-                  Visibility(
-                      visible: shouldShowSecondaryPosts, child: context.sh),
-                  Visibility(
-                    visible: shouldShowSecondaryPosts,
-                    child: SizedBox(
-                      height: context.blockSize.height,
-                      child: ListView.separated(
-                          shrinkWrap: true,
-                          scrollDirection: Axis.horizontal,
-                          itemCount: posts.length - 1, // dont show first!
-                          itemBuilder: (context, index) {
-                            var post = posts[index + 1]; // dont show first!
-                            return Container(
-                                child: PostItemView(
-                              pid: post.pid,
-                              story: story,
-                              isSubView: true,
-                              showPostButtons: true,
-                            ));
-                          },
-                          separatorBuilder: (context, index) =>
-                              const ZDivider(type: DividerType.VERTICAL)),
-                    ),
-                  ),
-                ],
-              );
+    return ZScaffold(
+      appBar: ZAppBar(showBackButton: true),
+      body: storyRef.isLoading
+          ? const Loading(type: LoadingType.postSmall)
+          : Column(
+              children: [
+                Text(
+                  story?.title ?? "",
+                  style: context.h3,
+                  textAlign: TextAlign.center,
+                ),
+                context.sf,
+                Text(
+                  story?.description ?? "",
+                  style: context.l,
+                ),
+                context.sf,
+                const ZDivider(type: DividerType.PRIMARY),
+                context.sf,
+                claims?.isNotEmpty ?? false
+                    ? Column(
+                        children: claims!
+                            .map((claim) => Column(
+                                  children: [
+                                    Text(
+                                      claim.value,
+                                      style: context.l,
+                                    ),
+                                    context.sh,
+                                    Row(
+                                      children: [
+                                        Text(
+                                          "${claim.pro.length}",
+                                          style: context.al.copyWith(
+                                              color: context.secondaryColor),
+                                        ),
+                                        const Spacer(),
+                                        Text(
+                                          "${claim.against.length}",
+                                          style: context.al.copyWith(
+                                              color: context.errorColor),
+                                        ),
+                                      ],
+                                    ),
+                                    const ZDivider(type: DividerType.SECONDARY),
+                                  ],
+                                ))
+                            .toList(),
+                      )
+                    : const SizedBox.shrink(),
+              ],
+            ),
+    );
   }
 }

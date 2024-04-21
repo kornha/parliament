@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:political_think/common/components/loading.dart';
-import 'package:political_think/common/components/zbottom_bar_scaffold.dart';
+import 'package:political_think/common/components/znavigation_scaffold.dart';
 import 'package:political_think/common/components/zerror.dart';
 import 'package:political_think/common/models/political_position.dart';
 import 'package:political_think/common/services/zprovider.dart';
@@ -14,6 +14,7 @@ import 'package:political_think/views/message/message.dart';
 import 'package:political_think/views/post/post_view.dart';
 import 'package:political_think/views/profile/profile.dart';
 import 'package:political_think/views/maps/maps.dart';
+import 'package:political_think/views/story/story_view.dart';
 
 class ZRouter {
   static final rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -30,7 +31,7 @@ class ZRouter {
           navigatorKey: _shellNavigatorKey,
           pageBuilder: (context, state, child) {
             return NoTransitionPage(
-              child: ZBottomBarScaffold(
+              child: ZNavigationScaffold(
                 location: state.fullPath ?? '',
                 child: child,
               ),
@@ -78,6 +79,15 @@ class ZRouter {
               pageBuilder: (context, state) => NoTransitionPage(
                 child: PostView(
                   pid: state.pathParameters["pid"]!,
+                ),
+              ),
+            ),
+            GoRoute(
+              parentNavigatorKey: _shellNavigatorKey,
+              path: "${StoryView.location}/:sid",
+              pageBuilder: (context, state) => NoTransitionPage(
+                child: StoryView(
+                  sid: state.pathParameters["sid"]!,
                 ),
               ),
             ),

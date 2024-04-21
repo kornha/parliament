@@ -1,6 +1,11 @@
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const puppeteer = require("puppeteer");
+const {Timestamp} = require("firebase-admin/firestore");
+
+const isLocal = process.env.FUNCTIONS_EMULATOR === "true";
+const isDev = !isLocal &&
+ admin.instanceId().app.options.projectId === "political-think";
 
 /**
  * DEPRECATED!
@@ -98,11 +103,12 @@ const getTextContentFromX = async function(url) {
   // Selector for the image within the tweet, based on your structure
   const tweetImageSelector = "[data-testid='tweetPhoto'] img";
 
+  // Selector for the time of the tweet
+  const tweetTimeSelector = "article time[datetime]";
 
   // this gets the users display name
   // const tweetProfileSelector
   // = "article [data-testid=\"User-Name\"] div span";
-
 
   // Extract tweet text and author using the selectors
   const tweetText = await page.evaluate((selector) => {
@@ -125,6 +131,12 @@ const getTextContentFromX = async function(url) {
     return element ? element.src : null;
   }, tweetImageSelector);
 
+  const tweetTime = await page.evaluate((selector) => {
+    // eslint-disable-next-line no-undef
+    const element = document.querySelector(selector);
+    return element ? element.getAttribute("datetime") : null;
+  }, tweetTimeSelector);
+
   // do we need to await here
   await browser.close();
 
@@ -132,6 +144,7 @@ const getTextContentFromX = async function(url) {
     title: tweetText,
     creator: tweetAuthor,
     imageUrl: tweetImageUrl,
+    isoTime: tweetTime,
   };
 };
 
@@ -215,8 +228,65 @@ function urlToDomain(url) {
   return domain;
 }
 
+/**
+ *
+ * @param {Function} asyncFn
+ * @param {number} retries
+ * @param {number} interval
+ * @return {Promise<*>}
+ */
+async function retryAsyncFunction(asyncFn, retries = 3, interval = 1000) {
+  for (let attempt = 0; attempt < retries; attempt++) {
+    try {
+      const result = await asyncFn();
+      if (result) return result;
+    } catch (error) {
+      functions.logger.error(`Attempt ${attempt + 1} failed: ${error}`);
+    }
+    if (attempt < retries - 1) {
+      await new Promise((resolve) => setTimeout(resolve, interval));
+    }
+  }
+  functions.logger.error(`Failed after ${retries} attempts`);
+  return false;
+}
+
+/**
+ *
+ * Calculates the mean vector of a list of vectors
+ * @param {Array<number[]>} vectors - the list of vectors
+ * @return {number[]} the mean vector
+ */
+function calculateMeanVector(vectors) {
+  const meanVector = vectors.reduce((acc, vector) => {
+    return acc.map((value, i) => value + vector[i]);
+  }, Array(vectors[0].length).fill(0));
+  return meanVector.map((value) => value / vectors.length);
+}
+
+/**
+ * Converts milliseconds to an ISO string
+ * @param {number} millis - the milliseconds
+ * @return {string} the ISO string
+ */
+const millisToIso = function(millis) {
+  if (!millis) return;
+  return new Date(millis).toISOString();
+};
+
+/**
+ * Converts an ISO string to milliseconds
+ * @param {string} iso - the ISO string
+ * @return {number} the milliseconds
+ */
+const isoToMillis = function(iso) {
+  if (!iso) return;
+  return Timestamp.fromDate(new Date(iso)).toMillis();
+};
 
 module.exports = {
+  isLocal,
+  isDev,
   getTextContentForPost,
   getTextContentFromStorage,
   getTextContentFromBrowser,
@@ -227,4 +297,8 @@ module.exports = {
   isPerfectSquare,
   getElo,
   getTextContentFromX,
+  retryAsyncFunction,
+  calculateMeanVector,
+  millisToIso,
+  isoToMillis,
 };

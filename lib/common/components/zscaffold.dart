@@ -9,8 +9,6 @@ class ZScaffold extends StatelessWidget {
   final FloatingActionButton? floatingActionButton;
   final FloatingActionButtonLocation? floatingActionButtonLocation;
   final FloatingActionButtonAnimator? floatingActionButtonAnimator;
-  final Widget? drawer;
-  final Widget? endDrawer;
   final Widget? bottomNavigationBar;
   final ScrollController? scrollController;
   final bool defaultPadding;
@@ -25,8 +23,6 @@ class ZScaffold extends StatelessWidget {
     this.floatingActionButton,
     this.floatingActionButtonLocation,
     this.floatingActionButtonAnimator,
-    this.drawer,
-    this.endDrawer,
     this.bottomNavigationBar,
     this.scrollController,
     this.defaultPadding = true,
@@ -39,7 +35,7 @@ class ZScaffold extends StatelessWidget {
     return Scaffold(
       appBar: null,
       body: NestedScrollView(
-        controller: scrollController,
+        //controller: scrollController,
         physics: const NeverScrollableScrollPhysics(),
         headerSliverBuilder: (context, innerBoxIsScrolled) {
           return [
@@ -71,7 +67,7 @@ class ZScaffold extends StatelessWidget {
                 ? context.blockPadding.copyWith(top: 0, bottom: 0)
                 : EdgeInsets.zero,
             width: context.blockSize.width,
-            height: context.blockSize.height,
+            // height: context.blockSize.height,
             child: body,
           ),
         ),
@@ -80,7 +76,6 @@ class ZScaffold extends StatelessWidget {
       floatingActionButton: floatingActionButton,
       floatingActionButtonLocation: floatingActionButtonLocation,
       floatingActionButtonAnimator: floatingActionButtonAnimator,
-      endDrawer: endDrawer,
       bottomNavigationBar: bottomNavigationBar,
     );
   }

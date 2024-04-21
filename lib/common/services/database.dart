@@ -30,6 +30,9 @@ class Database {
   final CollectionReference storyCollection =
       FirebaseFirestore.instance.collection('stories');
 
+  final CollectionReference claimCollection =
+      FirebaseFirestore.instance.collection('claims');
+
   Stream<ZUser?> getUser(uid) {
     return userCollection.doc(uid).snapshots().map((snapshot) {
       if (snapshot.exists) {

@@ -4,13 +4,18 @@ const {onMessageChange} = require("./messages/message");
 const {onAuthUserCreate, onAuthUserDelete,
   setUsername} = require("./models/user");
 const {TaskQueue} = require( "firebase-admin/functions");
-const {onPostUpdate} = require("./models/post");
+const {onPostUpdate, onPostPublished,
+  onPostChangedVector} = require("./models/post");
 const {onVoteBiasChange, onVoteCredibilityChange} = require("./models/vote");
 const {generateBiasTraining} = require("./ai/scripts");
 const {onTriggerContent, onLinkPaste} = require("./content/content");
 const {debateDidTimeOut, debateDidTimeOutTask} = require("./messages/clock");
+const {onStoryUpdate, onStoryPostsChanged, onStoryChangedPosts,
+  onStoryShouldChangeVector, onStoryShouldChangeClaims,
+} = require("./models/story");
+const {onClaimUpdate, onClaimChangedVector,
+  onClaimChangedPosts, onClaimShouldChangeContext} = require("./models/claim");
 
-// const {generateStories} = require("./ai/story_generator");
 
 admin.initializeApp();
 
@@ -27,22 +32,46 @@ Object.assign(TaskQueue.prototype, {
   },
 });
 
+// Used as a dev-time helper to test functions
+const functions = require("firebase-functions");
+
+const test = functions.https.onCall(async (data, context) => {
+  return {complete: true};
+});
+
 module.exports = {
   onAuthUserCreate,
   onAuthUserDelete,
   setUsername,
   onVoteBiasChange,
   onVoteCredibilityChange,
-  // onPostCreate,
+  // Story
+  onStoryUpdate,
+  onStoryPostsChanged,
+  onStoryChangedPosts,
+  onStoryShouldChangeVector,
+  onStoryShouldChangeClaims,
+  // Post
   onPostUpdate,
   onMessageChange,
+  onPostPublished,
+  onPostChangedVector,
+  // Room
   // joinRoom,
   onRoomChange,
   startDebate,
   debateDidTimeOutTask,
   // generateStories,
+  // Claim
+  onClaimUpdate,
+  onClaimChangedVector,
+  onClaimChangedPosts,
+  onClaimShouldChangeContext,
+  //
   onTriggerContent,
   onLinkPaste,
   // Scripts
   generateBiasTraining,
+  // Dev helper
+  test,
 };

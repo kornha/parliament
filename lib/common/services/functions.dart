@@ -68,4 +68,20 @@ class Functions {
       print(e);
     }
   }
+
+// Used as a dev-time helper to test functions
+  Future<String?> test() async {
+    final HttpsCallable callable =
+        FirebaseFunctions.instance.httpsCallable('test');
+
+    try {
+      final HttpsCallableResult result = await callable.call({
+        'val': "test",
+      });
+      print(result.data);
+    } catch (e) {
+      print(e);
+    }
+    return null;
+  }
 }

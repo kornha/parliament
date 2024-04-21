@@ -77,7 +77,6 @@ class _PostViewState extends ConsumerState<PostView> {
             (messagesRef?.isLoading ?? false));
     //
     return ZScaffold(
-      // scrollController: _scrollController,
       appBar: ZAppBar(showBackButton: true),
       body: isLoading
           ? const Loading()
@@ -95,7 +94,7 @@ class _PostViewState extends ConsumerState<PostView> {
                       color: context.backgroundColor,
                       borderRadius: BRadius.standard,
                     ),
-                    child: PostItemView(pid: post!.pid, showPostButtons: true),
+                    child: PostItemView(pid: post!.pid, showPostButtons: false),
                   ),
                   pinnedMessageFooter:
                       _messages.isNotEmpty ? RoomClock(room: room!) : null,

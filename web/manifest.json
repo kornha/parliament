@@ -1,11 +1,11 @@
 {
-    "name": "political_think",
-    "short_name": "political_think",
+    "name": "Parliament",
+    "short_name": "Parliament",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#000000",
     "theme_color": "#000000",
-    "description": "A new Flutter project.",
+    "description": "News Credibility and Bias AI",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

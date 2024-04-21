@@ -1,17 +1,9 @@
-import 'dart:ffi';
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:political_think/common/components/credibility_component.dart';
 import 'package:political_think/common/components/loading.dart';
-import 'package:political_think/common/components/political_component.dart';
-import 'package:political_think/common/constants.dart';
-import 'package:political_think/common/extensions.dart';
 import 'package:political_think/common/models/credibility.dart';
 import 'package:syncfusion_flutter_core/theme.dart';
 import 'package:syncfusion_flutter_sliders/sliders.dart';
-
-import 'joystick.dart';
 
 class CredibilitySlider extends StatefulWidget {
   final ValueChanged<Credibility>? onCredbilitySelected;

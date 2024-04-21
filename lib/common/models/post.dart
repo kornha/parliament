@@ -1,9 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/material.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:political_think/common/models/bias.dart';
 import 'package:political_think/common/models/credibility.dart';
-import 'package:political_think/common/models/political_position.dart';
 
 part 'post.g.dart';
 
@@ -15,7 +13,9 @@ enum SourceType { article, x }
 class Post {
   final String pid;
   final String? sid;
-  // creator domain or handle of the originator
+  final List<String> sids;
+  final List<String> cids;
+  // creator domain or handle of the originator TODO: move to entities
   String? creator;
   // user who posted the post, if any
   String? poster;
@@ -55,16 +55,18 @@ class Post {
 
   Post({
     required this.pid,
-    this.sid,
-    this.creator, // todo, move to entities table!
-    this.poster,
     required this.status,
     required this.createdAt,
     required this.updatedAt,
-    this.sourceType,
+    this.sid,
     this.title,
     this.description,
     this.body,
+    this.creator, // todo, move to entities table!
+    this.poster, // uid who posted the post
+    this.sids = const [],
+    this.cids = const [],
+    this.sourceType,
     this.url,
     this.imageUrl,
     this.locations = const [],
@@ -90,4 +92,10 @@ class Post {
       Timestamp.fromMillisecondsSinceEpoch(milliseconds);
   static dynamic _timestampToJson(Timestamp timestamp) =>
       timestamp.millisecondsSinceEpoch;
+  static Timestamp? _timestampFromJsonNullable(int? milliseconds) =>
+      milliseconds == null
+          ? null
+          : Timestamp.fromMillisecondsSinceEpoch(milliseconds);
+  static dynamic _timestampToJsonNullable(Timestamp? timestamp) =>
+      timestamp?.millisecondsSinceEpoch;
 }

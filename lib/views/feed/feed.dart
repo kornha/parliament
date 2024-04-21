@@ -17,7 +17,7 @@ import 'package:political_think/common/services/zprovider.dart';
 import 'package:political_think/common/services/auth.dart';
 import 'package:political_think/views/post/post_builder.dart';
 import 'package:political_think/views/post/post_item_view.dart';
-import 'package:political_think/views/story/story_view.dart';
+import 'package:political_think/views/story/story_item_view.dart';
 import 'package:riverpod_infinite_scroll/riverpod_infinite_scroll.dart';
 
 class Feed extends ConsumerStatefulWidget {
@@ -45,6 +45,12 @@ class _FeedState extends ConsumerState<Feed> {
               context.showFullScreenModal(const PostBuilder());
             },
           ),
+          IconButton(
+            icon: const Icon(Icons.help),
+            onPressed: () {
+              Functions.instance().test();
+            },
+          )
         ],
       ),
       body: user.isLoading
@@ -62,11 +68,12 @@ class _FeedState extends ConsumerState<Feed> {
                         child: const ZDivider(),
                       ),
                       Container(
+                        width: context.blockSize.width,
                         margin:
                             context.blockMargin.copyWith(left: 0.0, right: 0.0),
                         padding: context.blockPadding
                             .copyWith(left: 0.0, right: 0.0),
-                        child: StoryView(sid: item.sid),
+                        child: StoryItemView(sid: item.sid),
                       ),
                     ],
                   );
