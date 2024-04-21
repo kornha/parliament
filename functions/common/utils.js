@@ -4,8 +4,8 @@ const puppeteer = require("puppeteer");
 const {Timestamp} = require("firebase-admin/firestore");
 
 const isLocal = process.env.FUNCTIONS_EMULATOR === "true";
-const isDev = !isLocal &&
- admin.instanceId().app.options.projectId === "political-think";
+// const isDev = !isLocal &&
+//  admin.instanceId().app.options.projectId === "political-think";
 
 /**
  * DEPRECATED!
@@ -286,7 +286,7 @@ const isoToMillis = function(iso) {
 
 module.exports = {
   isLocal,
-  isDev,
+  // isDev,
   getTextContentForPost,
   getTextContentFromStorage,
   getTextContentFromBrowser,
