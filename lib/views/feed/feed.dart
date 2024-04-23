@@ -45,12 +45,12 @@ class _FeedState extends ConsumerState<Feed> {
               context.showFullScreenModal(const PostBuilder());
             },
           ),
-          IconButton(
-            icon: const Icon(Icons.help),
-            onPressed: () {
-              Functions.instance().test();
-            },
-          )
+          // IconButton(
+          //   icon: const Icon(Icons.help),
+          //   onPressed: () {
+          //     Functions.instance().test();
+          //   },
+          // )
         ],
       ),
       body: user.isLoading
