@@ -6,7 +6,6 @@ const {retryAsyncFunction} = require("../common/utils");
 const {FieldValue} = require("firebase-admin/firestore");
 const {updateClaim} = require("../common/database");
 const {saveClaimEmbeddings} = require("../ai/claim_ai");
-const {deleteVector, CLAIM_INDEX} = require("../common/vector_database");
 const {CLAIM_CHANGED_VECTOR} = require("../common/pubsub");
 const _ = require("lodash");
 const {claimChangedPosts} = require("./post");
@@ -267,7 +266,6 @@ function onClaimCreate(claim) {
  * @return {Promise<void>}
  */
 function onClaimDelete(claim) {
-  deleteVector(claim.cid, CLAIM_INDEX);
   return Promise.resolve();
 }
 

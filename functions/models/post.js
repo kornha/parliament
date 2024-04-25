@@ -10,7 +10,6 @@ const {getPost, setPost, deletePost,
   createNewRoom,
   updatePost} = require("../common/database");
 const {retryAsyncFunction} = require("../common/utils");
-const {deleteVector, POST_INDEX} = require("../common/vector_database");
 const _ = require("lodash");
 const {FieldValue} = require("firebase-admin/firestore");
 
@@ -112,10 +111,11 @@ exports.onPostChangedVector = functions
 // no need to retrigger each other below.
 //
 
-const onPostCreate = function(post) {};
+const onPostCreate = function(post) {
+  return Promise.resolve();
+};
 
 const onPostDelete = function(post) {
-  deleteVector(post.pid, POST_INDEX);
   return Promise.resolve();
 };
 

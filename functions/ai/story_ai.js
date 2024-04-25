@@ -2,11 +2,10 @@ const functions = require("firebase-functions");
 const {getPostsForStory, updateStory,
   getAllPostsForStory,
   getAllClaimsForPost,
-  setStory} = require("../common/database");
+  setStory,
+  setVector} = require("../common/database");
 const {Timestamp} = require("firebase-admin/firestore");
-const {generateCompletions} = require("../common/llm");
-const {saveStrings, STORY_INDEX, POST_INDEX,
-  saveEmbeddings, getVectors} = require("../common/vector_database");
+const {generateCompletions, generateEmbeddings} = require("../common/llm");
 const {calculateMeanVector, isoToMillis} = require("../common/utils");
 const {regenerateStoryPrompt, findClaimsForStoryPrompt} = require("./prompts");
 const {getPostEmbeddingStrings} = require("./post_ai");
@@ -77,14 +76,14 @@ const resetStoryVector = async function(story) {
   }
   const posts = await getPostsForStory(story.sid);
   const pids = posts.map((post) => post.pid);
-  const vectors = _.isEmpty(pids) ? [] : await getVectors(pids, POST_INDEX);
+  const vectors = _.isEmpty(pids) ? [] : posts.map((post) => post.vector);
   if (vectors.length > 0) {
     // K MEAN STREAMING ALGORITHM
 
     const mean = calculateMeanVector(vectors);
 
     try {
-      await saveEmbeddings(story.sid, mean, STORY_INDEX);
+      await setVector(story.sid, mean, "stories");
       return true;
     } catch (e) {
       functions.logger.error("Error saving Story embeddings", e);
@@ -101,7 +100,8 @@ const resetStoryVector = async function(story) {
   }
 
   try {
-    await saveStrings(story.sid, strings, STORY_INDEX);
+    const embeddings = await generateEmbeddings(strings);
+    await setVector(story.sid, embeddings, "stories");
     // publishMessage(POST_CHANGED_VECTOR, {pid: post.pid});
     return true;
   } catch (e) {

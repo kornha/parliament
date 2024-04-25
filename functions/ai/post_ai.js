@@ -2,19 +2,18 @@ const functions = require("firebase-functions");
 const _ = require("lodash");
 
 const {setPost,
-  getStories, getClaims, createClaim,
+  createClaim,
   updateClaim,
   getAllClaimsForStory,
   getAllPostsForStory,
   getAllClaimsForPost,
   updateStory,
   createStory,
-  updatePost} = require("../common/database");
-const {generateCompletions} = require("../common/llm");
-const {saveStrings,
-  POST_INDEX, STORY_INDEX,
-  getVector, searchVectors, CLAIM_INDEX} = require("../common/vector_database");
-const {publishMessage, POST_CHANGED_VECTOR} = require("../common/pubsub");
+  updatePost,
+  setVector,
+  searchVectors} = require("../common/database");
+const {generateCompletions, generateEmbeddings} = require("../common/llm");
+
 const {findStoriesPrompt,
   findClaimsPrompt, findStoriesAndClaimsPrompt} = require("./prompts");
 const {retryAsyncFunction, isoToMillis} = require("../common/utils");
@@ -152,17 +151,14 @@ const findStories = async function(post) {
   }
 
   // use a retriable with longer backoff since the db is eventually consistent
-  const vector = await retryAsyncFunction(() =>
-    getVector(post.pid, POST_INDEX), 10, 3000);
+  const vector = post.vector;
   if (!vector) {
     functions.logger.error(`Post does not have a vector! ${post.pid}`);
     // should we add it here??
     return;
   }
 
-  const closestSids = await searchVectors(vector, STORY_INDEX);
-
-  const stories = await getStories(closestSids);
+  const stories = await searchVectors(vector, "stories");
 
   const resp = await generateCompletions(findStoriesPrompt(post, stories));
 
@@ -216,14 +212,8 @@ const savePostEmbeddings = async function(post) {
     return true;
   }
 
-  try {
-    await saveStrings(post.pid, strings, POST_INDEX);
-    publishMessage(POST_CHANGED_VECTOR, {pid: post.pid});
-    return true;
-  } catch (e) {
-    functions.logger.error("Error saving post embeddings", e);
-    return false;
-  }
+  const embeddings = await generateEmbeddings(strings);
+  return await setVector(post.pid, embeddings, "posts");
 };
 
 /**
@@ -267,18 +257,15 @@ const findClaims = async function(post) {
   }
 
   // use a retriable with longer backoff since the db is eventually consistent
-  const vector = await retryAsyncFunction(() =>
-    getVector(post.pid, POST_INDEX), 10, 3000);
+  const vector = post.vector;
   if (!vector) {
     functions.logger.error(`Post does not have a vector! ${post.pid}`);
     // should we add it here??
     return;
   }
 
-  // TODO: need to change this to > 10 claims
-  const closestCids = await searchVectors(vector, CLAIM_INDEX);
 
-  const claims = await getClaims(closestCids);
+  const claims = await searchVectors(vector, "claims");
 
   const resp = await generateCompletions(findClaimsPrompt(post, claims));
 

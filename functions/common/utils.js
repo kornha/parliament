@@ -2,6 +2,7 @@ const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const puppeteer = require("puppeteer");
 const {Timestamp} = require("firebase-admin/firestore");
+const _ = require("lodash");
 
 const isLocal = process.env.FUNCTIONS_EMULATOR === "true";
 // const isDev = !isLocal &&
@@ -88,7 +89,7 @@ const getTextContentFromX = async function(url) {
   const page = await browser.newPage();
 
   // Use the provided sample X URL
-  await page.goto(url, {waitUntil: "networkidle2"});
+  await page.goto(url, {waitUntil: "networkidle0"});
 
   // Finds the tweet text
   // Hack, to be solved with twitter API
@@ -254,10 +255,14 @@ async function retryAsyncFunction(asyncFn, retries = 3, interval = 1000) {
 /**
  *
  * Calculates the mean vector of a list of vectors
- * @param {Array<number[]>} vectors - the list of vectors
+ * @param {Array<number[]> | VectorValue} vectors - the list of vectors
  * @return {number[]} the mean vector
  */
 function calculateMeanVector(vectors) {
+  if (_.isEmpty(vectors)) return null;
+  if (!_.isArray(vectors[0])) {
+    vectors = vectors.map((vector) => vector.toArray());
+  }
   const meanVector = vectors.reduce((acc, vector) => {
     return acc.map((value, i) => value + vector[i]);
   }, Array(vectors[0].length).fill(0));

@@ -10,6 +10,37 @@
         {
           "fieldPath": "importance",
           "mode": "DESCENDING"
+        },
+        {
+          "fieldPath": "vector",
+          "vectorConfig": {
+            "dimension": 1536,
+            "flat": {}
+          }
+        }
+      ]
+    },
+    {
+      "collectionId": "stories",
+      "fields": [
+        {
+          "fieldPath": "vector",
+          "vectorConfig": {
+            "dimension": 1536,
+            "flat": {}
+          }
+        }
+      ]
+    },
+    {
+      "collectionId": "claims",
+      "fields": [
+        {
+          "fieldPath": "vector",
+          "vectorConfig": {
+            "dimension": 1536,
+            "flat": {}
+          }
         }
       ]
     },

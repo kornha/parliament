@@ -1,7 +1,7 @@
 // const _ = require("lodash");
 
-const {CLAIM_INDEX, saveStrings} = require("../common/vector_database");
-const functions = require("firebase-functions");
+const {setVector} = require("../common/database");
+const {generateEmbeddings} = require("../common/llm");
 
 
 /**
@@ -17,14 +17,8 @@ const saveClaimEmbeddings = async function(claim) {
     return true;
   }
 
-  try {
-    await saveStrings(claim.cid, strings, CLAIM_INDEX);
-    // publishMessage(CLAIM_CHANGED_VECTOR, {cid: claim.cid});
-    return true;
-  } catch (e) {
-    functions.logger.error("Error saving claim embeddings", e);
-    return false;
-  }
+  const embeddings = await generateEmbeddings(strings);
+  return await setVector(claim.cid, embeddings, "claims");
 };
 
 /**

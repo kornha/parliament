@@ -10,7 +10,6 @@ const {publishMessage,
 const _ = require("lodash");
 const {resetStoryVector} = require("../ai/story_ai");
 const {getStory, updateStory} = require("../common/database");
-const {deleteVector, STORY_INDEX} = require("../common/vector_database");
 const {retryAsyncFunction} = require("../common/utils");
 const {FieldValue} = require("firebase-admin/firestore");
 const {storyChangedPosts} = require("./post");
@@ -215,7 +214,6 @@ const onStoryCreate = async function(story) {
  * @return {Promise<void>}
  */
 const onStoryDelete = async function(story) {
-  deleteVector(story.sid, STORY_INDEX);
   return Promise.resolve();
 };
 

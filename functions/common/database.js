@@ -1,7 +1,8 @@
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
-const {Timestamp, FieldPath} = require("firebase-admin/firestore");
+const {Timestamp, FieldPath, FieldValue} = require("firebase-admin/firestore");
 const {v4} = require("uuid");
+const _ = require("lodash");
 
 // /////////////////////////////////////////
 // User
@@ -599,6 +600,78 @@ const getDBDocument = async function(id, collectionId) {
   }
 };
 
+// /////////////////////////////////////////
+// Vector
+// /////////////////////////////////////////
+
+/**
+ * Set a vector for a document
+ * @param {String} id
+ * @param {Array | VectorValue} vector
+ * @param {String} collectionId
+ * @return {Promise<Boolean>}
+ */
+const setVector = async function(id, vector, collectionId) {
+  if (!id || !vector || !collectionId) {
+    functions.logger.error(`Could not update: ${id}`);
+    return;
+  }
+
+  if (_.isArray(vector)) {
+    vector = FieldValue.vector(vector);
+  }
+
+  const ref = admin.firestore().collection(collectionId).doc(id);
+  try {
+    await ref.set({
+      vector: vector,
+    }, {merge: true});
+    return true;
+  } catch (e) {
+    functions.logger.error(e);
+    return false;
+  }
+};
+
+/**
+ * Search for vectors in a collection
+ * @param {Array | VectorValue} vector
+ * @param {String} collectionId
+ * @param {Number} topK
+ * @return {Promise<Array>}
+ */
+const searchVectors = async function(vector, collectionId, topK = 10) {
+  if (!vector || !collectionId) {
+    functions.logger.error(`Could not search: ${vector}`);
+    return;
+  }
+
+  // else we assume its of type VectorValue
+  if (_.isArray(vector)) {
+    vector = FieldValue.vector(vector);
+  }
+
+  const collection = admin.firestore().collection(collectionId);
+  // Requires single-field vector index
+  const vectorQuery = collection.findNearest("vector",
+      vector, {
+        limit: topK,
+        distanceMeasure: "COSINE",
+      });
+
+  try {
+    const vectorQuerySnapshot = await vectorQuery.get();
+    if (_.isEmpty(vectorQuerySnapshot)) {
+      return null;
+    }
+    const results = vectorQuerySnapshot.docs.map((doc) => doc.data());
+    return results;
+  } catch (e) {
+    functions.logger.error(e);
+    return null;
+  }
+};
+
 module.exports = {
   createUser,
   getUsers,
@@ -639,4 +712,7 @@ module.exports = {
   getMessages,
   //
   getDBDocument,
+  //
+  setVector,
+  searchVectors,
 };
