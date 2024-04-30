@@ -12,6 +12,7 @@ import 'package:political_think/common/components/zapp_bar.dart';
 import 'package:political_think/common/components/zscaffold.dart';
 import 'package:political_think/common/constants.dart';
 import 'package:political_think/common/models/claim.dart';
+import 'package:political_think/common/models/entity.dart';
 import 'package:political_think/common/models/post.dart';
 import 'package:political_think/common/models/room.dart';
 import 'package:political_think/common/models/story.dart';
@@ -34,12 +35,15 @@ extension ProviderExt on WidgetRef {
   ZUser user() => read(zuserProvider(authRead.authUser!.uid)).value!;
   AsyncValue<List<ZUser>?> usersWatch(uids) => watch(zusersProvider(uids));
   AsyncValue<List<ZUser>?> usersRead(uids) => read(zusersProvider(uids));
+
   AsyncValue<Vote?> voteWatch(String pid, String uid, VoteType type) =>
       watch(voteProvider((pid, uid, type)));
   AsyncValue<Vote?> voteRead(String pid, String uid, VoteType type) =>
       read(voteProvider((pid, uid, type)));
+
   AsyncValue<Story?> storyWatch(String sid) => watch(storyProvider(sid));
   AsyncValue<Story?> storyRead(String sid) => read(storyProvider(sid));
+
   AsyncValue<Post?> postWatch(String pid) => watch(postProvider(pid));
   AsyncValue<Post?> postRead(String pid) => read(postProvider(pid));
   AsyncValue<List<Post>?> postsFromStoriesWatch(String sid) =>
@@ -51,6 +55,13 @@ extension ProviderExt on WidgetRef {
       watch(claimsFromStoryProvider(sid));
   AsyncValue<List<Claim>?> claimsFromStoriesRead(String sid) =>
       read(claimsFromStoryProvider(sid));
+
+  AsyncValue<Entity?> entityWatch(String eid) => watch(entityProvider(eid));
+  AsyncValue<Entity?> entityRead(String eid) => read(entityProvider(eid));
+  AsyncValue<List<Entity>?> entitiesFromPostsWatch(List<String> pids) =>
+      watch(entitiesFromPostsProvider(pids));
+  AsyncValue<List<Entity>?> entitiesFromPostsRead(List<String> pids) =>
+      read(entitiesFromPostsProvider(pids));
 
   AsyncValue<Room?> activeRoomWatch(String parentId) =>
       watch(latestRoomProvider((parentId)));

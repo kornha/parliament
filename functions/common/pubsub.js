@@ -6,19 +6,19 @@ const functions = require("firebase-functions");
 const pubsub = new PubSub();
 //
 const POST_PUBLISHED = "onPostPublished";
-//
 const POST_CHANGED_VECTOR = "onPostChangedVector";
+//
 const STORY_CHANGED_VECTOR = "onStoryChangedVector";
-const CLAIM_CHANGED_VECTOR = "onClaimChangedVector";
-//
 const STORY_CHANGED_POSTS = "onStoryChangedPosts";
-const CLAIM_CHANGED_POSTS = "onClaimChangedPosts";
-// const STORY_CHANGED_CLAIMS = "onStoryChangedClaims";
-const CLAIM_CHANGED_STORIES = "onClaimChangedStories";
-//
 const STORY_SHOULD_CHANGE_VECTOR = "onStoryShouldChangeVector";
 const STORY_SHOULD_CHANGE_CLAIMS = "onStoryShouldChangeClaims";
-const CLAIM_SHOULD_CHANGE_CONTEXT = "onClaimShouldChangeContext";
+//
+const CLAIM_CHANGED_POSTS = "onClaimChangedPosts";
+const CLAIM_CHANGED_STORIES = "onClaimChangedStories";
+const CLAIM_CHANGED_VECTOR = "onClaimChangedVector";
+const CLAIM_CHANGED_CONTENT = "onClaimChangedContent";
+//
+const ENTITY_SHOULD_CHANGE_IMAGE = "onEntityShouldChangeImage";
 
 /**
  * Publishes a message to a Cloud Pub/Sub Topic.
@@ -36,14 +36,17 @@ async function publishMessage(topic, json) {
 module.exports = {
   publishMessage,
   POST_PUBLISHED,
+  POST_CHANGED_VECTOR,
+  //
   STORY_CHANGED_POSTS,
-  CLAIM_CHANGED_POSTS,
-  // STORY_CHANGED_CLAIMS,
-  CLAIM_SHOULD_CHANGE_CONTEXT,
-  CLAIM_CHANGED_STORIES,
   STORY_SHOULD_CHANGE_CLAIMS,
   STORY_SHOULD_CHANGE_VECTOR,
-  CLAIM_CHANGED_VECTOR,
-  POST_CHANGED_VECTOR,
   STORY_CHANGED_VECTOR,
+  //
+  CLAIM_CHANGED_POSTS,
+  CLAIM_CHANGED_STORIES,
+  CLAIM_CHANGED_VECTOR,
+  CLAIM_CHANGED_CONTENT,
+  //
+  ENTITY_SHOULD_CHANGE_IMAGE,
 };

@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:political_think/common/components/loading.dart';
+import 'package:political_think/common/components/profile_icon.dart';
 import 'package:political_think/common/extensions.dart';
+import 'package:political_think/common/models/entity.dart';
+import 'package:political_think/common/models/source_type.dart';
 import 'package:political_think/common/models/story.dart';
 import 'package:political_think/common/util/zimage.dart';
 import 'package:political_think/views/post/post_view.dart';
@@ -33,6 +36,12 @@ class _PostViewState extends ConsumerState<PostItemView> {
     var postRef = ref.postWatch(widget.pid);
     var post = postRef.value;
 
+    AsyncValue<Entity?>? entityRef;
+    if (post?.eid != null) {
+      entityRef = ref.entityWatch(post!.eid!);
+    }
+    var entity = entityRef?.value;
+
     return postRef.isLoading
         ? Loading(
             type: widget.isSubView ? LoadingType.postSmall : LoadingType.post)
@@ -41,6 +50,25 @@ class _PostViewState extends ConsumerState<PostItemView> {
             child: !widget.isSubView
                 ? Column(
                     children: [
+                      Row(
+                        children: [
+                          Stack(
+                            alignment: Alignment.bottomRight,
+                            children: [
+                              Visibility(
+                                visible: entity?.photoURL != null,
+                                child: ProfileIcon(url: entity?.photoURL),
+                              ),
+                              Icon(
+                                post?.sourceType.icon,
+                                size: context.iconSizeSmall,
+                                color: context.secondaryColor,
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      context.sh,
                       Text(
                         post?.title ?? "",
                         textAlign: storyImportance > 9

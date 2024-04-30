@@ -30,6 +30,9 @@ class Database {
   final CollectionReference storyCollection =
       FirebaseFirestore.instance.collection('stories');
 
+  final CollectionReference entityCollection =
+      FirebaseFirestore.instance.collection('entities');
+
   final CollectionReference claimCollection =
       FirebaseFirestore.instance.collection('claims');
 

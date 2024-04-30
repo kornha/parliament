@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:political_think/common/util/utils.dart';
 
 part 'story.g.dart';
 
@@ -13,15 +14,20 @@ class Story {
   List<String> cids;
   List<String> locations;
 
-  @JsonKey(fromJson: _timestampFromJson, toJson: _timestampToJson)
+  @JsonKey(fromJson: Utils.timestampFromJson, toJson: Utils.timestampToJson)
   Timestamp createdAt;
-  @JsonKey(fromJson: _timestampFromJson, toJson: _timestampToJson)
+  @JsonKey(fromJson: Utils.timestampFromJson, toJson: Utils.timestampToJson)
   Timestamp updatedAt;
+  @JsonKey(
+      fromJson: Utils.timestampFromJsonNullable,
+      toJson: Utils.timestampToJsonNullable)
+  Timestamp? happenedAt;
 
   Story({
     required this.sid,
     required this.createdAt,
     required this.updatedAt,
+    this.happenedAt,
     this.title,
     this.description,
     this.importance,
@@ -33,9 +39,4 @@ class Story {
   factory Story.fromJson(Map<String, dynamic> json) => _$StoryFromJson(json);
 
   Map<String, dynamic> toJson() => _$StoryToJson(this);
-
-  static Timestamp _timestampFromJson(int milliseconds) =>
-      Timestamp.fromMillisecondsSinceEpoch(milliseconds);
-  static dynamic _timestampToJson(Timestamp timestamp) =>
-      timestamp.millisecondsSinceEpoch;
 }

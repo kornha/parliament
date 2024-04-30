@@ -18,8 +18,8 @@ const regenerateStoryPrompt = function(story, primaryPosts, secondaryPosts) {
 
         You will be given a Story, list of Primary Posts, and a list of Secondary Posts. Both lists of Posts will be ordered by recency.
         You will be given the Story's current Title and Description. If there is no new information, and the Title and Description meet criteria, you should not change them.
-        You will also be asked to output the Story's ID (aka, the sid) and the time the event happened at (createdAt). 
-        You should always output the same sid passed in, and update the createdAt if and only if the time the event happened at became more clear or changed.
+        You will also be asked to output the Story's ID (aka, the sid) and the time the event happened at (happenedAt). 
+        You should always output the same sid passed in, and update the happenedAt if and only if the time the event happened at became more clear or changed.
 
         Here's the instructions for outputting a Story:
         ${newStoryPrompt()}
@@ -48,10 +48,12 @@ const findStoriesPrompt = function(post, stories) {
         ${storyDescriptionPrompt()}
 
         Your goal is to find all the Stories (aka events) that the Post belongs to, or makes a clear reference or claim to.
-        Since a Story is an event, you will ONLY return the story if the Post mentions the event or makes a claim about the event.
-        You will also create "new" Stories, if the Post mentions an event that is not passed in the list of stories.
+        A Story is typically an event, with a specific time and place. Sometimes however, Stories do not have a time and place, and instead are a subject or topic.
 
-        Here's a high level example:
+        Since a Story is an event, you will ONLY return the Story if the Post directly mentions the event or makes a claim about the event.
+        You will also create "new" Stories, if the Post mentions an event/topic that is not passed in the list of stories.
+
+        Here's a high level example that explains how to decide the granularity of a Story:
         ${findStoryExample()}
 
         here are the Stories: ${_.isEmpty(stories) ? "[]" : stories.map((_story) => storyToJSON(_story)).join("\n")}
@@ -131,8 +133,7 @@ const findClaimsForStoryPrompt = function(story, claims) {
 
 const findStoriesAndClaimsPrompt = function(post, stories, claims) {
   return `
-    You will be given a Post, a list of Stories, and a list of Claims. 
-    This Post is being introduced to the Stories, and may introduce new Claims.
+    You will be given a Post, a list of Stories (can be empty), and a list of Claims (can be empty). 
     
     Description of a Post:
     ${postDescriptionPrompt()}
@@ -143,13 +144,15 @@ const findStoriesAndClaimsPrompt = function(post, stories, claims) {
     Description of a Claim:
     ${claimsDescriptionPrompt()}
 
-    The Stories represent all Stories the Post will be associated with. 
-    The Claims represent all Claims associated with all these Stories, as well as 
-    Claims that are associated with all other Posts already associated with these Stories.
+    The Stories represent all Stories the Post is currently associated with. 
+    The Claims represent all Claims that are already associated with all these Stories, as well as Claims that are associated with all other Posts already associated with these Stories.
+
     Your goal is to output the Stories EXACTLY as they are, BUT with the following change.
 
-    Any Claim that is now introduced to the Story by the Post should be added to the Story.
-    Any Claim that is inherently new (there is no matching Claim in the list), should be created and added to the Story.
+    1) If the Post makes a Claim that is already in the list of Claims, this Claim should be added to the Story, and the Post should be added to the "pro" or "against" list of the Claim. 
+    1a) DO NOT OUTPUT A CLAIM THAT THE POST DOES NOT MAKE EVEN IF IT IS PART OF THE STORY ALREADY.
+    1b) DO NOT OUTPUT OTHER PIDS THAT ARE ALREADY PART OF THE PRO OR AGAINST LIST OF THE CLAIM.
+    2) If the Post makes a Claim that is inherently new (there is no matching Claim in the list), this Claim should be created and added to the Story, and the Post should be added to the "pro" or "against" list of the Claim.
 
     Here is how to output a new Claim:
     ${newClaimPrompt()}
@@ -182,7 +185,7 @@ const newStoryPrompt = function() {
   The Title and Description of the story should be the most neutral, and the most minimal vector distance for all posts.
   The Title should be 2-6 words, and the Description should be 1-5 sentences.
   They should be as neutral as possible, and include language as definitive only if consensus is clear.
-  'createdAt' is the time for when the event in the story happened. If the time is not clear, output the time that was passed in, which can be null.
+  'happenedAt' is the time for when the event in the story happened. If the time is not clear, output the time that was passed in, which can be null.
   `;
 };
 
@@ -197,8 +200,7 @@ const storyDescriptionPrompt = function() {
         The "description" is a 1-5 sentence description of the story. The description should be as descriptive as possible.
         Both the title and description should be extremely neutral.
 
-        The "createdAt" is the time that the event happened at, or our best guess.
-        The "updatedAt" is the time that the event was last updated, if it is developing.
+        The "happenedAt" is the time that the event happened at, or our best guess.
         
         A Story is has several other fields.
         Primarily, a Story is a collection of Posts (social media postings or articles), which inform the Claims in the story. 
@@ -208,7 +210,7 @@ const storyDescriptionPrompt = function() {
 };
 
 const storyJSONOutput = function(claims = false) {
-  return `{"sid":ID of the Story or null if Story is new, "title": "title of the story", "description": "the description of the story is a useful vector searchable description", createdAt: ISO 8601 time format that the event happened at, or null if it cannot be determined${claims ? `, "claims":[${claimJSONOutput()}, ...]` : ""}}`;
+  return `{"sid":ID of the Story or null if Story is new, "title": "title of the story", "description": "the description of the story is a useful vector searchable description", "happenedAt": ISO 8601 time format that the event happened at, or null if it cannot be determined${claims ? `, "claims":[${claimJSONOutput()}, ...]` : ""}}`;
 };
 
 const storyToJSON = function(story) {
@@ -217,8 +219,7 @@ const storyToJSON = function(story) {
     sid: ${story.sid}
     title: ${story.title}
     description: ${story.description}
-    createdAt: ${millisToIso(story.createdAt)}
-    updatedAt: ${millisToIso(story.updatedAt)}
+    happenedAt: ${millisToIso(story.happenedAt)}
     END OF STORY
   `;
 };
@@ -234,7 +235,7 @@ const postDescriptionPrompt = function() {
         A Post can have a title, a description, and a body, the latter two of which are optional.
         A Post may have images, videos or other media.
         A Post has an author, which we call an Entity.
-        A Post has a timestamp, which is the time the Post was created. We call this "createdAt".
+        A Post has a timestamp, which is the time the (original) Post was created. We call this "sourceCreatedAt".
         A Post may also be assigned Bias and Credibility scores. 
         Bias refers to the political bias of the Post, and Credibility refers to how confident we think the Post is to be true.
         `;
@@ -247,8 +248,7 @@ const postToJSON = function(post) {
         title (if any): ${post.title}
         description (if any): ${post.description}
         body (if any): ${post.body}
-        createdAt: ${millisToIso(post.createdAt)}
-        updatedAt: ${millisToIso(post.updatedAt)}
+        sourceCreatedAt: ${millisToIso(post.sourceCreatedAt)}
         credibility (if any): ${post.credibility}
         bias (if any): ${post.bias}
         END OF POST
@@ -259,16 +259,13 @@ const postToJSON = function(post) {
 // Claims
 //
 
-
 const claimsDescriptionPrompt = function() {
   return `
             A Claim is a statement that has "pro" and "against" list of Posts either supporting or refuting the Claim.
             A Claim has a "value" field, which is the statement itself.
             A Claim has a "pro" field, which is a list of Posts that support the Claim.
             A Claim has an "against" field, which is a list of Posts that refute the Claim.
-            A Claim has a "createdAt" field, which is the time the Claim was created.
-            A Claim has a "updatedAt" field, which is the time the Claim was last updated.
-            A Claim has a "context" field, which provides more information about the Claim, and helps for vector search.
+            A Claim has a "context" field, which provides more information about the Claim, and helps for search.
         `;
 };
 
@@ -280,8 +277,6 @@ const claimToJSON = function(claim) {
         context (if any): ${claim.context}
         pro: ${claim.pro ? claim.pro.join(", ") : "[]"}
         against: ${claim.against ? claim.against.join(", ") : "[]"}
-        createdAt: ${millisToIso(claim.createdAt)}
-        updatedAt: ${millisToIso(claim.updatedAt)}
         END OF CLAIM
     `;
 };
@@ -291,12 +286,12 @@ const newClaimPrompt = function() {
         The value of the Claim should be a statement that is either supported or refuted by the Post. 
         If you are creating a new Claim, the value should be the statement in the "positive" sense, and the Post should be either "pro" or "against" the Claim.
         Eg., if you want to make a Claim that "Iran did not close airspace over Tehran" (and the Post supports this), the Claim should be "Iran closed airspace over Tehran" and the Post should be "against" the Claim.
-        You do not need to output createdAt or updatedAt, as these will be automatically generated.
+        When outputting pro and against, you should output the post ID (pid) of the post that is either for or against the claim inside of an array, for example against: [pid] instead of against: pid.
         `;
 };
 
 const claimJSONOutput = function() {
-  return `{"cid":ID of the Claim or null if the Claim is new, "value": "text of the claim", "pro": [pid1, pid2, ...] or [] if there are no posts in support, "against": [pid1, pid2, ...] or [] if there are no posts against the claim"}`;
+  return `{"cid":ID of the Claim or null if the Claim is new, "value": "text of the claim", "pro": [pid of the post] or [] if post is not in support, "against": [pid of the post] or [] if the post is not against the claim"}`;
 };
 
 //
@@ -342,29 +337,33 @@ const biasJSONOutput = function() {
 
 const findStoryExample = function() {
   return `
+    It can be said two Posts belong to the Story if they are clearly talking about the same thing.
+    There is a level of judgement here; assume a Story is HIGHLY granular, but NOT EXTREMELY so.
+
     Let's say this is the post:
     "Iran state media removes report about closing airspace over Tehran after warnings of possible strike on Israel"
-    createdAt (time post was published, different from the Story's 'createdAt'): "2021-05-10T12:00:00Z" 
+    sourceCreatedAt (time source of the post was published, different from the Story's 'happenedAt'): "2021-05-10T12:00:00Z" 
 
     While this Post mentions Iran and a report about closing airspace over Tehran, in conjunction with Israel, you can infer that there is an urgent tension between Iran and Israel.
-    Hence, a Title for the Story could be: "Iran and Israel; Brink of War"
+    Hence, a Title for the Story could be: "Iran Closes Airspace" or "Iran and Israel at War". While both would be right, since we generally lean on the side of granularity, the former title would be preferable.
 
     The Description could be: "Amidst rising tensions between Iran and Israel, it was reported by Iran state media that they closed airspace over Tehran. This post wast later removed, and the situation remains ongoing."
 
     Now let's say there's another Post that comes in. It says: 
     "Tesla is in early discussions with Reliance Industries about a possible joint venture to build an electric-vehicle manufacturing facility in India, report says"
-    createdAt: "2021-05-10T12:30:00Z"
+    sourceCreatedAt: "2021-05-10T12:30:00Z"
 
     This post clearly belongs to another Story, (which we will omit here).
 
     Now let's say there's a third Post that comes in. It says: 
     "Defense Minister Gallant:
     Whoever attacks Israel will counter strong defenses, followed by forceful strike in their territory; our enemies are unaware of the surprises we're preparing; Israel knows how to respond quickly across the Middle East."
-    createdAt: "2021-05-10T13:00:00Z"
+    sourceCreatedAt: "2021-05-10T13:00:00Z"
 
-    This Post is clearly related to the first Post; the first Post mentions a possible conflict between Iran and Israel, and this latter Post mentions how Israel will respond to any threats.
+    This Post is clearly related to the first Post; the first Post mentions a possible attack from Iran on Israel, and this latter Post mentions how Israel will respond to any threats.
+    While you can choose to group these into the same Story, or keep them separate, in this case, since the sourceCreatedAt (time the post was made) is similar, it is likely they are referring to the same event, (Iran attack and Israel response) and should be grouped together.
     
-    Hence the Title of the Story might remain the same, but now the description of the Story could be updated to include the new information.
+    Hence the Title of the Story might be updated, "Iran and Israel at War", and now the description of the Story could be updated to include the new information.
 
     For example; the Description could be: "Amidst rising tensions between Iran and Israel it was rumored that Iran closed airspace over Tehran. This is unclear. Meanwhile Defense Minister Gallant has stated that Israel will respond to attacks on enemy territory."
   `;
@@ -372,11 +371,11 @@ const findStoryExample = function() {
 
 const findClaimExample = function() {
   return `
-    Let's say this is the post:
+    Let's say this is the Post:
     "Iran state media removes report about closing airspace over Tehran after warnings of possible strike on Israel"
-    createdAt (time post was published, different from the Story's 'createdAt'): "2021-05-10T12:00:00Z" 
+    sourceCreatedAt (time post was published, different from the Story's 'happenedAt'): "2021-05-10T12:00:00Z" 
 
-    The Claims here are that 1) Iran had made a report about closing airspace over Tehran near the "createdAt" time of the Post and 2) They later changed this report and did not end up closing airspace, and 3) There were warnings of a possible strike on Israel.
+    The Claims here are that 1) Iran had made a report about closing airspace over Tehran near the "sourceCreatedAt" time of the Post and 2) They later changed this report and did not end up closing airspace, and 3) There were warnings of a possible strike on Israel.
 
     If there is a Claim that says "Iran closed airspace over Tehran", then this Post would be "against" that Claim, as the.
     If there is a Claim that says "Iran did not close airspace over Tehran", then this Post would be "for" that Claim.
@@ -389,7 +388,7 @@ const findClaimForStoryExample = function() {
   return `
     Let's say this is the Story:
     "Joe Biden spoke to Bibi Netanyahu about his plans for war with Iran"
-    createdAt: "2021-05-10T12:00:00Z"
+    happenedAt: "2021-05-10T12:00:00Z"
 
     Let's say there are two Claims in question:
     1) value: "Joe Biden spoke to Bibi Netanyahu for 3 hours"
@@ -408,7 +407,7 @@ const findClaimsAndStoriesExample = function() {
   return `
     Let's say we have a Post that says: 
     "Iran state media removes report about closing airspace over Tehran after warnings of possible strike on Israel".
-    createdAt: "2021-05-10T12:00:00Z"
+    sourceCreatedAt: "2021-05-10T12:00:00Z"
 
     And we have a Story that has the Title: 
     "Iran and Israel on the Brink of War"

@@ -9,13 +9,15 @@ part of 'post.dart';
 Post _$PostFromJson(Map<String, dynamic> json) => Post(
       pid: json['pid'] as String,
       status: $enumDecode(_$PostStatusEnumMap, json['status']),
-      createdAt: Post._timestampFromJson(json['createdAt'] as int),
-      updatedAt: Post._timestampFromJson(json['updatedAt'] as int),
+      createdAt: Utils.timestampFromJson(json['createdAt'] as int),
+      updatedAt: Utils.timestampFromJson(json['updatedAt'] as int),
+      sourceCreatedAt: Utils.timestampFromJson(json['sourceCreatedAt'] as int),
+      sourceType: $enumDecode(_$SourceTypeEnumMap, json['sourceType']),
+      eid: json['eid'] as String?,
       sid: json['sid'] as String?,
       title: json['title'] as String?,
       description: json['description'] as String?,
       body: json['body'] as String?,
-      creator: json['creator'] as String?,
       poster: json['poster'] as String?,
       sids:
           (json['sids'] as List<dynamic>?)?.map((e) => e as String).toList() ??
@@ -23,7 +25,6 @@ Post _$PostFromJson(Map<String, dynamic> json) => Post(
       cids:
           (json['cids'] as List<dynamic>?)?.map((e) => e as String).toList() ??
               const [],
-      sourceType: $enumDecodeNullable(_$SourceTypeEnumMap, json['sourceType']),
       url: json['url'] as String?,
       imageUrl: json['imageUrl'] as String?,
       locations: (json['locations'] as List<dynamic>?)
@@ -57,7 +58,7 @@ Map<String, dynamic> _$PostToJson(Post instance) => <String, dynamic>{
       'sid': instance.sid,
       'sids': instance.sids,
       'cids': instance.cids,
-      'creator': instance.creator,
+      'eid': instance.eid,
       'poster': instance.poster,
       'status': _$PostStatusEnumMap[instance.status]!,
       'title': instance.title,
@@ -65,7 +66,7 @@ Map<String, dynamic> _$PostToJson(Post instance) => <String, dynamic>{
       'body': instance.body,
       'imageUrl': instance.imageUrl,
       'url': instance.url,
-      'sourceType': _$SourceTypeEnumMap[instance.sourceType],
+      'sourceType': _$SourceTypeEnumMap[instance.sourceType]!,
       'locations': instance.locations,
       'voteCountBias': instance.voteCountBias,
       'voteCountCredibility': instance.voteCountCredibility,
@@ -77,8 +78,9 @@ Map<String, dynamic> _$PostToJson(Post instance) => <String, dynamic>{
       'aiCredibility': instance.aiCredibility?.toJson(),
       'importance': instance.importance,
       'messageCount': instance.messageCount,
-      'createdAt': Post._timestampToJson(instance.createdAt),
-      'updatedAt': Post._timestampToJson(instance.updatedAt),
+      'createdAt': Utils.timestampToJson(instance.createdAt),
+      'updatedAt': Utils.timestampToJson(instance.updatedAt),
+      'sourceCreatedAt': Utils.timestampToJson(instance.sourceCreatedAt),
     };
 
 const _$PostStatusEnumMap = {

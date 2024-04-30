@@ -8,8 +8,9 @@ part of 'story.dart';
 
 Story _$StoryFromJson(Map<String, dynamic> json) => Story(
       sid: json['sid'] as String,
-      createdAt: Story._timestampFromJson(json['createdAt'] as int),
-      updatedAt: Story._timestampFromJson(json['updatedAt'] as int),
+      createdAt: Utils.timestampFromJson(json['createdAt'] as int),
+      updatedAt: Utils.timestampFromJson(json['updatedAt'] as int),
+      happenedAt: Utils.timestampFromJsonNullable(json['happenedAt'] as int?),
       title: json['title'] as String?,
       description: json['description'] as String?,
       importance: (json['importance'] as num?)?.toDouble(),
@@ -33,6 +34,7 @@ Map<String, dynamic> _$StoryToJson(Story instance) => <String, dynamic>{
       'pids': instance.pids,
       'cids': instance.cids,
       'locations': instance.locations,
-      'createdAt': Story._timestampToJson(instance.createdAt),
-      'updatedAt': Story._timestampToJson(instance.updatedAt),
+      'createdAt': Utils.timestampToJson(instance.createdAt),
+      'updatedAt': Utils.timestampToJson(instance.updatedAt),
+      'happenedAt': Utils.timestampToJsonNullable(instance.happenedAt),
     };

@@ -11,56 +11,6 @@ const {regenerateStoryPrompt, findClaimsForStoryPrompt} = require("./prompts");
 const {getPostEmbeddingStrings} = require("./post_ai");
 const _ = require("lodash");
 
-
-/**
- * Fetches all posts that mention this story to generate content
- * @param {Story} story - The story id to regenerate
- * @return {Promise<void>}
- * @async
- * */
-const regenerateStory = async function(story) {
-  if (!story || !story.sid) {
-    functions.logger.error(`Could not fetch story to regenerate: ${story.sid}`);
-    return;
-  }
-  const posts = await getAllPostsForStory(story.sid);
-  const [primary, secondary] = posts.reduce(([p, s], post) =>
-    post.sid == story.sid ? [[...p, post], s] : [p, [...s, post]], [[], []]);
-
-  const gstory =
-    await generateCompletions(regenerateStoryPrompt(story, primary, secondary));
-
-  if (!gstory || !gstory.sid) {
-    functions.logger.error(`Could not regenerate story: ${story.sid}`);
-    return;
-  }
-
-  const {title, description, _createdAt} = gstory;
-  let createdAt;
-  if (_createdAt) {
-    createdAt = isoToMillis(_createdAt);
-  }
-
-  if (title == null || description == null) {
-    functions.logger.error(`Invalid generation: ${gstory}`);
-    return;
-  }
-
-  if (title == story.title &&
-      description == story.description && createdAt == story.createdAt) {
-    functions.logger.info(`No changes to story: ${story.sid}`);
-    return;
-  }
-
-
-  updateStory(story.sid, {
-    title: title,
-    description: description,
-    updatedAt: Timestamp.now().toMillis(),
-    createdAt: createdAt ?? story.createdAt ?? Timestamp.now().toMillis(),
-  });
-};
-
 /**
  * K MEANS STREAMING ALGORITHM
  * Updates the story vector
@@ -118,6 +68,58 @@ const resetStoryVector = async function(story) {
  * */
 const getStoryEmbeddingStrings = function(story) {
   return getPostEmbeddingStrings(story);
+};
+
+//
+// Deprecated
+//
+
+/**
+ * Fetches all posts that mention this story to generate content
+ * @param {Story} story - The story id to regenerate
+ * @return {Promise<void>}
+ * @async
+ * */
+const regenerateStory = async function(story) {
+  if (!story || !story.sid) {
+    functions.logger.error(`Could not fetch story to regenerate: ${story.sid}`);
+    return;
+  }
+  const posts = await getAllPostsForStory(story.sid);
+  const [primary, secondary] = posts.reduce(([p, s], post) =>
+    post.sid == story.sid ? [[...p, post], s] : [p, [...s, post]], [[], []]);
+
+  const gstory =
+    await generateCompletions(regenerateStoryPrompt(story, primary, secondary));
+
+  if (!gstory || !gstory.sid) {
+    functions.logger.error(`Could not regenerate story: ${story.sid}`);
+    return;
+  }
+
+  const {title, description, _happenedAt} = gstory;
+  let happenedAt;
+  if (_happenedAt) {
+    happenedAt = isoToMillis(_happenedAt);
+  }
+
+  if (title == null || description == null) {
+    functions.logger.error(`Invalid generation: ${gstory}`);
+    return;
+  }
+
+  if (title == story.title &&
+      description == story.description && happenedAt == story.happenedAt) {
+    functions.logger.info(`No changes to story: ${story.sid}`);
+    return;
+  }
+
+  updateStory(story.sid, {
+    title: title,
+    description: description,
+    updatedAt: Timestamp.now().toMillis(),
+    happenedAt: happenedAt ?? story.happenedAt ?? Timestamp.now().toMillis(),
+  });
 };
 
 /**

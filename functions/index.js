@@ -4,17 +4,19 @@ const {onMessageChange} = require("./messages/message");
 const {onAuthUserCreate, onAuthUserDelete,
   setUsername} = require("./models/user");
 const {TaskQueue} = require( "firebase-admin/functions");
-const {onPostUpdate, onPostPublished,
+const {onPostUpdate, onPostPublished, onPostPublished2,
   onPostChangedVector} = require("./models/post");
 const {onVoteBiasChange, onVoteCredibilityChange} = require("./models/vote");
 const {generateBiasTraining} = require("./ai/scripts");
-const {onTriggerContent, onLinkPaste} = require("./content/content");
+const {onLinkPaste} = require("./content/content");
 const {debateDidTimeOut, debateDidTimeOutTask} = require("./messages/clock");
 const {onStoryUpdate, onStoryPostsChanged, onStoryChangedPosts,
   onStoryShouldChangeVector, onStoryShouldChangeClaims,
 } = require("./models/story");
 const {onClaimUpdate, onClaimChangedVector,
   onClaimChangedPosts, onClaimShouldChangeContext} = require("./models/claim");
+const {onEntityUpdate,
+  onEntityShouldChangeImage} = require("./models/entity");
 
 
 admin.initializeApp();
@@ -45,30 +47,31 @@ module.exports = {
   setUsername,
   onVoteBiasChange,
   onVoteCredibilityChange,
+  // Post
+  onPostUpdate,
+  onMessageChange,
+  onPostPublished,
+  onPostPublished2,
+  onPostChangedVector,
   // Story
   onStoryUpdate,
   onStoryPostsChanged,
   onStoryChangedPosts,
   onStoryShouldChangeVector,
   onStoryShouldChangeClaims,
-  // Post
-  onPostUpdate,
-  onMessageChange,
-  onPostPublished,
-  onPostChangedVector,
   // Room
-  // joinRoom,
   onRoomChange,
   startDebate,
   debateDidTimeOutTask,
-  // generateStories,
+  // Entity
+  onEntityUpdate,
+  onEntityShouldChangeImage,
   // Claim
   onClaimUpdate,
   onClaimChangedVector,
   onClaimChangedPosts,
   onClaimShouldChangeContext,
   //
-  onTriggerContent,
   onLinkPaste,
   // Scripts
   generateBiasTraining,

@@ -1,7 +1,7 @@
 const functions = require("firebase-functions");
 const _ = require("lodash");
 
-const {setPost,
+const {
   createClaim,
   updateClaim,
   getAllClaimsForStory,
@@ -14,8 +14,7 @@ const {setPost,
   searchVectors} = require("../common/database");
 const {generateCompletions, generateEmbeddings} = require("../common/llm");
 
-const {findStoriesPrompt,
-  findClaimsPrompt, findStoriesAndClaimsPrompt} = require("./prompts");
+const {findStoriesPrompt, findStoriesAndClaimsPrompt} = require("./prompts");
 const {retryAsyncFunction, isoToMillis} = require("../common/utils");
 const {v4} = require("uuid");
 const {Timestamp, FieldValue} = require("firebase-admin/firestore");
@@ -35,8 +34,11 @@ const findStoriesAndClaims = async function(post) {
     functions.logger.error("Post is null");
     return;
   }
+  // Finds stories based on 2 leg K-mean/Neural search
   const gstories = await findStories(post);
 
+  // get all neighbor claims
+  // this is a GRAPH search and potentially won't scare with our current db
   const sclaims = (await Promise.all(gstories.map(async (gstory) =>
   gstory.sid ? (await getAllClaimsForStory(gstory.sid)).map((claim) => ({
     ...claim,
@@ -44,10 +46,12 @@ const findStoriesAndClaims = async function(post) {
   })) : [],
   ))).flat();
 
+  // Revearse search all posts from the stories
   const posts = (await Promise.all(gstories.map((gstory) =>
     gstory.sid ? getAllPostsForStory(gstory.sid) : [],
   ))).flat();
 
+  // get all neighbor claims to these posts
   const pclaims = (await Promise.all(posts.map(async (post) =>
   post.pid ? (await getAllClaimsForPost(post.pid)).map((claim) => ({
     ...claim,
@@ -56,66 +60,79 @@ const findStoriesAndClaims = async function(post) {
   ))).flat();
 
   // merge the claims and dedupe
+  // this represents all P-[2]-C claims
   const claims = _.uniqBy([...sclaims, ...pclaims], "cid");
 
   // Note we need not remove the claims already from the post
 
-  // const mergedStories
   const resp =
     await generateCompletions(
         findStoriesAndClaimsPrompt(post, gstories, claims));
 
-  const stories = resp.stories;
+  const g2stories = resp.stories;
 
-  let i = 0; // need I since we set post on first iteration
-  for (const gstoryClaim of stories) {
+  if (_.isEmpty(g2stories)) {
+    functions.logger.warn(`Could not generate stories or claims for post. 
+      Orphaned! ${post.pid}`);
+    return;
+  }
+
+  await Promise.all(g2stories.map(async (gstoryClaim, index) => {
     const sid = gstoryClaim.sid ? gstoryClaim.sid : v4();
 
-    if (i === 0) {
-      await retryAsyncFunction(() => updatePost(post.pid, {
-        sid: sid,
-        // updated via callback since the story may not exist yet
-        // sids: stories.map((gstory) => gstory.sid),
-        // cids: order does not matter so we add via callback
-      }));
-    }
-
     if (gstoryClaim.sid) {
-      await retryAsyncFunction(() => updateStory(gstoryClaim.sid, {
+      await retryAsyncFunction(() => updateStory(sid, {
         title: gstoryClaim.title,
         description: gstoryClaim.description,
         updatedAt: Timestamp.now().toMillis(),
-        createdAt: isoToMillis(gstoryClaim.createdAt),
+        createdAt: Timestamp.now().toMillis(),
         pids: FieldValue.arrayUnion(post.pid),
+        ...(gstoryClaim.happenedAt &&
+          {happenedAt: isoToMillis(gstoryClaim.happenedAt)}),
         // updated via callback since the claim may not exist yet
         // cids: FieldValue.arrayUnion(
         //     ...gstoryClaim.claims.map((gclaim) => gclaim.cid)),
       }));
     } else {
+      if (index === 0) {
+        await retryAsyncFunction(() => updatePost(post.pid, {
+          sid: sid,
+        // updated via callback since the story may not exist yet
+        // sids: g2stories.map((gstory) => gstory.sid),
+        // cids: order does not matter so we add via callback
+        }));
+      }
+
       await retryAsyncFunction(() => createStory({
         sid: sid,
         title: gstoryClaim.title,
         description: gstoryClaim.description,
         updatedAt: Timestamp.now().toMillis(),
-        createdAt: isoToMillis(gstoryClaim.createdAt),
+        createdAt: Timestamp.now().toMillis(),
         pids: [post.pid],
+        ...(gstoryClaim.happenedAt &&
+          {happenedAt: isoToMillis(gstoryClaim.happenedAt)}),
         // updated via callback since the claim may not exist
         // cids: gstoryClaim.claims.map((gclaim) => gclaim.cid),
       }));
     }
     if (!_.isEmpty(gstoryClaim.claims)) {
-      gstoryClaim.claims.forEach((gclaim) => {
+      await Promise.all(gstoryClaim.claims.map(async (gclaim) => {
         if (gclaim.cid) {
-          retryAsyncFunction(() => updateClaim(gclaim.cid, {
+          await retryAsyncFunction(() => updateClaim(gclaim.cid, {
             sids: FieldValue.arrayUnion(sid),
             pids: FieldValue.arrayUnion(post.pid),
-            against: FieldValue.arrayUnion(...gclaim.pro),
-            pro: FieldValue.arrayUnion(...gclaim.pro),
             value: gclaim.value,
             updatedAt: Timestamp.now().toMillis(),
+            // some grade a level horse shit to get around
+            // arrayUnion unioning an empty array
+            ...(gclaim.pro?.length &&
+              {pro: FieldValue.arrayUnion(...gclaim.pro)}),
+            ...(gclaim.against?.length &&
+              {against: FieldValue.arrayUnion(...gclaim.against)}),
           }));
         } else {
-          retryAsyncFunction(() => createClaim({
+          await retryAsyncFunction(() => createClaim({
             cid: v4(),
             value: gclaim.value,
             pro: gclaim.pro,
@@ -126,10 +143,9 @@ const findStoriesAndClaims = async function(post) {
             createdAt: Timestamp.now().toMillis(),
           }));
         }
-      });
+      }));
     }
-    i++;
-  }
+  }));
 
   return Promise.resolve();
 };
@@ -159,7 +175,9 @@ const findStories = async function(post) {
   }
 
   const stories = await searchVectors(vector, "stories");
-
+  if (!stories || stories.length === 0) {
+    functions.logger.warn(`Post does not have a story! ${post.pid}`);
+  }
   const resp = await generateCompletions(findStoriesPrompt(post, stories));
 
   if (!resp || !resp.stories || resp.stories.length === 0) {
@@ -168,34 +186,6 @@ const findStories = async function(post) {
   }
 
   return resp.stories;
-  // const sids = [];
-
-  // for (const gstory of resp.stories) {
-  //   if (gstory.sid) {
-  //     sids.push(gstory.sid);
-  //   } else {
-  //     const sid = v4();
-  //     // TODO: Ugly, change
-  //     const createdAt = gstory.createdAt != null ?
-  //      isoToMillis(gstory.createdAt) : Timestamp.now().toMillis();
-  //     const saved = await retryAsyncFunction(() => createStory({
-  //       sid: sid,
-  //       title: gstory.title,
-  //       description: gstory.description,
-  //       updatedAt: createdAt,
-  //       createdAt: createdAt,
-  //     }));
-  //     if (saved) sids.push(sid);
-  //   }
-  // }
-
-  // if (sids.length === 0) {
-  //   functions.logger.error(`Could not generate stories for post.
-  //    Orphaned! ${post.pid}`);
-  //   return;
-  // }
-
-  // setPost(post.pid, {sid: sids[0], sids: sids});
 };
 
 
@@ -235,84 +225,8 @@ const getPostEmbeddingStrings = function(post) {
   return ret;
 };
 
-//
-// Deprecated
-//
-
-/**
- * ***************************************************************
- * Creates new claims if new claims are detected
- * Sets the Claims for the Post
- *
- * Searches for nearby claims based on vector distance
- * Uses a Neural second pass to find correct claims for the post
- * @param {Post} post
- * @return {Promise<void>}
- * ***************************************************************
- */
-const findClaims = async function(post) {
-  if (!post) {
-    functions.logger.error("Post is null");
-    return;
-  }
-
-  // use a retriable with longer backoff since the db is eventually consistent
-  const vector = post.vector;
-  if (!vector) {
-    functions.logger.error(`Post does not have a vector! ${post.pid}`);
-    // should we add it here??
-    return;
-  }
-
-
-  const claims = await searchVectors(vector, "claims");
-
-  const resp = await generateCompletions(findClaimsPrompt(post, claims));
-
-  if (!resp || !resp.claims || resp.claims.length === 0) {
-    functions.logger.info(`Post does not have a claim! ${post.pid}`);
-    return;
-  }
-
-  const cids = [];
-  for (const gclaim of resp.claims) {
-    if (gclaim.cid) {
-      cids.push(gclaim.cid);
-      // NOTE! we update this separately from the claim pids
-      // Since we have reference to the pro/against here
-      if (!_.isEmpty(gclaim.pro) || !_.isEmpty(gclaim.against)) {
-        retryAsyncFunction(() => updateClaim(gclaim.cid, {
-          pro: FieldValue.arrayUnion(gclaim.pro),
-          against: FieldValue.arrayUnion(gclaim.against),
-        }));
-      }
-    } else {
-      const cid = v4();
-      const saved = await retryAsyncFunction(() => createClaim({
-        cid: cid,
-        value: gclaim.value,
-        context: gclaim.context,
-        pro: gclaim.pro,
-        against: gclaim.against,
-        updatedAt: Timestamp.now().toMillis(),
-        createdAt: Timestamp.now().toMillis(),
-      }));
-      if (saved) cids.push(cid);
-    }
-  }
-
-  if (cids.length === 0) {
-    // Warn since a post may not have claims
-    functions.logger.warn(`Could not generate Claims for Post ${post.pid}`);
-    return;
-  }
-  retryAsyncFunction(() => setPost(post.pid, {cids: cids}));
-};
-
-
 module.exports = {
   findStories,
-  findClaims,
   findStoriesAndClaims,
   savePostEmbeddings,
   getPostEmbeddingStrings,

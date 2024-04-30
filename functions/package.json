@@ -5,7 +5,7 @@
     "lint": "eslint .",
     "postinstall": "node node_modules/puppeteer/install.js",
     "gcp-build": "node node_modules/puppeteer/install.js",
-    "serve": "lsof -ti :8085 | xargs -r kill -9; lsof -ti :8080 | xargs -r kill -9; firebase emulators:start --inspect-functions",
+    "serve": "lsof -ti :8085 | xargs -r kill -9; firebase emulators:start --inspect-functions",
     "shell": "firebase functions:shell",
     "start": "npm run shell",
     "predeploy": "npm run gcp-build",

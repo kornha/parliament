@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:political_think/common/models/claim.dart';
+import 'package:political_think/common/models/entity.dart';
 import 'package:political_think/common/models/post.dart';
 import 'package:political_think/common/models/room.dart';
 import 'package:political_think/common/models/story.dart';
@@ -136,6 +137,17 @@ final postsFromStoryProvider =
 //////////////////////////////////////////////////////////////
 // Claims
 //////////////////////////////////////////////////////////////
+final claimProvider = StreamProvider.family<Claim?, String>((ref, cid) {
+  final claimRef = Database.instance().claimCollection.doc(cid);
+  return claimRef.snapshots().map((snapshot) {
+    if (snapshot.exists) {
+      final data = snapshot.data() as Map<String, dynamic>;
+      return Claim.fromJson(data);
+    } else {
+      return null;
+    }
+  });
+});
 
 final claimsFromStoryProvider =
     StreamProvider.family<List<Claim>?, String>((ref, sid) {
@@ -155,6 +167,60 @@ final claimsFromStoryProvider =
     } else {
       return null;
     }
+  });
+});
+
+//////////////////////////////////////////////////////////////
+// Entities
+//////////////////////////////////////////////////////////////
+
+final entityProvider = StreamProvider.family<Entity?, String>((ref, eid) {
+  final entityRef = Database.instance().entityCollection.doc(eid);
+  return entityRef.snapshots().map((snapshot) {
+    if (snapshot.exists) {
+      final data = snapshot.data() as Map<String, dynamic>;
+      return Entity.fromJson(data);
+    } else {
+      return null;
+    }
+  });
+});
+
+// TODO: WHEREIN LIMIT 10
+final entitiesFromPostsProvider =
+    StreamProvider.family<List<Entity>?, List<String>>((ref, pids) {
+  if (pids.isEmpty) {
+    return Stream.value(null);
+  }
+  return Database.instance()
+      .postCollection
+      .where(FieldPath.documentId, whereIn: pids)
+      .snapshots()
+      .asyncMap((postsSnapshot) async {
+    final eids = postsSnapshot.docs
+        .map((doc) {
+          final data = doc.data() as Map<String, dynamic>;
+          return data['eid'] as String?;
+        })
+        .where((eid) => eid != null)
+        .toList();
+
+    // If no entity IDs or more than 10 (limit of 'whereIn'), return null or handle appropriately
+    if (eids.isEmpty || eids.length > 10) {
+      return null;
+    }
+
+    // Fetch entities based on the entity IDs collected
+    final entitySnapshot = await Database.instance()
+        .entityCollection
+        .where(FieldPath.documentId, whereIn: eids)
+        .get();
+
+    // Map over the entity documents and convert them to Entity objects
+    return entitySnapshot.docs.map((doc) {
+      final data = doc.data() as Map<String, dynamic>;
+      return Entity.fromJson(data);
+    }).toList();
   });
 });
 

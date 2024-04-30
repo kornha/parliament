@@ -2,12 +2,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:political_think/common/models/bias.dart';
 import 'package:political_think/common/models/credibility.dart';
+import 'package:political_think/common/models/source_type.dart';
+import 'package:political_think/common/util/utils.dart';
 
 part 'post.g.dart';
 
 enum PostStatus { draft, published, deleted, error }
-
-enum SourceType { article, x }
 
 @JsonSerializable(explicitToJson: true)
 class Post {
@@ -16,7 +16,7 @@ class Post {
   final List<String> sids;
   final List<String> cids;
   // creator domain or handle of the originator TODO: move to entities
-  String? creator;
+  String? eid;
   // user who posted the post, if any
   String? poster;
   PostStatus status;
@@ -26,9 +26,8 @@ class Post {
   String? body;
   String? imageUrl;
   String? url;
-  SourceType? sourceType;
-  List<String>
-      locations; // currently country codes but i want to make this more abstract
+  final SourceType sourceType;
+  List<String> locations; // currently country codes need to abstract
   //
   int voteCountBias;
   int voteCountCredibility;
@@ -48,25 +47,29 @@ class Post {
   //
   int? messageCount; // not sure if we want to keep this record but we do now
 
-  @JsonKey(fromJson: _timestampFromJson, toJson: _timestampToJson)
+  @JsonKey(fromJson: Utils.timestampFromJson, toJson: Utils.timestampToJson)
   Timestamp createdAt;
-  @JsonKey(fromJson: _timestampFromJson, toJson: _timestampToJson)
+  @JsonKey(fromJson: Utils.timestampFromJson, toJson: Utils.timestampToJson)
   Timestamp updatedAt;
+  @JsonKey(fromJson: Utils.timestampFromJson, toJson: Utils.timestampToJson)
+  Timestamp sourceCreatedAt;
 
   Post({
     required this.pid,
     required this.status,
     required this.createdAt,
     required this.updatedAt,
+    // time the original post was created
+    required this.sourceCreatedAt,
+    required this.sourceType,
+    this.eid,
     this.sid,
     this.title,
     this.description,
     this.body,
-    this.creator, // todo, move to entities table!
     this.poster, // uid who posted the post
     this.sids = const [],
     this.cids = const [],
-    this.sourceType,
     this.url,
     this.imageUrl,
     this.locations = const [],
@@ -87,15 +90,4 @@ class Post {
   factory Post.fromJson(Map<String, dynamic> json) => _$PostFromJson(json);
 
   Map<String, dynamic> toJson() => _$PostToJson(this);
-
-  static Timestamp _timestampFromJson(int milliseconds) =>
-      Timestamp.fromMillisecondsSinceEpoch(milliseconds);
-  static dynamic _timestampToJson(Timestamp timestamp) =>
-      timestamp.millisecondsSinceEpoch;
-  static Timestamp? _timestampFromJsonNullable(int? milliseconds) =>
-      milliseconds == null
-          ? null
-          : Timestamp.fromMillisecondsSinceEpoch(milliseconds);
-  static dynamic _timestampToJsonNullable(Timestamp? timestamp) =>
-      timestamp?.millisecondsSinceEpoch;
 }

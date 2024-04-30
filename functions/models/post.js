@@ -34,14 +34,6 @@ exports.onPostUpdate = functions
       const _delete = before && !after;
       const _update = before && after;
 
-      if (_create) {
-        onPostCreate(after);
-      }
-
-      if (_delete) {
-        onPostDelete(before);
-      }
-
       if (after && after.status == "published" &&
       (!before || before.status != "published")) {
         publishMessage(POST_PUBLISHED, {pid: after.pid});
@@ -52,14 +44,20 @@ exports.onPostUpdate = functions
         _update && (before.sid != after.sid ||
           !_.isEqual(before.sids, after.sids)) ||
         _delete && before.sid) {
-        // postChangedStories(before, after);
+        // postChangedStories
       }
 
       if (
         _create && !_.isEmpty(after.cids) ||
         _update && !_.isEqual(before.cids, after.cids) ||
         _delete && !_.isEmpty(before.cids)) {
-        // postChangedClaims(before, after);
+        // postChangedClaims
+      }
+
+      if (_create && after.vector ||
+        _delete && before.vector ||
+        _update && !_.isEqual(before.vector, after.vector)) {
+        publishMessage(POST_CHANGED_VECTOR, {pid: after?.pid || before?.pid});
       }
 
       if (
@@ -69,7 +67,7 @@ exports.onPostUpdate = functions
         (before.description != after.description ||
         before.title != after.title ||
         before.body != after.body)) {
-        postChangedContent(before, after);
+        await postChangedContent(before, after);
       }
 
       return Promise.resolve();
@@ -79,45 +77,64 @@ exports.onPostUpdate = functions
 // PubSub
 //
 
+exports.onPostChangedVector = functions
+    .runWith(defaultConfig)
+    .pubsub
+    .topic(POST_CHANGED_VECTOR)
+    .onPublish(async (message) => {
+      const pid = message.json.pid;
+      const post = await getPost(pid);
+      if (!post) {
+        return Promise.resolve();
+      }
+
+      // race condition with onPostPublished
+      if (post.status == "published" && post.sid == null) {
+        return findStoriesAndClaims(post);
+      }
+
+      return Promise.resolve();
+    });
+
 /**
+ * creates the room
  * called when a post is published
- * need to find stories and claims
- * uses GB config because heavy ops
+ * @param {Message} message
+ * @return {Promise<void>}
  */
 exports.onPostPublished = functions
+    .runWith(defaultConfig)
+    .pubsub
+    .topic(POST_PUBLISHED)
+    .onPublish(async (message) => {
+      const pid = message.json.pid;
+      await createNewRoom(pid, "posts");
+
+      return Promise.resolve();
+    });
+
+/**
+ * calls primary Story and Claim creation when a post is published
+ * split from main method as it is a separate task
+ * @param {Message} message
+ * @return {Promise<void>}
+ */
+exports.onPostPublished2 = functions
     .runWith(gbConfig)
     .pubsub
     .topic(POST_PUBLISHED)
     .onPublish(async (message) => {
       const pid = message.json.pid;
       const post = await getPost(pid);
-      createNewRoom(pid, "posts");
 
-      findStoriesAndClaims(post);
+      // race condition with onPostChangedVector
+      if (!post || !post.vector) {
+        return Promise.resolve();
+      }
 
-      return Promise.resolve();
+      return findStoriesAndClaims(post);
     });
 
-exports.onPostChangedVector = functions
-    .runWith(defaultConfig)
-    .pubsub
-    .topic(POST_CHANGED_VECTOR)
-    .onPublish(async (message) => {
-      // const pid = message.json.pid;
-    });
-
-//
-// Events. Recall that multiple may get triggered for a single update!
-// no need to retrigger each other below.
-//
-
-const onPostCreate = function(post) {
-  return Promise.resolve();
-};
-
-const onPostDelete = function(post) {
-  return Promise.resolve();
-};
 
 /**
  * TXN
@@ -144,41 +161,39 @@ const postChangedContent = async function(before, after) {
 
 /**
  * 'TXN' - called from story.js
- * Updates the stories that this post is part of
+ * Updates the stories that this Post is part of
  * @param {Story} before
  * @param {Story} after
- * @return {Promise<void>}
- * @async
- * */
+ */
 exports.storyChangedPosts = async function(before, after) {
   if (!after) {
-    (before.pids || []).forEach((pid) => {
-      retryAsyncFunction(() => updatePost(pid, {
+    for (const pid of (before.pids || [])) {
+      await retryAsyncFunction(() => updatePost(pid, {
         sids: FieldValue.arrayRemove(before.sid),
       }));
-    });
+    }
   } else if (!before) {
-    (after.pids || []).forEach((pid) => {
-      retryAsyncFunction(() => updatePost(pid, {
+    for (const pid of (after.pids || [])) {
+      await retryAsyncFunction(() => updatePost(pid, {
         sids: FieldValue.arrayUnion(after.sid),
       }));
-    });
+    }
   } else {
     const removed = (before.pids || [])
         .filter((pid) => !(after.pids || []).includes(pid));
     const added = (after.pids || [])
         .filter((pid) => !(before.pids || []).includes(pid));
 
-    removed.forEach((pid) => {
-      retryAsyncFunction(() => updatePost(pid, {
+    for (const pid of removed) {
+      await retryAsyncFunction(() => updatePost(pid, {
         sids: FieldValue.arrayRemove(after.sid),
       }));
-    });
-    added.forEach((pid) => {
-      retryAsyncFunction(() => updatePost(pid, {
+    }
+    for (const pid of added) {
+      await retryAsyncFunction(() => updatePost(pid, {
         sids: FieldValue.arrayUnion(after.sid),
       }));
-    });
+    }
   }
 };
 
@@ -188,35 +203,34 @@ exports.storyChangedPosts = async function(before, after) {
  * @param {Claim} before
  * @param {Claim} after
  */
-exports.claimChangedPosts = function(before, after) {
+exports.claimChangedPosts = async function(before, after) {
   if (!after) {
-    (before.pids || []).forEach((pid) => {
-      retryAsyncFunction(() => updatePost(pid, {
+    for (const pid of (before.pids || [])) {
+      await retryAsyncFunction(() => updatePost(pid, {
         cids: FieldValue.arrayRemove(before.cid),
       }));
-    });
+    }
   } else if (!before) {
-    (after.pids || []).forEach((pid) => {
-      retryAsyncFunction(() => updatePost(pid, {
+    for (const pid of (after.pids || [])) {
+      await retryAsyncFunction(() => updatePost(pid, {
         cids: FieldValue.arrayUnion(after.cid),
       }));
-    });
+    }
   } else {
     const removed = (before.pids || [])
         .filter((pid) => !(after.pids || []).includes(pid));
     const added = (after.pids || [])
         .filter((pid) => !(before.pids || []).includes(pid));
 
-    removed.forEach((pid) => {
-      retryAsyncFunction(() => updatePost(pid, {
+    for (const pid of removed) {
+      await retryAsyncFunction(() => updatePost(pid, {
         cids: FieldValue.arrayRemove(after.cid),
       }));
-    });
-    added.forEach((pid) => {
-      retryAsyncFunction(() => updatePost(pid, {
+    }
+    for (const pid of added) {
+      await retryAsyncFunction(() => updatePost(pid, {
         cids: FieldValue.arrayUnion(after.cid),
       }));
-    });
+    }
   }
 };
-

@@ -348,6 +348,65 @@ const getAllStoriesForPost = async function(pid) {
 };
 
 // /////////////////////////////////////////
+// Entity
+// /////////////////////////////////////////
+
+/**
+ * Creates an entity
+ * @param {Entity} entity
+ * @return {Promise<Boolean>}
+ * */
+const createEntity = async function(entity) {
+  if (!entity.eid || !entity.handle || !entity.createdAt || !entity.updatedAt) {
+    functions.logger.error(`Could not create entity: ${entity}`);
+    return;
+  }
+  const entityRef = admin.firestore().collection("entities").doc(entity.eid);
+  try {
+    await entityRef.create(entity);
+    return true;
+  } catch (e) {
+    functions.logger.error(e);
+    return false;
+  }
+};
+
+const updateEntity = async function(eid, values) {
+  if (!eid || !values) {
+    functions.logger.error(`Could not update entity: ${eid}`);
+    return;
+  }
+  const entityRef = admin.firestore().collection("entities").doc(eid);
+  try {
+    await entityRef.update(values);
+    return true;
+  } catch (e) {
+    functions.logger.error(e);
+    return false;
+  }
+};
+
+/**
+ * Fetches an entity by handle
+ * @param {String} handle
+ * @return {Entity}
+ * */
+const getEntityByHandle = async function(handle) {
+  if (!handle) {
+    functions.logger.error(`Could not get entity: ${handle}`);
+    return;
+  }
+  const entityRef = admin.firestore().collection("entities")
+      .where("handle", "==", handle).limit(1);
+  try {
+    const entities = await entityRef.get();
+    return entities.docs.map((entity) => entity.data())[0];
+  } catch (e) {
+    return null;
+  }
+};
+
+// /////////////////////////////////////////
 // Room
 // /////////////////////////////////////////
 
@@ -695,6 +754,10 @@ module.exports = {
   getRecentStories,
   getStories,
   getAllStoriesForPost,
+  //
+  createEntity,
+  getEntityByHandle,
+  updateEntity,
   //
   createNewRoom,
   getRoom,
