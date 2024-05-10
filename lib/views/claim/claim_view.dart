@@ -38,6 +38,7 @@ class _ClaimViewState extends ConsumerState<ClaimView> {
             : Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  context.sh,
                   Text(
                     claim.value,
                     style: context.l,
@@ -62,6 +63,7 @@ class _ClaimViewState extends ConsumerState<ClaimView> {
                               style: context.al
                                   .copyWith(color: context.errorColor),
                             ),
+                      context.sh,
                     ],
                   ),
                 ],

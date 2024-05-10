@@ -11,10 +11,12 @@ Post _$PostFromJson(Map<String, dynamic> json) => Post(
       status: $enumDecode(_$PostStatusEnumMap, json['status']),
       createdAt: Utils.timestampFromJson(json['createdAt'] as int),
       updatedAt: Utils.timestampFromJson(json['updatedAt'] as int),
-      sourceCreatedAt: Utils.timestampFromJson(json['sourceCreatedAt'] as int),
       sourceType: $enumDecode(_$SourceTypeEnumMap, json['sourceType']),
+      sourceCreatedAt:
+          Utils.timestampFromJsonNullable(json['sourceCreatedAt'] as int?),
       eid: json['eid'] as String?,
       sid: json['sid'] as String?,
+      xid: json['xid'] as String?,
       title: json['title'] as String?,
       description: json['description'] as String?,
       body: json['body'] as String?,
@@ -26,7 +28,7 @@ Post _$PostFromJson(Map<String, dynamic> json) => Post(
           (json['cids'] as List<dynamic>?)?.map((e) => e as String).toList() ??
               const [],
       url: json['url'] as String?,
-      imageUrl: json['imageUrl'] as String?,
+      photoURL: json['photoURL'] as String?,
       locations: (json['locations'] as List<dynamic>?)
               ?.map((e) => e as String)
               .toList() ??
@@ -59,12 +61,13 @@ Map<String, dynamic> _$PostToJson(Post instance) => <String, dynamic>{
       'sids': instance.sids,
       'cids': instance.cids,
       'eid': instance.eid,
+      'xid': instance.xid,
       'poster': instance.poster,
       'status': _$PostStatusEnumMap[instance.status]!,
       'title': instance.title,
       'description': instance.description,
       'body': instance.body,
-      'imageUrl': instance.imageUrl,
+      'photoURL': instance.photoURL,
       'url': instance.url,
       'sourceType': _$SourceTypeEnumMap[instance.sourceType]!,
       'locations': instance.locations,
@@ -80,10 +83,12 @@ Map<String, dynamic> _$PostToJson(Post instance) => <String, dynamic>{
       'messageCount': instance.messageCount,
       'createdAt': Utils.timestampToJson(instance.createdAt),
       'updatedAt': Utils.timestampToJson(instance.updatedAt),
-      'sourceCreatedAt': Utils.timestampToJson(instance.sourceCreatedAt),
+      'sourceCreatedAt':
+          Utils.timestampToJsonNullable(instance.sourceCreatedAt),
     };
 
 const _$PostStatusEnumMap = {
+  PostStatus.scraping: 'scraping',
   PostStatus.draft: 'draft',
   PostStatus.published: 'published',
   PostStatus.deleted: 'deleted',

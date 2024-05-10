@@ -47,6 +47,18 @@ function getElo(eloWinner, eloLoser, didWin, kFactor = 32) {
 
 /**
  * @param {string} url - the URL to parse
+ * @return {string} the source type of the URL
+ */
+function urlToSourceType(url) {
+  const domain = urlToDomain(url);
+  if (domain == "x.com" || domain == "twitter.com") {
+    return "x";
+  }
+  return null;
+}
+
+/**
+ * @param {string} url - the URL to parse
  * @return {string} the domain of the URL
  */
 function urlToDomain(url) {
@@ -129,6 +141,7 @@ module.exports = {
   isLocal,
   // isDev,
   urlToDomain,
+  urlToSourceType,
   isFibonacciNumber,
   isPerfectSquare,
   getElo,

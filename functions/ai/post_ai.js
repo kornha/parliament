@@ -34,8 +34,16 @@ const findStoriesAndClaims = async function(post) {
     functions.logger.error("Post is null");
     return;
   }
+
+  functions.logger.info(`Finding stories and claims for post ${post.pid}`);
+
   // Finds stories based on 2 leg K-mean/Neural search
   const gstories = await findStories(post);
+
+  if (!gstories || gstories.length === 0) {
+    functions.logger.warn(`Post does not have a gstory! ${post.pid}`);
+    return;
+  }
 
   // get all neighbor claims
   // this is a GRAPH search and potentially won't scare with our current db
@@ -67,7 +75,8 @@ const findStoriesAndClaims = async function(post) {
 
   const resp =
     await generateCompletions(
-        findStoriesAndClaimsPrompt(post, gstories, claims));
+        findStoriesAndClaimsPrompt(post, gstories, claims),
+        "findStoriesAndClaims " + post.pid);
 
   const g2stories = resp.stories;
 
@@ -87,6 +96,7 @@ const findStoriesAndClaims = async function(post) {
         updatedAt: Timestamp.now().toMillis(),
         createdAt: Timestamp.now().toMillis(),
         pids: FieldValue.arrayUnion(post.pid),
+        importance: gstoryClaim.importance ?? 0.0,
         ...(gstoryClaim.happenedAt &&
           {happenedAt: isoToMillis(gstoryClaim.happenedAt)}),
         // updated via callback since the claim may not exist yet
@@ -109,6 +119,7 @@ const findStoriesAndClaims = async function(post) {
         description: gstoryClaim.description,
         updatedAt: Timestamp.now().toMillis(),
         createdAt: Timestamp.now().toMillis(),
+        importance: gstoryClaim.importance ?? 0.0,
         pids: [post.pid],
         ...(gstoryClaim.happenedAt &&
           {happenedAt: isoToMillis(gstoryClaim.happenedAt)}),
@@ -147,6 +158,8 @@ const findStoriesAndClaims = async function(post) {
     }
   }));
 
+  functions.logger.info(`Done find stories and claims for post ${post.pid}`);
+
   return Promise.resolve();
 };
 
@@ -176,9 +189,10 @@ const findStories = async function(post) {
 
   const stories = await searchVectors(vector, "stories");
   if (!stories || stories.length === 0) {
-    functions.logger.warn(`Post does not have a story! ${post.pid}`);
+    // functions.logger.info(`Post does not have a story! ${post.pid}`);
   }
-  const resp = await generateCompletions(findStoriesPrompt(post, stories));
+  const resp = await generateCompletions(findStoriesPrompt(post, stories),
+      "findStories " + post.pid);
 
   if (!resp || !resp.stories || resp.stories.length === 0) {
     functions.logger.info(`Post does not have a story! ${post.pid}`);
@@ -202,7 +216,7 @@ const savePostEmbeddings = async function(post) {
     return true;
   }
 
-  const embeddings = await generateEmbeddings(strings);
+  const embeddings = await generateEmbeddings(strings, post.photoURL);
   return await setVector(post.pid, embeddings, "posts");
 };
 

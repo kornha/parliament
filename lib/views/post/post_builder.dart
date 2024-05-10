@@ -60,7 +60,12 @@ class _PostBuilderState extends ConsumerState<PostBuilder> {
       _errorText = "Can't unfurl";
     }
 
-    if (postRef != null && postRef.hasValue) {
+    Post? post = postRef?.value;
+
+    // we check title because the post can be created without a title while its scraping
+    if (postRef != null &&
+        postRef.hasValue &&
+        post?.status == PostStatus.draft) {
       return ModalContainer(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -153,17 +158,6 @@ class _PostBuilderState extends ConsumerState<PostBuilder> {
                     },
             ),
           ),
-          // context.sf,
-          // ZTextButton(
-          //   backgroundColor: context.secondaryColor,
-          //   foregroundColor: context.onSecondaryColor,
-          //   type: ZButtonTypes.wide,
-          //   onPressed: () {
-          //     Functions.instance().triggerContent();
-          //     context.pop();
-          //   },
-          //   child: const Text("Generate"),
-          // ),
         ],
       ),
     );

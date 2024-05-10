@@ -2,174 +2,133 @@
 const _ = require("lodash");
 const {millisToIso} = require("../common/utils");
 
-const regenerateStoryPrompt = function(story, primaryPosts, secondaryPosts) {
-  return `
-        You will be given a Story and a list of Posts that are associated with the Story.
-        Description of a Story:
-        ${storyDescriptionPrompt()}
-
-        Description of a Post:
-        ${postDescriptionPrompt()}
-
-        The Posts will be either primary or secondary.
-        A Primary Post is a post that is directly associated with the Story, and is used to generate the Title and Description of the Story.
-        A Secondary Post is a post that is indirectly associated with the Story, and can inform the Title and Description of the Story, 
-        but it may have other content which should not be included in the Story.
-
-        You will be given a Story, list of Primary Posts, and a list of Secondary Posts. Both lists of Posts will be ordered by recency.
-        You will be given the Story's current Title and Description. If there is no new information, and the Title and Description meet criteria, you should not change them.
-        You will also be asked to output the Story's ID (aka, the sid) and the time the event happened at (happenedAt). 
-        You should always output the same sid passed in, and update the happenedAt if and only if the time the event happened at became more clear or changed.
-
-        Here's the instructions for outputting a Story:
-        ${newStoryPrompt()}
-
-        Here is the Story:
-        ${storyToJSON(story)}
-
-        Here are the Primary Posts (if any):
-        ${primaryPosts.map((_post) => postToJSON(_post)).join("\n")}
-
-        Here are the Secondary Posts (if any):
-        ${secondaryPosts.map((_post) => postToJSON(_post)).join("\n")}
-
-        ${storyJSONOutput()}
-  `;
-};
-
 const findStoriesPrompt = function(post, stories) {
-  return `
-        You will be given a Post and a list of Stories (can be empty).
+  // Prepare the initial set of messages with description texts
+  const messages = [
+    {type: "text", text: `
+      You will be given a Post and a list of Stories (can be empty).
 
-        Description of a Post:
-        ${postDescriptionPrompt()}
+      Description of a Post:
+      ${postDescriptionPrompt()}
 
-        Description of a Story:
-        ${storyDescriptionPrompt()}
+      Description of a Story:
+      ${storyDescriptionPrompt()}
 
-        Your goal is to find all the Stories (aka events) that the Post belongs to, or makes a clear reference or claim to.
-        A Story is typically an event, with a specific time and place. Sometimes however, Stories do not have a time and place, and instead are a subject or topic.
+      Your goal is to find all the Stories (aka events) that the Post belongs to, or makes a clear reference or claim to.
+      A Story is typically an event, with a specific time and place. Sometimes, however, Stories do not have a time and place and instead are a subject or topic.
 
-        Since a Story is an event, you will ONLY return the Story if the Post directly mentions the event or makes a claim about the event.
-        You will also create "new" Stories, if the Post mentions an event/topic that is not passed in the list of stories.
+      Since a Story is an event, you will ONLY return the Story if the Post directly mentions the event or makes a claim about the event.
+      You will also create "new" Stories, if the Post mentions an event/topic that is not passed in the list of stories.
 
-        Here's a high level example that explains how to decide the granularity of a Story:
-        ${findStoryExample()}
+      Here's a high level example that explains how to decide the granularity of a Story:
+      ${findStoryExample()}
+    `},
+  ];
 
-        here are the Stories: ${_.isEmpty(stories) ? "[]" : stories.map((_story) => storyToJSON(_story)).join("\n")}
-        here is the Post: ${postToJSON(post)}
+  messages.push({type: "text", text: `Here is the Post: ${postToJSON(post)}`});
+  if (post.photoURL) {
+    messages.push({type: "image_url", image_url: {url: post.photoURL}});
+  }
 
-        Output a list of 0, 1, or many stories. Order the output by the most relevant story first (at position 0), from most to least relevant. 
-        if the Post refers to an existing Story, return the Story ID, otherwise return null (as the ID) for a new Story. If you are creating a new Story, follow these instructions:
+  // Add messages for stories
+  if (_.isEmpty(stories)) {
+    messages.push({type: "text", text: "There are no stories associated with this post."});
+  } else {
+    messages.push({type: "text", text: "Here are the Stories:"});
+    stories.forEach((story) => {
+      messages.push({type: "text", text: storyToJSON(story)});
+      if (story.photoURL) {
+        messages.push({type: "image_url", image_url: {url: story.photoURL}});
+      }
+    });
+  }
 
-        How to output a new Story, (if a new Story is needed):
-        ${newStoryPrompt()}
+  messages.push({type: "text", text: "If you are creating a new Story, follow these instructions:"});
+  messages.push({type: "text", text: newStoryPrompt()});
 
-        Output the following JSON ordered from most to least relevant Story:
-        {"stories":[${storyJSONOutput()}, ...]}
-        `;
+  messages.push({type: "text", text: "Output the following JSON ordered from most to least relevant Story:"});
+  messages.push({type: "text", text: `{"stories":[${storyJSONOutput()}, ...]}`});
+
+  return messages;
 };
 
-const findClaimsPrompt = function(post, claims) {
-  return `
-        You will be given a Post and a list of Claims (can be empty).
-
-        Description of a Post:
-        ${postDescriptionPrompt()}
-
-        Description of a Claim:
-        ${claimsDescriptionPrompt()}
-
-        Your goal is to find all the Claims that the Post makes. 
-        Note that since a Claim has a "pro" and "against" list of Posts, you may return a Claim as "against" if the post makes an alternative Claim that inherently refutes this Claim.
-
-        For example;
-
-        Here's a high level example:
-        ${findClaimExample()}
-
-        here are the Claims: ${_.isEmpty(claims) ? "[]" : claims.map((claim) => claimToJSON(claim)).join("\n")}
-        here is the Post: ${postToJSON(post)}
-
-        Output a list of 0, 1, or many Claims. Order the output by the most relevant Claim first (at position 0), from most to least relevant. 
-        if the Post refers to an existing Claim, return the claim ID (cid), otherwise return null (as the ID) for a new Claim. If you are creating a new Claim, follow these instructions:
-
-        How to output a new Claim, (if a new Claim is needed):
-        ${newClaimPrompt()}
-
-        Output the following JSON ordered from most to least relevant Claim:
-        {"claims":[${claimJSONOutput()}, ...]}
-        `;
-};
-
-const findClaimsForStoryPrompt = function(story, claims) {
-  return `
-        You will be given a Story and a list of Claims.
-
-        Description of a Story:
-        ${storyDescriptionPrompt()}
-
-        Description of a Claim:
-        ${claimsDescriptionPrompt()}
-
-        Your goal is to find all the Claims that directly relate to the story.
-        Claims must be directly making a claim about the Story, and not to other events or topics.
-
-        For example;
-
-        Here's a high level example:
-        ${findClaimForStoryExample()}
-
-        here are the Claims: ${_.isEmpty(claims) ? "[]" : claims.map((claim) => claimToJSON(claim)).join("\n")}
-        here is the Story: ${storyToJSON(story)}
-
-        Output a list of 0, 1, or many Claim IDs (aka cid) Note you are outputting the claim cid and not the Story sid. 
-        Order the output by the most relevant Claim ID first (at position 0), from most to least relevant. 
-
-        Output the following JSON ordered from most to least relevant Claim:
-        {"cids":[cid1, cid2, ...]}
-        `;
-};
 
 const findStoriesAndClaimsPrompt = function(post, stories, claims) {
-  return `
-    You will be given a Post, a list of Stories (can be empty), and a list of Claims (can be empty). 
-    
-    Description of a Post:
-    ${postDescriptionPrompt()}
+  // Assuming each post and story has an 'photoURL' property
+  const messages = [
+    {type: "text", text: `
+      You will be given a Post, a list of Stories (can be empty), and a list of Claims (can be empty).
 
-    Description of a Story:
-    ${storyDescriptionPrompt()}
+      Description of a Post:
+      ${postDescriptionPrompt()}
 
-    Description of a Claim:
-    ${claimsDescriptionPrompt()}
+      Description of a Story:
+      ${storyDescriptionPrompt()}
 
-    The Stories represent all Stories the Post is currently associated with. 
-    The Claims represent all Claims that are already associated with all these Stories, as well as Claims that are associated with all other Posts already associated with these Stories.
+      Description of a Claim:
+      ${claimsDescriptionPrompt()}
 
-    Your goal is to output the Stories EXACTLY as they are, BUT with the following change.
+      The Stories represent all Stories the Post is currently associated with.
+      The Claims represent all Claims that are already associated with all these Stories, as well as Claims that are associated with all other Posts already associated with these Stories.
 
-    1) If the Post makes a Claim that is already in the list of Claims, this Claim should be added to the Story, and the Post should be added to the "pro" or "against" list of the Claim. 
-    1a) DO NOT OUTPUT A CLAIM THAT THE POST DOES NOT MAKE EVEN IF IT IS PART OF THE STORY ALREADY.
-    1b) DO NOT OUTPUT OTHER PIDS THAT ARE ALREADY PART OF THE PRO OR AGAINST LIST OF THE CLAIM.
-    2) If the Post makes a Claim that is inherently new (there is no matching Claim in the list), this Claim should be created and added to the Story, and the Post should be added to the "pro" or "against" list of the Claim.
+      Your goal is to output the Stories EXACTLY as they are, BUT with the following change.
+      
+      1) If the Post makes a Claim that is already in the list of Claims, this Claim should be added to the Story, and the Post should be added to the "pro" or "against" list of the Claim.
+      1a) DO NOT OUTPUT A CLAIM THAT THE POST DOES NOT MAKE EVEN IF IT IS PART OF THE STORY ALREADY.
+      1b) DO NOT OUTPUT OTHER PIDS THAT ARE ALREADY PART OF THE PRO OR AGAINST LIST OF THE CLAIM.
+      2) If the Post makes a Claim that is inherently new (there is no matching Claim in the list), this Claim should be created and added to the Story, and the Post should be added to the "pro" or "against" list of the Claim.
 
-    Here is how to output a new Claim:
-    ${newClaimPrompt()}
+      Here is how to output a new Claim:
+      ${newClaimPrompt()}
 
-    Here's a high level example:
-    ${findClaimsAndStoriesExample()}
+      Here's a high level example:
+      ${findClaimsAndStoriesExample()}
+    `},
+  ];
 
-    here is the Post: ${postToJSON(post)}
+  messages.push({type: "text", text: `Here is the Post: ${postToJSON(post)}`});
+  if (post.photoURL) {
+    messages.push({type: "image_url", image_url: {url: post.photoURL}});
+  }
 
-    here are the Stories: ${_.isEmpty(stories) ? "[]" : stories.map((story) => storyToJSON(story)).join("\n")}
+  if (_.isEmpty(stories)) {
+    messages.push({type: "text", text: "There are no stories associated with this post."});
+  } else {
+    messages.push({type: "text", text: `Here are the Stories:`});
+    stories.forEach((story) => {
+      messages.push({type: "text", text: `${storyToJSON(story)}`});
+      if (story.photoURL) {
+        messages.push({type: "image_url", image_url: {url: story.photoURL}});
+      }
+    });
+  }
 
-    here are the Claims: ${_.isEmpty(claims) ? "[]" : claims.map((claim) => claimToJSON(claim)).join("\n")}
+  if (_.isEmpty(claims)) {
+    messages.push({type: "text", text: "There are no claims associated with the stories/posts."});
+  } else {
+    messages.push({type: "text", text: `Here are the Claims:`});
+    claims.forEach((claim) => {
+      messages.push({type: "text", text: `${claimToJSON(claim)}`});
+    });
+  }
 
-    
-    Output the stories in the same order as they were passed in, but with the new Claims added to the Stories, as follows:
-    {"stories":[${storyJSONOutput(true)}, ...]}
-  `;
+  messages.push({type: "text", text: "Output the stories in the same order as they were passed in, but with the new Claims added to the Stories, as follows:"});
+  messages.push({type: "text", text: `{"stories":[${storyJSONOutput(true)}, ...]}`});
+
+  return messages;
+};
+
+const generateImageDescriptionPrompt = function(photoURL) {
+  const messages = [];
+  messages.push({type: "text",
+    text: `Generate a detailed description for the following image.
+    This description will be used in vector search for similar content.`,
+  });
+  messages.push({type: "image_url", image_url: {url: photoURL}});
+  messages.push({type: "text", text: `
+    Output format:{ "description": "A detailed description of the image"}
+  `});
+  return messages;
 };
 
 //
@@ -186,6 +145,7 @@ const newStoryPrompt = function() {
   The Title should be 2-6 words, and the Description should be 1-5 sentences.
   They should be as neutral as possible, and include language as definitive only if consensus is clear.
   'happenedAt' is the time for when the event in the story happened. If the time is not clear, output the time that was passed in, which can be null.
+  'importance' is a value between 0.0 and 1.0, where 1.0 would represent insanely urgent news, like the breakout of WW3, and 0.0 represents non-news, like a pure opinion (that isn't newsworthy), or a cat video.
   `;
 };
 
@@ -202,6 +162,9 @@ const storyDescriptionPrompt = function() {
 
         The "happenedAt" is the time that the event happened at, or our best guess.
         
+        The "importance" is a value between 0.0 and 1.0, where 1.0 would represent insanely urgent news, like the breakout of WW3, and 0.0 represents non-news, like a pure opinion (that isn't newsworthy), or a cat video.
+        Generally, a Story will have a 0.5. You can judge the importance by the subject matter, but also by the urgency in the posts.
+
         A Story is has several other fields.
         Primarily, a Story is a collection of Posts (social media postings or articles), which inform the Claims in the story. 
         Claims are a Statement about the Story that have supporters and or refuters.
@@ -210,7 +173,7 @@ const storyDescriptionPrompt = function() {
 };
 
 const storyJSONOutput = function(claims = false) {
-  return `{"sid":ID of the Story or null if Story is new, "title": "title of the story", "description": "the description of the story is a useful vector searchable description", "happenedAt": ISO 8601 time format that the event happened at, or null if it cannot be determined${claims ? `, "claims":[${claimJSONOutput()}, ...]` : ""}}`;
+  return `{"sid":ID of the Story or null if Story is new, "title": "title of the story", "description": "the description of the story is a useful vector searchable description", "importance": 0.0-1.0 relative importance of the story, "happenedAt": ISO 8601 time format that the event happened at, or null if it cannot be determined${claims ? `, "claims":[${claimJSONOutput()}, ...]` : ""}}`;
 };
 
 const storyToJSON = function(story) {
@@ -220,7 +183,7 @@ const storyToJSON = function(story) {
     title: ${story.title}
     description: ${story.description}
     happenedAt: ${millisToIso(story.happenedAt)}
-    END OF STORY
+    END OF STORY (photos/photoURLs will be listen below, if any)
   `;
 };
 
@@ -248,10 +211,10 @@ const postToJSON = function(post) {
         title (if any): ${post.title}
         description (if any): ${post.description}
         body (if any): ${post.body}
-        sourceCreatedAt: ${millisToIso(post.sourceCreatedAt)}
+        sourceCreatedAt (if any): ${millisToIso(post.sourceCreatedAt)}
         credibility (if any): ${post.credibility}
         bias (if any): ${post.bias}
-        END OF POST
+        END OF POST (photos/photoURLs will be listen below, if any)
     `;
 };
 
@@ -346,6 +309,7 @@ const findStoryExample = function() {
 
     While this Post mentions Iran and a report about closing airspace over Tehran, in conjunction with Israel, you can infer that there is an urgent tension between Iran and Israel.
     Hence, a Title for the Story could be: "Iran Closes Airspace" or "Iran and Israel at War". While both would be right, since we generally lean on the side of granularity, the former title would be preferable.
+    And the importance of the Story would be perhaps 0.7, a very significant event, but perhaps not world changing.
 
     The Description could be: "Amidst rising tensions between Iran and Israel, it was reported by Iran state media that they closed airspace over Tehran. This post wast later removed, and the situation remains ongoing."
 
@@ -364,43 +328,10 @@ const findStoryExample = function() {
     While you can choose to group these into the same Story, or keep them separate, in this case, since the sourceCreatedAt (time the post was made) is similar, it is likely they are referring to the same event, (Iran attack and Israel response) and should be grouped together.
     
     Hence the Title of the Story might be updated, "Iran and Israel at War", and now the description of the Story could be updated to include the new information.
+    As it appears the Story has gotten a bit more urgent, the importance could be updated to 0.75.
 
     For example; the Description could be: "Amidst rising tensions between Iran and Israel it was rumored that Iran closed airspace over Tehran. This is unclear. Meanwhile Defense Minister Gallant has stated that Israel will respond to attacks on enemy territory."
   `;
-};
-
-const findClaimExample = function() {
-  return `
-    Let's say this is the Post:
-    "Iran state media removes report about closing airspace over Tehran after warnings of possible strike on Israel"
-    sourceCreatedAt (time post was published, different from the Story's 'happenedAt'): "2021-05-10T12:00:00Z" 
-
-    The Claims here are that 1) Iran had made a report about closing airspace over Tehran near the "sourceCreatedAt" time of the Post and 2) They later changed this report and did not end up closing airspace, and 3) There were warnings of a possible strike on Israel.
-
-    If there is a Claim that says "Iran closed airspace over Tehran", then this Post would be "against" that Claim, as the.
-    If there is a Claim that says "Iran did not close airspace over Tehran", then this Post would be "for" that Claim.
-    If there is a Claim that says "There were warnings of a possible strike on Israel" then this Post would be "for" that Claim.
-    If there is a Claim that says "Iran said they are closing their airspace over Tehran", then this Post would be "for" that Claim.
-  `;
-};
-
-const findClaimForStoryExample = function() {
-  return `
-    Let's say this is the Story:
-    "Joe Biden spoke to Bibi Netanyahu about his plans for war with Iran"
-    happenedAt: "2021-05-10T12:00:00Z"
-
-    Let's say there are two Claims in question:
-    1) value: "Joe Biden spoke to Bibi Netanyahu for 3 hours"
-       context: "The 2021 War between Israel and Iran"
-    2) value: "Joe Biden went on a trip to Delaware to visit his family"
-       context: "Joe Biden's trips in 2021"
-    3) value: "Joe Biden spoke to Bibi Netanyahu about his plans for war with Iran"
-       context: "The 2024 War between Israel and Iran"
-    Since the first Claim is directly related to the Story, it should be included.
-    The second Claim should be ignored. 
-    The third claim also should be ignored due to it referring to a different event.
-    `;
 };
 
 const findClaimsAndStoriesExample = function() {
@@ -429,11 +360,11 @@ const findClaimsAndStoriesExample = function() {
 };
 
 module.exports = {
-  regenerateStoryPrompt,
   findStoriesPrompt,
-  findClaimsPrompt,
-  findClaimsForStoryPrompt,
   findStoriesAndClaimsPrompt,
+  //
+  generateImageDescriptionPrompt,
+  //
   storyDescriptionPrompt,
   storyJSONOutput,
   credibilityDescriptionPrompt,

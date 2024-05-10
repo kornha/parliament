@@ -39,18 +39,18 @@ class _FeedState extends ConsumerState<Feed> {
         showLogo: true,
         actions: [
           IconButton(
+            icon: const Icon(Icons.sync),
+            onPressed: () {
+              Functions.instance().test();
+            },
+          ),
+          IconButton(
             icon: const Icon(FontAwesomeIcons.plus),
             color: context.primaryColor,
             onPressed: () {
               context.showFullScreenModal(const PostBuilder());
             },
           ),
-          // IconButton(
-          //   icon: const Icon(Icons.help),
-          //   onPressed: () {
-          //     Functions.instance().test();
-          //   },
-          // )
         ],
       ),
       body: user.isLoading

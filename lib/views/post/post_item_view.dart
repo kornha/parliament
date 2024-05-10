@@ -83,8 +83,8 @@ class _PostViewState extends ConsumerState<PostItemView> {
                       storyImportance > 4
                           ? context.sf
                           : const SizedBox.shrink(),
-                      storyImportance > 4 && post?.imageUrl != null
-                          ? ZImage(imageUrl: post?.imageUrl ?? "")
+                      storyImportance > 4 && post?.photoURL != null
+                          ? ZImage(photoURL: post?.photoURL ?? "")
                           : const SizedBox.shrink(),
                       Visibility(
                           visible: post?.description != null &&
@@ -110,13 +110,13 @@ class _PostViewState extends ConsumerState<PostItemView> {
                     mainAxisAlignment: MainAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      post?.imageUrl != null
+                      post?.photoURL != null
                           ? ZImage(
-                              imageUrl: post?.imageUrl ?? "",
+                              photoURL: post?.photoURL ?? "",
                               imageSize: ZImageSize.small,
                             )
                           : const SizedBox.shrink(),
-                      post?.imageUrl != null
+                      post?.photoURL != null
                           ? context.sh
                           : const SizedBox.shrink(),
                       SizedBox(
@@ -126,7 +126,7 @@ class _PostViewState extends ConsumerState<PostItemView> {
                                 context.imageSizeSmall.width -
                                 context.sd.width! -
                                 2.0) *
-                            (post?.imageUrl != null ? 1 : 0.7),
+                            (post?.photoURL != null ? 1 : 0.7),
                         child: Text(
                           // some posts dont have descriptions
                           post?.description ?? post?.title ?? "",

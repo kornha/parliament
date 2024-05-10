@@ -3,6 +3,7 @@ const admin = require("firebase-admin");
 const {Timestamp, FieldPath, FieldValue} = require("firebase-admin/firestore");
 const {v4} = require("uuid");
 const _ = require("lodash");
+const {retryAsyncFunction} = require("./utils");
 
 // /////////////////////////////////////////
 // User
@@ -147,6 +148,27 @@ const getPosts = async function(pids) {
     const posts = await postsRef.where(FieldPath.documentId(),
         "in", pids).get();
     return posts.docs.map((post) => post.data());
+  } catch (e) {
+    return null;
+  }
+};
+
+/**
+ * fetches a post by xid
+ * @param {*} xid
+ * @param {*} sourceType
+ * @return {Post}
+ * */
+const getPostByXid = async function(xid, sourceType) {
+  if (!xid) {
+    functions.logger.error(`Could not get post by xid: ${xid}`);
+    return;
+  }
+  const postsRef = admin.firestore().collection("posts")
+      .where("xid", "==", xid).where("sourceType", "==", sourceType).limit(1);
+  try {
+    const posts = await postsRef.get();
+    return posts.docs.map((post) => post.data())[0];
   } catch (e) {
     return null;
   }
@@ -383,6 +405,61 @@ const updateEntity = async function(eid, values) {
   } catch (e) {
     functions.logger.error(e);
     return false;
+  }
+};
+
+/**
+ * Finds or creates an entity by handle.
+ * @param {string} handle the entity handle.
+ * @param {string} sourceType the source type.
+ * @return {string} the entity id.
+ */
+const findCreateEntity = async function(handle, sourceType) {
+  if (!handle) {
+    functions.logger.error("No handle provided.");
+    return;
+  }
+
+  if (!sourceType) {
+    functions.logger.error("No sourceType provided.");
+    return;
+  }
+  // check if first char is @
+  // need to see if this is needed for other platforms
+  if (handle[0] == "@" && sourceType == "x") {
+    handle = handle.slice(1);
+  }
+
+  const entity = await retryAsyncFunction(() =>
+    getEntityByHandle(handle), 2, 1000, false);
+
+  if (entity) {
+    return entity.eid;
+  }
+
+  const eid = v4();
+  const newEntity = {
+    eid: eid,
+    handle: handle,
+    sourceType: sourceType,
+    createdAt: Timestamp.now().toMillis(),
+    updatedAt: Timestamp.now().toMillis(),
+  };
+  await retryAsyncFunction(() => createEntity(newEntity));
+  return eid;
+};
+
+const getEntity = async function(eid) {
+  if (!eid) {
+    functions.logger.error(`Could not get entity: ${eid}`);
+    return;
+  }
+  const entityRef = admin.firestore().collection("entities").doc(eid);
+  try {
+    const entity = await entityRef.get();
+    return entity.data();
+  } catch (e) {
+    return null;
   }
 };
 
@@ -742,6 +819,7 @@ module.exports = {
   setPost,
   deletePost,
   getPost,
+  getPostByXid,
   getPosts,
   getPostsForStory,
   getAllPostsForStory,
@@ -756,8 +834,10 @@ module.exports = {
   getAllStoriesForPost,
   //
   createEntity,
+  getEntity,
   getEntityByHandle,
   updateEntity,
+  findCreateEntity,
   //
   createNewRoom,
   getRoom,

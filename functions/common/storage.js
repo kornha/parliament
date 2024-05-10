@@ -1,34 +1,44 @@
 
 const admin = require("firebase-admin");
+const functions = require("firebase-functions");
 
 /**
-  * @param {post} post in question
-  * @param {String} content is the text to be saved
+  * @param {String} path
+  * @param {String} content
+  * @param {String} contentType application/json or text/plain
   */
-const setTextContentInStorage = async function(post, content) {
-  const file = admin.storage().bucket().file(`posts/text/${post.pid}.txt`);
+const setContent = async function(
+    path,
+    content,
+    contentType = "application/json",
+) {
+  const file = admin.storage().bucket().file(path);
   await file.save(content, {
-    contentType: "text/plain",
-    gzip: true,
+    contentType: contentType,
+    // gzip: gzip,
   });
 };
 
 /**
-    * @param {post} post
-    * @return {String | null} content text from or null if unavailable
-    */
-const getTextContentFromStorage = async function(post) {
-  console.log(`posts/text/${post.pid}.txt`);
-  const file = admin.storage().bucket().file(`posts/text/${post.pid}.txt`);
-  const exists = await file.exists();
-  if (!exists[0]) return;
-  const text = await file.download().then((data) => {
-    return data[0].toString();
-  });
-  return text;
+  * Retrieves content from Google Cloud Storage, decompressing it if necessary.
+  * @param {String} path - The path to the file in the storage bucket.
+  * @return {Promise<String>} - The retrieved content as a string.
+  */
+const getContent = async function(path) {
+  const file = admin.storage().bucket().file(path);
+  const [exists] = await file.exists();
+  if (!exists) return null;
+
+  try {
+    const dataBuffer = await file.download();
+    return dataBuffer[0].toString();
+  } catch (error) {
+    functions.logger.error(`Error downloading file: ${path}`);
+    return null;
+  }
 };
 
 module.exports = {
-  setTextContentInStorage,
-  getTextContentFromStorage,
+  setContent,
+  getContent,
 };

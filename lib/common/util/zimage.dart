@@ -9,21 +9,21 @@ import 'package:political_think/common/extensions.dart';
 enum ZImageSize { small, standard }
 
 class ZImage extends StatelessWidget {
-  final String imageUrl;
+  final String photoURL;
   final ZImageSize imageSize;
   const ZImage({
     super.key,
-    required this.imageUrl,
+    required this.photoURL,
     this.imageSize = ZImageSize.standard,
   });
 
   @override
   Widget build(BuildContext context) {
-    if (imageUrl.isEmpty) {
+    if (photoURL.isEmpty) {
       return const ZError(type: ErrorType.image);
-    } else if (imageUrl.endsWith('.svg')) {
+    } else if (photoURL.endsWith('.svg')) {
       return SvgPicture.network(
-        imageUrl,
+        photoURL,
         width: imageSize == ZImageSize.small
             ? context.imageSizeSmall.width
             : context.imageSize.width,
@@ -38,7 +38,7 @@ class ZImage extends StatelessWidget {
       );
     } else {
       return Image.network(
-        imageUrl,
+        photoURL,
         loadingBuilder: (context, child, loadingProgress) {
           return loadingProgress == null
               ? child

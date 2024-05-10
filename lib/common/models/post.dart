@@ -7,7 +7,7 @@ import 'package:political_think/common/util/utils.dart';
 
 part 'post.g.dart';
 
-enum PostStatus { draft, published, deleted, error }
+enum PostStatus { scraping, draft, published, deleted, error }
 
 @JsonSerializable(explicitToJson: true)
 class Post {
@@ -17,6 +17,7 @@ class Post {
   final List<String> cids;
   // creator domain or handle of the originator TODO: move to entities
   String? eid;
+  String? xid; // external id
   // user who posted the post, if any
   String? poster;
   PostStatus status;
@@ -24,7 +25,7 @@ class Post {
   String? title;
   String? description;
   String? body;
-  String? imageUrl;
+  String? photoURL;
   String? url;
   final SourceType sourceType;
   List<String> locations; // currently country codes need to abstract
@@ -51,8 +52,10 @@ class Post {
   Timestamp createdAt;
   @JsonKey(fromJson: Utils.timestampFromJson, toJson: Utils.timestampToJson)
   Timestamp updatedAt;
-  @JsonKey(fromJson: Utils.timestampFromJson, toJson: Utils.timestampToJson)
-  Timestamp sourceCreatedAt;
+  @JsonKey(
+      fromJson: Utils.timestampFromJsonNullable,
+      toJson: Utils.timestampToJsonNullable)
+  Timestamp? sourceCreatedAt;
 
   Post({
     required this.pid,
@@ -60,10 +63,11 @@ class Post {
     required this.createdAt,
     required this.updatedAt,
     // time the original post was created
-    required this.sourceCreatedAt,
     required this.sourceType,
+    this.sourceCreatedAt,
     this.eid,
     this.sid,
+    this.xid,
     this.title,
     this.description,
     this.body,
@@ -71,7 +75,7 @@ class Post {
     this.sids = const [],
     this.cids = const [],
     this.url,
-    this.imageUrl,
+    this.photoURL,
     this.locations = const [],
     this.importance,
     this.userBias,

@@ -2,15 +2,11 @@
 
 const functions = require("firebase-functions");
 const {defaultConfig, gbConfig} = require("../common/functions");
-const {getEntityByHandle,
-  createEntity, updateEntity} = require("../common/database");
-const {v4} = require("uuid");
-const {Timestamp} = require("firebase-admin/firestore");
-const {retryAsyncFunction} = require("../common/utils");
 const {publishMessage,
   ENTITY_SHOULD_CHANGE_IMAGE} = require("../common/pubsub");
-const {getEntityImage} = require("../content/scraper");
-
+const {getEntityImage} = require("../content/xscraper");
+const {updateEntity} = require("../common/database");
+const {Timestamp} = require("firebase-admin/firestore");
 
 //
 // Firestore
@@ -28,9 +24,13 @@ exports.onEntityUpdate = functions
 
       const _create = !before && after;
       //   const _delete = before && !after;
-      //   const _update = before && after;
+      const _update = before && after;
 
-      if (_create && !after.photoURL) {
+      // can revisit if this logic is right
+      // for some reason after.handle was null on create
+      if (_create && !after.photoURL && after.handle ||
+        _update && before.handle !== after.handle
+      ) {
         publishMessage(ENTITY_SHOULD_CHANGE_IMAGE, after);
       }
 
@@ -60,56 +60,17 @@ exports.onEntityShouldChangeImage = functions
 
       const image = await getEntityImage(entity.handle, entity.sourceType);
       if (!image) {
-        functions.logger.error("No image found for entity.");
+        functions.logger.error(`No image found for entity ${entity.handle}, 
+          ${entity.sourceType}`);
         return;
       }
 
-      await updateEntity(entity.eid, {photoURL: image});
+      await updateEntity(entity.eid, {
+        photoURL: image,
+        updatedAt: Timestamp.now().toMillis(),
+      });
 
       return Promise.resolve();
     });
 
-//
-// helpers
-//
 
-/**
- * Finds or creates an entity by handle.
- * @param {string} creatorEntity the creator entity handle.
- * @param {string} sourceType the source type.
- * @return {string} the entity id.
- */
-exports.findCreateEntity = async function(creatorEntity, sourceType) {
-  if (!creatorEntity) {
-    functions.logger.error("No creatorEntity provided.");
-    return;
-  }
-
-  if (!sourceType) {
-    functions.logger.error("No sourceType provided.");
-    return;
-  }
-  // check if first char is @
-  // need to see if this is needed for other platforms
-  if (creatorEntity[0] == "@" && sourceType == "x") {
-    creatorEntity = creatorEntity.slice(1);
-  }
-
-  const entity = await retryAsyncFunction(() =>
-    getEntityByHandle(creatorEntity), 2, 1000, false);
-
-  if (entity) {
-    return entity.eid;
-  }
-
-  const eid = v4();
-  const newEntity = {
-    eid: eid,
-    handle: creatorEntity,
-    sourceType: sourceType,
-    createdAt: Timestamp.now().toMillis(),
-    updatedAt: Timestamp.now().toMillis(),
-  };
-  await retryAsyncFunction(() => createEntity(newEntity));
-  return eid;
-};

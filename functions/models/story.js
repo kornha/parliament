@@ -88,8 +88,6 @@ exports.onStoryChangedPosts = functions
         return Promise.resolve();
       }
 
-      // regenerateStory(story);
-
       return Promise.resolve();
     });
 

@@ -4,7 +4,9 @@ const {onMessageChange} = require("./messages/message");
 const {onAuthUserCreate, onAuthUserDelete,
   setUsername} = require("./models/user");
 const {TaskQueue} = require( "firebase-admin/functions");
-const {onPostUpdate, onPostPublished, onPostPublished2,
+const {onPostUpdate, onPostPublished,
+  onPostPublished2,
+  onPostChangedXid,
   onPostChangedVector} = require("./models/post");
 const {onVoteBiasChange, onVoteCredibilityChange} = require("./models/vote");
 const {generateBiasTraining} = require("./ai/scripts");
@@ -36,9 +38,11 @@ Object.assign(TaskQueue.prototype, {
 
 // Used as a dev-time helper to test functions
 const functions = require("firebase-functions");
+const {scrapeXFeed} = require("./content/xscraper");
 
 const test = functions.https.onCall(async (data, context) => {
-  return {complete: true};
+  await scrapeXFeed();
+  return Promise.resolve();
 });
 
 module.exports = {
@@ -53,6 +57,7 @@ module.exports = {
   onPostPublished,
   onPostPublished2,
   onPostChangedVector,
+  onPostChangedXid,
   // Story
   onStoryUpdate,
   onStoryPostsChanged,

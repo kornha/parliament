@@ -47,12 +47,18 @@ class _StoryViewState extends ConsumerState<StoryView> {
                   ),
                   context.sf,
                   const ZDivider(type: DividerType.PRIMARY),
-                  context.sf,
+                  context.sh,
                   story?.cids.isNotEmpty ?? false
                       ? Column(
-                          children: story!.cids
-                              .map((cid) => ClaimView(cid: cid))
-                              .toList(),
+                          children: story!.cids.asMap().entries.expand((entry) {
+                            int index = entry.key;
+                            var cid = entry.value;
+                            return [
+                              ClaimView(cid: cid),
+                              if (index != story.cids.length - 1)
+                                const ZDivider(type: DividerType.SECONDARY),
+                            ];
+                          }).toList(),
                         )
                       : const SizedBox.shrink(),
                 ],

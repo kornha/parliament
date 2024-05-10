@@ -5,13 +5,17 @@ const {defaultConfig, gbConfig} = require("../common/functions");
 const {
   savePostEmbeddings, findStoriesAndClaims} = require("../ai/post_ai");
 const {publishMessage, POST_PUBLISHED,
-  POST_CHANGED_VECTOR} = require("../common/pubsub");
+  POST_CHANGED_VECTOR,
+  POST_CHANGED_XID,
+} = require("../common/pubsub");
 const {getPost, setPost, deletePost,
   createNewRoom,
-  updatePost} = require("../common/database");
+  updatePost, getEntity,
+} = require("../common/database");
 const {retryAsyncFunction} = require("../common/utils");
 const _ = require("lodash");
 const {FieldValue} = require("firebase-admin/firestore");
+const {xupdatePost} = require("../content/xscraper");
 
 
 //
@@ -33,6 +37,12 @@ exports.onPostUpdate = functions
       const _create = !before && after;
       const _delete = before && !after;
       const _update = before && after;
+
+      if (_create && after.xid ||
+        _delete && before.xid ||
+        _update && before.xid != after.xid) {
+        publishMessage(POST_CHANGED_XID, {pid: after?.pid || before?.pid});
+      }
 
       if (after && after.status == "published" &&
       (!before || before.status != "published")) {
@@ -77,6 +87,11 @@ exports.onPostUpdate = functions
 // PubSub
 //
 
+/**
+ * optionally calls findStoriesAndClaims if the post is published beforehand
+ * @param {Message} message
+ * @return {Promise<void>}
+ * */
 exports.onPostChangedVector = functions
     .runWith(defaultConfig)
     .pubsub
@@ -133,6 +148,34 @@ exports.onPostPublished2 = functions
       }
 
       return findStoriesAndClaims(post);
+    });
+
+exports.onPostChangedXid = functions
+    .runWith(gbConfig)
+    .pubsub
+    .topic(POST_CHANGED_XID)
+    .onPublish(async (message) => {
+      functions.logger.info(`onPostChangedXid: ${message.json.pid}`);
+
+      const pid = message.json.pid;
+      const post = await getPost(pid);
+
+      if (!post || !post.xid || !post.sourceType || !post.eid) {
+        return Promise.resolve();
+      }
+      const entity = await getEntity(post.eid);
+      if (!entity) {
+        return Promise.resolve();
+      }
+
+      if (post.sourceType == "x") {
+        await xupdatePost(post);
+      } else {
+        functions.logger.error(`Unsupported source type: ${post.sourceType}`);
+        return Promise.resolve();
+      }
+
+      return Promise.resolve();
     });
 
 
