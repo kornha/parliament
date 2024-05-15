@@ -52,6 +52,7 @@ const connectToX = async function(page) {
   const email = _xEmailKey.value();
   const handle = _xHandleKey.value();
   const password = _xPasswordKey.value();
+
   const cookiePath = "cookies/x.json";
 
   // REQUIRED FOR TWITTER ELSE IT FORCES LOGIN
