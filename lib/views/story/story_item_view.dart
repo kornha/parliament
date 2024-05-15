@@ -30,11 +30,6 @@ class _StoryViewState extends ConsumerState<StoryItemView> {
     var primaryPostsRef = ref.primaryPostsFromStoriesWatch(widget.sid);
     var primaryPosts = primaryPostsRef.value;
     //
-    var postsRef = ref.postsFromStoryWatch(widget.sid);
-    var posts = postsRef.value;
-    //
-    var allPosts = <Post>[...?primaryPosts, ...?posts];
-
     bool shouldShowSecondaryPosts =
         !(storyRef.isLoading || primaryPostsRef.isLoading) &&
             primaryPosts != null &&
@@ -81,9 +76,11 @@ class _StoryViewState extends ConsumerState<StoryItemView> {
                       child: ListView.separated(
                           shrinkWrap: true,
                           scrollDirection: Axis.horizontal,
-                          itemCount: allPosts.length - 1, // dont show first!
+                          itemCount:
+                              primaryPosts.length - 1, // dont show first!
                           itemBuilder: (context, index) {
-                            var post = allPosts[index + 1]; // dont show first!
+                            var post =
+                                primaryPosts[index + 1]; // dont show first!
                             return PostItemView(
                               pid: post.pid,
                               story: story,
