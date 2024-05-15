@@ -16,6 +16,8 @@ const {retryAsyncFunction} = require("../common/utils");
 const _ = require("lodash");
 const {FieldValue} = require("firebase-admin/firestore");
 const {xupdatePost} = require("../content/xscraper");
+const {generateCompletions} = require("../common/llm");
+const {generateImageDescriptionPrompt} = require("../ai/prompts");
 
 
 //
@@ -71,12 +73,15 @@ exports.onPostUpdate = functions
       }
 
       if (
-        _create && (after.title || after.body || after.description) ||
-        _delete && (before.title || before.body || before.description) ||
+        _create && (after.title || after.body ||
+           after.description || after.photo) ||
+        _delete && (before.title || before.body ||
+           before.description || before.photo) ||
         _update &&
         (before.description != after.description ||
         before.title != after.title ||
-        before.body != after.body)) {
+        before.body != after.body ||
+        !_.isEqual(before.photo, after.photo))) {
         await postChangedContent(before, after);
       }
 
@@ -191,6 +196,30 @@ const postChangedContent = async function(before, after) {
     // delete handled in delete embeddings
     return;
   }
+
+  // we generate description when the urls changed (and no description is set)
+  // NOTE: we don't save embeddings as we will next update (assuming no error)
+  // will not work for delete
+  if (before?.photo?.photoURL != after?.photo?.photoURL &&
+    after.photo?.photoURL &&
+    !after.photo?.description) {
+    const resp = await generateCompletions(
+        generateImageDescriptionPrompt(after.photo.photoURL),
+        after.pid + " photoURL",
+        true,
+    );
+    if (!resp?.description) {
+      functions.logger.error("Error generating image description");
+      // in this case we save embeddings cz there's no image
+    } else {
+      await retryAsyncFunction(() => updatePost(after.pid, {
+        "photo.description": resp.description,
+      }));
+      // in this case we return
+      return;
+    }
+  }
+
   const save = await savePostEmbeddings(after);
   if (!save) {
     functions.logger.error(`Could not save post embeddings: ${after.pid}`);

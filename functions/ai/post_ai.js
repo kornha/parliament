@@ -14,10 +14,16 @@ const {
   searchVectors} = require("../common/database");
 const {generateCompletions, generateEmbeddings} = require("../common/llm");
 
-const {findStoriesPrompt, findStoriesAndClaimsPrompt} = require("./prompts");
+const {
+  findStoriesTrainingPrompt,
+  findStoriesAndClaimsTrainingPrompt,
+  // findStoriesPrompt,
+  // findStoriesAndClaimsPrompt,
+} = require("./prompts");
 const {retryAsyncFunction, isoToMillis} = require("../common/utils");
 const {v4} = require("uuid");
 const {Timestamp, FieldValue} = require("firebase-admin/firestore");
+const {writeTrainingData} = require("./ai_trainer");
 
 
 /** FLAGSHIP FUNCTION
@@ -75,8 +81,10 @@ const findStoriesAndClaims = async function(post) {
 
   const resp =
     await generateCompletions(
-        findStoriesAndClaimsPrompt(post, gstories, claims),
+        findStoriesAndClaimsTrainingPrompt(post, gstories, claims),
         "findStoriesAndClaims " + post.pid);
+
+  writeTrainingData("findStoriesAndClaims", post, gstories, claims, resp);
 
   const g2stories = resp.stories;
 
@@ -88,6 +96,15 @@ const findStoriesAndClaims = async function(post) {
 
   await Promise.all(g2stories.map(async (gstoryClaim, index) => {
     const sid = gstoryClaim.sid ? gstoryClaim.sid : v4();
+
+    if (index === 0 && post.sid !== sid) {
+      await retryAsyncFunction(() => updatePost(post.pid, {
+        sid: sid,
+      // updated via callback since the story may not exist yet
+      // sids: g2stories.map((gstory) => gstory.sid),
+      // cids: order does not matter so we add via callback
+      }));
+    }
 
     if (gstoryClaim.sid) {
       await retryAsyncFunction(() => updateStory(sid, {
@@ -104,15 +121,6 @@ const findStoriesAndClaims = async function(post) {
         //     ...gstoryClaim.claims.map((gclaim) => gclaim.cid)),
       }));
     } else {
-      if (index === 0) {
-        await retryAsyncFunction(() => updatePost(post.pid, {
-          sid: sid,
-        // updated via callback since the story may not exist yet
-        // sids: g2stories.map((gstory) => gstory.sid),
-        // cids: order does not matter so we add via callback
-        }));
-      }
-
       await retryAsyncFunction(() => createStory({
         sid: sid,
         title: gstoryClaim.title,
@@ -191,8 +199,10 @@ const findStories = async function(post) {
   if (!stories || stories.length === 0) {
     // functions.logger.info(`Post does not have a story! ${post.pid}`);
   }
-  const resp = await generateCompletions(findStoriesPrompt(post, stories),
-      "findStories " + post.pid);
+  const resp = await generateCompletions(
+      findStoriesTrainingPrompt(post, stories), "findStories " + post.pid);
+
+  writeTrainingData("findStories", post, stories, null, resp);
 
   if (!resp || !resp.stories || resp.stories.length === 0) {
     functions.logger.info(`Post does not have a story! ${post.pid}`);
@@ -216,7 +226,7 @@ const savePostEmbeddings = async function(post) {
     return true;
   }
 
-  const embeddings = await generateEmbeddings(strings, post.photoURL);
+  const embeddings = await generateEmbeddings(strings);
   return await setVector(post.pid, embeddings, "posts");
 };
 
@@ -235,6 +245,9 @@ const getPostEmbeddingStrings = function(post) {
   }
   if (post.body) {
     ret.push(post.body);
+  }
+  if (post.photo?.description) {
+    ret.push(post.photo.description);
   }
   return ret;
 };

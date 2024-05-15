@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:political_think/common/models/bias.dart';
 import 'package:political_think/common/models/credibility.dart';
+import 'package:political_think/common/models/photo.dart';
 import 'package:political_think/common/models/source_type.dart';
 import 'package:political_think/common/util/utils.dart';
 
@@ -25,7 +26,7 @@ class Post {
   String? title;
   String? description;
   String? body;
-  String? photoURL;
+  Photo? photo;
   String? url;
   final SourceType sourceType;
   List<String> locations; // currently country codes need to abstract
@@ -75,7 +76,7 @@ class Post {
     this.sids = const [],
     this.cids = const [],
     this.url,
-    this.photoURL,
+    this.photo,
     this.locations = const [],
     this.importance,
     this.userBias,

@@ -111,16 +111,37 @@ class PostNotifier extends PagedNotifier<int, Post> {
         );
 }
 
+final postsFromStoryProvider =
+    StreamProvider.family<List<Post>?, String>((ref, sid) {
+  // int limit = ridlimit.$2;
+  return Database.instance()
+      .postCollection
+      .where("sids", arrayContains: sid)
+      //.orderBy("importance", descending: true)
+      .limit(50) // need to configure
+      .snapshots()
+      .map((querySnapshot) {
+    if (querySnapshot.docs.isNotEmpty) {
+      return querySnapshot.docs.map((doc) {
+        final data = doc.data() as Map<String, dynamic>;
+        return Post.fromJson(data);
+      }).toList();
+    } else {
+      return null;
+    }
+  });
+});
+
 // We do this without a notifier
 // can switch if needed
-final postsFromStoryProvider =
+final primaryPostsFromStoryProvider =
     StreamProvider.family<List<Post>?, String>((ref, sid) {
   // int limit = ridlimit.$2;
   return Database.instance()
       .postCollection
       .where("sid", isEqualTo: sid)
       //.orderBy("importance", descending: true)
-      .limit(5) // need to configure
+      .limit(25) // need to configure
       .snapshots()
       .map((querySnapshot) {
     if (querySnapshot.docs.isNotEmpty) {

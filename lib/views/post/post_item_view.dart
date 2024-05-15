@@ -32,7 +32,7 @@ class PostItemView extends ConsumerStatefulWidget {
 class _PostViewState extends ConsumerState<PostItemView> {
   @override
   Widget build(BuildContext context) {
-    var storyImportance = widget.story?.importance ?? 5;
+    var storyImportance = widget.story?.importance ?? 0.5;
     var postRef = ref.postWatch(widget.pid);
     var post = postRef.value;
 
@@ -71,20 +71,20 @@ class _PostViewState extends ConsumerState<PostItemView> {
                       context.sh,
                       Text(
                         post?.title ?? "",
-                        textAlign: storyImportance > 9
+                        textAlign: storyImportance > 0.9
                             ? TextAlign.center
                             : TextAlign.start,
-                        style: storyImportance > 9
-                            ? context.h1
-                            : storyImportance > 7
-                                ? context.h2
-                                : context.h3,
+                        style: storyImportance > 0.9
+                            ? context.h2
+                            : storyImportance > 0.7
+                                ? context.h3
+                                : context.l,
                       ),
-                      storyImportance > 4
+                      storyImportance > 0.0
                           ? context.sf
                           : const SizedBox.shrink(),
-                      storyImportance > 4 && post?.photoURL != null
-                          ? ZImage(photoURL: post?.photoURL ?? "")
+                      storyImportance > 0.0 && post?.photo?.photoURL != null
+                          ? ZImage(photoURL: post?.photo?.photoURL ?? "")
                           : const SizedBox.shrink(),
                       Visibility(
                           visible: post?.description != null &&
@@ -110,13 +110,13 @@ class _PostViewState extends ConsumerState<PostItemView> {
                     mainAxisAlignment: MainAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      post?.photoURL != null
+                      post?.photo?.photoURL != null
                           ? ZImage(
-                              photoURL: post?.photoURL ?? "",
+                              photoURL: post?.photo?.photoURL ?? "",
                               imageSize: ZImageSize.small,
                             )
                           : const SizedBox.shrink(),
-                      post?.photoURL != null
+                      post?.photo?.photoURL != null
                           ? context.sh
                           : const SizedBox.shrink(),
                       SizedBox(
@@ -126,7 +126,7 @@ class _PostViewState extends ConsumerState<PostItemView> {
                                 context.imageSizeSmall.width -
                                 context.sd.width! -
                                 2.0) *
-                            (post?.photoURL != null ? 1 : 0.7),
+                            (post?.photo?.photoURL != null ? 1 : 0.7),
                         child: Text(
                           // some posts dont have descriptions
                           post?.description ?? post?.title ?? "",

@@ -93,30 +93,3 @@ class _FeedState extends ConsumerState<Feed> {
     );
   }
 }
-
-// RiverPagedBuilder<int, Post>(
-//                 pullToRefresh: true,
-//                 firstPageKey: 0,
-//                 provider: postsProvider,
-//                 itemBuilder: (context, item, index) {
-//                   return Column(
-//                     children: [
-//                       Visibility(
-//                         visible: index != 0,
-//                         child: const ZDivider(),
-//                       ),
-//                       PostView(pid: item.pid, showPostButtons: true),
-//                     ],
-//                   );
-//                 },
-//                 newPageProgressIndicatorBuilder: (context, controller) {
-//                   return const Loading(type: LoadingType.standard);
-//                 },
-//                 firstPageProgressIndicatorBuilder: (context, controller) {
-//                   return const Loading(type: LoadingType.large);
-//                 },
-//                 pagedBuilder: (controller, builder) => PagedListView(
-//                   pagingController: controller,
-//                   builderDelegate: builder,
-//                 ),
-//               ),

@@ -46,9 +46,13 @@ extension ProviderExt on WidgetRef {
 
   AsyncValue<Post?> postWatch(String pid) => watch(postProvider(pid));
   AsyncValue<Post?> postRead(String pid) => read(postProvider(pid));
-  AsyncValue<List<Post>?> postsFromStoriesWatch(String sid) =>
+  AsyncValue<List<Post>?> primaryPostsFromStoriesWatch(String sid) =>
+      watch(primaryPostsFromStoryProvider(sid));
+  AsyncValue<List<Post>?> primaryPostsFromStoriesRead(String sid) =>
+      read(primaryPostsFromStoryProvider(sid));
+  AsyncValue<List<Post>?> postsFromStoryWatch(String sid) =>
       watch(postsFromStoryProvider(sid));
-  AsyncValue<List<Post>?> postsFromStoriesRead(String sid) =>
+  AsyncValue<List<Post>?> postsFromStoryRead(String sid) =>
       read(postsFromStoryProvider(sid));
 
   AsyncValue<List<Claim>?> claimsFromStoriesWatch(String sid) =>

@@ -3,6 +3,31 @@ const _ = require("lodash");
 const {millisToIso} = require("../common/utils");
 
 const findStoriesPrompt = function(post, stories) {
+  return `You will be given a Post and a list of Stories (can be empty).\nPost: ${postToJSON(post)}\nStories: ${storiesToJSON(stories)}\nOutput JSON ordered from most to least relevant Story. Do not output irrelevant Stories. Do not output Claims.`;
+};
+
+const findStoriesAndClaimsPrompt = function(post, stories, claims) {
+  return `You will be given a Post, a list of Stories (cannot be empty), and a list of Claims (can be empty).\nPost: ${postToJSON(post)}\nStories: ${storiesToJSON(stories)}\nClaims: ${claimsToJSON(claims)}\nOutput the Stories in the order they are inputted, but now include Claims (either create a new one or add an existing one), and if the Post is for or against a Claim be sure to list its in the Claim's pro/against.`;
+};
+
+const generateImageDescriptionPrompt = function(photoURL) {
+  const messages = [];
+  messages.push({type: "text",
+    text: `Generate a detailed description for the following image.
+    This description will be used in vector search for similar content.`,
+  });
+  messages.push({type: "image_url", image_url: {url: photoURL}});
+  messages.push({type: "text", text: `
+    Output format:{ "description": "A detailed description of the image"}
+  `});
+  return messages;
+};
+
+// //////////////////////////////////////
+// TRAINING PROMPTS
+// //////////////////////////////////////
+
+const findStoriesTrainingPrompt = function(post, stories) {
   // Prepare the initial set of messages with description texts
   const messages = [
     {type: "text", text: `
@@ -26,20 +51,22 @@ const findStoriesPrompt = function(post, stories) {
   ];
 
   messages.push({type: "text", text: `Here is the Post: ${postToJSON(post)}`});
-  if (post.photoURL) {
-    messages.push({type: "image_url", image_url: {url: post.photoURL}});
-  }
+
+  // removing image for now
+  // if (post.photo?.photoURL) {
+  //   messages.push({type: "image_url", image_url: {url: post.photo?.photoURL}});
+  // }
 
   // Add messages for stories
   if (_.isEmpty(stories)) {
-    messages.push({type: "text", text: "There are no stories associated with this post."});
+    messages.push({type: "text", text: "Here are the Stories (if any): []"});
   } else {
-    messages.push({type: "text", text: "Here are the Stories:"});
+    messages.push({type: "text", text: "Here are the Stories (if any): "});
     stories.forEach((story) => {
       messages.push({type: "text", text: storyToJSON(story)});
-      if (story.photoURL) {
-        messages.push({type: "image_url", image_url: {url: story.photoURL}});
-      }
+      // if (story.photoURL) {
+      //   messages.push({type: "image_url", image_url: {url: story.photoURL}});
+      // }
     });
   }
 
@@ -53,7 +80,7 @@ const findStoriesPrompt = function(post, stories) {
 };
 
 
-const findStoriesAndClaimsPrompt = function(post, stories, claims) {
+const findStoriesAndClaimsTrainingPrompt = function(post, stories, claims) {
   // Assuming each post and story has an 'photoURL' property
   const messages = [
     {type: "text", text: `
@@ -87,9 +114,11 @@ const findStoriesAndClaimsPrompt = function(post, stories, claims) {
   ];
 
   messages.push({type: "text", text: `Here is the Post: ${postToJSON(post)}`});
-  if (post.photoURL) {
-    messages.push({type: "image_url", image_url: {url: post.photoURL}});
-  }
+
+  // removing images for now
+  // if (post.photo?.photoURL) {
+  //   messages.push({type: "image_url", image_url: {url: post.photo?.photoURL}});
+  // }
 
   if (_.isEmpty(stories)) {
     messages.push({type: "text", text: "There are no stories associated with this post."});
@@ -97,9 +126,9 @@ const findStoriesAndClaimsPrompt = function(post, stories, claims) {
     messages.push({type: "text", text: `Here are the Stories:`});
     stories.forEach((story) => {
       messages.push({type: "text", text: `${storyToJSON(story)}`});
-      if (story.photoURL) {
-        messages.push({type: "image_url", image_url: {url: story.photoURL}});
-      }
+      // if (story.photoURL) {
+      //   messages.push({type: "image_url", image_url: {url: story.photoURL}});
+      // }
     });
   }
 
@@ -118,21 +147,8 @@ const findStoriesAndClaimsPrompt = function(post, stories, claims) {
   return messages;
 };
 
-const generateImageDescriptionPrompt = function(photoURL) {
-  const messages = [];
-  messages.push({type: "text",
-    text: `Generate a detailed description for the following image.
-    This description will be used in vector search for similar content.`,
-  });
-  messages.push({type: "image_url", image_url: {url: photoURL}});
-  messages.push({type: "text", text: `
-    Output format:{ "description": "A detailed description of the image"}
-  `});
-  return messages;
-};
-
 //
-// Secondary Promps
+// Secondary Training Promps
 //
 
 //
@@ -176,17 +192,6 @@ const storyJSONOutput = function(claims = false) {
   return `{"sid":ID of the Story or null if Story is new, "title": "title of the story", "description": "the description of the story is a useful vector searchable description", "importance": 0.0-1.0 relative importance of the story, "happenedAt": ISO 8601 time format that the event happened at, or null if it cannot be determined${claims ? `, "claims":[${claimJSONOutput()}, ...]` : ""}}`;
 };
 
-const storyToJSON = function(story) {
-  return `
-    START OF STORY
-    sid: ${story.sid}
-    title: ${story.title}
-    description: ${story.description}
-    happenedAt: ${millisToIso(story.happenedAt)}
-    END OF STORY (photos/photoURLs will be listen below, if any)
-  `;
-};
-
 //
 // Post
 //
@@ -196,26 +201,12 @@ const postDescriptionPrompt = function() {
         A Post is a social media posting or an article. It can come from X (aka Twitter), Facebook, Instagram, Reddit, Tiktok or other social sources.
         It may also be a news article published online to some platform.
         A Post can have a title, a description, and a body, the latter two of which are optional.
-        A Post may have images, videos or other media.
+        A Post may have images, videos or other media. You may only be given a description of the image, which you will use to judge.
         A Post has an author, which we call an Entity.
         A Post has a timestamp, which is the time the (original) Post was created. We call this "sourceCreatedAt".
         A Post may also be assigned Bias and Credibility scores. 
         Bias refers to the political bias of the Post, and Credibility refers to how confident we think the Post is to be true.
         `;
-};
-
-const postToJSON = function(post) {
-  return `
-        START OF POST
-        pid: ${post.pid}
-        title (if any): ${post.title}
-        description (if any): ${post.description}
-        body (if any): ${post.body}
-        sourceCreatedAt (if any): ${millisToIso(post.sourceCreatedAt)}
-        credibility (if any): ${post.credibility}
-        bias (if any): ${post.bias}
-        END OF POST (photos/photoURLs will be listen below, if any)
-    `;
 };
 
 //
@@ -232,24 +223,14 @@ const claimsDescriptionPrompt = function() {
         `;
 };
 
-const claimToJSON = function(claim) {
-  return `
-        START OF CLAIM
-        cid: ${claim.cid}
-        value: ${claim.value}
-        context (if any): ${claim.context}
-        pro: ${claim.pro ? claim.pro.join(", ") : "[]"}
-        against: ${claim.against ? claim.against.join(", ") : "[]"}
-        END OF CLAIM
-    `;
-};
-
 const newClaimPrompt = function() {
   return `
-        The value of the Claim should be a statement that is either supported or refuted by the Post. 
+        The value of the Claim should be a statement that is either supported or refuted by the Post.
+        Note that a Claim is not an Opinion. If a Post expresses an opinion, it is not a Claim and do not output it as such.
         If you are creating a new Claim, the value should be the statement in the "positive" sense, and the Post should be either "pro" or "against" the Claim.
         Eg., if you want to make a Claim that "Iran did not close airspace over Tehran" (and the Post supports this), the Claim should be "Iran closed airspace over Tehran" and the Post should be "against" the Claim.
         When outputting pro and against, you should output the post ID (pid) of the post that is either for or against the claim inside of an array, for example against: [pid] instead of against: pid.
+        Eg., a Post titled "I stand behind what I tweeted on October 7th. Can you say the same?" would not be a Claim, since it is expressing an opion.
         `;
 };
 
@@ -359,11 +340,82 @@ const findClaimsAndStoriesExample = function() {
   `;
 };
 
+// /////////////////////////////////////
+// Prompt JSON
+// ////////////////////////////////////
+
+/**
+ * Converts ONLY SELECT DATA from a Post object to a prompt JSON string
+ * USING JSON.stringify() will convert tons of data like vector
+ * @param {Object} post
+ * @return {string} JSON string
+ * */
+const postToJSON = function(post) {
+  const formatted = {
+    pid: post.pid,
+    title: post.title,
+    description: post.description,
+    body: post.body,
+    photoDescription: post.photo?.description,
+    sourceCreatedAt: millisToIso(post.sourceCreatedAt),
+    credibility: post.credibility,
+    bias: post.bias,
+    // used for tuning, comment in production code
+    url: post.url,
+  };
+
+  return JSON.stringify(formatted);
+};
+
+const claimToJSON = function(claim) {
+  return JSON.stringify(claim, ["cid", "value", "pro", "against", "context"]);
+};
+
+/**
+ * Converts an array of Claim objects to a prompt JSON string
+ * @param {Array<Claim>} claims
+ * @return {string} JSON string
+ * */
+const claimsToJSON = function(claims) {
+  return "[" + claims.map((claim) => claimToJSON(claim)) + "]";
+};
+
+/**
+ * Converts ONLY SELECT DATA from a Story object to a JSON string
+ * USING JSON.stringify() will convert tons of data like vector
+ * @param {Object} story
+ * @return {string} JSON string
+ * */
+const storyToJSON = function(story) {
+  const formatted = {
+    sid: story.sid,
+    title: story.title,
+    description: story.description,
+    photoDescription: story.photo?.description,
+    importance: story.importance,
+    happenedAt: millisToIso(story.happenedAt),
+  };
+
+  return JSON.stringify(formatted);
+};
+
+/**
+ * Converts an array of Story objects to a prompt JSON string
+ * @param {Array<Story>} stories
+ * @return {string} JSON string
+ * */
+const storiesToJSON = function(stories) {
+  return "[" + stories.map((story) => storyToJSON(story)) + "]";
+};
+
 module.exports = {
   findStoriesPrompt,
   findStoriesAndClaimsPrompt,
+  findStoriesAndClaimsTrainingPrompt,
+  findStoriesTrainingPrompt,
   //
   generateImageDescriptionPrompt,
+  //
   //
   storyDescriptionPrompt,
   storyJSONOutput,
@@ -371,6 +423,12 @@ module.exports = {
   credibilityJSONOutput,
   biasDescriptionPrompt,
   biasJSONOutput,
+  //
+  postToJSON,
+  storiesToJSON,
+  storyToJSON,
+  claimsToJSON,
+  claimToJSON,
 };
 
 

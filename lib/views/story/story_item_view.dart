@@ -27,18 +27,23 @@ class _StoryViewState extends ConsumerState<StoryItemView> {
     var storyRef = ref.storyWatch(widget.sid);
     var story = storyRef.value;
     //
-    var postsRef = ref.postsFromStoriesWatch(widget.sid);
+    var primaryPostsRef = ref.primaryPostsFromStoriesWatch(widget.sid);
+    var primaryPosts = primaryPostsRef.value;
+    //
+    var postsRef = ref.postsFromStoryWatch(widget.sid);
     var posts = postsRef.value;
     //
+    var allPosts = <Post>[...?primaryPosts, ...?posts];
+
     bool shouldShowSecondaryPosts =
-        !(storyRef.isLoading || postsRef.isLoading) &&
-            posts != null &&
-            posts.length > 1 &&
+        !(storyRef.isLoading || primaryPostsRef.isLoading) &&
+            primaryPosts != null &&
+            primaryPosts.length > 1 &&
             (story?.importance ?? 0.5) > 0.1;
 
-    return storyRef.isLoading || postsRef.isLoading
+    return storyRef.isLoading || primaryPostsRef.isLoading
         ? const Loading(type: LoadingType.post)
-        : !postsRef.hasValue || (posts?.isEmpty ?? true)
+        : !primaryPostsRef.hasValue || (primaryPosts?.isEmpty ?? true)
             ? const SizedBox.shrink()
             : Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -57,7 +62,7 @@ class _StoryViewState extends ConsumerState<StoryItemView> {
                       : const SizedBox.shrink(),
                   const ZDivider(type: DividerType.SECONDARY),
                   PostItemView(
-                    pid: posts!.first.pid,
+                    pid: primaryPosts!.first.pid,
                     story: story,
                     showPostButtons: false,
                   ),
@@ -76,9 +81,9 @@ class _StoryViewState extends ConsumerState<StoryItemView> {
                       child: ListView.separated(
                           shrinkWrap: true,
                           scrollDirection: Axis.horizontal,
-                          itemCount: posts.length - 1, // dont show first!
+                          itemCount: allPosts.length - 1, // dont show first!
                           itemBuilder: (context, index) {
-                            var post = posts[index + 1]; // dont show first!
+                            var post = allPosts[index + 1]; // dont show first!
                             return PostItemView(
                               pid: post.pid,
                               story: story,

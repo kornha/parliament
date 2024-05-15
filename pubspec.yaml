@@ -1,7 +1,7 @@
 name: political_think
 description: A new Flutter project.
 
-version: 1.1.1+1
+version: 1.2.0+1
 
 environment:
   sdk: '>=3.0.0'

@@ -7,7 +7,6 @@ const {getPostByXid,
   createPost,
   findCreateEntity,
   updatePost,
-  getEntity,
 } = require("../common/database");
 const {v4} = require("uuid");
 const {Timestamp} = require("firebase-admin/firestore");
@@ -17,6 +16,7 @@ const {defineSecret} = require("firebase-functions/params");
 const _xHandleKey = defineSecret("X_HANDLE_KEY");
 const _xPasswordKey = defineSecret("X_PASSWORD_KEY");
 const _xEmailKey = defineSecret("X_EMAIL_KEY");
+
 /**
  * REQUIRES 1GB TO RUN!
  * REQUIRES LONGER TIMEOUT
@@ -24,7 +24,7 @@ const _xEmailKey = defineSecret("X_EMAIL_KEY");
  * @return {Promise<void>}
  * */
 const scrapeXFeed = async function() {
-  const browser = await puppeteer.launch({headless: "new"});
+  const browser = await puppeteer.launch({headless: false});
   const page = await browser.newPage();
 
   await connectToX(page);
@@ -91,10 +91,18 @@ const connectToX = async function(page) {
   await page.waitForSelector("[autocomplete=username]");
   await page.type("input[autocomplete=username]", email, {delay: 50});
   // Press the Next button
-  await page.evaluate(() =>
+  await page.evaluate(() => {
     // eslint-disable-next-line no-undef
-    document.querySelectorAll("div[role=\"button\"]")[2].click(),
-  );
+    const buttons = Array.from(document.querySelectorAll("button"));
+    const nextButton =
+      buttons.find((button) =>
+        button.innerText.trim().toLowerCase() === "next");
+    if (nextButton) {
+      nextButton.click();
+    } else {
+      console.error("Next button not found.");
+    }
+  });
   await page.waitForNetworkIdle({idleTime: 1500});
   // ////////////////////////////////////////////////////
   // Sometimes twitter suspect suspicious activties,
@@ -103,10 +111,18 @@ const connectToX = async function(page) {
   if (extractedText.includes("Enter your phone number or username")) {
     await page.waitForSelector("[autocomplete=on]");
     await page.type("input[autocomplete=on]", handle, {delay: 50});
-    await page.evaluate(() =>
+    await page.evaluate(() => {
       // eslint-disable-next-line no-undef
-      document.querySelectorAll("div[role=\"button\"]")[1].click(),
-    );
+      const buttons = Array.from(document.querySelectorAll("button"));
+      const nextButton =
+        buttons.find((button) =>
+          button.innerText.trim().toLowerCase() === "next");
+      if (nextButton) {
+        nextButton.click();
+      } else {
+        console.error("Next button not found.");
+      }
+    });
     await page.waitForNetworkIdle({idleTime: 1500});
   }
   // ///////////////////////////////////////////////////
@@ -114,10 +130,18 @@ const connectToX = async function(page) {
   await page.waitForSelector("[autocomplete=\"current-password\"]");
   await page.type("[autocomplete=\"current-password\"]", password, {delay: 50});
   // Press the Login button
-  await page.evaluate(() =>
+  await page.evaluate(() => {
     // eslint-disable-next-line no-undef
-    document.querySelectorAll("div[role=\"button\"]")[2].click(),
-  );
+    const buttons = Array.from(document.querySelectorAll("button"));
+    const nextButton =
+      buttons.find((button) =>
+        button.innerText.trim().toLowerCase() === "log in");
+    if (nextButton) {
+      nextButton.click();
+    } else {
+      console.error("Log in button not found.");
+    }
+  });
 
   functions.logger.info("Logged in to X.");
 
@@ -136,7 +160,7 @@ const connectToX = async function(page) {
  * @param {page} page the page instance to connect with
  * @param {number} maxDuration the maximum duration to scroll
  */
-const autoScrollX = async function* (page, maxDuration = 30000) {
+const autoScrollX = async function* (page, maxDuration = 90000) {
   const startTime = Date.now();
   // eslint-disable-next-line no-undef
   let lastHeight = await page.evaluate(() => document.body.scrollHeight);
@@ -207,6 +231,7 @@ const processXLinks = async function(xLinks, poster = null) {
         pid: v4(),
         eid: eid,
         xid: xid,
+        url: link,
         poster: poster,
         status: "scraping",
         sourceType: "x",
@@ -308,25 +333,18 @@ const getTextContentFromX = async function(url) {
  * @param {Post} post with xid, eid, pid
  * */
 const xupdatePost = async function(post) {
-  if (!post || !post.xid || !post.eid) {
+  if (!post || !post.xid || !post.eid || !post.url) {
     throw new functions.https
         .HttpsError("invalid-argument", "No post provided.");
   }
 
-  const entity = await getEntity(post.eid);
-  if (!entity || !entity.handle) {
-    throw new functions.https
-        .HttpsError("invalid-argument", "Could not fetch entity.");
-  }
-
   functions.logger.info(`Updating post: ${post.pid} with X metadata.`);
 
-  const url = buildXUrl(entity.handle, post.xid);
-
-  const xMetaData = await getTextContentFromX(url);
+  const xMetaData = await getTextContentFromX(post.url);
   if (!xMetaData) {
     throw new functions.https
-        .HttpsError("invalid-argument", "Could not fetch content from " + url);
+        .HttpsError("invalid-argument",
+            "Could not fetch content from " + post.url);
   }
 
   const time = isoToMillis(xMetaData.isoTime);
@@ -340,7 +358,9 @@ const xupdatePost = async function(post) {
     // currently no description pulled from X
     // will change with API change
     // description: metadata.description,
-    photoURL: xMetaData.photoURL,
+
+    // don't set the photo at all if its null
+    photo: xMetaData.photoURL ? {photoURL: xMetaData.photoURL} : null,
   };
 
   await updatePost(post.pid, _post);

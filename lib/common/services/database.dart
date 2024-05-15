@@ -99,7 +99,7 @@ class Database {
   Future<List<Story>?> getStories(int page, int limit) {
     return Database.instance()
         .storyCollection
-        .orderBy('createdAt', descending: true)
+        .orderBy('happenedAt', descending: true)
         .startAfter([page == 0 ? double.maxFinite : page])
         .limit(limit)
         .get()
