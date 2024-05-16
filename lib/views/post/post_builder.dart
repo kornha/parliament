@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -13,9 +14,9 @@ import 'package:political_think/common/extensions.dart';
 import 'package:political_think/common/models/post.dart';
 import 'package:political_think/common/services/database.dart';
 import 'package:political_think/common/services/functions.dart';
+import 'package:political_think/common/util/utils.dart';
 import 'package:political_think/views/post/post_item_view.dart';
 import 'package:political_think/views/post/post_view.dart';
-import 'package:super_clipboard/super_clipboard.dart';
 import 'package:uuid/uuid.dart';
 
 class PostBuilder extends ConsumerStatefulWidget {
@@ -128,10 +129,12 @@ class _PostBuilderState extends ConsumerState<PostBuilder> {
               onPaste: _loading
                   ? null
                   : () async {
-                      final reader = await ClipboardReader.readClipboard();
-                      final url = await reader.readValue(Formats.uri);
-                      // pre-validation that there's a url
-                      if (url == null) {
+                      ClipboardData? clipboardData =
+                          await Clipboard.getData(Clipboard.kTextPlain);
+                      String? url = clipboardData!.text!;
+                      Uri? uri = Uri.tryParse(url);
+                      if (uri == null ||
+                          uri.scheme != "http" && uri.scheme != "https") {
                         setState(() {
                           _isError = true;
                           _errorText = "No url on clipboard";
@@ -141,8 +144,8 @@ class _PostBuilderState extends ConsumerState<PostBuilder> {
                       setState(() {
                         _loading = true;
                       });
-                      String? pid = await Functions.instance()
-                          .pasteLink(url.uri.toString());
+                      String? pid =
+                          await Functions.instance().pasteLink(uri.toString());
                       if (pid == null) {
                         setState(() {
                           _isError = true;

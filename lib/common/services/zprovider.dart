@@ -8,9 +8,10 @@ import 'package:political_think/common/models/room.dart';
 import 'package:political_think/common/models/story.dart';
 import 'package:political_think/common/models/vote.dart';
 import 'package:political_think/common/models/zuser.dart';
+import 'package:political_think/common/riverpod_infinite_scroll/src/paged_notifier.dart';
+import 'package:political_think/common/riverpod_infinite_scroll/src/paged_state.dart';
 import 'package:political_think/common/services/auth.dart';
 import 'package:political_think/common/services/database.dart';
-import 'package:riverpod_infinite_scroll/riverpod_infinite_scroll.dart';
 import 'package:tuple/tuple.dart';
 import 'package:political_think/common/chat/chat_types/flutter_chat_types.dart'
     as ct;
@@ -73,8 +74,9 @@ class StoryNotifier extends PagedNotifier<int, Story> {
           load: (page, limit) async {
             return Database.instance().getStories(page, limit);
           },
+          // THIS NEEDS TO MATCH THE ORDER BY IN THE QUERY
           nextPageKeyBuilder: (List<Story>? lastItems, int page, int limit) =>
-              lastItems?.last.createdAt.millisecondsSinceEpoch,
+              lastItems?.last.happenedAt?.millisecondsSinceEpoch,
         );
 }
 

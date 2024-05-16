@@ -24,7 +24,7 @@ const _xEmailKey = defineSecret("X_EMAIL_KEY");
  * @return {Promise<void>}
  * */
 const scrapeXFeed = async function() {
-  const browser = await puppeteer.launch({headless: false});
+  const browser = await puppeteer.launch({headless: "new"});
   const page = await browser.newPage();
 
   await connectToX(page);

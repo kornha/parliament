@@ -16,7 +16,7 @@ void main() async {
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  const bool local = false;
+  const bool local = true;
 
   if (local) {
     FirebaseFirestore.instance.useFirestoreEmulator("localhost", 8080);

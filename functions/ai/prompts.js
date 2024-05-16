@@ -167,8 +167,8 @@ const newStoryPrompt = function() {
 
 const storyDescriptionPrompt = function() {
   return `
-        A Story is an event or trending topic. 
-        A story is often temporal, and takes place at a specific time or over a small time window.
+        A Story is a subject. Two Posts are discussing the same Story if they are talking about the same thing.
+        A Story is something has a time and a place, and is generally an event. Sometimes, however, a Story is a subject or topic. We know if two Posts belong to the same Story if they are clearly talking about the same thing.
 
         The "sid" is the Story ID, which is a unique identifier for the Story.
 
@@ -288,11 +288,12 @@ const findStoryExample = function() {
     "Iran state media removes report about closing airspace over Tehran after warnings of possible strike on Israel"
     sourceCreatedAt (time source of the post was published, different from the Story's 'happenedAt'): "2021-05-10T12:00:00Z" 
 
-    While this Post mentions Iran and a report about closing airspace over Tehran, in conjunction with Israel, you can infer that there is an urgent tension between Iran and Israel.
-    Hence, a Title for the Story could be: "Iran Closes Airspace" or "Iran and Israel at War". While both would be right, since we generally lean on the side of granularity, the former title would be preferable.
-    And the importance of the Story would be perhaps 0.7, a very significant event, but perhaps not world changing.
+    While this Post mentions Iran and a report about closing airspace over Tehran, in conjunction with Israel, you can infer that there is an urgent tension between Iran and Israel. There are actually 2 Stories here; one about Iran closing airspace, and another about Iran threatening Israel.
 
-    The Description could be: "Amidst rising tensions between Iran and Israel, it was reported by Iran state media that they closed airspace over Tehran. This post wast later removed, and the situation remains ongoing."
+    Hence, a Title for the Story could be: "Iran Closes Airspace", and the other Story title would be "Iran threatens Israel".
+    And the importance of the Story would be perhaps 0.5 and 0.7, respectively, significant events, but perhaps not world changing.
+
+    The Description (of the first story could be) could be: "Amidst rising tensions between Iran and Israel, it was reported by Iran state media that they closed airspace over Tehran. This post wast later removed, and the situation remains ongoing."
 
     Now let's say there's another Post that comes in. It says: 
     "Tesla is in early discussions with Reliance Industries about a possible joint venture to build an electric-vehicle manufacturing facility in India, report says"
@@ -305,13 +306,13 @@ const findStoryExample = function() {
     Whoever attacks Israel will counter strong defenses, followed by forceful strike in their territory; our enemies are unaware of the surprises we're preparing; Israel knows how to respond quickly across the Middle East."
     sourceCreatedAt: "2021-05-10T13:00:00Z"
 
-    This Post is clearly related to the first Post; the first Post mentions a possible attack from Iran on Israel, and this latter Post mentions how Israel will respond to any threats.
-    While you can choose to group these into the same Story, or keep them separate, in this case, since the sourceCreatedAt (time the post was made) is similar, it is likely they are referring to the same event, (Iran attack and Israel response) and should be grouped together.
+    This Post is clearly related to the first Post; the first Post mentions a possible attack from Iran on Israel, and this latter Post mentions how Israel will respond to any threats. This Post is talking about Iran striking Iran, "Iran threatens Israel" Story from above 
+    Furthermore, since the sourceCreatedAt (time the post was made) is similar, they are likely talking about the same subject.
     
-    Hence the Title of the Story might be updated, "Iran and Israel at War", and now the description of the Story could be updated to include the new information.
+    Hence the Title of the Story might be updated, "Iran and Israel Trade Threats", and now the description of the Story could be updated to include the new information.
     As it appears the Story has gotten a bit more urgent, the importance could be updated to 0.75.
 
-    For example; the Description could be: "Amidst rising tensions between Iran and Israel it was rumored that Iran closed airspace over Tehran. This is unclear. Meanwhile Defense Minister Gallant has stated that Israel will respond to attacks on enemy territory."
+    For example; the Description could be: "Iran hinted at possible warnings of a strike against Israel, to which Gallant replied Israel will respond in turn"
   `;
 };
 

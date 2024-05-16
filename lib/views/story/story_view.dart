@@ -5,6 +5,7 @@ import 'package:political_think/common/components/zapp_bar.dart';
 import 'package:political_think/common/components/zdivider.dart';
 import 'package:political_think/common/components/zscaffold.dart';
 import 'package:political_think/common/extensions.dart';
+import 'package:political_think/common/util/utils.dart';
 import 'package:political_think/views/claim/claim_view.dart';
 
 class StoryView extends ConsumerStatefulWidget {
@@ -44,6 +45,18 @@ class _StoryViewState extends ConsumerState<StoryView> {
                   Text(
                     story?.description ?? "",
                     style: context.l,
+                  ),
+                  context.sf,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Text(
+                        Utils.toHumanReadableDate(story?.happenedAt),
+                        style: context.m.copyWith(
+                          color: context.secondaryColor,
+                        ),
+                      ),
+                    ],
                   ),
                   context.sf,
                   const ZDivider(type: DividerType.PRIMARY),

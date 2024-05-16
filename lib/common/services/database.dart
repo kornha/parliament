@@ -5,7 +5,6 @@ import 'package:political_think/common/models/room.dart';
 import 'package:political_think/common/models/story.dart';
 import 'package:political_think/common/models/vote.dart';
 import 'package:political_think/common/models/zuser.dart';
-import 'package:riverpod_infinite_scroll/riverpod_infinite_scroll.dart';
 import 'package:political_think/common/chat/chat_types/flutter_chat_types.dart'
     as ct;
 

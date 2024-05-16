@@ -12,13 +12,13 @@ import 'package:political_think/common/extensions.dart';
 import 'package:political_think/common/models/post.dart';
 import 'package:political_think/common/models/story.dart';
 import 'package:political_think/common/models/zuser.dart';
+import 'package:political_think/common/riverpod_infinite_scroll/riverpod_infinite_scroll.dart';
 import 'package:political_think/common/services/functions.dart';
 import 'package:political_think/common/services/zprovider.dart';
 import 'package:political_think/common/services/auth.dart';
 import 'package:political_think/views/post/post_builder.dart';
 import 'package:political_think/views/post/post_item_view.dart';
 import 'package:political_think/views/story/story_item_view.dart';
-import 'package:riverpod_infinite_scroll/riverpod_infinite_scroll.dart';
 
 class Feed extends ConsumerStatefulWidget {
   const Feed({super.key});

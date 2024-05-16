@@ -4,11 +4,7 @@
 
 list(APPEND FLUTTER_PLUGIN_LIST
   desktop_webview_auth
-  emoji_picker_flutter
-  file_selector_windows
   firebase_core
-  irondash_engine_context
-  super_native_extensions
   url_launcher_windows
 )
 
