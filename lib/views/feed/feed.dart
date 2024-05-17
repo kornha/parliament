@@ -16,12 +16,15 @@ import 'package:political_think/common/riverpod_infinite_scroll/riverpod_infinit
 import 'package:political_think/common/services/functions.dart';
 import 'package:political_think/common/services/zprovider.dart';
 import 'package:political_think/common/services/auth.dart';
+import 'package:political_think/views/feed/feed_settings.dart';
 import 'package:political_think/views/post/post_builder.dart';
 import 'package:political_think/views/post/post_item_view.dart';
 import 'package:political_think/views/story/story_item_view.dart';
 
 class Feed extends ConsumerStatefulWidget {
-  const Feed({super.key});
+  const Feed({
+    super.key,
+  });
 
   static const location = "/feed";
 
@@ -32,8 +35,9 @@ class Feed extends ConsumerStatefulWidget {
 class _FeedState extends ConsumerState<Feed> {
   @override
   Widget build(BuildContext context) {
-    final AsyncValue<ZUser?> user = ref.selfUserWatch();
-
+    final AsyncValue<ZUser?> userRef = ref.selfUserWatch();
+    ZUser? user = userRef.value;
+    var provider = storiesProvider(user?.settings);
     return ZScaffold(
       appBar: ZAppBar(
         showLogo: true,
@@ -45,6 +49,14 @@ class _FeedState extends ConsumerState<Feed> {
             },
           ),
           IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: () {
+              context.showModal(FeedSettings(onFilterChange: () {
+                setState(() {});
+              }));
+            },
+          ),
+          IconButton(
             icon: const Icon(FontAwesomeIcons.plus),
             color: context.primaryColor,
             onPressed: () {
@@ -53,13 +65,13 @@ class _FeedState extends ConsumerState<Feed> {
           ),
         ],
       ),
-      body: user.isLoading
+      body: userRef.isLoading
           ? const Loading()
           : Center(
               child: RiverPagedBuilder<int, Story>(
                 pullToRefresh: true,
                 firstPageKey: 0,
-                provider: storiesProvider,
+                provider: provider,
                 itemBuilder: (context, item, index) {
                   return Column(
                     children: [

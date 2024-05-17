@@ -7,6 +7,7 @@ import 'package:political_think/common/models/post.dart';
 import 'package:political_think/common/models/room.dart';
 import 'package:political_think/common/models/story.dart';
 import 'package:political_think/common/models/vote.dart';
+import 'package:political_think/common/models/zsettings.dart';
 import 'package:political_think/common/models/zuser.dart';
 import 'package:political_think/common/riverpod_infinite_scroll/src/paged_notifier.dart';
 import 'package:political_think/common/riverpod_infinite_scroll/src/paged_state.dart';
@@ -62,19 +63,21 @@ final storyProvider = StreamProvider.family<Story?, String>((ref, pid) {
   });
 });
 
-final storiesProvider =
-    StateNotifierProvider<StoryNotifier, PagedState<int, Story>>(
-  (_) => StoryNotifier(),
+final storiesProvider = StateNotifierProvider.family<StoryNotifier,
+    PagedState<int, Story>, ZSettings?>(
+  (ref, settings) => StoryNotifier(settings),
 );
 
 class StoryNotifier extends PagedNotifier<int, Story> {
-  StoryNotifier()
+  final ZSettings? settings;
+
+  StoryNotifier(this.settings)
       : super(
-          //load is a required method of PagedNotifier
           load: (page, limit) async {
-            return Database.instance().getStories(page, limit);
+            // Use the settings parameters in the query
+            return Database.instance()
+                .getStoriesFiltered(page, limit, settings);
           },
-          // THIS NEEDS TO MATCH THE ORDER BY IN THE QUERY
           nextPageKeyBuilder: (List<Story>? lastItems, int page, int limit) =>
               lastItems?.last.happenedAt?.millisecondsSinceEpoch,
         );
@@ -120,7 +123,7 @@ final postsFromStoryProvider =
       .postCollection
       .where("sids", arrayContains: sid)
       //.orderBy("importance", descending: true)
-      .limit(50) // need to configure
+      .limit(25) // need to configure
       .snapshots()
       .map((querySnapshot) {
     if (querySnapshot.docs.isNotEmpty) {

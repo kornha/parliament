@@ -109,6 +109,7 @@ class _PostViewState extends ConsumerState<PostItemView> {
                 : Row(
                     mainAxisAlignment: MainAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       post?.photo?.photoURL != null
                           ? ZImage(
@@ -138,6 +139,24 @@ class _PostViewState extends ConsumerState<PostItemView> {
                           maxLines: 5,
                           overflow: TextOverflow.ellipsis,
                         ),
+                      ),
+                      // TODO: move this to ProfileIcon widget
+                      Stack(
+                        alignment: Alignment.bottomRight,
+                        children: [
+                          Visibility(
+                            visible: entity?.photoURL != null,
+                            child: ProfileIcon(
+                              url: entity?.photoURL,
+                              size: context.iconSizeStandard,
+                            ),
+                          ),
+                          Icon(
+                            post?.sourceType.icon,
+                            size: context.iconSizeSmall,
+                            color: context.secondaryColor,
+                          ),
+                        ],
                       ),
                     ],
                   ),

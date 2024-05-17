@@ -4,6 +4,7 @@ import 'package:political_think/common/models/post.dart';
 import 'package:political_think/common/models/room.dart';
 import 'package:political_think/common/models/story.dart';
 import 'package:political_think/common/models/vote.dart';
+import 'package:political_think/common/models/zsettings.dart';
 import 'package:political_think/common/models/zuser.dart';
 import 'package:political_think/common/chat/chat_types/flutter_chat_types.dart'
     as ct;
@@ -95,7 +96,8 @@ class Database {
     });
   }
 
-  Future<List<Story>?> getStories(int page, int limit) {
+  Future<List<Story>?> getStoriesFiltered(
+      int page, int limit, ZSettings? settings) {
     return Database.instance()
         .storyCollection
         .orderBy('happenedAt', descending: true)
@@ -105,13 +107,25 @@ class Database {
         .then(
           (querySnapshot) {
             if (querySnapshot.docs.isNotEmpty) {
-              return querySnapshot.docs
+              var stories = querySnapshot.docs
                   .map((doc) =>
                       Story.fromJson(doc.data() as Map<String, dynamic>))
                   .toList();
+              // CLIENT SIDE FILTERING. HACKY NEED TO RECONSIDER
+              // Cannot filter on server side since we are using a range query
+              stories = stories
+                  .where((story) =>
+                      story.importance != null &&
+                      story.importance! >= (settings?.minImportance ?? 0))
+                  .toList();
+
+              if (stories.isNotEmpty) {
+                return stories;
+              }
             } else {
               return null;
             }
+            return null;
           },
         );
   }

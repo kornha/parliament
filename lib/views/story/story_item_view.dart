@@ -27,18 +27,17 @@ class _StoryViewState extends ConsumerState<StoryItemView> {
     var storyRef = ref.storyWatch(widget.sid);
     var story = storyRef.value;
     //
-    var primaryPostsRef = ref.primaryPostsFromStoriesWatch(widget.sid);
-    var primaryPosts = primaryPostsRef.value;
-    //
-    bool shouldShowSecondaryPosts =
-        !(storyRef.isLoading || primaryPostsRef.isLoading) &&
-            primaryPosts != null &&
-            primaryPosts.length > 1 &&
-            (story?.importance ?? 0.5) > 0.1;
+    // var primaryPostsRef = ref.primaryPostsFromStoriesWatch(widget.sid);
+    // var primaryPosts = primaryPostsRef.value;
 
-    return storyRef.isLoading || primaryPostsRef.isLoading
+    var allPostsRef = ref.postsFromStoryWatch(widget.sid);
+    var allPosts = allPostsRef.value;
+
+    bool shouldShowSecondaryPosts = (allPosts?.length ?? 0) >= 1;
+
+    return storyRef.isLoading || allPostsRef.isLoading
         ? const Loading(type: LoadingType.post)
-        : !primaryPostsRef.hasValue || (primaryPosts?.isEmpty ?? true)
+        : !allPostsRef.hasValue || (allPosts?.isEmpty ?? true)
             ? const SizedBox.shrink()
             : Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -56,11 +55,17 @@ class _StoryViewState extends ConsumerState<StoryItemView> {
                         )
                       : const SizedBox.shrink(),
                   const ZDivider(type: DividerType.SECONDARY),
-                  PostItemView(
-                    pid: primaryPosts!.first.pid,
-                    story: story,
-                    showPostButtons: false,
-                  ),
+                  story?.description != null
+                      ? GestureDetector(
+                          onTap: () =>
+                              context.go("${StoryView.location}/${story.sid}"),
+                          child: Text(
+                            story!.description!,
+                            style: context.l,
+                            textAlign: TextAlign.start,
+                          ),
+                        )
+                      : const SizedBox.shrink(),
                   Visibility(
                       visible: shouldShowSecondaryPosts, child: context.sh),
                   Visibility(
@@ -71,16 +76,13 @@ class _StoryViewState extends ConsumerState<StoryItemView> {
                   Visibility(
                     visible: shouldShowSecondaryPosts,
                     child: SizedBox(
-                      // TODO: MAGIC NUMBER
                       height: context.blockSize.height / 2,
                       child: ListView.separated(
                           shrinkWrap: true,
                           scrollDirection: Axis.horizontal,
-                          itemCount:
-                              primaryPosts.length - 1, // dont show first!
+                          itemCount: allPosts!.length,
                           itemBuilder: (context, index) {
-                            var post =
-                                primaryPosts[index + 1]; // dont show first!
+                            var post = allPosts[index];
                             return PostItemView(
                               pid: post.pid,
                               story: story,

@@ -231,6 +231,8 @@ const newClaimPrompt = function() {
         Eg., if you want to make a Claim that "Iran did not close airspace over Tehran" (and the Post supports this), the Claim should be "Iran closed airspace over Tehran" and the Post should be "against" the Claim.
         When outputting pro and against, you should output the post ID (pid) of the post that is either for or against the claim inside of an array, for example against: [pid] instead of against: pid.
         Eg., a Post titled "I stand behind what I tweeted on October 7th. Can you say the same?" would not be a Claim, since it is expressing an opion.
+        Note again that Claims are generally listed in the positive;
+        A Claim such as: "The UN has not imposed sanctions on Hamas leadership" would be better worded "The UN has imposed sanctions on Hamas leadership".
         `;
 };
 
@@ -322,22 +324,19 @@ const findClaimsAndStoriesExample = function() {
     "Iran state media removes report about closing airspace over Tehran after warnings of possible strike on Israel".
     sourceCreatedAt: "2021-05-10T12:00:00Z"
 
-    And we have a Story that has the Title: 
-    "Iran and Israel on the Brink of War"
-    Description: 
-    "Iran and Israel are on the brink of war, and the two countries are beginning a defensive posture."
+    And we have a Story (1) that has the Title: 
+    "Iran and Israel Trade Threats"
+    and another Story (2) that has the Title:
+    "Iran Closes Airspace"
 
-    Claims: 
-    1) "Iran is on the brink of war with Israel".
+    Story 1 should have the Claims:
+    1) "Iran threatens strike on Israel"
 
-    In this case, the Post has introduced a new Claims that are directly related to the Story; 
-    and the Claims: "Iran media had reported closing its airspace" as well as "Iran media removed the report of closing its airspace"
-    should be added to the Story.
+    Story 2 should have the Claims:
+    1) "Iran closes airspace over Tehran"
+    2) "Iran media removed their report about closing airspace"
 
-    After this the Story should have 3 Claims:
-    1) "Iran is on the brink of war with Israel"
-    2) "Iran media had reported closing its airspace"
-    3) "Iran media removed the report of closing its airspace"    
+    Put simply, a Claim is any factual Claim about a Story (but is not an opinon).
   `;
 };
 

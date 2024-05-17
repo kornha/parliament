@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:political_think/common/components/loading.dart';
 import 'package:political_think/common/components/zapp_bar.dart';
@@ -49,9 +50,21 @@ class _StoryViewState extends ConsumerState<StoryView> {
                   context.sf,
                   Row(
                     mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Text(
                         Utils.toHumanReadableDate(story?.happenedAt),
+                        style: context.m.copyWith(
+                          color: context.secondaryColor,
+                        ),
+                      ),
+                      const Spacer(),
+                      Icon(FontAwesomeIcons.triangleExclamation,
+                          size: context.iconSizeSmall,
+                          color: context.secondaryColor),
+                      context.sq,
+                      Text(
+                        story?.importance?.toString() ?? "",
                         style: context.m.copyWith(
                           color: context.secondaryColor,
                         ),
