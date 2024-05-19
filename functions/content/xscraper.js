@@ -17,6 +17,9 @@ const _xHandleKey = defineSecret("X_HANDLE_KEY");
 const _xPasswordKey = defineSecret("X_PASSWORD_KEY");
 const _xEmailKey = defineSecret("X_EMAIL_KEY");
 
+// need a namespace for X for v5 that is a valid uuid
+const _xNamespace = "e962ad23-2f0a-411b-a118-a309d7ee4340";
+
 /**
  * REQUIRES 1GB TO RUN!
  * REQUIRES LONGER TIMEOUT
@@ -231,7 +234,7 @@ const processXLinks = async function(xLinks, poster = null) {
         continue; // Skip to the next iteration if no entity is found
       }
       const post = {
-        pid: v5(xid, "x"),
+        pid: v5(xid, _xNamespace),
         eid: eid,
         xid: xid,
         url: link,
