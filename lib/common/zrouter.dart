@@ -1,12 +1,10 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:political_think/common/components/loading.dart';
 import 'package:political_think/common/components/znavigation_scaffold.dart';
-import 'package:political_think/common/components/zerror.dart';
-import 'package:political_think/common/models/political_position.dart';
+import 'package:political_think/common/extensions.dart';
 import 'package:political_think/common/services/zprovider.dart';
-import 'package:political_think/sharing.dart';
 import 'package:political_think/views/feed/feed.dart';
 import 'package:political_think/views/games/games.dart';
 import 'package:political_think/views/login/login.dart';
@@ -30,7 +28,8 @@ class ZRouter {
         ShellRoute(
           navigatorKey: _shellNavigatorKey,
           pageBuilder: (context, state, child) {
-            return NoTransitionPage(
+            return zPage(
+              context: context,
               child: ZNavigationScaffold(
                 location: state.fullPath ?? '',
                 child: child,
@@ -41,42 +40,48 @@ class ZRouter {
             GoRoute(
               parentNavigatorKey: _shellNavigatorKey,
               path: Feed.location,
-              pageBuilder: (context, state) => const NoTransitionPage(
-                child: Feed(),
+              pageBuilder: (context, state) => zPage(
+                context: context,
+                child: const Feed(),
               ),
             ),
             GoRoute(
               parentNavigatorKey: _shellNavigatorKey,
               path: Maps.location,
-              pageBuilder: (context, state) => const NoTransitionPage(
-                child: Maps(),
+              pageBuilder: (context, state) => zPage(
+                context: context,
+                child: const Maps(),
               ),
             ),
             GoRoute(
               parentNavigatorKey: _shellNavigatorKey,
               path: Games.location,
-              pageBuilder: (context, state) => const NoTransitionPage(
-                child: Games(),
+              pageBuilder: (context, state) => zPage(
+                context: context,
+                child: const Games(),
               ),
             ),
             GoRoute(
               parentNavigatorKey: _shellNavigatorKey,
               path: Messages.location,
-              pageBuilder: (context, state) => const NoTransitionPage(
-                child: Messages(),
+              pageBuilder: (context, state) => zPage(
+                context: context,
+                child: const Messages(),
               ),
             ),
             GoRoute(
               parentNavigatorKey: _shellNavigatorKey,
               path: Profile.location,
-              pageBuilder: (context, state) => const NoTransitionPage(
-                child: Profile(),
+              pageBuilder: (context, state) => zPage(
+                context: context,
+                child: const Profile(),
               ),
             ),
             GoRoute(
               parentNavigatorKey: _shellNavigatorKey,
               path: "${PostView.location}/:pid",
-              pageBuilder: (context, state) => NoTransitionPage(
+              pageBuilder: (context, state) => zPage(
+                context: context,
                 child: PostView(
                   pid: state.pathParameters["pid"]!,
                 ),
@@ -85,7 +90,8 @@ class ZRouter {
             GoRoute(
               parentNavigatorKey: _shellNavigatorKey,
               path: "${StoryView.location}/:sid",
-              pageBuilder: (context, state) => NoTransitionPage(
+              pageBuilder: (context, state) => zPage(
+                context: context,
                 child: StoryView(
                   sid: state.pathParameters["sid"]!,
                 ),
@@ -96,21 +102,23 @@ class ZRouter {
         GoRoute(
           parentNavigatorKey: rootNavigatorKey,
           path: Login.location,
-          pageBuilder: (context, state) => const NoTransitionPage(
-            child: Login(),
+          pageBuilder: (context, state) => zPage(
+            context: context,
+            child: const Login(),
           ),
         ),
         GoRoute(
           parentNavigatorKey: rootNavigatorKey,
           path: LoadingPage.location,
-          pageBuilder: (context, state) => const NoTransitionPage(
-            child: LoadingPage(),
+          pageBuilder: (context, state) => zPage(
+            context: context,
+            child: const LoadingPage(),
           ),
         ),
         // GoRoute(
         //   parentNavigatorKey: rootNavigatorKey,
         //   path: "${PostView.location}/:pid",
-        //   pageBuilder: (context, state) => NoTransitionPage(
+        //   pageBuilder: (context, state) => MaterialPage(
         //     child: PostView(
         //       pid: state.pathParameters["pid"]!,
         //     ),
@@ -137,6 +145,20 @@ class ZRouter {
 
         return null;
       },
+    );
+  }
+
+  static Page<dynamic> zPage({
+    required BuildContext context,
+    required Widget child,
+  }) {
+    if (context.isWeb) {
+      return NoTransitionPage(
+        child: child,
+      );
+    }
+    return CupertinoPage(
+      child: child,
     );
   }
 }

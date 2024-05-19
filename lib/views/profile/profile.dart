@@ -1,14 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:political_think/common/components/loading.dart';
 import 'package:political_think/common/components/profile_icon.dart';
-import 'package:political_think/common/components/zback_button.dart';
-import 'package:political_think/common/components/zerror.dart';
 import 'package:political_think/common/components/zscaffold.dart';
 import 'package:political_think/common/components/ztext_button.dart';
-import 'package:political_think/common/components/ztextfield.dart';
-import 'package:political_think/common/constants.dart';
 import 'package:political_think/common/extensions.dart';
 import 'package:political_think/common/models/zuser.dart';
 import 'package:political_think/common/services/auth.dart';
@@ -31,7 +26,6 @@ class _ProfileState extends ConsumerState<Profile> {
   Widget build(BuildContext context) {
     final userRef = ref.selfUserWatch();
     bool isLoading = userRef.isLoading;
-    bool isError = userRef.hasError || userRef.value == null;
     // set isEditing to false if user changed (but did not go from null to not null)
     ZUser? user = userRef.value;
 

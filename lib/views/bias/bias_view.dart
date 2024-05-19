@@ -1,21 +1,13 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/framework.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:political_think/common/components/interactive/political_position_joystick.dart';
 import 'package:political_think/common/components/loading.dart';
 import 'package:political_think/common/components/logo.dart';
 import 'package:political_think/common/components/political_component.dart';
 import 'package:political_think/common/components/profile_icon.dart';
 import 'package:political_think/common/components/zerror.dart';
-import 'package:political_think/common/components/ztext_button.dart';
 import 'package:political_think/common/extensions.dart';
-import 'package:political_think/common/models/bias.dart';
 import 'package:political_think/common/models/political_position.dart';
-import 'package:political_think/common/models/post.dart';
 import 'package:political_think/common/models/vote.dart';
-import 'package:political_think/common/services/database.dart';
 import 'package:political_think/views/bias/bias_widget.dart';
 
 class BiasView extends ConsumerStatefulWidget {
@@ -31,8 +23,6 @@ class BiasView extends ConsumerStatefulWidget {
 }
 
 class _BiasViewViewState extends ConsumerState<BiasView> {
-  final bool _expanded = false;
-
   @override
   Widget build(BuildContext context) {
     var postRef = ref.postWatch(widget.pid);

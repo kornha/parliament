@@ -1,5 +1,4 @@
 import 'package:cloud_functions/cloud_functions.dart';
-import 'package:political_think/common/models/political_position.dart';
 
 class Functions {
   Functions.instance();

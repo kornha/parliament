@@ -46,7 +46,7 @@ class _PostViewState extends ConsumerState<PostItemView> {
         ? Loading(
             type: widget.isSubView ? LoadingType.postSmall : LoadingType.post)
         : GestureDetector(
-            onTap: () => context.go("${PostView.location}/${post?.pid}"),
+            onTap: () => context.push("${PostView.location}/${post?.pid}"),
             child: !widget.isSubView
                 ? Column(
                     children: [

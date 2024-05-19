@@ -4,20 +4,16 @@ import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:ogp_data_extract/ogp_data_extract.dart';
 import 'package:political_think/common/components/loading.dart';
 import 'package:political_think/common/components/modal_container.dart';
-import 'package:political_think/common/components/zerror.dart';
 import 'package:political_think/common/components/ztext_button.dart';
 import 'package:political_think/common/constants.dart';
 import 'package:political_think/common/extensions.dart';
 import 'package:political_think/common/models/post.dart';
 import 'package:political_think/common/services/database.dart';
 import 'package:political_think/common/services/functions.dart';
-import 'package:political_think/common/util/utils.dart';
 import 'package:political_think/views/post/post_item_view.dart';
 import 'package:political_think/views/post/post_view.dart';
-import 'package:uuid/uuid.dart';
 
 class PostBuilder extends ConsumerStatefulWidget {
   const PostBuilder({super.key, this.url});
@@ -100,7 +96,7 @@ class _PostBuilderState extends ConsumerState<PostBuilder> {
                         "updatedAt": Timestamp.now().millisecondsSinceEpoch,
                       });
                       context.pop();
-                      context.go("${PostView.location}/${_pid!}");
+                      context.push("${PostView.location}/${_pid!}");
                     }
                   },
                   backgroundColor: context.secondaryColor,

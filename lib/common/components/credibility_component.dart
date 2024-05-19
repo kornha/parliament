@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:political_think/common/constants.dart';
 import 'package:political_think/common/extensions.dart';
 import 'package:political_think/common/models/credibility.dart';
-import 'package:political_think/common/models/political_position.dart';
 
 class CredibilityComponent extends StatefulWidget {
   final Credibility? credibility;

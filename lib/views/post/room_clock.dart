@@ -8,8 +8,6 @@ import 'package:political_think/common/constants.dart';
 import 'package:political_think/common/extensions.dart';
 import 'package:political_think/common/models/political_position.dart';
 import 'package:political_think/common/models/room.dart';
-import 'package:political_think/common/models/zuser.dart';
-import 'package:political_think/common/services/zprovider.dart';
 
 class RoomClock extends ConsumerStatefulWidget {
   const RoomClock({

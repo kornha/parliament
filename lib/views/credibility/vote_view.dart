@@ -2,11 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:political_think/common/components/credibility_component.dart';
 import 'package:political_think/common/components/interactive/credibility_slider.dart';
 import 'package:political_think/common/components/interactive/political_position_joystick.dart';
 import 'package:political_think/common/components/loading.dart';
-import 'package:political_think/common/components/political_component.dart';
 import 'package:political_think/common/components/zerror.dart';
 import 'package:political_think/common/components/ztext_button.dart';
 import 'package:political_think/common/components/ztextfield.dart';
@@ -14,8 +12,6 @@ import 'package:political_think/common/extensions.dart';
 import 'package:political_think/common/models/bias.dart';
 import 'package:political_think/common/models/vote.dart';
 import 'package:political_think/common/services/database.dart';
-import 'package:political_think/common/services/zprovider.dart';
-import 'package:political_think/views/credibility/credibility_widget.dart';
 
 class VoteView extends ConsumerStatefulWidget {
   // final Vote vote;

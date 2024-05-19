@@ -4,8 +4,6 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:political_think/common/components/loading.dart';
 import 'package:political_think/common/components/zdivider.dart';
 import 'package:political_think/common/extensions.dart';
-import 'package:political_think/common/models/post.dart';
-import 'package:political_think/common/util/zimage.dart';
 import 'package:political_think/views/post/post_item_view.dart';
 import 'package:political_think/views/story/story_view.dart';
 
@@ -45,8 +43,8 @@ class _StoryViewState extends ConsumerState<StoryItemView> {
                 children: [
                   story?.title != null
                       ? GestureDetector(
-                          onTap: () =>
-                              context.go("${StoryView.location}/${story.sid}"),
+                          onTap: () => context
+                              .push("${StoryView.location}/${story.sid}"),
                           child: Text(
                             story!.title!,
                             style: context.lb,
@@ -57,8 +55,8 @@ class _StoryViewState extends ConsumerState<StoryItemView> {
                   const ZDivider(type: DividerType.SECONDARY),
                   story?.description != null
                       ? GestureDetector(
-                          onTap: () =>
-                              context.go("${StoryView.location}/${story.sid}"),
+                          onTap: () => context
+                              .push("${StoryView.location}/${story.sid}"),
                           child: Text(
                             story!.description!,
                             style: context.l,

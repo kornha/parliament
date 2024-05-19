@@ -20,6 +20,7 @@ class _LoginState extends ConsumerState<Login> {
   @override
   Widget build(BuildContext context) {
     return ZScaffold(
+      scrollPhysics: const NeverScrollableScrollPhysics(),
       body: Center(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,

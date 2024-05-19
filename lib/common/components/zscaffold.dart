@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:political_think/common/chat/flutter_chat_ui.dart';
 import 'package:political_think/common/extensions.dart';
 
 class ZScaffold extends StatelessWidget {
@@ -14,6 +13,7 @@ class ZScaffold extends StatelessWidget {
   final bool defaultPadding;
   final bool defaultMargin;
   final bool defaultSafeArea;
+  final ScrollPhysics scrollPhysics;
 
   const ZScaffold({
     super.key,
@@ -25,6 +25,7 @@ class ZScaffold extends StatelessWidget {
     this.floatingActionButtonAnimator,
     this.bottomNavigationBar,
     this.scrollController,
+    this.scrollPhysics = const BouncingScrollPhysics(),
     this.defaultPadding = true,
     this.defaultMargin = true,
     this.defaultSafeArea = true,
@@ -36,7 +37,7 @@ class ZScaffold extends StatelessWidget {
       appBar: null,
       body: NestedScrollView(
         //controller: scrollController,
-        physics: const NeverScrollableScrollPhysics(),
+        physics: scrollPhysics,
         headerSliverBuilder: (context, innerBoxIsScrolled) {
           return [
             SliverAppBar(

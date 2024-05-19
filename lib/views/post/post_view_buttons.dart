@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:political_think/common/components/comment_widget.dart';
 import 'package:political_think/common/components/location_map.dart';
 import 'package:political_think/common/extensions.dart';
-import 'package:political_think/common/models/political_position.dart';
 import 'package:political_think/common/models/post.dart';
 import 'package:political_think/common/models/story.dart';
 import 'package:political_think/views/bias/bias_widget.dart';
