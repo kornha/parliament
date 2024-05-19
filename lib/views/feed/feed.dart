@@ -33,11 +33,12 @@ class Feed extends ConsumerStatefulWidget {
 }
 
 class _FeedState extends ConsumerState<Feed> {
+  PagingController<int, Story>? _pagingController;
+
   @override
   Widget build(BuildContext context) {
     final AsyncValue<ZUser?> userRef = ref.selfUserWatch();
     ZUser? user = userRef.value;
-    var provider = storiesProvider(user?.settings);
     return ZScaffold(
       appBar: ZAppBar(
         showLogo: true,
@@ -45,14 +46,14 @@ class _FeedState extends ConsumerState<Feed> {
           IconButton(
             icon: const Icon(Icons.sync),
             onPressed: () {
-              Functions.instance().test();
+              Functions.instance().scrapeX();
             },
           ),
           IconButton(
             icon: const Icon(Icons.settings),
             onPressed: () {
               context.showModal(FeedSettings(onFilterChange: () {
-                setState(() {});
+                _pagingController?.refresh();
               }));
             },
           ),
@@ -71,7 +72,7 @@ class _FeedState extends ConsumerState<Feed> {
               child: RiverPagedBuilder<int, Story>(
                 pullToRefresh: true,
                 firstPageKey: 0,
-                provider: provider,
+                provider: storiesProvider(user?.settings),
                 itemBuilder: (context, item, index) {
                   return Column(
                     children: [
@@ -96,10 +97,13 @@ class _FeedState extends ConsumerState<Feed> {
                 firstPageProgressIndicatorBuilder: (context, controller) {
                   return const Loading(type: LoadingType.large);
                 },
-                pagedBuilder: (controller, builder) => PagedListView(
-                  pagingController: controller,
-                  builderDelegate: builder,
-                ),
+                pagedBuilder: (controller, builder) {
+                  _pagingController = controller;
+                  return PagedListView(
+                    pagingController: controller,
+                    builderDelegate: builder,
+                  );
+                },
               ),
             ),
     );

@@ -49,7 +49,7 @@ class _StoryViewState extends ConsumerState<StoryItemView> {
                               context.go("${StoryView.location}/${story.sid}"),
                           child: Text(
                             story!.title!,
-                            style: context.l,
+                            style: context.lb,
                             textAlign: TextAlign.start,
                           ),
                         )
@@ -71,8 +71,6 @@ class _StoryViewState extends ConsumerState<StoryItemView> {
                   Visibility(
                       visible: shouldShowSecondaryPosts,
                       child: const ZDivider(type: DividerType.SECONDARY)),
-                  Visibility(
-                      visible: shouldShowSecondaryPosts, child: context.sh),
                   Visibility(
                     visible: shouldShowSecondaryPosts,
                     child: SizedBox(

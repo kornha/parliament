@@ -8,7 +8,7 @@ const {getPostByXid,
   findCreateEntity,
   updatePost,
 } = require("../common/database");
-const {v4} = require("uuid");
+const {v5} = require("uuid");
 const {Timestamp} = require("firebase-admin/firestore");
 const {isoToMillis} = require("../common/utils");
 const {defineSecret} = require("firebase-functions/params");
@@ -33,6 +33,8 @@ const scrapeXFeed = async function() {
   for await (const link of autoScrollX(page)) {
     await processXLinks([link], null);
   }
+
+  functions.logger.info("Finished scraping X feed.");
 
   await browser.close();
 
@@ -73,7 +75,7 @@ const connectToX = async function(page) {
 
   if (tryRedirect) {
     // cannot wait for network idle here as it will hang
-    await page.goto("https://twitter.com/home");
+    await page.goto("https://x.com/home");
     // wait for redirect
     await page.waitForNetworkIdle({idleTime: 1500});
     if (!page.url().includes("login")) {
@@ -85,7 +87,7 @@ const connectToX = async function(page) {
   functions.logger.info("Logging in to X.");
 
   // login
-  await page.goto("https://twitter.com/i/flow/login", {waitUntil: "networkidle0"});
+  await page.goto("https://x.com/i/flow/login", {waitUntil: "networkidle0"});
   await page.waitForNetworkIdle({idleTime: 1500});
 
   // Select the user input
@@ -106,7 +108,7 @@ const connectToX = async function(page) {
   });
   await page.waitForNetworkIdle({idleTime: 1500});
   // ////////////////////////////////////////////////////
-  // Sometimes twitter suspect suspicious activties,
+  // Sometimes x suspect suspicious activties,
   // so it ask for your handle/phone Number
   const extractedText = await page.$eval("*", (el) => el.innerText);
   if (extractedText.includes("Enter your phone number or username")) {
@@ -181,7 +183,7 @@ const autoScrollX = async function* (page, maxDuration = 90000) {
       const links = await page.evaluate(() => {
         // eslint-disable-next-line no-undef
         const items = document.querySelectorAll("article [role='link']");
-        const xRegex = /^https:\/\/twitter\.com\/\w+\/status\/\d+$/;
+        const xRegex = /^https:\/\/x\.com\/\w+\/status\/\d+$/;
         return Array.from(items).map((item) =>
           item.href).filter((href) => xRegex.test(href));
       });
@@ -229,7 +231,7 @@ const processXLinks = async function(xLinks, poster = null) {
         continue; // Skip to the next iteration if no entity is found
       }
       const post = {
-        pid: v4(),
+        pid: v5(xid, "x"),
         eid: eid,
         xid: xid,
         url: link,
@@ -271,11 +273,11 @@ const getTextContentFromX = async function(url) {
   await page.goto(url, {waitUntil: "networkidle0"});
 
   // Finds the tweet text
-  // Hack, to be solved with twitter API
+  // Hack, to be solved with x API
   const tweetTextSelector = "article [data-testid=\"tweetText\"]";
 
   // Finds the account handle
-  // Hack, to be solved with twitter API
+  // Hack, to be solved with x API
   // in this case needs a div, span at the end. Not sure why.
   const tweetAuthorSelector =
   "article [data-testid=\"User-Name\"] div:nth-of-type(2) div span";
@@ -393,7 +395,7 @@ const getEntityImageFromX = async function(handle) {
   const browser = await puppeteer.launch({headless: "new"});
   const page = await browser.newPage();
 
-  await page.goto(`https://twitter.com/${handle}/photo`, {waitUntil: "networkidle0"});
+  await page.goto(`https://x.com/${handle}/photo`, {waitUntil: "networkidle0"});
 
   const imageSelector = "img[alt='Image']";
 
@@ -409,16 +411,9 @@ const getEntityImageFromX = async function(handle) {
   return photoURL;
 };
 
-// see xRegex
-const buildXUrl = function(handle, xid) {
-  return `https://twitter.com/${handle}/status/${xid}`;
-};
-
-
 module.exports = {
   xupdatePost,
   scrapeXFeed,
-  buildXUrl,
   processXLinks,
   //
   getTextContentFromX,

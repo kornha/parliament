@@ -79,16 +79,20 @@ extension ProviderExt on WidgetRef {
 }
 
 extension ThemeExt on BuildContext {
+  // need to change this to use the theme
+  // backgroundColor was deprecated
+  Color get backgroundColor => Theme.of(this).colorScheme.surface;
+  Color get onBackgroundColor => Theme.of(this).colorScheme.onSurface;
+  Color get surfaceColor => Theme.of(this).colorScheme.surfaceDim;
+  Color get surfaceColorBright => Theme.of(this).colorScheme.surfaceBright;
+  Color get onSurfaceColor => Theme.of(this).colorScheme.onSurfaceVariant;
+  Color get onSurfaceColorWithOpacity => onSurfaceColor.withOpacity(0.55);
+  Color get surfaceColorWithOpacity => surfaceColor.withOpacity(0.55);
+  Color get backgroundColorWithOpacity => backgroundColor.withOpacity(0.55);
+
   Color get primaryColor => Theme.of(this).colorScheme.primary;
   Color get primaryColorWithOpacity => primaryColor.withOpacity(0.2);
-  Color get backgroundColor => Theme.of(this).colorScheme.background;
-  Color get backgroundColorWithOpacity => backgroundColor.withOpacity(0.55);
-  Color get surfaceColor => Theme.of(this).colorScheme.surface;
-  Color get surfaceColorWithOpacity => surfaceColor.withOpacity(0.55);
   Color get onPrimaryColor => Theme.of(this).colorScheme.onPrimary;
-  Color get onBackgroundColor => Theme.of(this).colorScheme.onBackground;
-  Color get onSurfaceColor => Theme.of(this).colorScheme.onSurface;
-  Color get onSurfaceColorWithOpacity => onSurfaceColor.withOpacity(0.55);
   Color get errorColor => Theme.of(this).colorScheme.error;
   Color get onErrorColor => Theme.of(this).colorScheme.onError;
   Color get secondaryColor => Theme.of(this).colorScheme.secondary;

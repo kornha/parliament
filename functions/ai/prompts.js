@@ -159,6 +159,7 @@ const newStoryPrompt = function() {
   return `
   The Title and Description of the story should be the most neutral, and the most minimal vector distance for all posts.
   The Title should be 2-6 words, and the Description should be 1-5 sentences.
+  SID should be null for new Stories.
   They should be as neutral as possible, and include language as definitive only if consensus is clear.
   'happenedAt' is the time for when the event in the story happened. If the time is not clear, output the time that was passed in, which can be null.
   'importance' is a value between 0.0 and 1.0, where 1.0 would represent insanely urgent news, like the breakout of WW3, and 0.0 represents non-news, like a pure opinion (that isn't newsworthy), or a cat video.

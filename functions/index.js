@@ -10,7 +10,7 @@ const {onPostUpdate, onPostPublished,
   onPostChangedVector} = require("./models/post");
 const {onVoteBiasChange, onVoteCredibilityChange} = require("./models/vote");
 const {generateBiasTraining} = require("./ai/scripts");
-const {onLinkPaste} = require("./content/content");
+const {onLinkPaste, onScrapeX} = require("./content/content");
 const {debateDidTimeOut, debateDidTimeOutTask} = require("./messages/clock");
 const {onStoryUpdate, onStoryPostsChanged, onStoryChangedPosts,
   onStoryShouldChangeVector, onStoryShouldChangeClaims,
@@ -38,12 +38,11 @@ Object.assign(TaskQueue.prototype, {
 
 // Used as a dev-time helper to test functions
 const functions = require("firebase-functions");
-const {scrapeXFeed} = require("./content/xscraper");
 
-const test = functions.https.onCall(async (data, context) => {
-  await scrapeXFeed();
-  return Promise.resolve();
-});
+const test = functions
+    .https.onCall(async (data, context) => {
+
+    });
 
 module.exports = {
   onAuthUserCreate,
@@ -78,6 +77,7 @@ module.exports = {
   onClaimShouldChangeContext,
   //
   onLinkPaste,
+  onScrapeX,
   // Scripts
   generateBiasTraining,
   // Dev helper

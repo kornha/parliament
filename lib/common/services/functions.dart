@@ -70,14 +70,12 @@ class Functions {
   }
 
 // Used as a dev-time helper to test functions
-  Future<String?> test() async {
+  Future<String?> scrapeX() async {
     final HttpsCallable callable =
-        FirebaseFunctions.instance.httpsCallable('test');
+        FirebaseFunctions.instance.httpsCallable('onScrapeX');
 
     try {
-      final HttpsCallableResult result = await callable.call({
-        'val': "test",
-      });
+      final HttpsCallableResult result = await callable.call({});
       print(result.data);
     } catch (e) {
       print(e);

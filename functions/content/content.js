@@ -1,8 +1,8 @@
 const functions = require("firebase-functions");
 const {authenticate} = require("../common/auth");
-const {gbConfig} = require("../common/functions");
+const {gbConfig, gbConfig5Min} = require("../common/functions");
 const {urlToSourceType} = require("../common/utils");
-const {processXLinks} = require("./xscraper");
+const {processXLinks, scrapeXFeed} = require("./xscraper");
 // ////////////////////////////
 // API's
 // ////////////////////////////
@@ -42,6 +42,15 @@ const onLinkPaste = functions.runWith(gbConfig)
       return Promise.resolve(pids[0]);
     });
 
+/**
+ * Scrapes X feed
+ * */
+const onScrapeX = functions.runWith(gbConfig5Min)
+    .https.onCall(async (data, context) => {
+      await scrapeXFeed();
+      return Promise.resolve();
+    });
+
 
 // ////////////////////////////
 // Helpers
@@ -49,4 +58,5 @@ const onLinkPaste = functions.runWith(gbConfig)
 
 module.exports = {
   onLinkPaste,
+  onScrapeX,
 };

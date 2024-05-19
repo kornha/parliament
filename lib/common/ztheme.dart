@@ -17,19 +17,20 @@ class ZTheme {
       onSecondary: Palette.black,
       error: Palette.purple,
       onError: Palette.black,
-      background: Palette.black,
-      onBackground: Palette.black,
-      surface: Palette.darkSlate,
-      onSurface: Palette.white, // SAME IN LIGHT AND DARK
+      surface: Palette.black,
+      onSurface: Palette.white,
+      surfaceDim: Palette.darkSlate,
+      surfaceBright: Palette.lightSlate,
+      onSurfaceVariant: Palette.white, // SAME IN LIGHT AND DARK
     ),
     inputDecorationTheme: const InputDecorationTheme(
       fillColor: Colors.red,
     ),
-    textTheme: GoogleFonts.newsreaderTextTheme().apply(
+    textTheme: GoogleFonts.nunitoTextTheme().apply(
       bodyColor: Palette.white,
       displayColor: Palette.white,
     ),
-    fontFamily: GoogleFonts.newsreader().fontFamily,
+    fontFamily: GoogleFonts.nunito().fontFamily,
     brightness: Brightness.dark,
   );
 
@@ -39,22 +40,23 @@ class ZTheme {
     colorScheme: const ColorScheme(
       brightness: Brightness.light,
       primary: Palette.black,
-      onPrimary: Palette.white,
+      onPrimary: Palette.white, // using for background
       secondary: Palette.green,
       onSecondary: Palette.black,
       error: Palette.purple,
       onError: Palette.black,
-      background: Palette.white,
-      onBackground: Palette.black,
-      surface: Palette.lightSlate,
-      onSurface: Palette.white, // SAME IN LIGHT AND DARK
+      surface: Palette.white,
+      onSurface: Palette.black,
+      surfaceDim: Palette.lightSlate,
+      surfaceBright: Palette.darkSlate,
+      onSurfaceVariant: Palette.white, // SAME IN LIGHT AND DARK
     ),
     inputDecorationTheme: const InputDecorationTheme(
       fillColor: Colors.red,
     ),
 
-    textTheme: GoogleFonts.newsreaderTextTheme(),
-    fontFamily: GoogleFonts.newsreader().fontFamily,
+    textTheme: GoogleFonts.nunitoTextTheme(),
+    fontFamily: GoogleFonts.nunito().fontFamily,
     // highlightColor: Colors.transparent,
     // splashColor: Colors.transparent,
     // hoverColor: Colors.transparent,
@@ -70,11 +72,11 @@ class ZTheme {
 
   // coupled with our chat library
   static final darkChatTheme = DefaultChatTheme(
-    backgroundColor: darkTheme.colorScheme.background,
+    backgroundColor: darkTheme.colorScheme.surface,
     errorColor: darkTheme.colorScheme.error,
     primaryColor: darkTheme.colorScheme.secondary,
     secondaryColor: darkTheme.colorScheme.primary,
-    inputBackgroundColor: darkTheme.colorScheme.background,
+    inputBackgroundColor: darkTheme.colorScheme.surface,
     inputTextColor: darkTheme.colorScheme.primary,
     inputTextCursorColor: darkTheme.colorScheme.secondary,
     sendingIcon: const Loading(type: LoadingType.tiny),
@@ -94,7 +96,7 @@ class ZTheme {
 
     statusIconPadding: const EdgeInsets.all(0),
     inputContainerDecoration: BoxDecoration(
-      color: darkTheme.colorScheme.background,
+      color: darkTheme.colorScheme.surface,
       borderRadius: BRadius.standard,
       border: Border.all(
         color: darkTheme.colorScheme.surface,
@@ -104,11 +106,11 @@ class ZTheme {
   );
 
   static final lightChatTheme = DefaultChatTheme(
-    backgroundColor: lightTheme.colorScheme.background,
+    backgroundColor: lightTheme.colorScheme.surface,
     errorColor: lightTheme.colorScheme.error,
     primaryColor: lightTheme.colorScheme.secondary,
     secondaryColor: lightTheme.colorScheme.primary,
-    inputBackgroundColor: lightTheme.colorScheme.background,
+    inputBackgroundColor: lightTheme.colorScheme.surface,
     inputTextColor: lightTheme.colorScheme.primary,
     inputTextCursorColor: lightTheme.colorScheme.secondary,
     sendingIcon: const Loading(type: LoadingType.tiny),
@@ -127,7 +129,7 @@ class ZTheme {
     // inputMargin: const EdgeInsets.symmetric(horizontal: Margins.half),
     statusIconPadding: const EdgeInsets.all(0),
     inputContainerDecoration: BoxDecoration(
-      color: lightTheme.colorScheme.background,
+      color: lightTheme.colorScheme.surface,
       borderRadius: BRadius.standard,
       border: Border.all(
         color: lightTheme.colorScheme.surface,
