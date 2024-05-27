@@ -22,9 +22,9 @@ const {
 } = require("./prompts");
 const {retryAsyncFunction, isoToMillis} = require("../common/utils");
 const {v4} = require("uuid");
-const {Timestamp, FieldValue} = require("firebase-admin/firestore");
+const {Timestamp, FieldValue, GeoPoint} = require("firebase-admin/firestore");
 const {writeTrainingData} = require("./ai_trainer");
-
+const geo = require("geofire-common");
 
 /** FLAGSHIP FUNCTION
  * ***************************************************************
@@ -50,6 +50,9 @@ const findStoriesAndClaims = async function(post) {
     functions.logger.warn(`Post does not have a gstory! ${post.pid}`);
     return;
   }
+
+  functions.logger.info(`Found ${gstories.length}
+  stories for post ${post.pid}`);
 
   // get all neighbor claims
   // this is a GRAPH search and potentially won't scare with our current db
@@ -97,6 +100,8 @@ const findStoriesAndClaims = async function(post) {
   await Promise.all(g2stories.map(async (gstoryClaim, index) => {
     const sid = gstoryClaim.sid ? gstoryClaim.sid : v4();
 
+    functions.logger.info(`Processing story ${sid} for post ${post.pid}`);
+
     if (index === 0 && post.sid !== sid) {
       await retryAsyncFunction(() => updatePost(post.pid, {
         sid: sid,
@@ -106,14 +111,23 @@ const findStoriesAndClaims = async function(post) {
       }));
     }
 
+    const location = gstoryClaim.lat && gstoryClaim.long ? {
+      geoPoint: new GeoPoint(gstoryClaim.lat, gstoryClaim.long),
+      geoHash: geo.geohashForLocation([gstoryClaim.lat, gstoryClaim.long]),
+    } : null;
+
+
     if (gstoryClaim.sid) {
       await retryAsyncFunction(() => updateStory(sid, {
         title: gstoryClaim.title,
         description: gstoryClaim.description,
+        latest: gstoryClaim.latest,
         updatedAt: Timestamp.now().toMillis(),
         createdAt: Timestamp.now().toMillis(),
         pids: FieldValue.arrayUnion(post.pid),
         importance: gstoryClaim.importance ?? 0.0,
+        photos: gstoryClaim.photos ?? [],
+        ...(location && {location: location}),
         ...(gstoryClaim.happenedAt &&
           {happenedAt: isoToMillis(gstoryClaim.happenedAt)}),
         // updated via callback since the claim may not exist yet
@@ -124,20 +138,28 @@ const findStoriesAndClaims = async function(post) {
       await retryAsyncFunction(() => createStory({
         sid: sid,
         title: gstoryClaim.title,
+        latest: gstoryClaim.latest,
         description: gstoryClaim.description,
         updatedAt: Timestamp.now().toMillis(),
         createdAt: Timestamp.now().toMillis(),
         importance: gstoryClaim.importance ?? 0.0,
         pids: [post.pid],
+        photos: gstoryClaim.photos ?? [],
+        ...(location && {location: location}),
         ...(gstoryClaim.happenedAt &&
           {happenedAt: isoToMillis(gstoryClaim.happenedAt)}),
         // updated via callback since the claim may not exist
         // cids: gstoryClaim.claims.map((gclaim) => gclaim.cid),
       }));
     }
+
+
     if (!_.isEmpty(gstoryClaim.claims)) {
       await Promise.all(gstoryClaim.claims.map(async (gclaim) => {
         if (gclaim.cid) {
+          functions.logger.info(`Processing claim ${gclaim.cid} 
+          for story ${sid}, for post ${post.pid}`);
+
           await retryAsyncFunction(() => updateClaim(gclaim.cid, {
             sids: FieldValue.arrayUnion(sid),
             pids: FieldValue.arrayUnion(post.pid),
@@ -151,8 +173,11 @@ const findStoriesAndClaims = async function(post) {
               {against: FieldValue.arrayUnion(...gclaim.against)}),
           }));
         } else {
+          const _cid = v4();
+          functions.logger.info(`Creating claim claim ${_cid} 
+          for story ${sid}, for post ${post.pid}`);
           await retryAsyncFunction(() => createClaim({
-            cid: v4(),
+            cid: _cid,
             value: gclaim.value,
             pro: gclaim.pro,
             against: gclaim.against,

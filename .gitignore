@@ -45,3 +45,6 @@ app.*.map.json
 
 # Puppeteer
 functions/.cache/puppeteer/
+
+# Local Emulator Folder
+functions/emulator/

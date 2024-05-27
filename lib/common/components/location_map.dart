@@ -9,20 +9,19 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:political_think/common/constants.dart';
 import 'package:political_think/common/extensions.dart';
+import 'package:political_think/common/models/location.dart';
 import 'package:syncfusion_flutter_maps/maps.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:http/http.dart' as http;
 
 class LocationMap extends StatefulWidget {
-  final List<String> locations;
-  final double width;
-  final double height;
+  final Location location;
+  final double? size;
 
   const LocationMap({
     super.key,
-    required this.width,
-    required this.height,
-    this.locations = const [],
+    this.size,
+    required this.location,
   });
 
   // static const CameraPosition _kGooglePlex = CameraPosition(
@@ -42,10 +41,10 @@ class _LocationMapState extends State<LocationMap> {
   void initState() {
     super.initState();
     try {
-      Country country = CountryParser.parse(widget.locations.first);
-      name = country.name;
+      //Country country = CountryParser.parse(widget.locations.first);
+      // name = country.name;
     } catch (e) {
-      name = "us";
+      // name = "us";
     }
     // for static map, ios key. need to enabled other platforms
     // follow these steps for secret:
@@ -63,14 +62,16 @@ class _LocationMapState extends State<LocationMap> {
 
   @override
   Widget build(BuildContext context) {
-    var side = min(widget.width, widget.height);
+    var side = widget.size ?? context.iconSizeStandard;
     var mapId = context.isDarkMode ? "7aa7b886141674ae" : "1dc9a09ef62c1212";
 
     var url = "https://maps.googleapis.com/maps/api/staticmap?"
         "size=150x150"
-        "&visible=$name"
+        "&zoom=5"
+        "&visible=${widget.location.geoPoint.latitude},${widget.location.geoPoint.longitude}"
         "&map_id=$mapId"
         "&key=AIzaSyBGG9WeljnVJwbKOJEKrBE_wQNYFHTSEto";
+
     return Stack(
       alignment: AlignmentDirectional.bottomStart,
       children: [
@@ -89,16 +90,16 @@ class _LocationMapState extends State<LocationMap> {
             ),
           ),
         ),
-        CountryFlag.fromCountryCode(
-          widget.locations.isEmpty ? "us" : widget.locations.first,
-          height: side > IconSize.large
-              ? context.iconSizeStandard
-              : context.iconSizeSmall,
-          width: side > IconSize.large
-              ? context.iconSizeStandard
-              : context.iconSizeSmall,
-          borderRadius: 2,
-        ),
+        // CountryFlag.fromCountryCode(
+        //   widget.locations.isEmpty ? "us" : widget.locations.first,
+        //   height: side > IconSize.large
+        //       ? context.iconSizeStandard
+        //       : context.iconSizeSmall,
+        //   width: side > IconSize.large
+        //       ? context.iconSizeStandard
+        //       : context.iconSizeSmall,
+        //   borderRadius: 2,
+        // ),
       ],
     );
     // return SizedBox(

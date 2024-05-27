@@ -46,7 +46,12 @@ class _PostViewState extends ConsumerState<PostItemView> {
         ? Loading(
             type: widget.isSubView ? LoadingType.postSmall : LoadingType.post)
         : GestureDetector(
-            onTap: () => context.push("${PostView.location}/${post?.pid}"),
+            onTap: () =>
+                // See if current location == PostView.location
+                // Is there a better way to do this?
+                context.router.uri.path.contains(PostView.location)
+                    ? null
+                    : context.push("${PostView.location}/${post?.pid}"),
             child: !widget.isSubView
                 ? Column(
                     children: [

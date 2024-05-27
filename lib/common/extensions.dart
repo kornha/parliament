@@ -86,8 +86,6 @@ extension ThemeExt on BuildContext {
   Color get surfaceColor => Theme.of(this).colorScheme.surfaceDim;
   Color get surfaceColorBright => Theme.of(this).colorScheme.surfaceBright;
   Color get onSurfaceColor => Theme.of(this).colorScheme.onSurfaceVariant;
-  Color get onSurfaceColorWithOpacity => onSurfaceColor.withOpacity(0.55);
-  Color get surfaceColorWithOpacity => surfaceColor.withOpacity(0.55);
   Color get backgroundColorWithOpacity => backgroundColor.withOpacity(0.55);
 
   Color get primaryColor => Theme.of(this).colorScheme.primary;
@@ -162,6 +160,7 @@ extension MediaQueryExt on BuildContext {
   bool get isMobileOrTablet => isMobile || isTablet;
   Brightness get brightness => MediaQuery.of(this).platformBrightness;
   bool get isDarkMode => brightness == Brightness.dark;
+  GoRouterState get router => GoRouterState.of(this);
 }
 
 extension Spacing on BuildContext {

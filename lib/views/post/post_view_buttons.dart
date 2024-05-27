@@ -33,20 +33,20 @@ class PostViewButtons extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         // padding to space evently with post bias
-        Visibility(
-          visible: showMap,
-          child: Padding(
-              padding: EdgeInsets.symmetric(
-                  horizontal:
-                      (context.iconSizeXL - context.iconSizeLarge) / 2.0),
-              child: LocationMap(
-                locations: post.locations.isNotEmpty
-                    ? post.locations
-                    : story?.locations ?? [],
-                width: context.iconSizeLarge,
-                height: context.iconSizeLarge,
-              )),
-        ),
+        // TODO: FIX THIS TO USE NEW LOCATION
+        // Visibility(
+        //   visible: showMap,
+        //   child: Padding(
+        //       padding: EdgeInsets.symmetric(
+        //           horizontal:
+        //               (context.iconSizeXL - context.iconSizeLarge) / 2.0),
+        //       child: LocationMap(
+        //         // need to update
+        //         locations: const [],
+        //         width: context.iconSizeLarge,
+        //         height: context.iconSizeLarge,
+        //       )),
+        // ),
         Visibility(
             visible: showComments,
             child: Padding(

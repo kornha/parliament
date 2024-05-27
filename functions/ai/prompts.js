@@ -31,7 +31,7 @@ const findStoriesTrainingPrompt = function(post, stories) {
   // Prepare the initial set of messages with description texts
   const messages = [
     {type: "text", text: `
-      You will be given a Post and a list of Stories (can be empty).
+      You will be given a Post and a list of Stories (can be empty). Return all Stories that the Post makes reference to, in order of relevance. Do not return irrelevant Stories. Create new Stories if the Post mentions a Story but the Story is not in the input list, and update existing Stories if the Post provides new and relevant information.
 
       Description of a Post:
       ${postDescriptionPrompt()}
@@ -39,23 +39,19 @@ const findStoriesTrainingPrompt = function(post, stories) {
       Description of a Story:
       ${storyDescriptionPrompt()}
 
-      Your goal is to find all the Stories (aka events) that the Post belongs to, or makes a clear reference or claim to.
-      A Story is typically an event, with a specific time and place. Sometimes, however, Stories do not have a time and place and instead are a subject or topic.
+      In the output, you will return zero, one, or many of the passed-in Stories if the Post "feels a part" of the Story, ie. the Post mentions the Story or makes a claim about the Story, and order from most to least relevant. If there are any udpdates to the Story from the new Post, you will output that updated information with the Story. Otherwise you will omit the Story from the output.
+      You will also create "new" Stories, if the Post mentions an event that is not passed in the list of stories.
 
-      Since a Story is an event, you will ONLY return the Story if the Post directly mentions the event or makes a claim about the event.
-      You will also create "new" Stories, if the Post mentions an event/topic that is not passed in the list of stories.
-
-      Here's a high level example that explains how to decide the granularity of a Story:
+      Here's a high level example that explains this:
       ${findStoryExample()}
     `},
   ];
 
   messages.push({type: "text", text: `Here is the Post: ${postToJSON(post)}`});
 
-  // removing image for now
-  // if (post.photo?.photoURL) {
-  //   messages.push({type: "image_url", image_url: {url: post.photo?.photoURL}});
-  // }
+  if (post.photo?.photoURL) {
+    messages.push({type: "image_url", image_url: {url: post.photo?.photoURL}});
+  }
 
   // Add messages for stories
   if (_.isEmpty(stories)) {
@@ -64,9 +60,11 @@ const findStoriesTrainingPrompt = function(post, stories) {
     messages.push({type: "text", text: "Here are the Stories (if any): "});
     stories.forEach((story) => {
       messages.push({type: "text", text: storyToJSON(story)});
-      // if (story.photoURL) {
-      //   messages.push({type: "image_url", image_url: {url: story.photoURL}});
-      // }
+      if (!_.isEmpty(story.photos)) {
+        story.photos.forEach((photo) => {
+          messages.push({type: "image_url", image_url: {url: photo.photoURL}});
+        });
+      }
     });
   }
 
@@ -98,7 +96,7 @@ const findStoriesAndClaimsTrainingPrompt = function(post, stories, claims) {
       The Stories represent all Stories the Post is currently associated with.
       The Claims represent all Claims that are already associated with all these Stories, as well as Claims that are associated with all other Posts already associated with these Stories.
 
-      Your goal is to output the Stories EXACTLY as they are, BUT with the following change.
+      Your goal is to output the Stories EXACTLY as they are BUT with the following change.
       
       1) If the Post makes a Claim that is already in the list of Claims, this Claim should be added to the Story, and the Post should be added to the "pro" or "against" list of the Claim.
       1a) DO NOT OUTPUT A CLAIM THAT THE POST DOES NOT MAKE EVEN IF IT IS PART OF THE STORY ALREADY.
@@ -115,10 +113,9 @@ const findStoriesAndClaimsTrainingPrompt = function(post, stories, claims) {
 
   messages.push({type: "text", text: `Here is the Post: ${postToJSON(post)}`});
 
-  // removing images for now
-  // if (post.photo?.photoURL) {
-  //   messages.push({type: "image_url", image_url: {url: post.photo?.photoURL}});
-  // }
+  if (post.photo?.photoURL) {
+    messages.push({type: "image_url", image_url: {url: post.photo?.photoURL}});
+  }
 
   if (_.isEmpty(stories)) {
     messages.push({type: "text", text: "There are no stories associated with this post."});
@@ -126,9 +123,11 @@ const findStoriesAndClaimsTrainingPrompt = function(post, stories, claims) {
     messages.push({type: "text", text: `Here are the Stories:`});
     stories.forEach((story) => {
       messages.push({type: "text", text: `${storyToJSON(story)}`});
-      // if (story.photoURL) {
-      //   messages.push({type: "image_url", image_url: {url: story.photoURL}});
-      // }
+      if (!_.isEmpty(story.photos)) {
+        story.photos.forEach((photo) => {
+          messages.push({type: "image_url", image_url: {url: photo.photoURL}});
+        });
+      }
     });
   }
 
@@ -162,35 +161,39 @@ const newStoryPrompt = function() {
   SID should be null for new Stories.
   They should be as neutral as possible, and include language as definitive only if consensus is clear.
   'happenedAt' is the time for when the event in the story happened. If the time is not clear, output the time that was passed in, which can be null.
+  the 'lat' and 'long' are the location of the event, or our best guess. If the Story is about a Trump rally in the Bronx, the lat and long should be in the Bronx. If the Story is about Rutgers U, the lat and long should be of their campus in NJ, at the closest location that can be determined. If the Post only mentions a person, the lat and long might be the country they are from. The lat and long should almost NEVER be null unless absolutely no location is mentioned or inferred.
   'importance' is a value between 0.0 and 1.0, where 1.0 would represent insanely urgent news, like the breakout of WW3, and 0.0 represents non-news, like a pure opinion (that isn't newsworthy), or a cat video.
+  'photos' are, optionally, the photos that are associated with the Story. They should be ordered by most interesting, and deduped. If the Post has a photo that is relevant to the Story, it should be included in the Story's photos.
   `;
 };
 
 const storyDescriptionPrompt = function() {
   return `
-        A Story is a subject. Two Posts are discussing the same Story if they are talking about the same thing.
-        A Story is something has a time and a place, and is generally an event. Sometimes, however, a Story is a subject or topic. We know if two Posts belong to the same Story if they are clearly talking about the same thing.
+        A Story can be understood as thus: if Posts are talking about the same event, they belong to the same Story.
+        You and I are talking about the same Story if we are talking about the same thing.
+        This can concretely be defined as a Story is a subject, in a time, and at a place. 
+        A Story can be an event large or small.
 
         The "sid" is the Story ID, which is a unique identifier for the Story.
 
         The "title" is a very concise, 2-7 word title of the Story. The title should be maximally interesting, and generally should scope the story to a specific event.
-        The "description" is a 1-5 sentence description of the story. The description should be as descriptive as possible.
-        Both the title and description should be extremely neutral.
+        The "description" is a 1-5 sentence description of the story. The description should be as descriptive as possible and use language that is entirely neutral.
+        The "latest" field is the last update about the Story, a maximally interesting 1-2 sentence description of the latest findings in the Story. As the "importance" of the Story increases, the "latest" field should use more and more spectacular language, much like the New York Times would for unique and rare events.
 
-        The "happenedAt" is the time that the event happened at, or our best guess.
-        
-        The "importance" is a value between 0.0 and 1.0, where 1.0 would represent insanely urgent news, like the breakout of WW3, and 0.0 represents non-news, like a pure opinion (that isn't newsworthy), or a cat video.
-        Generally, a Story will have a 0.5. You can judge the importance by the subject matter, but also by the urgency in the posts.
+        The "happenedAt" is the time that the event in question happened at, or our best guess. If the Story says "today Trump had a rally in the Bronx", and it was posted at 9PM Eastern, the "happenedAt" should be the time of the rally, not the time of the post, so maybe 3PM EST (but outputted in ISO 8601 format). This can be updated as more Posts come in.
 
-        A Story is has several other fields.
-        Primarily, a Story is a collection of Posts (social media postings or articles), which inform the Claims in the story. 
-        Claims are a Statement about the Story that have supporters and or refuters.
-        A Story maybe have a Bias and Credibility score as well.
+        The "lat" and "long" are the location that best represents the Story. It should rarely be null, unless we have absolutely 0 clue. Otherwise its the best guess.
+
+        A Story may have photos, videos or other media. You may only be given a description of the photo, which you will consider in place of an actual photo. Otherwise you will be given URLs to the photo after the Story metadata. While multiple Posts that make up a Story may have duplicate photos, a Story photos are deduped and ordered by most interesting.
+
+        The "importance" is a value between 0.0 and 1.0, where 1.0 would represent maximally urgent news, like the breakout of WW3, and 0.0 represents complete non-news, like a run-of-the-mill cat video, or some non-famous person's pointless opinion.
+
+        A Story is derived from a collection of Posts (social media postings or articles), and the Claims they make about the Story.
     `;
 };
 
 const storyJSONOutput = function(claims = false) {
-  return `{"sid":ID of the Story or null if Story is new, "title": "title of the story", "description": "the description of the story is a useful vector searchable description", "importance": 0.0-1.0 relative importance of the story, "happenedAt": ISO 8601 time format that the event happened at, or null if it cannot be determined${claims ? `, "claims":[${claimJSONOutput()}, ...]` : ""}}`;
+  return `{"sid":ID of the Story or null if Story is new, "title": "title of the story", "description": "the description of the story is a useful vector searchable description", "latest":1-2 sentence update with language that matches the importance, "importance": 0.0-1.0 relative importance of the story, "happenedAt": ISO 8601 time format that the event happened at, or null if it cannot be determined, "lat": lattitude best estimate of the location of the Story, "long": longitude best estimate, "photos:[{"photoURL":url of the photo copied from the Post, "description": description of the photo copied from the Post},..list of UNIQUE photos taken from the Posts, ordered by most interesting]${claims ? `, "claims":[${claimJSONOutput()}, ...]` : ""}}`;
 };
 
 //
@@ -199,14 +202,13 @@ const storyJSONOutput = function(claims = false) {
 
 const postDescriptionPrompt = function() {
   return `
-        A Post is a social media posting or an article. It can come from X (aka Twitter), Facebook, Instagram, Reddit, Tiktok or other social sources.
-        It may also be a news article published online to some platform.
+        A Post is a social media posting or an article. It can come from X (Twitter), Instagram, or other social sources.
+        It may also be a news article published to an online platform.
         A Post can have a title, a description, and a body, the latter two of which are optional.
-        A Post may have images, videos or other media. You may only be given a description of the image, which you will use to judge.
+        A Post may have images, videos or other media. You may only be given a description of the image, which you will consider in place of an actual image. Otherwise you will be given a URL to the image after the post.
         A Post has an author, which we call an Entity.
-        A Post has a timestamp, which is the time the (original) Post was created. We call this "sourceCreatedAt".
-        A Post may also be assigned Bias and Credibility scores. 
-        Bias refers to the political bias of the Post, and Credibility refers to how confident we think the Post is to be true.
+        A Post has a "sourceCreatedAt" time which represents when the Post was originally created on the social/news platform.
+        A Post can belong to a Story and have Claims.
         `;
 };
 
@@ -293,10 +295,13 @@ const findStoryExample = function() {
 
     While this Post mentions Iran and a report about closing airspace over Tehran, in conjunction with Israel, you can infer that there is an urgent tension between Iran and Israel. There are actually 2 Stories here; one about Iran closing airspace, and another about Iran threatening Israel.
 
-    Hence, a Title for the Story could be: "Iran Closes Airspace", and the other Story title would be "Iran threatens Israel".
-    And the importance of the Story would be perhaps 0.5 and 0.7, respectively, significant events, but perhaps not world changing.
+    Hence, a Title for the Story could be: "Iran Airspace", and the other Story title would be "Iran threatens Israel".
+    Since this is the first post in the Stories, it is hard to say how important each is. We generally judge the importance by the tone, subject matter, and urgency of the Posts, but if there's only 1 Post we mute our response. The importance of the Story could be 0.5 for Iran threat, and 0.4 for airspace, respectively. If there's more posts it will be higher.
 
     The Description (of the first story could be) could be: "Amidst rising tensions between Iran and Israel, it was reported by Iran state media that they closed airspace over Tehran. This post wast later removed, and the situation remains ongoing."
+
+    The Latest (of the first Story) could be: "Iran removes post about closing airspace".
+    The "lat"/"long" for the first Story should be the location of Tehran, Iran.
 
     Now let's say there's another Post that comes in. It says: 
     "Tesla is in early discussions with Reliance Industries about a possible joint venture to build an electric-vehicle manufacturing facility in India, report says"
@@ -309,13 +314,15 @@ const findStoryExample = function() {
     Whoever attacks Israel will counter strong defenses, followed by forceful strike in their territory; our enemies are unaware of the surprises we're preparing; Israel knows how to respond quickly across the Middle East."
     sourceCreatedAt: "2021-05-10T13:00:00Z"
 
-    This Post is clearly related to the first Post; the first Post mentions a possible attack from Iran on Israel, and this latter Post mentions how Israel will respond to any threats. This Post is talking about Iran striking Iran, "Iran threatens Israel" Story from above 
+    This Post is clearly related to the first Post; the first Post mentions a possible attack from Iran on Israel, and this latter Post mentions how Israel will respond to any threats. This Post is talking about Iran striking Iran, "Iran threatens Israel" Story from above. Note that this is not about the Iran Airspace Story, as it is not mentioned in the Post, though it may be related. 
     Furthermore, since the sourceCreatedAt (time the post was made) is similar, they are likely talking about the same subject.
     
     Hence the Title of the Story might be updated, "Iran and Israel Trade Threats", and now the description of the Story could be updated to include the new information.
-    As it appears the Story has gotten a bit more urgent, the importance could be updated to 0.75.
+    As it appears the Story has gotten a bit more urgent, the importance could be updated to 0.6.
 
     For example; the Description could be: "Iran hinted at possible warnings of a strike against Israel, to which Gallant replied Israel will respond in turn"
+
+    If, for example the Posts each had the same photo, or almost the same photo, the Photo of the Iranian Ayatollah for example, you would output the url and description of the photo (so as to dedupe), copied from one of the Stories. If the photos are different and both are relevant, you would output both photos, ordered by most interesting.
   `;
 };
 
@@ -357,7 +364,7 @@ const postToJSON = function(post) {
     title: post.title,
     description: post.description,
     body: post.body,
-    photoDescription: post.photo?.description,
+    photo: post.photo,
     sourceCreatedAt: millisToIso(post.sourceCreatedAt),
     credibility: post.credibility,
     bias: post.bias,
@@ -392,9 +399,13 @@ const storyToJSON = function(story) {
     sid: story.sid,
     title: story.title,
     description: story.description,
+    latest: story.latest,
     photoDescription: story.photo?.description,
     importance: story.importance,
     happenedAt: millisToIso(story.happenedAt),
+    photos: story.photos,
+    lat: story.lat,
+    long: story.long,
   };
 
   return JSON.stringify(formatted);

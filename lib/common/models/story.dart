@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:political_think/common/models/location.dart';
+import 'package:political_think/common/models/photo.dart';
 import 'package:political_think/common/util/utils.dart';
 
 part 'story.g.dart';
@@ -9,10 +11,12 @@ class Story {
   final String sid;
   String? title;
   String? description;
+  String? latest;
   double? importance;
   List<String> pids;
   List<String> cids;
-  List<String> locations;
+  Location? location;
+  List<Photo> photos;
 
   @JsonKey(fromJson: Utils.timestampFromJson, toJson: Utils.timestampToJson)
   Timestamp createdAt;
@@ -28,12 +32,14 @@ class Story {
     required this.createdAt,
     required this.updatedAt,
     this.happenedAt,
+    this.location,
     this.title,
     this.description,
+    this.latest,
     this.importance,
-    this.locations = const [],
     this.pids = const [],
     this.cids = const [],
+    this.photos = const [],
   });
 
   factory Story.fromJson(Map<String, dynamic> json) => _$StoryFromJson(json);

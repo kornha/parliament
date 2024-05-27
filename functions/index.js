@@ -40,9 +40,7 @@ Object.assign(TaskQueue.prototype, {
 const functions = require("firebase-functions");
 
 const test = functions
-    .https.onCall(async (data, context) => {
-
-    });
+    .https.onCall(async (data, context) => {});
 
 module.exports = {
   onAuthUserCreate,
