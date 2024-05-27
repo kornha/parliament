@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:photo_view/photo_view.dart';
+import 'package:photo_view/photo_view_gallery.dart';
 import 'package:political_think/common/components/loading.dart';
 import 'package:political_think/common/components/location_map.dart';
 import 'package:political_think/common/components/zdivider.dart';
@@ -59,16 +61,16 @@ class _StoryViewState extends ConsumerState<StoryItemView> {
                             )
                           : const SizedBox.shrink(),
                       const Spacer(),
-                      Visibility(
-                        visible: story?.location != null,
-                        child: LocationMap(
-                            location: story!.location!,
-                            size: context.iconSizeLarge),
-                      )
+                      // visibility doesnt handle null check here
+                      story?.location != null
+                          ? LocationMap(
+                              location: story!.location!,
+                              size: context.iconSizeLarge)
+                          : const SizedBox.shrink(),
                     ],
                   ),
                   context.sh,
-                  story.description != null
+                  story!.description != null
                       ? GestureDetector(
                           onTap: () => context
                               .push("${StoryView.location}/${story.sid}"),
@@ -85,16 +87,19 @@ class _StoryViewState extends ConsumerState<StoryItemView> {
                     child: SizedBox(
                       height: context.blockSize.height,
                       width: context.blockSize.width,
-                      child: ListView.separated(
-                        shrinkWrap: true,
-                        scrollDirection: Axis.horizontal,
+                      child: PhotoViewGallery.builder(
+                        scrollPhysics: const BouncingScrollPhysics(),
+                        builder: (BuildContext context, int index) =>
+                            PhotoViewGalleryPageOptions(
+                          imageProvider:
+                              NetworkImage(story.photos[index].photoURL),
+                          heroAttributes: PhotoViewHeroAttributes(
+                            tag: story.photos[index].photoURL,
+                          ),
+                        ),
                         itemCount: story.photos.length,
-                        itemBuilder: (context, index) {
-                          var photo = story.photos[index];
-                          return ZImage(photoURL: photo.photoURL);
-                        },
-                        separatorBuilder: (context, index) =>
-                            const ZDivider(type: DividerType.VERTICAL),
+                        loadingBuilder: (context, event) =>
+                            const Loading(type: LoadingType.image),
                       ),
                     ),
                   ),
