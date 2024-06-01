@@ -5,7 +5,7 @@ const {onAuthUserCreate, onAuthUserDelete,
   setUsername} = require("./models/user");
 const {TaskQueue} = require( "firebase-admin/functions");
 const {onPostUpdate, onPostPublished,
-  onPostPublished2,
+  onPostShouldFindStoriesAndClaims,
   onPostChangedXid,
   onPostChangedVector} = require("./models/post");
 const {onVoteBiasChange, onVoteCredibilityChange} = require("./models/vote");
@@ -52,7 +52,7 @@ module.exports = {
   onPostUpdate,
   onMessageChange,
   onPostPublished,
-  onPostPublished2,
+  onPostShouldFindStoriesAndClaims,
   onPostChangedVector,
   onPostChangedXid,
   // Story

@@ -16,7 +16,8 @@ Story _$StoryFromJson(Map<String, dynamic> json) => Story(
           : Location.fromJson(json['location'] as Map<String, dynamic>),
       title: json['title'] as String?,
       description: json['description'] as String?,
-      latest: json['latest'] as String?,
+      headline: json['headline'] as String?,
+      subHeadline: json['subHeadline'] as String?,
       importance: (json['importance'] as num?)?.toDouble(),
       pids:
           (json['pids'] as List<dynamic>?)?.map((e) => e as String).toList() ??
@@ -34,7 +35,8 @@ Map<String, dynamic> _$StoryToJson(Story instance) => <String, dynamic>{
       'sid': instance.sid,
       'title': instance.title,
       'description': instance.description,
-      'latest': instance.latest,
+      'headline': instance.headline,
+      'subHeadline': instance.subHeadline,
       'importance': instance.importance,
       'pids': instance.pids,
       'cids': instance.cids,

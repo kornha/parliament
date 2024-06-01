@@ -214,7 +214,9 @@ extension Spacing on BuildContext {
 }
 
 extension ModalExt on BuildContext {
-  void showFullScreenModal(Widget child) {
+  // HACK scrollview needed for long posts but messes with the photo_view
+  // consider other approach
+  void showFullScreenModal(Widget child, {bool useScrollView = true}) {
     showCupertinoDialog(
       context: this,
       useRootNavigator: true,
@@ -232,7 +234,7 @@ extension ModalExt on BuildContext {
               },
             ),
           ),
-          body: SingleChildScrollView(child: child),
+          body: useScrollView ? SingleChildScrollView(child: child) : child,
         );
       },
     );
@@ -389,6 +391,8 @@ extension TextExt on BuildContext {
   TextStyle get mb => m.copyWith(fontWeight: FontWeight.bold);
   TextStyle get lb => l.copyWith(fontWeight: FontWeight.bold);
   TextStyle get h3b => h3.copyWith(fontWeight: FontWeight.bold);
+  TextStyle get h2b => h2.copyWith(fontWeight: FontWeight.bold);
+  TextStyle get h1b => h1.copyWith(fontWeight: FontWeight.bold);
 
   // Theme.of(this).textTheme.displayLarge!;
   TextStyle get h1 => Theme.of(this).textTheme.headlineLarge!;

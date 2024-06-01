@@ -43,7 +43,7 @@ class _ProfileState extends ConsumerState<Profile> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  ProfileIcon(size: context.iconSizeLarge),
+                  ProfileIcon(radius: context.iconSizeLarge / 2),
                   context.sf,
                   isEditing || user?.username == null
                       ? CreateUsernameComponent(

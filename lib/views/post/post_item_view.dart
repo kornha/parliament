@@ -16,6 +16,7 @@ class PostItemView extends ConsumerStatefulWidget {
   final Story? story;
   final bool isSubView;
   final bool showPostButtons;
+  final bool gestureDetection;
 
   const PostItemView({
     super.key,
@@ -23,6 +24,7 @@ class PostItemView extends ConsumerStatefulWidget {
     this.isSubView = false,
     this.story,
     this.showPostButtons = false,
+    this.gestureDetection = true,
   });
 
   @override
@@ -46,12 +48,14 @@ class _PostViewState extends ConsumerState<PostItemView> {
         ? Loading(
             type: widget.isSubView ? LoadingType.postSmall : LoadingType.post)
         : GestureDetector(
-            onTap: () =>
-                // See if current location == PostView.location
-                // Is there a better way to do this?
-                context.router.uri.path.contains(PostView.location)
-                    ? null
-                    : context.push("${PostView.location}/${post?.pid}"),
+            onTap: !widget.gestureDetection
+                ? null
+                : () =>
+                    // See if current location == PostView.location
+                    // Is there a better way to do this?
+                    context.router.uri.path.contains(PostView.location)
+                        ? null
+                        : context.push("${PostView.location}/${post?.pid}"),
             child: !widget.isSubView
                 ? Column(
                     children: [
@@ -153,7 +157,7 @@ class _PostViewState extends ConsumerState<PostItemView> {
                             visible: entity?.photoURL != null,
                             child: ProfileIcon(
                               url: entity?.photoURL,
-                              size: context.iconSizeStandard,
+                              radius: context.iconSizeStandard / 2,
                             ),
                           ),
                           Icon(

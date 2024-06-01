@@ -5,7 +5,9 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:political_think/common/components/profile_icon.dart';
+import 'package:political_think/common/constants.dart';
 import 'package:political_think/common/extensions.dart';
+import 'package:political_think/common/services/zprovider.dart';
 import 'package:political_think/views/feed/feed.dart';
 import 'package:political_think/views/games/games.dart';
 import 'package:political_think/views/profile/profile.dart';
@@ -57,8 +59,12 @@ class _ZScaffoldState extends ConsumerState<ZNavigationScaffold> {
         initialLocation: Games.location,
       ),
       const ZBottomBarNavigationItem(
-        icon: ProfileIcon(),
-        activeIcon: ProfileIcon(),
+        icon: ProfileIcon(
+          radius: IconSize.large / 2,
+        ),
+        activeIcon: ProfileIcon(
+          radius: IconSize.large / 2,
+        ),
         label: 'Profile',
         initialLocation: Profile.location,
       ),
@@ -90,6 +96,7 @@ class _ZScaffoldState extends ConsumerState<ZNavigationScaffold> {
       bottomNavigationBar: context.isDesktop
           ? const SizedBox.shrink()
           : BottomNavigationBar(
+              selectedFontSize: 0, // removes padding
               backgroundColor: context.backgroundColor,
               showUnselectedLabels: false,
               elevation: 0,
@@ -110,6 +117,9 @@ class _ZScaffoldState extends ConsumerState<ZNavigationScaffold> {
     if (index > tabs.length - 1) return;
     GoRouter router = GoRouter.of(context);
     String location = tabs[index].initialLocation;
+    if (index == _currentIndex && location == Feed.location) {
+      ref.read(pagingControllerProvider.notifier).state?.refresh();
+    }
     setState(() {
       _currentIndex = index;
     });

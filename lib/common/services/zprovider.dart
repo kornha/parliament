@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 import 'package:political_think/common/models/claim.dart';
 import 'package:political_think/common/models/entity.dart';
 import 'package:political_think/common/models/post.dart';
@@ -81,6 +82,10 @@ class StoryNotifier extends PagedNotifier<int, Story> {
               lastItems?.last.happenedAt?.millisecondsSinceEpoch,
         );
 }
+
+// for refreshing feed
+final pagingControllerProvider =
+    StateProvider<PagingController<int, Story?>?>((ref) => null);
 
 //////////////////////////////////////////////////////////////
 // Posts

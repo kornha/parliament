@@ -4,11 +4,20 @@ import 'package:political_think/common/models/bias.dart';
 import 'package:political_think/common/models/credibility.dart';
 import 'package:political_think/common/models/photo.dart';
 import 'package:political_think/common/models/source_type.dart';
+import 'package:political_think/common/models/video.dart';
 import 'package:political_think/common/util/utils.dart';
 
 part 'post.g.dart';
 
-enum PostStatus { scraping, draft, published, deleted, error }
+enum PostStatus {
+  scraping,
+  draft,
+  published,
+  finding, // finding stories and claims
+  found, // found stories and claims
+  //
+  unsupported
+}
 
 @JsonSerializable(explicitToJson: true)
 class Post {
@@ -27,6 +36,7 @@ class Post {
   String? description;
   String? body;
   Photo? photo;
+  Video? video;
   String? url;
   final SourceType sourceType;
   List<String> locations; // currently country codes need to abstract
@@ -77,6 +87,7 @@ class Post {
     this.cids = const [],
     this.url,
     this.photo,
+    this.video,
     this.locations = const [],
     this.importance,
     this.userBias,

@@ -9,9 +9,13 @@ part 'story.g.dart';
 @JsonSerializable(explicitToJson: true)
 class Story {
   final String sid;
-  String? title;
-  String? description;
-  String? latest;
+
+  String? title; // 2-6 words category
+  String? description; // full description of information
+
+  String? headline; // 2-8 words engaging headline
+  String? subHeadline; // short engaging description
+
   double? importance;
   List<String> pids;
   List<String> cids;
@@ -35,7 +39,8 @@ class Story {
     this.location,
     this.title,
     this.description,
-    this.latest,
+    this.headline,
+    this.subHeadline,
     this.importance,
     this.pids = const [],
     this.cids = const [],

@@ -195,7 +195,7 @@ class Message extends StatelessWidget {
 
   Widget _avatarBuilder() => showAvatar
       ? avatarBuilder?.call(message.author.id) ??
-          ProfileIcon(size: IconSize.standard, uid: message.author.id)
+          ProfileIcon(radius: IconSize.standard / 2, uid: message.author.id)
       : const SizedBox(width: IconSize.standard);
 
   _getMessageShape(bool currentUserIsAuthor) => BorderRadius.only(

@@ -35,8 +35,6 @@ class Feed extends ConsumerStatefulWidget {
 }
 
 class _FeedState extends ConsumerState<Feed> {
-  PagingController<int, Story>? _pagingController;
-
   @override
   Widget build(BuildContext context) {
     final AsyncValue<ZUser?> userRef = ref.selfUserWatch();
@@ -55,7 +53,13 @@ class _FeedState extends ConsumerState<Feed> {
             icon: const Icon(Icons.settings),
             onPressed: () {
               context.showModal(FeedSettings(onFilterChange: () {
-                _pagingController?.refresh();
+                // not sure why but using delayed works better
+                Future.delayed(
+                    const Duration(milliseconds: 200),
+                    () => ref
+                        .read(pagingControllerProvider.notifier)
+                        .state
+                        ?.refresh());
               }));
             },
           ),
@@ -100,7 +104,14 @@ class _FeedState extends ConsumerState<Feed> {
                   return const Loading(type: LoadingType.large);
                 },
                 pagedBuilder: (controller, builder) {
-                  _pagingController = controller;
+                  // TODO: sets the page so it can be refreshed elsewhere
+                  // might be a hack/antipattern
+                  // use future since cannot set in the tree
+                  Future.delayed(const Duration(milliseconds: 200), () {
+                    ref.read(pagingControllerProvider.notifier).state =
+                        controller;
+                  });
+
                   return PagedListView(
                     pagingController: controller,
                     builderDelegate: builder,

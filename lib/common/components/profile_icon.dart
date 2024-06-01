@@ -5,14 +5,14 @@ import 'package:political_think/common/extensions.dart';
 class ProfileIcon extends ConsumerStatefulWidget {
   final String? url;
   final String? uid;
-  final double? size;
+  final double? radius;
   final bool watch;
   final bool defaultToSelf;
 
   const ProfileIcon({
     super.key,
     this.uid,
-    this.size,
+    this.radius,
     this.url,
     // will show self if url or uid is null
     this.defaultToSelf = true,
@@ -40,14 +40,15 @@ class _ZScaffoldState extends ConsumerState<ProfileIcon> {
         ? CircleAvatar(
             backgroundColor: context.surfaceColor,
             foregroundImage: NetworkImage(widget.url ?? user!.value!.photoURL!),
-            radius: widget.size == null ? null : widget.size! / 2,
-            // if null defaults to 20, not iconSizeStandard which is 24
-            // 20 looks better so I'm keeping it.. not sure why material doesn't use 24 here
-            // which seems to be their default size
+            radius: widget.radius == null
+                ? context.iconSizeLarge / 2
+                : widget.radius!,
           )
         : CircleAvatar(
             backgroundColor: context.surfaceColor,
-            radius: widget.size == null ? null : widget.size! / 2,
+            radius: widget.radius == null
+                ? context.iconSizeLarge / 2
+                : widget.radius!,
           );
   }
 }

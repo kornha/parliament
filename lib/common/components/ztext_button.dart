@@ -31,7 +31,9 @@ class ZTextButton extends StatelessWidget {
               )
             : null,
         foregroundColor: foregroundColor ?? context.primaryColor,
-        backgroundColor: backgroundColor ?? Colors.transparent,
+        backgroundColor: backgroundColor != null && onPressed != null
+            ? backgroundColor
+            : Colors.transparent,
         minimumSize: type == ZButtonTypes.area
             ? null
             : type == ZButtonTypes.wide

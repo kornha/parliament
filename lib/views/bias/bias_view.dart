@@ -108,7 +108,7 @@ class _BiasViewViewState extends ConsumerState<BiasView> {
                         padding:
                             context.blockPadding.copyWith(top: 0, bottom: 0),
                         child: ProfileIcon(
-                            watch: false, size: context.iconSizeStandard),
+                            watch: false, radius: context.iconSizeStandard / 2),
                       ), // TODO: HACK FOR UI CHANGE TO GRID
                       vote?.bias?.position,
                       vote?.bias?.position.name,

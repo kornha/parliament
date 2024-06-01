@@ -8,6 +8,7 @@ const pubsub = new PubSub();
 const POST_PUBLISHED = "onPostPublished";
 const POST_CHANGED_VECTOR = "onPostChangedVector";
 const POST_CHANGED_XID = "onPostChangedXid";
+const POST_SHOULD_FIND_STORIES_AND_CLAIMS = "onPostShouldFindStoriesAndClaims";
 //
 const STORY_CHANGED_VECTOR = "onStoryChangedVector";
 const STORY_CHANGED_POSTS = "onStoryChangedPosts";
@@ -39,6 +40,7 @@ module.exports = {
   POST_PUBLISHED,
   POST_CHANGED_VECTOR,
   POST_CHANGED_XID,
+  POST_SHOULD_FIND_STORIES_AND_CLAIMS,
   //
   STORY_CHANGED_POSTS,
   STORY_SHOULD_CHANGE_CLAIMS,

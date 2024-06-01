@@ -17,7 +17,7 @@ class IconGrid extends StatelessWidget {
             urls
                 ?.map((url) => ProfileIcon(
                       url: url,
-                      size: IconSize.small,
+                      radius: IconSize.small / 2,
                       watch: false,
                       defaultToSelf: false,
                     ))

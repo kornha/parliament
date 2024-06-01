@@ -121,7 +121,8 @@ const findStoriesAndClaims = async function(post) {
       await retryAsyncFunction(() => updateStory(sid, {
         title: gstoryClaim.title,
         description: gstoryClaim.description,
-        latest: gstoryClaim.latest,
+        headline: gstoryClaim.headline,
+        subHeadline: gstoryClaim.subHeadline,
         updatedAt: Timestamp.now().toMillis(),
         createdAt: Timestamp.now().toMillis(),
         pids: FieldValue.arrayUnion(post.pid),
@@ -138,7 +139,8 @@ const findStoriesAndClaims = async function(post) {
       await retryAsyncFunction(() => createStory({
         sid: sid,
         title: gstoryClaim.title,
-        latest: gstoryClaim.latest,
+        headline: gstoryClaim.headline,
+        subHeadline: gstoryClaim.subHeadline,
         description: gstoryClaim.description,
         updatedAt: Timestamp.now().toMillis(),
         createdAt: Timestamp.now().toMillis(),
@@ -191,7 +193,7 @@ const findStoriesAndClaims = async function(post) {
     }
   }));
 
-  functions.logger.info(`Done find stories and claims for post ${post.pid}`);
+  functions.logger.info(`Done finding stories and claims for post ${post.pid}`);
 
   return Promise.resolve();
 };

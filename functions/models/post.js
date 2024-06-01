@@ -7,10 +7,11 @@ const {
 const {publishMessage, POST_PUBLISHED,
   POST_CHANGED_VECTOR,
   POST_CHANGED_XID,
+  POST_SHOULD_FIND_STORIES_AND_CLAIMS,
 } = require("../common/pubsub");
 const {getPost, setPost, deletePost,
   createNewRoom,
-  updatePost, getEntity,
+  updatePost, getEntity, canFindStories,
 } = require("../common/database");
 const {retryAsyncFunction} = require("../common/utils");
 const _ = require("lodash");
@@ -43,12 +44,13 @@ exports.onPostUpdate = functions
       if (_create && after.xid ||
         _delete && before.xid ||
         _update && before.xid != after.xid) {
-        publishMessage(POST_CHANGED_XID, {pid: after?.pid || before?.pid});
+        await publishMessage(POST_CHANGED_XID,
+            {pid: after?.pid || before?.pid});
       }
 
       if (after && after.status == "published" &&
       (!before || before.status != "published")) {
-        publishMessage(POST_PUBLISHED, {pid: after.pid});
+        await publishMessage(POST_PUBLISHED, {pid: after.pid});
       }
 
       if (
@@ -69,7 +71,8 @@ exports.onPostUpdate = functions
       if (_create && after.vector ||
         _delete && before.vector ||
         _update && !_.isEqual(before.vector, after.vector)) {
-        publishMessage(POST_CHANGED_VECTOR, {pid: after?.pid || before?.pid});
+        await publishMessage(POST_CHANGED_VECTOR,
+            {pid: after?.pid || before?.pid});
       }
 
       if (
@@ -108,9 +111,8 @@ exports.onPostChangedVector = functions
         return Promise.resolve();
       }
 
-      // race condition with onPostPublished
       if (post.status == "published" && post.sid == null) {
-        return findStoriesAndClaims(post);
+        await publishMessage(POST_SHOULD_FIND_STORIES_AND_CLAIMS, {pid: pid});
       }
 
       return Promise.resolve();
@@ -128,31 +130,35 @@ exports.onPostPublished = functions
     .topic(POST_PUBLISHED)
     .onPublish(async (message) => {
       const pid = message.json.pid;
+      const post = await getPost(pid);
+
+      if (post && post.vector) {
+        await publishMessage(POST_SHOULD_FIND_STORIES_AND_CLAIMS, {pid: pid});
+      }
+
       await createNewRoom(pid, "posts");
 
       return Promise.resolve();
     });
 
-/**
- * calls primary Story and Claim creation when a post is published
- * split from main method as it is a separate task
- * @param {Message} message
- * @return {Promise<void>}
- */
-exports.onPostPublished2 = functions
+exports.onPostShouldFindStoriesAndClaims = functions
     .runWith(gbConfig)
     .pubsub
-    .topic(POST_PUBLISHED)
+    .topic(POST_SHOULD_FIND_STORIES_AND_CLAIMS)
     .onPublish(async (message) => {
       const pid = message.json.pid;
-      const post = await getPost(pid);
 
-      // race condition with onPostChangedVector
-      if (!post || !post.vector) {
+      const canFind = await canFindStories(pid);
+      if (!canFind) {
         return Promise.resolve();
       }
 
-      return findStoriesAndClaims(post);
+      const post = await getPost(pid);
+      await findStoriesAndClaims(post);
+
+      await updatePost(pid, {status: "found"});
+
+      return Promise.resolve();
     });
 
 exports.onPostChangedXid = functions
@@ -182,7 +188,6 @@ exports.onPostChangedXid = functions
 
       return Promise.resolve();
     });
-
 
 /**
  * TXN

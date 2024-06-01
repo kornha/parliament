@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:photo_view/photo_view.dart';
-import 'package:photo_view/photo_view_gallery.dart';
 import 'package:political_think/common/components/loading.dart';
 import 'package:political_think/common/components/location_map.dart';
 import 'package:political_think/common/components/zdivider.dart';
@@ -37,6 +35,7 @@ class _StoryViewState extends ConsumerState<StoryItemView> {
 
     bool shouldShowSecondaryPosts = (allPosts?.length ?? 0) >= 1;
     bool shouldShowPhotos = (story?.photos.length ?? 0) >= 1;
+    double importance = story?.importance ?? 0.0;
 
     return storyRef.isLoading || allPostsRef.isLoading
         ? const Loading(type: LoadingType.post)
@@ -48,35 +47,42 @@ class _StoryViewState extends ConsumerState<StoryItemView> {
                 children: [
                   Row(
                     children: [
-                      story?.title != null
-                          ? GestureDetector(
-                              onTap: () => context
-                                  .push("${StoryView.location}/${story.sid}"),
-                              child: Text(
-                                story!.title!,
-                                style: context.mb.copyWith(
-                                    color: context.surfaceColorBright),
-                                textAlign: TextAlign.start,
+                      story?.headline != null
+                          ? Expanded(
+                              flex: 5,
+                              child: GestureDetector(
+                                onTap: () => context
+                                    .push("${StoryView.location}/${story.sid}"),
+                                child: Text(
+                                  story!.headline!,
+                                  style: importance < 0.5
+                                      ? context.mb
+                                      : importance < 0.7
+                                          ? context.lb
+                                          : importance < 0.9
+                                              ? context.h3b
+                                              : context.h2b,
+                                  textAlign: TextAlign.start,
+                                ),
                               ),
                             )
                           : const SizedBox.shrink(),
                       const Spacer(),
-                      // visibility doesnt handle null check here
-                      story?.location != null
+                      story!.location != null
                           ? LocationMap(
-                              location: story!.location!,
+                              location: story.location!,
                               size: context.iconSizeLarge)
                           : const SizedBox.shrink(),
                     ],
                   ),
                   context.sh,
-                  story!.description != null
+                  story.subHeadline != null
                       ? GestureDetector(
                           onTap: () => context
                               .push("${StoryView.location}/${story.sid}"),
                           child: Text(
-                            story.latest!,
-                            style: context.l,
+                            story.subHeadline!,
+                            style: context.m,
                             textAlign: TextAlign.start,
                           ),
                         )
@@ -87,19 +93,16 @@ class _StoryViewState extends ConsumerState<StoryItemView> {
                     child: SizedBox(
                       height: context.blockSize.height,
                       width: context.blockSize.width,
-                      child: PhotoViewGallery.builder(
-                        scrollPhysics: const BouncingScrollPhysics(),
-                        builder: (BuildContext context, int index) =>
-                            PhotoViewGalleryPageOptions(
-                          imageProvider:
-                              NetworkImage(story.photos[index].photoURL),
-                          heroAttributes: PhotoViewHeroAttributes(
-                            tag: story.photos[index].photoURL,
-                          ),
-                        ),
+                      child: ListView.separated(
+                        shrinkWrap: true,
+                        scrollDirection: Axis.horizontal,
                         itemCount: story.photos.length,
-                        loadingBuilder: (context, event) =>
-                            const Loading(type: LoadingType.image),
+                        itemBuilder: (context, index) {
+                          var photo = story.photos[index];
+                          return ZImage(photoURL: photo.photoURL);
+                        },
+                        separatorBuilder: (context, index) =>
+                            const ZDivider(type: DividerType.VERTICAL),
                       ),
                     ),
                   ),

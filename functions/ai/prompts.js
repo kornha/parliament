@@ -158,12 +158,19 @@ const newStoryPrompt = function() {
   return `
   The Title and Description of the story should be the most neutral, and the most minimal vector distance for all posts.
   The Title should be 2-6 words, and the Description should be 1-5 sentences.
-  SID should be null for new Stories.
+  The Headline should be as ENGAGING as possible, and should be written in active tense. Eg., if a Title might be "Khameini addresses US students in a tweet", the Headline might be "Khameini: US students are on the right side of history".
+  The Subheadline should be equally as engaging.
   They should be as neutral as possible, and include language as definitive only if consensus is clear.
-  'happenedAt' is the time for when the event in the story happened. If the time is not clear, output the time that was passed in, which can be null.
+
+  SID should be null for new Stories.
+
+  'happenedAt' is the time the event happened in the real world, not the timestamp of the Posts. It is up to you to determine when the Story "happenedAt" based on the time the Post(s) was created, as well as textual content in the Post(s). Eg., if a Post says "today Trump had a rally in the Bronx", and the Post 'sourceCreatedAt' is at 9PM Eastern, the "happenedAt" can be inferred as the time of the rally, not the time of the Post, so a good guess would be 2PM EST (but outputted in ISO 8601 format). This can be updated as more Posts come in.
+
   the 'lat' and 'long' are the location of the event, or our best guess. If the Story is about a Trump rally in the Bronx, the lat and long should be in the Bronx. If the Story is about Rutgers U, the lat and long should be of their campus in NJ, at the closest location that can be determined. If the Post only mentions a person, the lat and long might be the country they are from. The lat and long should almost NEVER be null unless absolutely no location is mentioned or inferred.
-  'importance' is a value between 0.0 and 1.0, where 1.0 would represent insanely urgent news, like the breakout of WW3, and 0.0 represents non-news, like a pure opinion (that isn't newsworthy), or a cat video.
-  'photos' are, optionally, the photos that are associated with the Story. They should be ordered by most interesting, and deduped. If the Post has a photo that is relevant to the Story, it should be included in the Story's photos.
+
+  'importance' is a value between 0.0 and 1.0, where 1.0 would represent the most possible newsworthy news, like the breakout of WW3 or the dropping of an atomic bomb, and 0.0 represents complete non-news, like some non-famous person's opinion, or a cat video. 0.0-0.2 is non-news. 0.2-0.4 is interesting news to those who follow a subject. 0.4-0.6 is interesting news to even those who infrequently follow the topic. 0.6-0.8 is interesting news to everyone globally. 0.8-1.0 is extremely urgent news. The importance should be updated as more Posts come in, and the Story becomes more clear.
+
+  'photos' are, optionally, the photos that are associated with the Story. They should be ordered by most interesting, and deduped, removing not just identical but even very similar photos. If and only if the Post has a photo that is relevant to the Story, it should be included in the Story's photos.
   `;
 };
 
@@ -177,14 +184,18 @@ const storyDescriptionPrompt = function() {
         The "sid" is the Story ID, which is a unique identifier for the Story.
 
         The "title" is a very concise, 2-7 word title of the Story. The title should be maximally interesting, and generally should scope the story to a specific event.
-        The "description" is a 1-5 sentence description of the story. The description should be as descriptive as possible and use language that is entirely neutral.
-        The "latest" field is the last update about the Story, a maximally interesting 1-2 sentence description of the latest findings in the Story. As the "importance" of the Story increases, the "latest" field should use more and more spectacular language, much like the New York Times would for unique and rare events.
 
-        The "happenedAt" is the time that the event in question happened at, or our best guess. If the Story says "today Trump had a rally in the Bronx", and it was posted at 9PM Eastern, the "happenedAt" should be the time of the rally, not the time of the post, so maybe 3PM EST (but outputted in ISO 8601 format). This can be updated as more Posts come in.
+        The "description" is a 1-8 sentence description of the Story, that covers ALL details we know about the Story. The description should be as descriptive as possible and use language that is entirely neutral.
+
+        The "headline" is a 3-15 word headline that will be shown to a reader. It is written in active tense, and is as interesting as possible. While the headline language is always politically neutral, the language intrigue will track that of the importance. A very high importance will yield and extremely powerful headline, while a low importance will yield a more mundane headline.
+
+        The "subHeadline" is 2-5 sentence short description of the Story that will be shown to a reader. It is written in active tense, and uses the same level of intriguing language as the headline.
+
+        The "happenedAt" is the time that the event in question happened at in the real world, inferred based on the language and timestamps of the Posts, or our best guess.
 
         The "lat" and "long" are the location that best represents the Story. It should rarely be null, unless we have absolutely 0 clue. Otherwise its the best guess.
 
-        A Story may have photos, videos or other media. You may only be given a description of the photo, which you will consider in place of an actual photo. Otherwise you will be given URLs to the photo after the Story metadata. While multiple Posts that make up a Story may have duplicate photos, a Story photos are deduped and ordered by most interesting.
+        A Story may have photos, videos or other media. You may only be given a description of the photo, which you will consider in place of an actual photo. Otherwise you will be given URLs to the photo after the Story metadata. While the multiple Posts that make up a Story may have duplicate photos, a Story photos are deduped and ordered by most interesting.
 
         The "importance" is a value between 0.0 and 1.0, where 1.0 would represent maximally urgent news, like the breakout of WW3, and 0.0 represents complete non-news, like a run-of-the-mill cat video, or some non-famous person's pointless opinion.
 
@@ -193,7 +204,7 @@ const storyDescriptionPrompt = function() {
 };
 
 const storyJSONOutput = function(claims = false) {
-  return `{"sid":ID of the Story or null if Story is new, "title": "title of the story", "description": "the description of the story is a useful vector searchable description", "latest":1-2 sentence update with language that matches the importance, "importance": 0.0-1.0 relative importance of the story, "happenedAt": ISO 8601 time format that the event happened at, or null if it cannot be determined, "lat": lattitude best estimate of the location of the Story, "long": longitude best estimate, "photos:[{"photoURL":url of the photo copied from the Post, "description": description of the photo copied from the Post},..list of UNIQUE photos taken from the Posts, ordered by most interesting]${claims ? `, "claims":[${claimJSONOutput()}, ...]` : ""}}`;
+  return `{"sid":ID of the Story or null if Story is new, "title": "title of the story", "description": "the full description of the story is a useful vector searchable description", "headline" "short, active, engaging title shown to users", "subHeadline":"active, engaging, short description shown to users", "importance": 0.0-1.0 relative importance of the story, "happenedAt": ISO 8601 time format that the event happened at, or null if it cannot be determined, "lat": lattitude best estimate of the location of the Story, "long": longitude best estimate, "photos:[{"photoURL":url of the photo copied from the Post, "description": description of the photo copied from the Post},..list of UNIQUE photos taken from the Posts, ordered by most interesting]${claims ? `, "claims":[${claimJSONOutput()}, ...]` : ""}}`;
 };
 
 //
@@ -291,16 +302,20 @@ const findStoryExample = function() {
 
     Let's say this is the post:
     "Iran state media removes report about closing airspace over Tehran after warnings of possible strike on Israel"
-    sourceCreatedAt (time source of the post was published, different from the Story's 'happenedAt'): "2021-05-10T12:00:00Z" 
+    sourceCreatedAt: "2021-05-10T12:00:00Z"
 
     While this Post mentions Iran and a report about closing airspace over Tehran, in conjunction with Israel, you can infer that there is an urgent tension between Iran and Israel. There are actually 2 Stories here; one about Iran closing airspace, and another about Iran threatening Israel.
 
-    Hence, a Title for the Story could be: "Iran Airspace", and the other Story title would be "Iran threatens Israel".
-    Since this is the first post in the Stories, it is hard to say how important each is. We generally judge the importance by the tone, subject matter, and urgency of the Posts, but if there's only 1 Post we mute our response. The importance of the Story could be 0.5 for Iran threat, and 0.4 for airspace, respectively. If there's more posts it will be higher.
+    Hence, a Title for the Story could be: "Iran Closing Airspace", and the other Story title would be "Iran Threatens Israel".
+    Since this is the first post in the Stories, it is hard to say how important each is. We generally judge the importance by the tone, subject matter, and urgency of the Posts, but if there's only 1 Post we mute our response. The importance of the Story could be 0.4 for Iran threat, and 0.3 for airspace, respectively. If there's more posts it will be higher.
 
     The Description (of the first story could be) could be: "Amidst rising tensions between Iran and Israel, it was reported by Iran state media that they closed airspace over Tehran. This post wast later removed, and the situation remains ongoing."
 
-    The Latest (of the first Story) could be: "Iran removes post about closing airspace".
+    The Headline (of the first Story) could be: "In a stark reversal, Iran no longer says it's closing its airspace".
+    The SubHeadline (of the first Story) could be: "Iran state media initially reported about closing airspace over Tehran after warnings of possible confrontation with Israel. This post was later removed."
+
+    The happenedAt will be different for the two Stories. For the "Iran Closing Airspace" Story, the "happenedAt" will refer to the time the airspace was reported closed. Since we have no idea, our best guess will be 2 days before the Post was made. Whereas the happenedAt for the "Iran Threatens Israel" Story will be the time the threat was made, which is likely only recently before the Post. Our best guess is 3 hours before the Post.
+
     The "lat"/"long" for the first Story should be the location of Tehran, Iran.
 
     Now let's say there's another Post that comes in. It says: 
@@ -314,15 +329,20 @@ const findStoryExample = function() {
     Whoever attacks Israel will counter strong defenses, followed by forceful strike in their territory; our enemies are unaware of the surprises we're preparing; Israel knows how to respond quickly across the Middle East."
     sourceCreatedAt: "2021-05-10T13:00:00Z"
 
-    This Post is clearly related to the first Post; the first Post mentions a possible attack from Iran on Israel, and this latter Post mentions how Israel will respond to any threats. This Post is talking about Iran striking Iran, "Iran threatens Israel" Story from above. Note that this is not about the Iran Airspace Story, as it is not mentioned in the Post, though it may be related. 
-    Furthermore, since the sourceCreatedAt (time the post was made) is similar, they are likely talking about the same subject.
+    This Post is clearly related to the first Post; the first Post mentions a possible attack from Iran on Israel, and this latter Post mentions how Israel will respond to any threats. This Post is talking about Iran striking Israel, "Iran threatens Israel" Story from above. Note that this is not about the Iran Airspace Story, as it is not mentioned in the Post, though it may be related. 
+    Furthermore, since the sourceCreatedAt (time the post was made) is similar, they are likely talking about the same thing (and hence the same Story).
     
     Hence the Title of the Story might be updated, "Iran and Israel Trade Threats", and now the description of the Story could be updated to include the new information.
-    As it appears the Story has gotten a bit more urgent, the importance could be updated to 0.6.
+    As it appears the Story has gotten a bit more urgent, the importance could be updated to 0.5.
 
-    For example; the Description could be: "Iran hinted at possible warnings of a strike against Israel, to which Gallant replied Israel will respond in turn"
+    For example; the Description could be: "Iran hinted at possible warnings of a strike against Israel, to which Israel's Defense Minister Gallant replied Israel will respond in turn across the Middle East".
 
-    If, for example the Posts each had the same photo, or almost the same photo, the Photo of the Iranian Ayatollah for example, you would output the url and description of the photo (so as to dedupe), copied from one of the Stories. If the photos are different and both are relevant, you would output both photos, ordered by most interesting.
+    The Headline could be: "Bitter rivals; Iran and Israel trade stark threats".
+    The SubHeadline could be: "Iran hinted at possible warnings of a strike against Israel, prompting a strong response from Israel Defense Minister Gallant".
+
+    The happenedAt will still refer to the initial threat, and our best guess of 3 hours before the first Post is still the most reasonable.
+
+    If, for example the Posts each had the same photo OR VERY SIMILAR PHOTOS, the Photo of the Iranian Ayatollah for example, you would output the url and description of the first photo only (so as to dedupe), copied from one of the Posts. If the photos are different enough and both are relevant, you would output both photos, ordered by most interesting.
   `;
 };
 
@@ -399,7 +419,8 @@ const storyToJSON = function(story) {
     sid: story.sid,
     title: story.title,
     description: story.description,
-    latest: story.latest,
+    headline: story.headline,
+    subHeadline: story.subHeadline,
     photoDescription: story.photo?.description,
     importance: story.importance,
     happenedAt: millisToIso(story.happenedAt),

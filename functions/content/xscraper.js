@@ -20,6 +20,10 @@ const _xEmailKey = defineSecret("X_EMAIL_KEY");
 // need a namespace for X for v5 that is a valid uuid
 const _xNamespace = "e962ad23-2f0a-411b-a118-a309d7ee4340";
 
+// User agent for X
+// eslint-disable-next-line max-len
+const _userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.99 Safari/537.36";
+
 /**
  * REQUIRES 1GB TO RUN!
  * REQUIRES LONGER TIMEOUT
@@ -61,8 +65,7 @@ const connectToX = async function(page) {
   const cookiePath = "cookies/x.json";
 
   // REQUIRED FOR TWITTER ELSE IT FORCES LOGIN
-  // eslint-disable-next-line max-len
-  await page.setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.99 Safari/537.36");
+  await page.setUserAgent(_userAgent);
   await page.setViewport({width: 1280, height: 720});
 
   let tryRedirect = false;
@@ -266,9 +269,18 @@ const processXLinks = async function(xLinks, poster = null) {
  * @return {string} with creator
  * @return {string?} with photoURL
  */
-const getTextContentFromX = async function(url) {
+const getContentFromX = async function(url) {
   const browser = await puppeteer.launch({headless: "new"});
   const page = await browser.newPage();
+
+  // for video we do it by fetch since scraping directly is hard
+  let tweetVideoURL = null; // Initialize the video URL variable
+  page.on("request", (request) => {
+    if ((request.resourceType() === "media" ||
+    request.url().includes(".mp4")) && !tweetVideoURL) {
+      tweetVideoURL = request.url();
+    }
+  });
 
   // Use the provided sample X URL
   // networkidle0 waits for the page to load entirely
@@ -287,6 +299,11 @@ const getTextContentFromX = async function(url) {
 
   // Selector for the image within the tweet, based on your structure
   const tweetImageSelector = "[data-testid='tweetPhoto'] img";
+
+  // Selector for the video within the tweet, based on your structure
+  // const tweetVideoSelector =
+  //   "[data-testid='videoComponent'] video source[type='video/mp4']";
+
 
   // Selector for the time of the tweet
   const tweetTimeSelector = "article time[datetime]";
@@ -316,6 +333,7 @@ const getTextContentFromX = async function(url) {
     return element ? element.src : null;
   }, tweetImageSelector);
 
+
   const tweetTime = await page.evaluate((selector) => {
     // eslint-disable-next-line no-undef
     const element = document.querySelector(selector);
@@ -329,6 +347,7 @@ const getTextContentFromX = async function(url) {
     title: tweetText,
     creatorEntity: tweetAuthor,
     photoURL: tweetPhotoURL,
+    videoURL: tweetVideoURL,
     isoTime: tweetTime,
   };
 };
@@ -346,7 +365,7 @@ const xupdatePost = async function(post) {
 
   functions.logger.info(`Updating post: ${post.pid} with X metadata.`);
 
-  const xMetaData = await getTextContentFromX(post.url);
+  const xMetaData = await getContentFromX(post.url);
   if (!xMetaData) {
     throw new functions.https
         .HttpsError("invalid-argument",
@@ -355,9 +374,16 @@ const xupdatePost = async function(post) {
 
   const time = isoToMillis(xMetaData.isoTime);
 
+  // currently we do not support video
+  const supported = xMetaData.videoURL == null;
+
+  if (!supported) {
+    functions.logger.warn("Video not supported, skipping post: " + post.pid);
+  }
+
   const _post = {
     // we set to published unless status is in draft
-    status: post.poster ? "draft" : "published",
+    status: supported ? post.poster ? "draft" : "published" : "unsupported",
     sourceCreatedAt: time,
     updatedAt: Timestamp.now().toMillis(),
     title: xMetaData.title,
@@ -367,6 +393,7 @@ const xupdatePost = async function(post) {
 
     // don't set the photo at all if its null
     photo: xMetaData.photoURL ? {photoURL: xMetaData.photoURL} : null,
+    video: xMetaData.videoURL ? {videoURL: xMetaData.videoURL} : null,
   };
 
   await updatePost(post.pid, _post);
@@ -419,7 +446,7 @@ module.exports = {
   scrapeXFeed,
   processXLinks,
   //
-  getTextContentFromX,
+  getContentFromX,
   //
   getEntityImageFromX,
   getEntityImage,

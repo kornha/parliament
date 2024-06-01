@@ -112,7 +112,7 @@ class _CredibilityViewViewState extends ConsumerState<CredibilityView> {
                         padding:
                             context.blockPadding.copyWith(top: 0, bottom: 0),
                         child: ProfileIcon(
-                            watch: false, size: context.iconSizeStandard),
+                            watch: false, radius: context.iconSizeStandard / 2),
                       ), // TODO: HACK FOR UI CHANGE TO GRID
                       vote?.credibility?.value,
                       vote?.credibility?.name,

@@ -31,6 +31,9 @@ Post _$PostFromJson(Map<String, dynamic> json) => Post(
       photo: json['photo'] == null
           ? null
           : Photo.fromJson(json['photo'] as Map<String, dynamic>),
+      video: json['video'] == null
+          ? null
+          : Video.fromJson(json['video'] as Map<String, dynamic>),
       locations: (json['locations'] as List<dynamic>?)
               ?.map((e) => e as String)
               .toList() ??
@@ -70,6 +73,7 @@ Map<String, dynamic> _$PostToJson(Post instance) => <String, dynamic>{
       'description': instance.description,
       'body': instance.body,
       'photo': instance.photo?.toJson(),
+      'video': instance.video?.toJson(),
       'url': instance.url,
       'sourceType': _$SourceTypeEnumMap[instance.sourceType]!,
       'locations': instance.locations,
@@ -93,8 +97,9 @@ const _$PostStatusEnumMap = {
   PostStatus.scraping: 'scraping',
   PostStatus.draft: 'draft',
   PostStatus.published: 'published',
-  PostStatus.deleted: 'deleted',
-  PostStatus.error: 'error',
+  PostStatus.finding: 'finding',
+  PostStatus.found: 'found',
+  PostStatus.unsupported: 'unsupported',
 };
 
 const _$SourceTypeEnumMap = {

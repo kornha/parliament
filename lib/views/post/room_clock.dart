@@ -265,7 +265,7 @@ class ClockSide extends StatelessWidget {
                   children: uids
                       .map((uid) => ProfileIcon(
                             uid: uid,
-                            size: context.iconSizeSmall,
+                            radius: context.iconSizeSmall / 2,
                             watch: false,
                           ))
                       .toList(),

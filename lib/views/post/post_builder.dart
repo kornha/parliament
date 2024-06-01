@@ -61,13 +61,14 @@ class _PostBuilderState extends ConsumerState<PostBuilder> {
 
     // we check title because the post can be created without a title while its scraping
     if (postRef != null &&
-        postRef.hasValue &&
-        post?.status == PostStatus.draft) {
+            postRef.hasValue &&
+            post?.status == PostStatus.draft ||
+        post?.status == PostStatus.unsupported) {
       return ModalContainer(
         child: Column(
-          mainAxisSize: MainAxisSize.min,
           children: [
-            PostItemView(pid: _pid!, showPostButtons: false),
+            PostItemView(
+                pid: _pid!, showPostButtons: false, gestureDetection: false),
             context.sf,
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
@@ -86,22 +87,27 @@ class _PostBuilderState extends ConsumerState<PostBuilder> {
                 ),
                 context.sf,
                 ZTextButton(
-                  onPressed: () {
-                    Post? p = postRef!.value;
-                    if (p == null) {
-                      context.pop();
-                    } else {
-                      Database.instance().updatePost(p.pid, {
-                        "status": PostStatus.published.name,
-                        "updatedAt": Timestamp.now().millisecondsSinceEpoch,
-                      });
-                      context.pop();
-                      context.push("${PostView.location}/${_pid!}");
-                    }
-                  },
+                  onPressed: post?.status == PostStatus.unsupported
+                      ? null // disable button
+                      : () {
+                          Post? p = postRef!.value;
+                          if (p == null) {
+                            context.pop();
+                          } else {
+                            Database.instance().updatePost(p.pid, {
+                              "status": PostStatus.published.name,
+                              "updatedAt":
+                                  Timestamp.now().millisecondsSinceEpoch,
+                            });
+                            context.pop();
+                            context.push("${PostView.location}/${_pid!}");
+                          }
+                        },
                   backgroundColor: context.secondaryColor,
                   foregroundColor: context.onSecondaryColor,
-                  child: const Text("Generate"),
+                  child: post?.status == PostStatus.unsupported
+                      ? const Text("Unsupported")
+                      : const Text("Generate"),
                 ),
               ],
             ),
@@ -127,8 +133,8 @@ class _PostBuilderState extends ConsumerState<PostBuilder> {
                   : () async {
                       ClipboardData? clipboardData =
                           await Clipboard.getData(Clipboard.kTextPlain);
-                      String? url = clipboardData!.text!;
-                      Uri? uri = Uri.tryParse(url);
+                      String? url = clipboardData?.text;
+                      Uri? uri = url == null ? null : Uri.tryParse(url);
                       if (uri == null ||
                           uri.scheme != "http" && uri.scheme != "https") {
                         setState(() {

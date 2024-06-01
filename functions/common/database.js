@@ -229,6 +229,40 @@ const deletePost = async function(pid) {
   }
 };
 
+/**
+ * Determines if we can find stories or if it is already in progress
+ * Sets the post status to "finding" if we can proceed
+ * Requires Post to be in "published" status with a vector
+ * @param {String} pid
+ * @return {Boolean} shouldProceed
+ * */
+const canFindStories = async function(pid) {
+  if (!pid) {
+    functions.logger.error(`Could not update post: ${pid}`);
+    return;
+  }
+
+  const postRef = admin.firestore().collection("posts").doc(pid);
+
+  let shouldProceed = false;
+  // Start a transaction to check and set the post status
+  await admin.firestore().runTransaction(async (transaction) => {
+    const postDoc = await transaction.get(postRef);
+    const post = postDoc.data();
+
+    if (!post || !post.vector || post.status != "published") {
+      return;
+    }
+
+    if (post.status == "published") {
+      transaction.update(postRef, {status: "finding"});
+      shouldProceed = true;
+    }
+  });
+
+  return shouldProceed;
+};
+
 // Deprecated
 const bulkSetPosts = async function(posts) {
   if (!posts) {
@@ -824,6 +858,7 @@ module.exports = {
   getPostsForStory,
   getAllPostsForStory,
   bulkSetPosts,
+  canFindStories,
   //
   createStory,
   setStory,
