@@ -2,14 +2,6 @@
 const _ = require("lodash");
 const {millisToIso} = require("../common/utils");
 
-const findStoriesPrompt = function(post, stories) {
-  return `You will be given a Post and a list of Stories (can be empty).\nPost: ${postToJSON(post)}\nStories: ${storiesToJSON(stories)}\nOutput JSON ordered from most to least relevant Story. Do not output irrelevant Stories. Do not output Claims.`;
-};
-
-const findStoriesAndClaimsPrompt = function(post, stories, claims) {
-  return `You will be given a Post, a list of Stories (cannot be empty), and a list of Claims (can be empty).\nPost: ${postToJSON(post)}\nStories: ${storiesToJSON(stories)}\nClaims: ${claimsToJSON(claims)}\nOutput the Stories in the order they are inputted, but now include Claims (either create a new one or add an existing one), and if the Post is for or against a Claim be sure to list its in the Claim's pro/against.`;
-};
-
 const generateImageDescriptionPrompt = function(photoURL) {
   const messages = [];
   messages.push({type: "text",
@@ -23,33 +15,15 @@ const generateImageDescriptionPrompt = function(photoURL) {
   return messages;
 };
 
-// //////////////////////////////////////
-// TRAINING PROMPTS
-// //////////////////////////////////////
-
-const findStoriesTrainingPrompt = function(post, stories) {
+const findStoriesPrompt = function({post, stories, training = false, includePhotos = true}) {
   // Prepare the initial set of messages with description texts
-  const messages = [
-    {type: "text", text: `
-      You will be given a Post and a list of Stories (can be empty). Return all Stories that the Post makes reference to, in order of relevance. Do not return irrelevant Stories. Create new Stories if the Post mentions a Story but the Story is not in the input list, and update existing Stories if the Post provides new and relevant information.
+  const messages = training ? [
+    {type: "text", text: findStoriesForTrainingText()},
+  ] : [];
 
-      Description of a Post:
-      ${postDescriptionPrompt()}
+  messages.push({type: "text", text: `Here is the Post: ${postToJSON(post, !includePhotos)}`});
 
-      Description of a Story:
-      ${storyDescriptionPrompt()}
-
-      In the output, you will return zero, one, or many of the passed-in Stories if the Post "feels a part" of the Story, ie. the Post mentions the Story or makes a claim about the Story, and order from most to least relevant. If there are any udpdates to the Story from the new Post, you will output that updated information with the Story. Otherwise you will omit the Story from the output.
-      You will also create "new" Stories, if the Post mentions an event that is not passed in the list of stories.
-
-      Here's a high level example that explains this:
-      ${findStoryExample()}
-    `},
-  ];
-
-  messages.push({type: "text", text: `Here is the Post: ${postToJSON(post)}`});
-
-  if (post.photo?.photoURL) {
+  if (post.photo?.photoURL && includePhotos) {
     messages.push({type: "image_url", image_url: {url: post.photo?.photoURL}});
   }
 
@@ -59,17 +33,14 @@ const findStoriesTrainingPrompt = function(post, stories) {
   } else {
     messages.push({type: "text", text: "Here are the Stories (if any): "});
     stories.forEach((story) => {
-      messages.push({type: "text", text: storyToJSON(story)});
-      if (!_.isEmpty(story.photos)) {
+      messages.push({type: "text", text: storyToJSON(story, !includePhotos)});
+      if (!_.isEmpty(story.photos) && includePhotos) {
         story.photos.forEach((photo) => {
           messages.push({type: "image_url", image_url: {url: photo.photoURL}});
         });
       }
     });
   }
-
-  messages.push({type: "text", text: "If you are creating a new Story, follow these instructions:"});
-  messages.push({type: "text", text: newStoryPrompt()});
 
   messages.push({type: "text", text: "Output the following JSON ordered from most to least relevant Story:"});
   messages.push({type: "text", text: `{"stories":[${storyJSONOutput()}, ...]}`});
@@ -78,42 +49,20 @@ const findStoriesTrainingPrompt = function(post, stories) {
 };
 
 
-const findStoriesAndClaimsTrainingPrompt = function(post, stories, claims) {
+const findStoriesAndClaimsPrompt = function({
+  post,
+  stories,
+  claims,
+  training = false,
+  includePhotos = true}) {
   // Assuming each post and story has an 'photoURL' property
-  const messages = [
-    {type: "text", text: `
-      You will be given a Post, a list of Stories (can be empty), and a list of Claims (can be empty).
+  const messages = training ? [
+    {type: "text", text: findStoriesAndClaimsForTrainingText()},
+  ] : [];
 
-      Description of a Post:
-      ${postDescriptionPrompt()}
+  messages.push({type: "text", text: `Here is the Post: ${postToJSON(post, !includePhotos)}`});
 
-      Description of a Story:
-      ${storyDescriptionPrompt()}
-
-      Description of a Claim:
-      ${claimsDescriptionPrompt()}
-
-      The Stories represent all Stories the Post is currently associated with.
-      The Claims represent all Claims that are already associated with all these Stories, as well as Claims that are associated with all other Posts already associated with these Stories.
-
-      Your goal is to output the Stories EXACTLY as they are BUT with the following change.
-      
-      1) If the Post makes a Claim that is already in the list of Claims, this Claim should be added to the Story, and the Post should be added to the "pro" or "against" list of the Claim.
-      1a) DO NOT OUTPUT A CLAIM THAT THE POST DOES NOT MAKE EVEN IF IT IS PART OF THE STORY ALREADY.
-      1b) DO NOT OUTPUT OTHER PIDS THAT ARE ALREADY PART OF THE PRO OR AGAINST LIST OF THE CLAIM.
-      2) If the Post makes a Claim that is inherently new (there is no matching Claim in the list), this Claim should be created and added to the Story, and the Post should be added to the "pro" or "against" list of the Claim.
-
-      Here is how to output a new Claim:
-      ${newClaimPrompt()}
-
-      Here's a high level example:
-      ${findClaimsAndStoriesExample()}
-    `},
-  ];
-
-  messages.push({type: "text", text: `Here is the Post: ${postToJSON(post)}`});
-
-  if (post.photo?.photoURL) {
+  if (post.photo?.photoURL && includePhotos) {
     messages.push({type: "image_url", image_url: {url: post.photo?.photoURL}});
   }
 
@@ -122,8 +71,8 @@ const findStoriesAndClaimsTrainingPrompt = function(post, stories, claims) {
   } else {
     messages.push({type: "text", text: `Here are the Stories:`});
     stories.forEach((story) => {
-      messages.push({type: "text", text: `${storyToJSON(story)}`});
-      if (!_.isEmpty(story.photos)) {
+      messages.push({type: "text", text: `${storyToJSON(story, !includePhotos)}`});
+      if (!_.isEmpty(story.photos) && includePhotos) {
         story.photos.forEach((photo) => {
           messages.push({type: "image_url", image_url: {url: photo.photoURL}});
         });
@@ -146,61 +95,102 @@ const findStoriesAndClaimsTrainingPrompt = function(post, stories, claims) {
   return messages;
 };
 
-//
-// Secondary Training Promps
-//
+// ///////////////////////////////////
+// PROMPT TEXTUAL DESCRIPTIONS
+// ///////////////////////////////////
 
 //
 // Story
 //
 
+const findStoriesForTrainingText = function() {
+  return `
+  You will be given a Post and a list of Stories (can be empty). Return all Stories that the Post makes reference to, in order of relevance. Do not return irrelevant Stories. Create new Stories if the Post mentions a Story but the Story is not in the input list, and update existing Stories if the Post provides new and relevant information.
+
+  Description of a Post:
+  ${postDescriptionPrompt()}
+
+  Description of a Story:
+  ${storyDescriptionPrompt()}
+
+  In the output, you will return zero, one, or many of the passed-in Stories if the Post "is a part" of the Story, ie. the Post mentions the Story or makes a claim about the Story, and order from most to least relevant. If there are any udpdates to the Story from the new Post, you will output that updated information with the Story. Otherwise you will omit the Story from the output.
+  You will also create "new" Stories, if the Post mentions an event that is not passed in the list of stories.
+
+  Here's how you update/create Story fields, when necessary:
+  ${newStoryPrompt()}
+
+  Here's a high level example that explains this:
+  ${findStoryExample()}
+`;
+};
+
+const findStoriesAndClaimsForTrainingText = function() {
+  return `
+  You will be given a Post, a list of Stories (can be empty), and a list of Claims (can be empty).
+
+  Description of a Post:
+  ${postDescriptionPrompt()}
+
+  Description of a Story:
+  ${storyDescriptionPrompt()}
+
+  Description of a Claim:
+  ${claimsDescriptionPrompt()}
+
+  The Stories represent all Stories the Post is currently associated with.
+  The Claims represent all Claims that are already associated with all these Stories, as well as Claims that are associated with all other Posts already associated with these Stories.
+
+  Your goal is to output the Stories EXACTLY as they are BUT with the following change.
+  
+  1) If the Post makes a Claim that is already in the list of Claims, this Claim should be added to the Story, and the Post should be added to the "pro" or "against" list of the Claim.
+  1a) DO NOT OUTPUT A CLAIM THAT THE POST DOES NOT MAKE EVEN IF IT IS PART OF THE STORY ALREADY.
+  1b) DO NOT OUTPUT OTHER PIDS THAT ARE ALREADY PART OF THE PRO OR AGAINST LIST OF THE CLAIM.
+  2) If the Post makes a Claim that is inherently new (there is no matching Claim in the list), this Claim should be created and added to the Story, and the Post should be added to the "pro" or "against" list of the Claim.
+
+  Here is how to output a new Claim:
+  ${newClaimPrompt()}
+
+  Here's a high level example:
+  ${findClaimsAndStoriesExample()}
+`;
+};
+
 const newStoryPrompt = function() {
   return `
-  The Title and Description of the story should be the most neutral, and the most minimal vector distance for all posts.
-  The Title should be 2-6 words, and the Description should be 1-5 sentences.
+  SID:
+  SID should be null for new Stories, and copied if outputting an existing Story.
+
+  Title, Description, Headline, Subheadline:
+  All of these fields need to use maximally neutral language. Posts often will used biased language, so steer clear of that.
+  The Title should be 2-6 words categorical description of the Story.
+  Description should be 1-many sentences, and completely describes every detail we know about the Story.
   The Headline should be as ENGAGING as possible, and should be written in active tense. Eg., if a Title might be "Khameini addresses US students in a tweet", the Headline might be "Khameini: US students are on the right side of history".
-  The Subheadline should be equally as engaging.
-  They should be as neutral as possible, and include language as definitive only if consensus is clear.
+  The Subheadline should be equally as engaging, and a far shorter description of the Story, 1-3 sentences. Eg, "Khameini's tweet to US students is a unusual bridge between the fundementalist Iranian regime and progressive students".
 
-  SID should be null for new Stories.
+  HappenedAt:
+  'happenedAt' is the time the event happened in the REAL WORLD, not the timestamp of the Posts. Determine when the Story "happenedAt" based on the time the Post(s) were created, as well as context in the Post(s). Eg., if a Post says "today Trump had a rally in the Bronx", and the Post 'sourceCreatedAt' is at 9PM Eastern, the "happenedAt" is the time of the rally, since 'day' is mentioned, our best guess would be 2PM ET (but outputted in ISO 8601 format).
 
-  'happenedAt' is the time the event happened in the real world, not the timestamp of the Posts. It is up to you to determine when the Story "happenedAt" based on the time the Post(s) was created, as well as textual content in the Post(s). Eg., if a Post says "today Trump had a rally in the Bronx", and the Post 'sourceCreatedAt' is at 9PM Eastern, the "happenedAt" can be inferred as the time of the rally, not the time of the Post, so a good guess would be 2PM EST (but outputted in ISO 8601 format). This can be updated as more Posts come in.
-
+  Lat/Long:
   the 'lat' and 'long' are the location of the event, or our best guess. If the Story is about a Trump rally in the Bronx, the lat and long should be in the Bronx. If the Story is about Rutgers U, the lat and long should be of their campus in NJ, at the closest location that can be determined. If the Post only mentions a person, the lat and long might be the country they are from. The lat and long should almost NEVER be null unless absolutely no location is mentioned or inferred.
 
-  'importance' is a value between 0.0 and 1.0, where 1.0 would represent the most possible newsworthy news, like the breakout of WW3 or the dropping of an atomic bomb, and 0.0 represents complete non-news, like some non-famous person's opinion, or a cat video. 0.0-0.2 is non-news. 0.2-0.4 is interesting news to those who follow a subject. 0.4-0.6 is interesting news to even those who infrequently follow the topic. 0.6-0.8 is interesting news to everyone globally. 0.8-1.0 is extremely urgent news. The importance should be updated as more Posts come in, and the Story becomes more clear.
+  Importance:
+  'importance' is a value between 0.0 and 1.0, where 1.0 would represent the most possible newsworthy news, like the breakout of WW3 or the dropping of an atomic bomb, and 0.0 represents complete non-news, like some non-famous person's opinion, or a cat video. 0.0-0.2 is non-news. 0.2-0.4 is interesting news to those who follow a subject. 0.4-0.6 is interesting news to even those who infrequently follow the topic. 0.6-0.8 is interesting news to everyone globally. 0.8-1.0 is extremely urgent news. When deciding importance, consider the language in the Post, eg "Breaking", the subject of the Story, and also consider the number of Posts in a Story. Note that just because a Post contains "Breaking" does not mean the Story is important.
 
-  'photos' are, optionally, the photos that are associated with the Story. They should be ordered by most interesting, and deduped, removing not just identical but even very similar photos. If and only if the Post has a photo that is relevant to the Story, it should be included in the Story's photos.
+  Photos:
+  'photos' are, optionally, the photos that are associated with the Story. They should be ordered by most interesting, and deduped, removing not only identical but even very similar photos. If the Post has a photo that is relevant to the Story, it should be included in the Story's photos.
   `;
 };
 
 const storyDescriptionPrompt = function() {
-  return `
-        A Story can be understood as thus: if Posts are talking about the same event, they belong to the same Story.
-        You and I are talking about the same Story if we are talking about the same thing.
-        This can concretely be defined as a Story is a subject, in a time, and at a place. 
-        A Story can be an event large or small.
-
-        The "sid" is the Story ID, which is a unique identifier for the Story.
-
-        The "title" is a very concise, 2-7 word title of the Story. The title should be maximally interesting, and generally should scope the story to a specific event.
-
-        The "description" is a 1-8 sentence description of the Story, that covers ALL details we know about the Story. The description should be as descriptive as possible and use language that is entirely neutral.
-
-        The "headline" is a 3-15 word headline that will be shown to a reader. It is written in active tense, and is as interesting as possible. While the headline language is always politically neutral, the language intrigue will track that of the importance. A very high importance will yield and extremely powerful headline, while a low importance will yield a more mundane headline.
-
-        The "subHeadline" is 2-5 sentence short description of the Story that will be shown to a reader. It is written in active tense, and uses the same level of intriguing language as the headline.
-
-        The "happenedAt" is the time that the event in question happened at in the real world, inferred based on the language and timestamps of the Posts, or our best guess.
-
-        The "lat" and "long" are the location that best represents the Story. It should rarely be null, unless we have absolutely 0 clue. Otherwise its the best guess.
-
-        A Story may have photos, videos or other media. You may only be given a description of the photo, which you will consider in place of an actual photo. Otherwise you will be given URLs to the photo after the Story metadata. While the multiple Posts that make up a Story may have duplicate photos, a Story photos are deduped and ordered by most interesting.
-
-        The "importance" is a value between 0.0 and 1.0, where 1.0 would represent maximally urgent news, like the breakout of WW3, and 0.0 represents complete non-news, like a run-of-the-mill cat video, or some non-famous person's pointless opinion.
-
-        A Story is derived from a collection of Posts (social media postings or articles), and the Claims they make about the Story.
-    `;
+  return `A Story is an event that happened.
+  It is created from a collection of Posts that are 'talking about the same thing.'
+  A Story has a title, a description, a headline, a subheadline, which are textual descriptions of the Story.
+  A Story has a "happenedAt" timestamp, which represents when the event happened in the real world.
+  A Story has an "importance" value, which is a number between 0.0 and 1.0, where 1.0 is the most possibly newsworthy event.
+  A Story has a lat and long, which are the best estimates of the location of the Story.
+  A Story may have photos, which are images that are associated with the Story.
+  A Story may have Claims, which are statements that are either supported or refuted by the Posts.
+  `;
 };
 
 const storyJSONOutput = function(claims = false) {
@@ -212,15 +202,13 @@ const storyJSONOutput = function(claims = false) {
 //
 
 const postDescriptionPrompt = function() {
-  return `
-        A Post is a social media posting or an article. It can come from X (Twitter), Instagram, or other social sources.
+  return `A Post is a social media posting or an article. It can come from X (Twitter), Instagram, or other social sources.
         It may also be a news article published to an online platform.
         A Post can have a title, a description, and a body, the latter two of which are optional.
         A Post may have images, videos or other media. You may only be given a description of the image, which you will consider in place of an actual image. Otherwise you will be given a URL to the image after the post.
         A Post has an author, which we call an Entity.
         A Post has a "sourceCreatedAt" time which represents when the Post was originally created on the social/news platform.
-        A Post can belong to a Story and have Claims.
-        `;
+        A Post can belong to a Story and have Claims.`;
 };
 
 //
@@ -228,26 +216,20 @@ const postDescriptionPrompt = function() {
 //
 
 const claimsDescriptionPrompt = function() {
-  return `
-            A Claim is a statement that has "pro" and "against" list of Posts either supporting or refuting the Claim.
+  return `A Claim is a statement that has "pro" and "against" list of Posts either supporting or refuting the Claim.
             A Claim has a "value" field, which is the statement itself.
             A Claim has a "pro" field, which is a list of Posts that support the Claim.
             A Claim has an "against" field, which is a list of Posts that refute the Claim.
-            A Claim has a "context" field, which provides more information about the Claim, and helps for search.
-        `;
+            A Claim has a "context" field, which provides more information about the Claim, and helps for search.`;
 };
 
 const newClaimPrompt = function() {
-  return `
-        The value of the Claim should be a statement that is either supported or refuted by the Post.
-        Note that a Claim is not an Opinion. If a Post expresses an opinion, it is not a Claim and do not output it as such.
+  return `The value of the Claim should be a statement that is either supported or refuted by the Post.
+        Note that a Claim is not an Opinion. If a Post expresses an Opinion, it is not a Claim and do not output it as such.
         If you are creating a new Claim, the value should be the statement in the "positive" sense, and the Post should be either "pro" or "against" the Claim.
-        Eg., if you want to make a Claim that "Iran did not close airspace over Tehran" (and the Post supports this), the Claim should be "Iran closed airspace over Tehran" and the Post should be "against" the Claim.
+        Eg., if you want to make a Claim that "Iran did not close airspace over Tehran" (and the Post supports this), the Claim should be "Iran closed airspace over Tehran" and the Post should be "against" the Claim. Or, "The UN has not imposed sanctions on Hamas leadership" would be better worded "The UN has imposed sanctions on Hamas leadership".
         When outputting pro and against, you should output the post ID (pid) of the post that is either for or against the claim inside of an array, for example against: [pid] instead of against: pid.
-        Eg., a Post titled "I stand behind what I tweeted on October 7th. Can you say the same?" would not be a Claim, since it is expressing an opion.
-        Note again that Claims are generally listed in the positive;
-        A Claim such as: "The UN has not imposed sanctions on Hamas leadership" would be better worded "The UN has imposed sanctions on Hamas leadership".
-        `;
+        Eg., a Post titled "I stand behind what I tweeted on October 7th. Can you say the same?" would not be a Claim, since it is expressing an opion.`;
 };
 
 const claimJSONOutput = function() {
@@ -298,7 +280,7 @@ const biasJSONOutput = function() {
 const findStoryExample = function() {
   return `
     It can be said two Posts belong to the Story if they are clearly talking about the same thing.
-    There is a level of judgement here; assume a Story is HIGHLY granular, but NOT EXTREMELY so.
+    There is a level of judgement here; if you are I are talking about the same thing, its the same Story.
 
     Let's say this is the post:
     "Iran state media removes report about closing airspace over Tehran after warnings of possible strike on Israel"
@@ -364,7 +346,7 @@ const findClaimsAndStoriesExample = function() {
     1) "Iran closes airspace over Tehran"
     2) "Iran media removed their report about closing airspace"
 
-    Put simply, a Claim is any factual Claim about a Story (but is not an opinon).
+    Put simply, a Claim is any verifiable Claim about a Story (hence not an opinon).
   `;
 };
 
@@ -375,22 +357,28 @@ const findClaimsAndStoriesExample = function() {
 /**
  * Converts ONLY SELECT DATA from a Post object to a prompt JSON string
  * USING JSON.stringify() will convert tons of data like vector
- * @param {Object} post
+ * @param {Post} post
+ * @param {boolean} includePhotoDescription // we can ommit if the outer fn has photos
  * @return {string} JSON string
  * */
-const postToJSON = function(post) {
+const postToJSON = function(post, includePhotoDescription = true) {
   const formatted = {
     pid: post.pid,
     title: post.title,
     description: post.description,
     body: post.body,
-    photo: post.photo,
     sourceCreatedAt: millisToIso(post.sourceCreatedAt),
     credibility: post.credibility,
     bias: post.bias,
     // used for tuning, comment in production code
     url: post.url,
+    photoURL: post.photo?.photoURL,
   };
+
+  // we omit if we have the photo to save context
+  if (includePhotoDescription) {
+    formatted.photoDescription = post.photo?.description;
+  }
 
   return JSON.stringify(formatted);
 };
@@ -411,22 +399,32 @@ const claimsToJSON = function(claims) {
 /**
  * Converts ONLY SELECT DATA from a Story object to a JSON string
  * USING JSON.stringify() will convert tons of data like vector
- * @param {Object} story
+ * @param {Story} story
+ * @param {boolean} includePhotoDescription
  * @return {string} JSON string
  * */
-const storyToJSON = function(story) {
+const storyToJSON = function(story, includePhotoDescription = true) {
   const formatted = {
     sid: story.sid,
     title: story.title,
     description: story.description,
     headline: story.headline,
     subHeadline: story.subHeadline,
-    photoDescription: story.photo?.description,
     importance: story.importance,
     happenedAt: millisToIso(story.happenedAt),
-    photos: story.photos,
     lat: story.lat,
     long: story.long,
+    numPosts: story.pids?.length ?? 1,
+    photos: story.photos.map((photo) => {
+      const photoObj = {
+        photoURL: photo.photoURL,
+      };
+      // Include photo description only if includePhotoDescription is true
+      if (includePhotoDescription) {
+        photoObj.description = photo.description;
+      }
+      return photoObj;
+    }),
   };
 
   return JSON.stringify(formatted);
@@ -435,17 +433,18 @@ const storyToJSON = function(story) {
 /**
  * Converts an array of Story objects to a prompt JSON string
  * @param {Array<Story>} stories
+ * @param {boolean} includePhotosDescription
  * @return {string} JSON string
  * */
-const storiesToJSON = function(stories) {
-  return "[" + stories.map((story) => storyToJSON(story)) + "]";
+const storiesToJSON = function(stories, includePhotosDescription = true) {
+  return "[" + stories.map((story) => storyToJSON(story, includePhotosDescription)) + "]";
 };
 
 module.exports = {
   findStoriesPrompt,
   findStoriesAndClaimsPrompt,
-  findStoriesAndClaimsTrainingPrompt,
-  findStoriesTrainingPrompt,
+  findStoriesForTrainingText,
+  findStoriesAndClaimsForTrainingText,
   //
   generateImageDescriptionPrompt,
   //

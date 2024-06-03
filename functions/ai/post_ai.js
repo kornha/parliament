@@ -15,15 +15,15 @@ const {
 const {generateCompletions, generateEmbeddings} = require("../common/llm");
 
 const {
-  findStoriesTrainingPrompt,
-  findStoriesAndClaimsTrainingPrompt,
+  findStoriesPrompt,
+  findStoriesAndClaimsPrompt,
   // findStoriesPrompt,
   // findStoriesAndClaimsPrompt,
 } = require("./prompts");
 const {retryAsyncFunction, isoToMillis} = require("../common/utils");
 const {v4} = require("uuid");
 const {Timestamp, FieldValue, GeoPoint} = require("firebase-admin/firestore");
-const {writeTrainingData} = require("./ai_trainer");
+const {writeTrainingData} = require("./trainer");
 const geo = require("geofire-common");
 
 /** FLAGSHIP FUNCTION
@@ -84,8 +84,20 @@ const findStoriesAndClaims = async function(post) {
 
   const resp =
     await generateCompletions(
-        findStoriesAndClaimsTrainingPrompt(post, gstories, claims),
-        "findStoriesAndClaims " + post.pid);
+        findStoriesAndClaimsPrompt({
+          post: post,
+          stories: gstories,
+          claims: claims,
+          training: true,
+          includePhotos: true,
+        }),
+        "findStoriesAndClaims " + post.pid,
+        true,
+    );
+
+  // const resp =
+  // generateAssistantCompletions("findStoriesAndClaims",
+  //     findStoriesAndClaimsPrompt(post, gstories, claims));
 
   writeTrainingData("findStoriesAndClaims", post, gstories, claims, resp);
 
@@ -226,8 +238,21 @@ const findStories = async function(post) {
   if (!stories || stories.length === 0) {
     // functions.logger.info(`Post does not have a story! ${post.pid}`);
   }
+
   const resp = await generateCompletions(
-      findStoriesTrainingPrompt(post, stories), "findStories " + post.pid);
+      findStoriesPrompt({
+        post: post,
+        stories: stories,
+        training: true,
+        includePhotos: true,
+      }),
+      "findStories " + post.pid,
+      true,
+  );
+
+  // const resp =
+  //   generateAssistantCompletions(findStoriesPrompt(post, stories),
+  //       "findStories");
 
   writeTrainingData("findStories", post, stories, null, resp);
 

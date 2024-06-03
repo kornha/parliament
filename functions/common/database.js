@@ -807,10 +807,10 @@ const setVector = async function(id, vector, collectionId) {
  * Search for vectors in a collection
  * @param {Array | VectorValue} vector
  * @param {String} collectionId
- * @param {Number} topK
+ * @param {Number} topK // set to 7 to reduce context window
  * @return {Promise<Array>}
  */
-const searchVectors = async function(vector, collectionId, topK = 10) {
+const searchVectors = async function(vector, collectionId, topK = 7) {
   if (!vector || !collectionId) {
     functions.logger.error(`Could not search: ${vector}`);
     return;

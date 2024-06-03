@@ -169,7 +169,7 @@ const connectToX = async function(page) {
  * @param {page} page the page instance to connect with
  * @param {number} maxDuration the maximum duration to scroll
  */
-const autoScrollX = async function* (page, maxDuration = 90000) {
+const autoScrollX = async function* (page, maxDuration = 9000) {
   const startTime = Date.now();
   // eslint-disable-next-line no-undef
   let lastHeight = await page.evaluate(() => document.body.scrollHeight);
