@@ -1,0 +1,31 @@
+name: Update GCS
+on:
+  push: 
+    branches: [ "main" ]
+    paths: 
+      - 'functions/ai/**'
+      - '.github/workflows/storage.yaml'
+
+jobs:
+  job_id:
+    # Add "id-token" with the intended permissions.
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
+    steps:
+    - id: 'auth'
+      uses: 'google-github-actions/auth@v2'
+      with:
+        credentials_json: '${{ secrets.GOOGLE_CREDENTIALS }}
+
+    - name: 'Set up Cloud SDK'
+      uses: 'google-github-actions/setup-gcloud@v2'
+      with:
+        version: '>= 363.0.0'
+
+    - name: 'Move GCS file'
+      env:
+        DATE: $(date +%Y-%m-%d-%H-%M-%S)
+      run: |
+        gsutil mv gs://political-think.appspot.com/fine_tune.jsonl gs://political-think.appspot.com/fine_tune-$DATE.jsonl

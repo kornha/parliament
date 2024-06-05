@@ -174,11 +174,10 @@ const newStoryPrompt = function() {
   the 'lat' and 'long' are the location of the event, or our best guess. If the Story is about a Trump rally in the Bronx, the lat and long should be in the Bronx. If the Story is about Rutgers U, the lat and long should be of their campus in NJ, at the closest location that can be determined. If the Post only mentions a person, the lat and long might be the country they are from. The lat and long should almost NEVER be null unless absolutely no location is mentioned or inferred.
 
   Importance:
-  'importance' is a value between 0.0 and 1.0, where 1.0 would represent the most possible newsworthy news, like the breakout of WW3 or the dropping of an atomic bomb, and 0.0 represents complete non-news, like some non-famous person's opinion, or a cat video. 0.0-0.2 is non-news. 0.2-0.4 is interesting news to those who follow a subject. 0.4-0.6 is interesting news to even those who infrequently follow the topic. 0.6-0.8 is interesting news to everyone globally. 0.8-1.0 is extremely urgent news. When deciding importance, consider the language in the Post, eg "Breaking", the subject of the Story, and also consider the number of Posts in a Story. Note that just because a Post contains "Breaking" does not mean the Story is important.
+  'importance' is a value between 0.0 and 1.0, where 1.0 would represent the most possible newsworthy news, like the breakout of WW3 or the dropping of an atomic bomb, and 0.0 represents complete non-news, like some non-famous person's opinion, or a cat video. 0.0-0.2 is non-news. 0.2-0.4 is interesting news to those who follow a subject. 0.4-0.6 is interesting news to even those who infrequently follow the topic. 0.6-0.8 is interesting news to everyone globally. 0.8-1.0 is extremely urgent news. When deciding importance, consider the tone of the Post, the number of Posts in the Story, and the subject matter. Note that using a tone like "Breaking" does not mean the Story is important. When the Story is new, start it at the lower end of it's importance range, and increase it as more Posts come in. Eg., random opinion -> 0.1, Trump rally -> 0.3, Trump rally with violence -> 0.5, Trump rally with violence and many Posts -> 0.7, China declares war on Taiwan -> 0.7, China declares war on Taiwan with many Posts -> 0.95.
 
   Photos:
-  'photos' are, optionally, the photos that are associated with the Story. They should be ordered by most interesting, and deduped, removing not only identical but even very similar photos. If the Post has a photo that is relevant to the Story, it should be included in the Story's photos.
-  `;
+  'photos' are, optionally, the photos that are associated with the Story. They should be ordered by most interesting, and deduped, removing not only identical but even very similar photos. If the Post has a photo that is relevant to the Story, it should be included in the Story's photos.`;
 };
 
 const storyDescriptionPrompt = function() {
@@ -324,7 +323,7 @@ const findStoryExample = function() {
 
     The happenedAt will still refer to the initial threat, and our best guess of 3 hours before the first Post is still the most reasonable.
 
-    If, for example the Posts each had the same photo OR VERY SIMILAR PHOTOS, the Photo of the Iranian Ayatollah for example, you would output the url and description of the first photo only (so as to dedupe), copied from one of the Posts. If the photos are different enough and both are relevant, you would output both photos, ordered by most interesting.
+    If, for example the Posts each had the same photo OR VERY SIMILAR PHOTOS, the Photo of the Iranian Ayatollah for example, you would output the url and description of the first photo only (so as to dedupe), copied from one of the Posts. If the photos are different enough and both are relevant, you would output both photos, ordered by most interesting. If another Post were to come in with an unclear description, but the same photo, you should very likely include this Post as part of the same Story.
   `;
 };
 
