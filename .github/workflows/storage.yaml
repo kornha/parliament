@@ -25,7 +25,7 @@ jobs:
         version: '>= 363.0.0'
 
     - name: 'Move GCS file'
-      env:
-        DATE: $(date +%Y-%m-%d-%H-%M-%S)
       run: |
-        gsutil mv gs://political-think.appspot.com/fine_tune.jsonl gs://political-think.appspot.com/fine_tune-$DATE.jsonl
+        DATE=$(date +%Y-%m-%d-%H-%M-%S)
+        gsutil mv gs://political-think.appspot.com/training/fine_tune.jsonl gs://political-think.appspot.com/training/fine_tune-$DATE.jsonl
+

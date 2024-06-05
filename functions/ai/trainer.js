@@ -3,7 +3,7 @@ const {setContent, getContent} = require("../common/storage");
 const {findStoriesPrompt, findStoriesAndClaimsPrompt} = require("./prompts");
 const functions = require("firebase-functions");
 
-const filePath = "fine_tune.jsonl";
+const filePath = "training/fine_tune.jsonl";
 
 /**
    * Appends a new JSONL entry to the file in Google Cloud Storage.
