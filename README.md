@@ -134,6 +134,9 @@ We incrementally update a Bias based on `Claims`, `Opinions` and `Phrases`.
 
 Hence for a given claim we can now say how confident we are it is true, and how biased are the people who are making it. Likewise for the entities we can record our confidence in their reporting, and how biased they tend to be. Determining mathematical truth from here is trivial.
 
+# Contact
+Parliament is open source. TheParliament.app (to be released shortly) is a commercial hosted and deployed implemenation of Parliament. For investment information and other queries, please email <a href="mailto:contact@theparliament.app">contact@theparliament.app</a>.
+
 # Development
 Parliament includes a website theparliament.app, with iOS and Android (coming soon) in the repo as well. The Parliament whitepaper above is being implemented in this repo with Firebase, OpenAI, and GitHub. Additional contributors are welcome.
 
