@@ -88,14 +88,14 @@ Essentially tracking the average confidence. As we evolve the algorithm, we seek
   <img width="50" alt="Screenshot 2024-06-07 at 2 47 29 PM" src="https://github.com/kornha/political_think/assets/5386694/40ebf810-a37a-45c8-b4fd-bfef17e7adad">
 </div>
 
-In principle, understanding political `Bias` requires a currency for comparing bias in different `Posts`, `Entities`, `Phrases` or `Opinions`. In practice, people often say things like *right wing* or *left wing* or *progressive* or *conservative*. People may expect that different outlets will contextualizes news differently, yielding to a different understanding of the same event. In a *Parliament* (roll credits) system of government, there may be different parties that appear to different voter segments, which in turn correlate to different bias groups. How to define bias groups can be pseudo-arbitry. Parliament chooses to map bias by asking the following question:
+In principle, understanding political `Bias` requires a currency for comparing bias in different `Posts`, `Entities`, `Phrases` and `Opinions`. In practice to solve this problem, people will often say things like *right wing* or *left wing* or *progressive* or *conservative*. However, someone that is extremely conservative may agree with someone that is extremely liberal, how do we model this? 
+
+Consider a *Parliamentary* (roll credits) system of government, where there are different parties that appeal to different voter segments, which in turn correlates a party to a bias groups. We can organize our Parliament by asking the following question:
 
 ### Algorithm
 ![In Progress](https://img.shields.io/badge/status-in%20progress-yellow)
 
-*If I were to seat everyone in this house at a round table, such that I wanted to maximize agreement and minimize the disagreement between a guest and the two people sitting to the right and left of the guest, how would I seat the people?* The reason this is chosen is more philosphical than mathetical, as it assumes that political discorse is comprised of extremes that ultimately meet to contrast centrism, and it assumes that there is a right to contrast a left, and every posbility in between. This creates a *horseshoe* effect. If this assumption is assumed, we mathetically represent bias as an angle, and calculate angle updates by moving towards the consensus angle for each claim.
-
-Hence for a given claim we can now say how confident we are it is true, and how biased are the people who are making it. Likewise for the entities we can record our confidence in their reporting, and how biased they tend to be.
+*If I were to seat every member of Parliament at a round table, such that I wanted to maximize agreement and minimize the disagreement between a member and the two people sitting to next to the member, how would I seat the people?* The reason this is chosen is more philosphical than mathetical, as it assumes there is a center, right, left, and the antithesis union of right and left, the extreme. This is a manifestation of the _horseshoe theory_. If we accept this assumption, we mathetically represent bias as an angle between 0.0 and 360.0 degrees, and calculate angle updates by simple angular arithmatic.
 
 ### Center
 <div align="start">
@@ -131,6 +131,8 @@ Left is defined at those most opposite of our anchor, right. _content that right
 Extreme, represented as pink (255,0,255) where green is (0,255,0), is defined as _content that right and left would each agree on or each disagree on_, and _content that disagrees with center_. In order to anchor our graph, extreme is content associated with offensive and extreme terms, or content that 'looks' extreme.
 
 We incrementally update a Bias based on `Claims`, `Opinions` and `Phrases`.
+
+Hence for a given claim we can now say how confident we are it is true, and how biased are the people who are making it. Likewise for the entities we can record our confidence in their reporting, and how biased they tend to be. Determining mathematical truth from here is trivial.
 
 # Development
 Parliament includes a website theparliament.app, with iOS and Android (coming soon) in the repo as well. The Parliament whitepaper above is being implemented in this repo with Firebase, OpenAI, and GitHub. Additional contributors are welcome.
