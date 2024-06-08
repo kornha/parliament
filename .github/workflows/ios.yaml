@@ -19,12 +19,12 @@ jobs:
       - name: Fetch .env file from secret
         env:
           FLUTTER_DOT_ENV: ${{ secrets.FLUTTER_DOT_ENV }}
-        run: echo $FLUTTER_DOT_ENV | base64 --decode > .env
-          
+        run: echo "${FLUTTER_DOT_ENV}" > .env
+
       - name: Download GoogleService-Info.plist
         env:
           GOOGLE_SERVICE_INFO_IOS: ${{ secrets.GOOGLE_SERVICE_INFO_IOS }}
-        run: echo $GOOGLE_SERVICE_INFO_IOS | base64 --decode > ios/Runner/GoogleService-Info.plist
+        run: echo "${GOOGLE_SERVICE_INFO_IOS}" > ios/Runner/GoogleService-Info.plist
     
       # Install the Apple certificate and provisioning profile 
       - name: Install the Apple certificate and provisioning profile
