@@ -10,7 +10,7 @@
 
 ![In Progress](https://img.shields.io/badge/status-pre%20release-blue)
 
-**Parliament** is an open-source news project that organizes news into `Confidence`, `Bias`, and `Importance` to tell maximally truthful news in a clear and measurable way.
+**Parliament** is an open-source news project that organizes news into `Confidence`, `Bias`, and `Newsworthiness` to tell maximally truthful news in a clear and measurable way.
 
 *This project is in pre-release, and as such, is a preview. Many features are in development.*
 
@@ -29,7 +29,9 @@
     3. [Confidence](#confidence)
         1. [Algorithm](#algorithm) 
     4. [Bias](#bias)
-        1. [Algorithm](#algorithm)  
+        1. [Algorithm](#algorithm)
+    5. [Newsworthiness](#newsworthiness)
+        1. [Algorithm](#algorithm)
 2. [Development](#development)
 
 # Whitepaper
@@ -42,7 +44,7 @@
 
 Think about how you understand news. You may consume one or multiple news sources. It may be social content, cable news, print news, your favorite Telegram group, or a handful of other news points. Ultimately, you will infer the claims these sources are making, and when you are sufficiently satisfied you will either arrive at a conclusion about what you think has happened, or consider yourself unsure. Implicitly, you are assigning a judgment value to various news outlets, favoring the credibility of some over others. Once you have enough credible confirmations for your own personal standard, you may consider something to be effectively true. 
 
-One aspect of this credibility scoring is your `Confidence` in the news outlet. For people, our confidence in certain outlets is weighed by many things, including our history with the outlet (this X account has been right many times), and also by our `Bias` towards the outlet (this news provider conforms to my beliefs of the world). And finally, we get riled up by news that appears in large, bold headlines, like *NIXON RESIGNS*. News goes viral. News commentators globally will discuss `Stories`, with variable geograpghy, at different levels of frequency. This score we call `Importance`.
+One aspect of this credibility scoring is your `Confidence` in the news outlet. For people, our confidence in certain outlets is weighed by many things, including our history with the outlet (this X account has been right many times), and also by our `Bias` towards the outlet (this news provider conforms to my beliefs of the world). And finally, we get riled up by news that appears in large, bold headlines, like *NIXON RESIGNS*. News goes viral. News commentators globally will discuss `Stories`, with variable geograpghy, at different levels of frequency. This score we call `Newsworthiness`.
 
 Each human consumes news differently due to their unique experiences and circumstances. This is partly why news is perceived so differently by different individuals. Parliament's mission to abstract these variables to tell maximally truthful news in a clear and measureable way.
 
@@ -132,7 +134,10 @@ Extreme, represented as pink (255,0,255) where green is (0,255,0), is defined as
 
 We incrementally update a Bias based on `Claims`, `Opinions` and `Phrases`.
 
-Hence for a given claim we can now say how confident we are it is true, and how biased are the people who are making it. Likewise for the entities we can record our confidence in their reporting, and how biased they tend to be. Determining mathematical truth from here is trivial.
+Hence for a given claim we can now say how confident we are it is true, and how biased are the people who are making it. Likewise for the entities we can record our confidence in their reporting, and how biased they tend to be. Determining mathematical truth from here is trivial. But how do we know what news to show people? To answer this question, we must consider `Newsworthiness`.
+
+## Newsworthiness
+There is almost an unlimited amount of news, and choosing _what_ news to publish is a core part of any platform. For instance, a heavily biased platform may choose to publish news that corroborates their narrative more than news that supports a different narrative. On the other hand, social media feeds show different news to different people, as what is important and interesting to one person may be different than to another. To answer this question, we introduce a concept called `Newsworthiness`.
 
 # Contact
 Parliament is open source. TheParliament.app (to be released shortly) is a commercial hosted and deployed implemenation of Parliament. For investment information and other queries, please email <a href="mailto:contact@theparliament.app">contact@theparliament.app</a>.
