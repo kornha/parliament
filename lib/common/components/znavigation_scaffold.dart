@@ -73,21 +73,31 @@ class _ZScaffoldState extends ConsumerState<ZNavigationScaffold> {
       body: SafeArea(
         child: Row(children: [
           context.isDesktop
-              ? NavigationRail(
-                  indicatorColor: Colors.transparent,
-                  indicatorShape: const CircleBorder(),
-                  backgroundColor: context.backgroundColor,
-                  selectedIndex: _getCurrentIndex(widget.location),
-                  onDestinationSelected: (int index) {
-                    _goOtherTab(context, index, tabs);
-                  },
-                  destinations: tabs
-                      .map((e) => NavigationRailDestination(
-                            icon: e.icon,
-                            selectedIcon: e.activeIcon,
-                            label: Text(e.label!),
-                          ))
-                      .toList(),
+              ? Container(
+                  decoration: BoxDecoration(
+                    border: Border(
+                      right: BorderSide(
+                        color: context.surfaceColor,
+                        width: context.sl.width!,
+                      ),
+                    ),
+                  ),
+                  child: NavigationRail(
+                    indicatorColor: Colors.transparent,
+                    indicatorShape: const CircleBorder(),
+                    backgroundColor: context.backgroundColor,
+                    selectedIndex: _getCurrentIndex(widget.location),
+                    onDestinationSelected: (int index) {
+                      _goOtherTab(context, index, tabs);
+                    },
+                    destinations: tabs
+                        .map((e) => NavigationRailDestination(
+                              icon: e.icon,
+                              selectedIcon: e.activeIcon,
+                              label: Text(e.label!),
+                            ))
+                        .toList(),
+                  ),
                 )
               : const SizedBox.shrink(),
           Expanded(child: widget.child),

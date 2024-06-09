@@ -48,3 +48,8 @@ functions/.cache/puppeteer/
 
 # Local Emulator Folder
 functions/emulator/
+
+# env
+*.env
+**/*.plist
+**/google-services.json

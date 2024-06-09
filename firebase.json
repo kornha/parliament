@@ -1,44 +1,83 @@
 {
-  "firestore": {
-    "rules": "firestore.rules",
-    "indexes": "firestore.indexes.json"
-  },
-  "functions": [
-    {
-      "source": "functions",
-      "codebase": "default",
-      "ignore": [
-        "node_modules",
-        ".git",
-        "firebase-debug.log",
-        "firebase-debug.*.log",
-        ".cache"
-      ],
-      "predeploy": [
-        "npm --prefix \"$RESOURCE_DIR\" run lint"
-      ]
-    }
-  ],
-  "emulators": {
-    "auth": {
-      "port": 9099
-    },
-    "functions": {
-      "port": 5001
-    },
     "firestore": {
-      "port": 8080
+        "rules": "firestore.rules",
+        "indexes": "firestore.indexes.json"
     },
-    "pubsub": {
-      "port": 8085
+    "functions": [
+        {
+            "source": "functions",
+            "codebase": "default",
+            "ignore": [
+                "node_modules",
+                ".git",
+                "firebase-debug.log",
+                "firebase-debug.*.log",
+                ".cache"
+            ],
+            "predeploy": [
+                "npm --prefix \"$RESOURCE_DIR\" run lint"
+            ]
+        }
+    ],
+    "emulators": {
+        "auth": {
+            "port": 9099
+        },
+        "functions": {
+            "port": 5001
+        },
+        "firestore": {
+            "port": 8080
+        },
+        "pubsub": {
+            "port": 8085
+        },
+        "ui": {
+            "enabled": true
+        },
+        "singleProjectMode": true
     },
-    "ui": {
-      "enabled": true
+    "extensions": {},
+    "storage": {
+        "rules": "storage.rules"
     },
-    "singleProjectMode": true
-  },
-  "extensions": {},
-  "storage": {
-    "rules": "storage.rules"
-  }
+    "flutter": {
+        "platforms": {
+            "android": {
+                "default": {
+                    "projectId": "political-think",
+                    "appId": "1:1086194423847:android:c707c71b7282195c31d602",
+                    "fileOutput": "android/app/google-services.json"
+                }
+            },
+            "ios": {
+                "default": {
+                    "projectId": "political-think",
+                    "appId": "1:1086194423847:ios:4207d44703d1e4cf31d602",
+                    "uploadDebugSymbols": false,
+                    "fileOutput": "ios/Runner/GoogleService-Info.plist"
+                }
+            },
+            "macos": {
+                "default": {
+                    "projectId": "political-think",
+                    "appId": "1:1086194423847:ios:4207d44703d1e4cf31d602",
+                    "uploadDebugSymbols": false,
+                    "fileOutput": "macos/Runner/GoogleService-Info.plist"
+                }
+            },
+            "dart": {
+                "lib/firebase_options.dart": {
+                    "projectId": "political-think",
+                    "configurations": {
+                        "android": "1:1086194423847:android:c707c71b7282195c31d602",
+                        "ios": "1:1086194423847:ios:4207d44703d1e4cf31d602",
+                        "macos": "1:1086194423847:ios:4207d44703d1e4cf31d602",
+                        "web": "1:1086194423847:web:e7f878b60868b21631d602",
+                        "windows": "1:1086194423847:web:b3923902c726b3cd31d602"
+                    }
+                }
+            }
+        }
+    }
 }

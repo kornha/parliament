@@ -6,6 +6,7 @@ import 'package:countries_world_map/data/maps/world_map.dart';
 import 'package:country_flags/country_flags.dart';
 import 'package:country_picker/country_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:political_think/common/constants.dart';
 import 'package:political_think/common/extensions.dart';
@@ -62,15 +63,17 @@ class _LocationMapState extends State<LocationMap> {
 
   @override
   Widget build(BuildContext context) {
-    var side = widget.size ?? context.iconSizeStandard;
-    var mapId = context.isDarkMode ? "7aa7b886141674ae" : "1dc9a09ef62c1212";
+    var side = widget.size ?? context.iconSizeLarge;
+    var mapId = context.isDarkMode
+        ? dotenv.env['MAPS_DARK_ID']!
+        : dotenv.env['MAPS_LIGHT_ID']!;
 
     var url = "https://maps.googleapis.com/maps/api/staticmap?"
         "size=150x150"
         "&zoom=5"
         "&visible=${widget.location.geoPoint.latitude},${widget.location.geoPoint.longitude}"
         "&map_id=$mapId"
-        "&key=AIzaSyBGG9WeljnVJwbKOJEKrBE_wQNYFHTSEto";
+        "&key=${dotenv.env['FIREBASE_API_KEY_IOS']!}";
 
     return Stack(
       alignment: AlignmentDirectional.bottomStart,

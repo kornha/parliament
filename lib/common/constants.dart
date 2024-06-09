@@ -7,11 +7,11 @@ class Constants {
 }
 
 class Palette {
-  static const black = Color.fromRGBO(0, 0, 0, 1);
+  static const black = Color.fromRGBO(14, 14, 14, 1);
   static const white = Color.fromRGBO(255, 255, 255, 1);
 
-  static const lightSlate = Color.fromARGB(255, 116, 116, 116);
-  static const darkSlate = Color.fromARGB(255, 28, 28, 30);
+  static const lightSlate = Color.fromARGB(255, 196, 196, 196);
+  static const darkSlate = Color.fromARGB(255, 38, 38, 38);
 
   static const red = Color.fromRGBO(255, 0, 0, 1);
   static const green = Color.fromRGBO(0, 255, 0, 1);

@@ -44,6 +44,7 @@ class _FeedSettingsState extends ConsumerState<FeedSettings> {
           : user == null
               ? const Loading(type: LoadingType.standard)
               : Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     context.sd,

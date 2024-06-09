@@ -130,21 +130,30 @@ extension MediaQueryExt on BuildContext {
             16,
       );
 
+  // TODO: Should this be static?
+  Size get blockSizeSmall => Size(
+        min(blockSize.width / 2.5, 160),
+        min(blockSize.width / 2.5, 160) * 9 / 16,
+      );
+
   Size get blockSizeLarge => Size(
       min(screenSize.width - blockMargin.horizontal, 1000),
       min(screenSize.width - blockMargin.horizontal, 1000) * 9 / 16);
 
   Size get imageSize => blockSize;
-  Size get imageSizeSmall =>
-      Size(imageSize.width / 2.5, imageSize.height / 2.5);
+  Size get imageSizeSmall => blockSizeSmall;
 
-  // block for screen size areas
-  Size get screenBlock => Size(
-      screenSize.width - blockMargin.horizontal - blockPadding.horizontal,
-      screenSize.height -
-          blockMargin.vertical * 2 -
-          blockPadding.vertical * 2 -
-          kToolbarHeight * 2);
+  // TODO: Hack, we need to fix all this sizing
+  Size get screenBlock {
+    // adjust for safe area mobile
+    var bottom = isWeb ? 0 : kToolbarHeight * 2;
+    return Size(
+        screenSize.width - blockMargin.horizontal - blockPadding.horizontal,
+        screenSize.height -
+            blockMargin.vertical * 2 -
+            blockPadding.vertical * 2 -
+            bottom);
+  }
 
   // size
   bool get isMobile => screenSize.width < 600;
@@ -249,8 +258,9 @@ extension ModalExt on BuildContext {
             child: Material(
               color: context.backgroundColor,
               child: SizedBox(
-                width: 400,
-                height: 400,
+                width: context.blockSize.width,
+                // TODO: NEED TO FIX SIZING
+                height: context.blockSize.height / 2,
                 child: child,
               ),
             ),

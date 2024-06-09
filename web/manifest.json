@@ -1,11 +1,11 @@
 {
-    "name": "Parliament",
+    "name": "Parliament Open-source news",
     "short_name": "Parliament",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#000000",
-    "theme_color": "#000000",
-    "description": "News Credibility and Bias AI",
+    "background_color": "#0E0E0E",
+    "theme_color": "#0E0E0E",
+    "description": "An is an open-source news project that organizes news into `Confidence`, `Bias`, and `Importance` to tell maximally truthful news in a clear and measurable way.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

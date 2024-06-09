@@ -50,40 +50,44 @@ class _StoryViewState extends ConsumerState<StoryItemView> {
                       story?.headline != null
                           ? Expanded(
                               flex: 5,
-                              child: GestureDetector(
-                                onTap: () => context
-                                    .push("${StoryView.location}/${story.sid}"),
-                                child: Text(
-                                  story!.headline!,
-                                  style: importance < 0.5
-                                      ? context.mb
-                                      : importance < 0.7
-                                          ? context.lb
-                                          : importance < 0.9
-                                              ? context.h3b
-                                              : context.h2b,
-                                  textAlign: TextAlign.start,
+                              child: MouseRegion(
+                                cursor: SystemMouseCursors.click,
+                                child: GestureDetector(
+                                  onTap: () => context.push(
+                                      "${StoryView.location}/${story.sid}"),
+                                  child: Text(
+                                    story!.headline!,
+                                    style: importance < 0.5
+                                        ? context.mb
+                                        : importance < 0.7
+                                            ? context.lb
+                                            : importance < 0.9
+                                                ? context.h3b
+                                                : context.h2b,
+                                    textAlign: TextAlign.start,
+                                  ),
                                 ),
                               ),
                             )
                           : const SizedBox.shrink(),
                       const Spacer(),
                       story!.location != null
-                          ? LocationMap(
-                              location: story.location!,
-                              size: context.iconSizeLarge)
+                          ? LocationMap(location: story.location!)
                           : const SizedBox.shrink(),
                     ],
                   ),
                   context.sh,
                   story.subHeadline != null
-                      ? GestureDetector(
-                          onTap: () => context
-                              .push("${StoryView.location}/${story.sid}"),
-                          child: Text(
-                            story.subHeadline!,
-                            style: context.m,
-                            textAlign: TextAlign.start,
+                      ? MouseRegion(
+                          cursor: SystemMouseCursors.click,
+                          child: GestureDetector(
+                            onTap: () => context
+                                .push("${StoryView.location}/${story.sid}"),
+                            child: Text(
+                              story.subHeadline!,
+                              style: context.m,
+                              textAlign: TextAlign.start,
+                            ),
                           ),
                         )
                       : const SizedBox.shrink(),
@@ -114,7 +118,7 @@ class _StoryViewState extends ConsumerState<StoryItemView> {
                   Visibility(
                     visible: shouldShowSecondaryPosts,
                     child: SizedBox(
-                      height: context.blockSize.height / 2,
+                      height: context.blockSizeSmall.height,
                       child: ListView.separated(
                         shrinkWrap: true,
                         scrollDirection: Axis.horizontal,

@@ -21,7 +21,7 @@ class ZTheme {
       onSurface: Palette.white,
       surfaceDim: Palette.darkSlate,
       surfaceBright: Palette.lightSlate,
-      onSurfaceVariant: Palette.white, // SAME IN LIGHT AND DARK
+      onSurfaceVariant: Palette.white,
     ),
     inputDecorationTheme: const InputDecorationTheme(
       fillColor: Colors.red,
@@ -49,7 +49,7 @@ class ZTheme {
       onSurface: Palette.black,
       surfaceDim: Palette.lightSlate,
       surfaceBright: Palette.darkSlate,
-      onSurfaceVariant: Palette.white, // SAME IN LIGHT AND DARK
+      onSurfaceVariant: Palette.black,
     ),
     inputDecorationTheme: const InputDecorationTheme(
       fillColor: Colors.red,
