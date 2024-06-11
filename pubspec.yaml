@@ -1,5 +1,5 @@
 name: political_think
-description: A new Flutter project.
+description: An open-source news project that organizes news into `Confidence`, `Bias`, and `Newsworthiness` to tell maximally truthful news in a clear and measurable way.
 
 version: 1.5.0+1
 
