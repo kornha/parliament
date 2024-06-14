@@ -10,7 +10,7 @@
 
 ![In Progress](https://img.shields.io/badge/status-pre%20release-blue)
 
-**Parliament** is an open-source news project that organizes news into `Confidence`, `Bias`, and `Newsworthiness` to tell maximally truthful news in a clear and measurable way.
+**Parliament** is an open-source news project that organizes news by `Confidence`, `Bias`, `Newsworthiness`, and `Context` to tell maximally truthful news in a clear and measurable way.
 
 *This project is in pre-release, and as such, is a preview. Many features are in development.*
 
@@ -32,7 +32,9 @@
         1. [Algorithm](#algorithm)
     5. [Newsworthiness](#newsworthiness)
         1. [Algorithm](#algorithm)
-    6. [Concepts](#concepts)
+    6. [Context](#context)
+        1. [Algorithm](#algorithm)
+    7. [Concepts](#concepts)
         1. [Story](#story)
         2. [Post](#post)
         3. [Entity](#entity)
@@ -51,11 +53,15 @@
 
 > Parliament's mission is telling maximally truthful news in a clear and measurable way.
 
-Think about how you understand news. You may consume one or multiple news sources. It may be social content, cable news, print news, your favorite Telegram group, or a handful of other news points. Ultimately, you will infer the claims these sources are making, and when you are sufficiently satisfied you will either arrive at a conclusion about what you think has happened, or consider yourself unsure. Implicitly, you are assigning a judgment value to various news outlets, favoring the credibility of some over others. Once you have enough credible confirmations for your own personal standard, you may consider something to be effectively true. 
+Think about how you understand news. You may consume one or multiple news sources. It may be social media content, cable news, online or print news, your favorite Telegram group, or another news provider. Ultimately, you will infer the claims these sources are making, and when you are sufficiently satisfied, you will either arrive at a conclusion about what you think has happened or consider yourself unsure. Implicitly, you are assigning a unique judgment value to various news outlets, favoring the credibility of some over others. Once you have enough credible confirmations for your own personal threshold, you may consider something to be effectively true. 
 
-One aspect of this credibility scoring is your `Confidence` in the news outlet. For people, our confidence in certain outlets is weighed by many things, including our history with the outlet (this X account has been right many times), and also by our `Bias` towards the outlet (this news provider conforms to my beliefs of the world). And finally, we get riled up by news that appears in large, bold headlines, like *NIXON RESIGNS*. News goes viral. News commentators globally will discuss `Stories`, with variable geograpghy, at different levels of frequency. This score we call `Newsworthiness`.
+For people, our perceived credibility in certain outlets is weighed by many things, including our `Confidence` in the accuracy of the outlet (*this X account has been right many times, so they're probably correct now*), and by our `Bias` towards the outlet (*this news provider conforms to my beliefs of the world, so I'll trust their interpretation*). 
 
-Each human consumes news differently due to their unique experiences and circumstances. This is partly why news is perceived so differently by different individuals. Parliament's mission to abstract these variables to tell maximally truthful news in a clear and measureable way.
+We also perceive some news events to be more important than others. This may be due to various factors, such as ramifications that impact our lives, significant geopolitical events, events that confirm or reject our beliefs, local concerns, unique occurrences (_man bites dog_), or other considerations. For example, on August 9, 1974, when the New York Times published *NIXON RESIGNS* in capital letters on their front page, they were expressing significant urgency in the event. While the importance of the `Story` is different to each person, i.e., it may have been more interesting to an American autoworker than to a Nepalese farmer, the New York Times felt it was newsworthy enough for their audience to warrant an all-caps title. This judgment we call `Newsworthiness`.
+
+News, when told, also has a level of understanding around the event that may significantly alter our understanding and perception of an event. An image of a child being shot next to a soldier may make us feel strong resentment towards the soldier; that same image, zoomed out, may in fact show the soldier was trying to protect the child. The fairness and completeness around which a `Story` is told we call `Context`. 
+
+Each human consumes news differently due to their unique experiences and circumstances. This is partly why the same event can be perceived so differently by different individuals. Parliament's mission is to abstract these variables to tell maximally truthful news in a clear and measurable way.
 
 Let's dive further.
 
@@ -63,18 +69,18 @@ Let's dive further.
 
 > **Confidence**: The likelihood of something being true based on how true it has been in the past.
 
-How do we know that something is true? This is a philosophical question, and there are several product approaches to addressing it. X, for instance, relies on community notes. FactCheck.org focuses on fact checking. These two approaches work by direct content validation. A strategy that, when implemented correctly, can be extremely accurate.
-Parliament takes what you may call the additional level of abstraction to the above. In the view of Parliament, FactCheck.org, @elonmusk, X fact checker, NYT, a random account on IG, etc. are each we call an `Entity`. Otherwise put, Parliament does use fact checkers too, it just tries to use all of them. And, based on if they've been right or wrong in the data we've collected, we know how much to trust them going forward. In this mode of thinking, we can assign news `Confidence` scores, a score between `0.0` and `1.0`, where 0 represents *maximal certainty that something is false*, and 1.0 represents *maximal certainty that something is true*. Total certainty is unknowable, and both 0.0 and 1.0 can never be acheived.
+How do we know that something is true? This is a philosophical question, and there are several product approaches to addressing it. X, for instance, relies on community notes. FactCheck.org focuses on fact-checking. These two approaches work by direct content validation. A strategy that, when implemented correctly, can be extremely accurate.
+Parliament takes what you may call the additional level of abstraction to the above. In the view of Parliament, FactCheck.org, @elonmusk, X fact checker, NYT, a random account on IG, etc. are each what we call an `Entity`. Otherwise put, Parliament does use fact checkers too, it just tries to use all of them. And, based on if they've been right or wrong in the data we've collected, we know how much to trust them going forward. In this mode of thinking, we can assign news `Confidence` scores, a score between `0.0` and `1.0`, where 0 represents *maximal certainty that something is false*, and 1.0 represents *maximal certainty that something is true*. Total certainty is unknowable, and both 0.0 and 1.0 can never be achieved.
 
 ### Algorithm
 
 We will only cover a high level of the confidence algorithm here, as the specifics are written in the code. 
 
-Let us say as a human I am introduced to a new user on X/IG/Tiktok etc. Now, depending on who introduced me, perhaps the paltform's algorithm, perhaps a friend, I may view content differently. Regardless, I will have a measure of doubt as to how much I trust the author (aka `Entity`), which may change over time.
+Let us say as a human I am introduced to a new user on X/IG/TikTok etc. Now, depending on who introduced me, perhaps the platform's algorithm, perhaps a friend, I may view content differently. Regardless, I will have a measure of doubt as to how much I trust the author (aka `Entity`), which may change over time.
 
-At Parliament we assume new sources are of even uncertainty; currently we assume new people 50% likely to be honest.
+At Parliament we assume new sources are of even uncertainty; currently we assume new people are 50% likely to be honest.
 
-We then look at the `Claims` a given `Entity` as made. If these claims have are mutually agreed on by many parties, old and new, we can start to collect a `Consensus` on a claim, much like a blockchain algorithm, which is an possible future implementation. Once claims form a level of consensus, we can then punish the people who have been wrong, and reward the people who have been right. Of course, once we punish/reward the `Entities`, other claims may change consensus, creating a finite ripple effect.
+We then look at the `Claims` a given `Entity` has made. If these claims are mutually agreed on by many parties, old and new, we can start to collect a `Consensus` on a claim, much like a blockchain algorithm, which is a possible future implementation. Once claims form a level of consensus, we can then punish the people who have been wrong, and reward the people who have been right. Of course, once we punish/reward the `Entities`, other claims may change consensus, creating a finite ripple effect.
 
 Currently we track confidence in an entity by:
 ```
@@ -101,18 +107,18 @@ Essentially tracking the average confidence. As we evolve the algorithm, we seek
 
 In principle, understanding political `Bias` requires a currency for comparing bias in different `Posts`, `Entities`, `Phrases` and `Opinions`. In practice to solve this problem, people will often say things like *right wing* or *left wing* or *progressive* or *conservative*. However, someone that is extremely conservative may agree with someone that is extremely liberal, how do we model this? 
 
-Consider a *Parliamentary* (roll credits) system of government, in which there are different parties that appeal to different voter segments, which in turn correlates a party to bias groups. Let's say in our Parliament the seating is circular, and simlar parties seat near one another. We can organize our Parliament by asking the following question:
+Consider a *Parliamentary* (roll credits) system of government, in which there are different parties that appeal to different voter segments, which in turn correlates a party to bias groups. Let's say in our Parliament the seating is circular, and similar parties seat near one another. We can organize our Parliament by asking the following question:
 
 ### Algorithm
 
-*If I were to seat every member of Parliament at a round table, such that I wanted to maximize agreement and minimize the disagreement between a member and the two people sitting to next to the member, how would I seat the people?* The reason this is chosen is more philosphical than mathetical, as it assumes there is a center, right, left, and the antithesis union of right and left, the extreme. This is a manifestation of the _horseshoe theory_. If we accept this assumption, we mathetically represent bias as an angle between `0.0` and `360.0` degrees, and calculate angle updates by simple angular arithmetic.
+*If I were to seat every member of Parliament at a round table, such that I wanted to maximize agreement and minimize the disagreement between a member and the two people sitting next to the member, how would I seat the people?* The reason this is chosen is more philosophical than mathematical, as it assumes there is a center, right, left, and the antithesis union of right and left, the extreme. This is a manifestation of the _horseshoe theory_. If we accept this assumption, we mathematically represent bias as an angle between `0.0` and `360.0` degrees, and calculate angle updates by simple angular arithmetic.
 
 ### Center
 <div align="start">
   <img width="50" alt="Screenshot 2024-06-07 at 2 47 29 PM" src="https://github.com/kornha/political_think/assets/5386694/40ebf810-a37a-45c8-b4fd-bfef17e7adad">
 </div>
 
-We represent the Center with the color Green. This is done to be analoguous with American political colors. Left = Blue, Right = Red, hence RGB -> BGR and Green is center. Center content is defined as *content that right and left would each agree on or each disagree on*, and *content that disagrees with extreme*. In practice, these are people we seat 1/2 way between left and right, but absent of fringe views.
+We represent the Center with the color Green. This is done to be analogous with American political colors. Left = Blue, Right = Red, hence RGB -> BGR and Green is center. Center content is defined as *content that right and left would each agree on or each disagree on*, and *content that disagrees with extreme*. In practice, these are people we seat 1/2 way between left and right, but absent of fringe views.
 
 ### Right
 <div align="start">
@@ -131,14 +137,14 @@ Right is our anchor. We need to choose the first people to seat. We define right
   <img width="50" alt="Screenshot 2024-06-07 at 2 49 48 PM" src="https://github.com/kornha/political_think/assets/5386694/c07b063c-75f1-4050-99a1-7f3b0f5410b9">
 </div>
 
-Left is defined at those most opposite of our anchor, right. _content that right would most disagree with_. 
+Left is defined as those most opposite of our anchor, right. _content that right would most disagree with_. 
 
 ### Extreme
 <div align="start">
   <img width="50" alt="Screenshot 2024-06-07 at 2 49 33 PM" src="https://github.com/kornha/political_think/assets/5386694/62593f14-ca77-4b0c-94ef-6fc7464b8b76">
 </div>
 
-Extreme, represented as pink (255,0,255) where green is (0,255,0), is defined as _content that right and left would each agree on or each disagree on_, _content that disagrees with center_, and _content that expresses `Opinions`, `Phrases`, and `Claims` which will are likely to be deemed offensive by other groupings_.
+Extreme, represented as pink (255,0,255) where green is (0,255,0), is defined as _content that right and left would each agree on or each disagree on_, _content that disagrees with center_, and _content that expresses `Opinions`, `Phrases`, and `Claims` which are likely to be deemed offensive by other groupings_.
 
 Hence for a given claim we can now say how confident we are that it is true, and how biased are the people who are making it. Likewise for the entities we can record our confidence in their reporting, and how biased they tend to be. This provides significant value for us to understand and contextualize news. But how do we know _what_ news to show people? To answer this question, we must consider another concept, `Newsworthiness`.
 
@@ -150,7 +156,17 @@ There is almost an unlimited amount of news, and choosing _what_ news to publish
 
 ### Algorithm
 
-A heuristic would be to consider something newsworthy if it is discussed with high frequency. Social media feeds and news outlets rely on this heuristic significantly. As discussed, this is not sufficient, and it favors bias. However, if we already know bias as we have calculated above, we can consider something to be `Newsworthy` if it not only has a high frequency in our given publication period, but it also has a high frequency amongst some or all bias groups. This exact algorithm is still being calculated but it yields a number between `0.0` and `1.0` where `0.0` represents _the least possible newsworthy event_ and `1.0` represents _the most possible newsworthy event_. For regionalization we don't change the scale at all, it is a global concept from which we can still filter be region for localized news.
+A heuristic would be to consider something newsworthy if it is discussed with high frequency. Social media feeds and news outlets rely on this heuristic significantly. As discussed, this is not sufficient, and it favors bias. However, if we already know bias as we have calculated above, we can consider something to be `Newsworthy` if it not only has a high frequency in our given publication period, but it also has a high frequency amongst some or all bias groups. This exact algorithm is still being calculated but it yields a number between `0.0` and `1.0` where `0.0` represents _the least possible newsworthy event_ and `1.0` represents _the most possible newsworthy event_. For regionalization we don't change the scale at all, it is a global concept from which we can still filter by region for localized news.
+
+## Context
+
+> **Context**: The cross-bias consensus for what information should be included in a `Story`.
+
+News providers will invariably include different information when telling a `Story`. Based on the information included, a viewer may perceive content very differently. If we were to find cross-bias consensus on what `Context` to include in a given `Story`, we could maximally ensure fairness in reporting.
+
+### Algorithm
+
+We calculate context by ensuring information reporting meets a `Center` degree of `Bias`. That is, if we have significant amount of centrist sources, we will aggregate their contextualization of a `Story` and use that in our reporting. For each `Claim`, `Opinion`, or `Phrase` that is beyond centrist, we should be sure to include labeling of the context, as well as context from the angular opposite. In this way, we are always reporting news with fair `Context` that matches our `Centrist` `Bias`. 
 
 ## Concepts
 
@@ -160,15 +176,14 @@ A Story is an event that happened.
 - It is created from a collection of Posts that are 'talking about the same thing.' (more on this below)
 - A Story has a title, a description, a headline, a subheadline, which are textual descriptions of the Story.
 - A Story has a "happenedAt" timestamp, which represents when the event happened in the real world.
-- A Story has an "newsworthiness" value, which is a number between 0.0 and 1.0, where 1.0 is the most possibly newsworthy event.
+- A Story has a "newsworthiness" value, which is a number between 0.0 and 1.0, where 1.0 is the most possibly newsworthy event.
 - A Story has a lat and long, which are the best estimates of the location of the Story.
 - A Story may have photos, which are images that are associated with the Story.
 - A Story may have Claims, which are statements that are either supported or refuted by the Posts.
 
 ### Post
 
-- A Post is a social media posting or an article. It can come from X (Twitter), Instagram, or other social sources.
-- It may also be a news article published to an online platform.
+A Post is a social media post (text, image, video), news article, or any other news source posting.
 - A Post can have a title, a description, and a body, the latter two of which are optional.
 - A Post may have images, videos or other media, or even link to other Posts.
 - A Post has an author, which we call an Entity.
@@ -177,35 +192,37 @@ A Story is an event that happened.
 
 ### Entity
 
-- An Entity is an auther, sometimes one person and sometimes a whole news outlet, depending on the level of granularity that can be obtained.
+An Entity is an author, sometimes one person and sometimes a whole news outlet, depending on the level of granularity that can be obtained.
 - An Entity has a Bias and Confidence score tracking the Entity's history.
 - An Entity is associated with a list of Posts, Claims, Opinions, and Phrases.
 
 ### Claim
 
+A Claim is a statement about an event that is verfiable.
 - A Claim is a statement that has "pro" and "against" list of Posts either supporting or refuting the Claim.
 - A Claim has a "value" field, which is the statement itself.
 - A Claim has a "pro" field, which is a list of Posts that support the Claim.
 - A Claim has an "against" field, which is a list of Posts that refute the Claim.
 - A Claim has a "context" field, which provides more information about the Claim, and helps for search.
-- A Claim is fundemtally verifiable; a non-verfiable "claim" is called an `Opinon`.
+- A Claim is fundamentally verifiable; a non-verifiable "claim" is called an `Opinion`.
 - A Claim has an associated `Confidence`.
 - A Claim has associated `Entities`
 
 ### Opinion
 
-- A Opinion is a statement that has "pro" and "against" list of Posts either supporting or rejecting the Opinion.
-- A Opinion has a "value" field, which is the statement itself.
-- A Opinion has a "pro" field, which is a list of Posts that support the Claim.
-- A Opinion has an "against" field, which is a list of Posts that refute the Claim.
-- A Opinion has a "context" field, which provides more information about the Claim, and helps for search.
-- A Opinion is fundemtally non-verifiable; a verfiable "opinion" is called an `Claim`
+An opinion is a statement about an event that is not verfiable.
+- An Opinion is a statement that has "pro" and "against" list of Posts either supporting or rejecting the Opinion.
+- An Opinion has a "value" field, which is the statement itself.
+- An Opinion has a "pro" field, which is a list of Posts that support the Claim.
+- An Opinion has an "against" field, which is a list of Posts that refute the Claim.
+- An Opinion has a "context" field, which provides more information about the Claim, and helps for search.
+- An Opinion is fundamentally non-verifiable; a verifiable "opinion" is called a `Claim`.
 - An Opinion has an associated `Bias`.
-- An Opinon has associated `Entities`.
+- An Opinion has associated `Entities`.
 
 ### Phrase
 
-- A Phrase is a word or group of words that are used to express `Posts`, `Claims`, and `Opinions`.
+A Phrase is a word or group of words that are used to express `Posts`, `Claims`, and `Opinions`.
 - A Phrase utilizes repeated and specific language.
 - A Phrase has an associated `Bias`.
 - A Phrase has associated `Entities`.
@@ -214,6 +231,9 @@ A Story is an event that happened.
 Parliament is open source. TheParliament.app (to be released shortly) is a commercial hosted and deployed implemenation of Parliament. For investment information and other queries, please email <a href="mailto:contact@theparliament.app">contact@theparliament.app</a>.
 
 # Development
+
+![Instructions Coming Soon](https://img.shields.io/badge/status-instructions%20coming%20soon-green)
+
 Parliament includes a website theparliament.app, with iOS and Android (coming soon) in the repo as well. The Parliament whitepaper above is being implemented in this repo with Firebase, OpenAI, and GitHub. Additional contributors are welcome.
 
 ## Flutter
