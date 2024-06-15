@@ -23,7 +23,6 @@
 </div>
 
 # Table of Contents
-# Table of Contents
 1. [Whitepaper](#whitepaper)
     1. [Credible News](#credible-news)
     2. [Mission](#mission)
