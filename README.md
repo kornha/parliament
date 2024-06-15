@@ -23,13 +23,18 @@
 </div>
 
 # Table of Contents
+# Table of Contents
 1. [Whitepaper](#whitepaper)
     1. [Credible News](#credible-news)
     2. [Mission](#mission)
     3. [Confidence](#confidence)
-        1. [Algorithm](#algorithm) 
+        1. [Algorithm](#algorithm)
     4. [Bias](#bias)
         1. [Algorithm](#algorithm)
+        2. [Center](#center)
+        3. [Right](#right)
+        4. [Left](#left)
+        5. [Extreme](#extreme)
     5. [Newsworthiness](#newsworthiness)
         1. [Algorithm](#algorithm)
     6. [Context](#context)
@@ -42,6 +47,13 @@
         5. [Opinion](#opinion)
         6. [Phrase](#phrase)
 2. [Development](#development)
+    1. [Why Participate?](#why-participate)
+        1. [Shared ownership](#shared-ownership)
+        2. [Swag](#swag)
+    2. [Getting started](#getting-started)
+        1. [Flutter](#flutter)
+        2. [Firebase](#firebase)
+        3. [AI/ML](#aiml)
 
 # Whitepaper 
 
