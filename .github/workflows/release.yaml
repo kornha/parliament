@@ -13,17 +13,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '20'
-
-      - name: Install dependencies
-        run: npm install
-
       - name: Extract version from pubspec.yaml
         id: get_version
         run: |
@@ -38,7 +27,7 @@ jobs:
           name: Release ${{ env.VERSION }}
           body: |
             Changes in this release:
-            - Automatically created release
+            - See commit history for more details
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
