@@ -59,9 +59,10 @@ For people, our perceived credibility in certain outlets is weighed by many thin
 
 We also perceive some news events to be more important than others. This may be due to various factors, such as ramifications that impact our lives, significant geopolitical events, events that confirm or reject our beliefs, local concerns, unique occurrences (_man bites dog_), or other considerations. For example, on August 9, 1974, when the New York Times published *NIXON RESIGNS* in capital letters on their front page, they were expressing significant urgency in the event. While the importance of the `Story` is different to each person, i.e., it may have been more interesting to an American autoworker than to a Nepalese farmer, the New York Times felt it was newsworthy enough for their audience to warrant an all-caps title. This judgment we call `Newsworthiness`.
 
-News, when told, also has a level of understanding around the event that may significantly alter our understanding and perception of an event. An image of a child being shot next to a soldier may make us feel strong resentment towards the soldier; that same image, zoomed out, may in fact show the soldier was trying to protect the child. The fairness and completeness around which a `Story` is told we call `Context`. 
+News, when told, also includes a varying contextualization around the event that may significantly alter our understanding and perception of an event. In the most simplest case, an image can be so powerful, only to reverse its meaning when it is zoomed out. The fairness and completeness around which a `Story` is told we call `Context`. 
 
-Each human consumes news differently due to their unique experiences and circumstances. This is partly why the same event can be perceived so differently by different individuals. Parliament's mission is to abstract these variables to tell maximally truthful news in a clear and measurable way.
+Each human consumes news differently due to their unique experiences and circumstances. This is partly why the same event can be perceived so differently by different individuals. 
+Parliament's mission is to tell maximally truthful news in a clear and measurable way.
 
 Let's dive further.
 
@@ -111,15 +112,14 @@ Consider a *Parliamentary* (roll credits) system of government, in which there a
 
 ### Algorithm
 
-*If I were to seat every member of Parliament at a round table, such that I wanted to maximize agreement and minimize the disagreement between a member and the two people sitting next to the member, how would I seat the people?* The reason this is chosen is more philosophical than mathematical, as it assumes there is a center, right, left, and the antithesis union of right and left, the extreme. This is a manifestation of the _horseshoe theory_. If we accept this assumption, we mathematically represent bias as an angle between `0.0` and `360.0` degrees, and calculate angle updates by simple angular arithmetic.
+*If I were to seat every member of Parliament at a round table, such that I wanted to maximize agreement and minimize the disagreement between a member and the two people sitting next to the member, how would I seat the people?* The reason this is chosen is more philosophical than mathematical, as it assumes there is a center, right, left, and anti-center, what we label the extreme. This is a mode of grouping that we find to be understandsble by many people and is a manifestation of the _horseshoe theory_. If we accept this assumption, we mathematically represent bias as an angle between `0.0` and `360.0` degrees, and calculate angle updates by simple angular arithmetic.
 
 ### Center
 <div align="start">
   <img width="50" alt="Screenshot 2024-06-07 at 2 47 29 PM" src="https://github.com/kornha/political_think/assets/5386694/40ebf810-a37a-45c8-b4fd-bfef17e7adad">
 </div>
 
-We represent the Center with the color Green. This is done to be analogous with American political colors. Left = Blue, Right = Red, hence RGB -> BGR and Green is center. Center content is defined as *content that right and left would each agree on or each disagree on*, and *content that disagrees with extreme*. In practice, these are people we seat 1/2 way between left and right, but absent of fringe views.
-
+We represent the Center with the color Green. This is done to be analogous with American political colors. Left = Blue, Right = Red, hence RGB -> BGR and Green is center. Center content is defined as *content that right and left would each agree on or each disagree on*, and *content that disagrees with extreme*. In practice, these are people we seat 1/2 way between left and right at the top of our circle.
 ### Right
 <div align="start">
   <img width="50" alt="Screenshot 2024-06-07 at 2 50 53 PM" src="https://github.com/kornha/political_think/assets/5386694/527d2bf4-c7ba-425f-be56-d48aea3bfd8a">
@@ -144,7 +144,7 @@ Left is defined as those most opposite of our anchor, right. _content that right
   <img width="50" alt="Screenshot 2024-06-07 at 2 49 33 PM" src="https://github.com/kornha/political_think/assets/5386694/62593f14-ca77-4b0c-94ef-6fc7464b8b76">
 </div>
 
-Extreme, represented as pink (255,0,255) where green is (0,255,0), is defined as _content that right and left would each agree on or each disagree on_, _content that disagrees with center_, and _content that expresses `Opinions`, `Phrases`, and `Claims` which are likely to be deemed offensive by other groupings_.
+Extreme, represented as pink (255,0,255) where green is (0,255,0), is defined as _content that right and left would each agree on or each disagree on_, _content that disagrees with center_, and _content that expresses `Opinions`, `Phrases`, and `Claims` which are likely to be disagreed with by consensus_.
 
 Hence for a given claim we can now say how confident we are that it is true, and how biased are the people who are making it. Likewise for the entities we can record our confidence in their reporting, and how biased they tend to be. This provides significant value for us to understand and contextualize news. But how do we know _what_ news to show people? To answer this question, we must consider another concept, `Newsworthiness`.
 
@@ -228,18 +228,55 @@ A Phrase is a word or group of words that are used to express `Posts`, `Claims`,
 - A Phrase has associated `Entities`.
 
 # Contact
-Parliament is open source. TheParliament.app (to be released shortly) is a commercial hosted and deployed implemenation of Parliament. For investment information and other queries, please email <a href="mailto:contact@theparliament.app">contact@theparliament.app</a>.
+Parliament is open source. For questions related to this GitHub repo, please raise an issue in this repo.
+
+TheParliament.app (to be released shortly) is a commercial hosted and deployed implemenation of Parliament. For investment information and other queries, please email <a href="mailto:contact@theparliament.app">contact@theparliament.app</a>.
 
 # Development
 
 ![Instructions Coming Soon](https://img.shields.io/badge/status-instructions%20coming%20soon-green)
 
-Parliament includes a website theparliament.app, with iOS and Android (coming soon) in the repo as well. The Parliament whitepaper above is being implemented in this repo with Firebase, OpenAI, and GitHub. Additional contributors are welcome.
+## Why Participate?
 
-## Flutter
+> You believe in our mission.
 
-Install flutter and run this as a flutter project using an IDE of your choice. We recommend VSCode. You can currently run this on iOS and web locally.
+There are serious quality issues with current news. It is often misleading, decontextualized, or even fake. Parliament is meant to be a non-political solution to this problem. If, and only if, tbis mission is for you, only then do we recommend you contribute.
 
-## Firebase
+### Shared ownership
 
-We are running Node.js functions on Firebase Functions. We use several additional Firebase services including Firestore, Pubsub, Storage, and Auth. 
+While Parliament is open-source and non-commercial, and the repo can be used and forked according to our use policy (coming soon), TheParliament.app (also coming soon) is the official commercial implementation of Parliament and the only implementation that can use Parliament branding. 
+ThParliament.app is reserving a meaningful amount of equity for top contributors.
+
+### Swag
+
+Contributors with accepted commits get swag at different mikestones. 
+
+## Getting started
+
+Install Flutter, Firebase, node, XCode on your machine.
+Set up your own OpenAI and Firebase account. 
+Set up the Firebase emulator locally.
+
+Firebase may prompt you to add env vars, but if it doesn't, or if you run into billing or other account setup issues, Googling them should be streightforward to solve.
+Feel free to add helpful info to this readme.
+
+Once you run the project correctly, the frontend will appear in either iOS or web. You may sign in with Google and click the sync button in the top right.
+When you click sync, after some moments, it will generate a list of Stories and Posts, resembling our news feed. From here you're set up!
+
+### Flutter
+
+All changes must be compatible for Flutter web, iOS, and Android.
+In general we ask that you do not try snd change msny patterns unless there is discussion beforehand and approved by repo owner.
+Spend some tkme studying the repo's use of Riverpod, BuildContext extensions, and other Flutter development patterns.
+Note that we use declarative programming almost entirely in the fullstack application.
+
+### Firebase
+
+We are running Node.js functions on Firebase Functions. We use several additional Firebase services, including Firestore, Pubsub, Storage, and Auth. 
+Feel free to study the repo's patterns and suggest changes. 
+
+### AI/ML
+
+We have complex AI strategies to solve our news problem. We strongly recommend deeply examining the logic before contributing to this portion.
+We have chosen not to use a wrapper framework for now purely out of dev simplicity in direclty using OpenAI APIs. 
+
