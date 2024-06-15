@@ -134,11 +134,12 @@ class _PostViewState extends ConsumerState<PostItemView> {
                         SizedBox(
                           height: context.imageSizeSmall.height,
                           // heuristic, trying to match screen size
+                          // TODO: fix this
                           width: (context.blockSize.width -
                                   context.imageSizeSmall.width -
                                   context.sd.width! -
                                   2.0) *
-                              (post?.photo?.photoURL != null ? 0.7 : 0.5),
+                              (post?.photo?.photoURL != null ? 0.7 : 0.55),
                           child: Text(
                             // some posts dont have descriptions
                             post?.description ?? post?.title ?? "",
