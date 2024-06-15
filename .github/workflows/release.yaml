@@ -7,6 +7,8 @@ on:
       - 'pubspec.yaml'
       - '.github/workflows/release.yaml'
 
+permissions: read-all
+
 jobs:
   create_release:
     name: Create Release
