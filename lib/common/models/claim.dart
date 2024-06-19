@@ -16,6 +16,8 @@ class Claim {
   final List<String> sids;
 
   @JsonKey(fromJson: Utils.timestampFromJson, toJson: Utils.timestampToJson)
+  Timestamp claimedAt;
+  @JsonKey(fromJson: Utils.timestampFromJson, toJson: Utils.timestampToJson)
   Timestamp createdAt;
   @JsonKey(fromJson: Utils.timestampFromJson, toJson: Utils.timestampToJson)
   Timestamp updatedAt;
@@ -25,6 +27,7 @@ class Claim {
     required this.updatedAt,
     required this.createdAt,
     required this.value,
+    required this.claimedAt,
     this.pro = const [],
     this.against = const [],
     this.pids = const [],

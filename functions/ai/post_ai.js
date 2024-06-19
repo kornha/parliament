@@ -179,6 +179,7 @@ const findStoriesAndClaims = async function(post) {
             pids: FieldValue.arrayUnion(post.pid),
             value: gclaim.value,
             updatedAt: Timestamp.now().toMillis(),
+            claimedAt: isoToMillis(gclaim.claimedAt),
             // some grade a level horse shit to get around
             // arrayUnion unioning an empty array
             ...(gclaim.pro?.length &&
@@ -197,6 +198,7 @@ const findStoriesAndClaims = async function(post) {
             against: gclaim.against,
             sids: [sid],
             pids: [post.pid],
+            claimedAt: isoToMillis(gclaim.claimedAt),
             updatedAt: Timestamp.now().toMillis(),
             createdAt: Timestamp.now().toMillis(),
           }));
