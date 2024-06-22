@@ -253,7 +253,7 @@ TheParliament.app (to be released shortly) is a commercial hosted and deployed i
 
 > You believe in our mission.
 
-There are serious quality issues with current news. It is often misleading, decontextualized, or even fake. Parliament is meant to be a non-political solution to this problem. If, and only if, tbis mission is for you, only then do we recommend you contribute.
+There are serious quality issues with current news. It is often misleading, decontextualized, or even fake. Parliament is meant to be a non-political solution to this problem. If, and only if, this mission is for you, only then do we recommend you contribute.
 
 You should **not** participate if you are a political activist looking to push a political agenda. Parliament is apolitical, and will always be.
 
