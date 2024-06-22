@@ -50,9 +50,11 @@
         1. [Shared ownership](#shared-ownership)
         2. [Swag](#swag)
     2. [Getting started](#getting-started)
-        1. [Flutter](#flutter)
-        2. [Firebase](#firebase)
-        3. [AI/ML](#aiml)
+        1. [Discord](#discord)
+        2. [Instructions](#instructions)   
+        3. [Flutter](#flutter)
+        4. [Firebase](#firebase)
+        5. [AI/ML](#aiml)
 
 # Whitepaper 
 
@@ -217,7 +219,7 @@ A Claim is a statement about an event that is verfiable.
 - A Claim has a "context" field, which provides more information about the Claim, and helps for search.
 - A Claim is fundamentally verifiable; a non-verifiable "claim" is called an `Opinion`.
 - A Claim has an associated `Confidence`.
-- A Claim has associated `Entities`
+- A Claim has associated `Entities`.
 
 ### Opinion
 
@@ -253,6 +255,8 @@ TheParliament.app (to be released shortly) is a commercial hosted and deployed i
 
 There are serious quality issues with current news. It is often misleading, decontextualized, or even fake. Parliament is meant to be a non-political solution to this problem. If, and only if, tbis mission is for you, only then do we recommend you contribute.
 
+You should **not** participate if you are a political activist looking to push a political agenda. Parliament is apolitical, and will always be.
+
 ### Shared ownership
 
 While Parliament is open-source and non-commercial, and the repo can be used and forked according to our use policy (coming soon), TheParliament.app (also coming soon) is the official commercial implementation of Parliament and the only implementation that can use Parliament branding. 
@@ -263,6 +267,11 @@ ThParliament.app is reserving a meaningful amount of equity for top contributors
 Contributors with accepted commits get swag at different mikestones. 
 
 ## Getting started
+
+### Discord
+[Join our Discord](https://discord.gg/HhdBKsK9Pq)
+
+### Instructions
 
 Install Flutter, Firebase, node, XCode on your machine.
 Set up your own OpenAI and Firebase account. 
