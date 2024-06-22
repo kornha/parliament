@@ -264,7 +264,7 @@ ThParliament.app is reserving a meaningful amount of equity for top contributors
 
 ### Swag
 
-Contributors with accepted commits get swag at different mikestones. 
+Contributors with accepted commits get swag at different milestones. 
 
 ## Getting started
 
