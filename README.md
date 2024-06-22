@@ -45,6 +45,8 @@
         4. [Claim](#claim)
         5. [Opinion](#opinion)
         6. [Phrase](#phrase)
+2. [Contact](#contact)
+    1. [Socials](#socials) 
 2. [Development](#development)
     1. [Why Participate?](#why-participate)
         1. [Shared ownership](#shared-ownership)
@@ -242,9 +244,15 @@ A Phrase is a word or group of words that are used to express `Posts`, `Claims`,
 - A Phrase has associated `Entities`.
 
 # Contact
-Parliament is open source. For questions related to this GitHub repo, please raise an issue in this repo.
+Parliament is open source. For questions related to this GitHub repo, please [join our discord](https://discord.gg/HhdBKsK9Pq) or raise an issue in this repo.
 
 TheParliament.app (to be released shortly) is a commercial hosted and deployed implemenation of Parliament. For investment information and other queries, please email <a href="mailto:contact@theparliament.app">contact@theparliament.app</a>.
+
+## Socials
+- **Discord**: Parliament currently supports an official [Discord server](https://discord.gg/HhdBKsK9Pq).
+- **X**: [Alex K](https://x.com/paliament_x) the creator of Parliament recently began using X in order to publicize and support Parliament. However this account is not officially recognized by Parliament as it may be used for personal purposes, or purposes that do not comply to Parliament's strictly apolitical stance.
+- **Reddit**: [cry_more_loser](https://www.reddit.com/user/cry_more_loser/) is the Reddit account that is used to support and publicize Parliament. It however is not the official Reddit of Parliament and does not claim to be such.
+- **IG, Tiktok and Others**: No current accounts, but these will be created in the near future.
 
 # Development
 
@@ -274,7 +282,7 @@ Learn Flutter, backend, and AI/ML.
 ## Getting started
 
 ### Discord
-[Join our Discord](https://discord.gg/HhdBKsK9Pq)
+[Join our Discord](https://discord.gg/HhdBKsK9Pq) to start asking questions and becoming part of the community.
 
 ### Instructions
 
