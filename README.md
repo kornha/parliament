@@ -128,7 +128,7 @@ Consider a *Parliamentary* (roll credits) system of government, in which there a
 
 ### Algorithm
 
-*If I were to seat every member of Parliament at a round table, such that I wanted to maximize agreement and minimize the disagreement between a member and the two people sitting next to the member, how would I seat the people?* The reason this is chosen is more philosophical than mathematical, as it assumes there is a center, right, left, and anti-center, what we label the extreme. This is a mode of grouping that we find to be understandsble by many people and is a manifestation of the _horseshoe theory_. If we accept this assumption, we mathematically represent bias as an angle between `0.0` and `360.0` degrees, and calculate angle updates by simple angular arithmetic.
+*If I were to seat every member of Parliament at a round table, such that I wanted to maximize agreement and minimize the disagreement between a member and the two people sitting next to the member, how would I seat the people?* The reason this is chosen is more philosophical than mathematical, as it assumes there is a center, right, left, and anti-center, what we label the extreme. This is a mode of grouping that we find to be understandable by many people and is a manifestation of the _horseshoe theory_. If we accept this assumption, we mathematically represent bias as an angle between `0.0` and `360.0` degrees, and calculate angle updates by simple angular arithmetic.
 
 ### Center
 <div align="start">
@@ -214,7 +214,7 @@ An Entity is an author, sometimes one person and sometimes a whole news outlet, 
 
 ### Claim
 
-A Claim is a statement about an event that is verfiable.
+A Claim is a statement about an event that is verifiable.
 - A Claim is a statement that has "pro" and "against" list of Posts either supporting or refuting the Claim.
 - A Claim has a "value" field, which is the statement itself.
 - A Claim has a "pro" field, which is a list of Posts that support the Claim.
@@ -226,7 +226,7 @@ A Claim is a statement about an event that is verfiable.
 
 ### Opinion
 
-An opinion is a statement about an event that is not verfiable.
+An opinion is a statement about an event that is not verifiable.
 - An Opinion is a statement that has "pro" and "against" list of Posts either supporting or rejecting the Opinion.
 - An Opinion has a "value" field, which is the statement itself.
 - An Opinion has a "pro" field, which is a list of Posts that support the Claim.
@@ -246,7 +246,7 @@ A Phrase is a word or group of words that are used to express `Posts`, `Claims`,
 # Contact
 Parliament is open source. For questions related to this GitHub repo, please [join our discord](https://discord.gg/HhdBKsK9Pq) or raise an issue in this repo.
 
-TheParliament.app (to be released shortly) is a commercial hosted and deployed implemenation of Parliament. For investment information and other queries, please email <a href="mailto:contact@theparliament.app">contact@theparliament.app</a>.
+TheParliament.app (to be released shortly) is a commercial hosted and deployed implementation of Parliament. For investment information and other queries, please email <a href="mailto:contact@theparliament.app">contact@theparliament.app</a>.
 
 ## Socials
 - **Discord**: Parliament currently supports an official [Discord server](https://discord.gg/HhdBKsK9Pq).
@@ -269,7 +269,7 @@ You should **not** participate if you are a political activist looking to push a
 ### Shared ownership
 
 While Parliament is open-source and non-commercial, and the repo can be used and forked according to our use policy (coming soon), TheParliament.app (also coming soon) is the official commercial implementation of Parliament and the only implementation that can use Parliament branding. 
-ThParliament.app is reserving a meaningful amount of equity for top contributors.
+TheParliament.app is reserving a meaningful amount of equity for top contributors.
 
 ### Swag
 
@@ -290,7 +290,7 @@ Install Flutter, Firebase, node, XCode on your machine.
 Set up your own OpenAI and Firebase account. 
 Set up the Firebase emulator locally.
 
-Firebase may prompt you to add env vars, but if it doesn't, or if you run into billing or other account setup issues, Googling them should be streightforward to solve.
+Firebase may prompt you to add env vars, but if it doesn't, or if you run into billing or other account setup issues, Googling them should be straightforward to solve.
 Feel free to add helpful info to this readme.
 
 Once you run the project correctly, the frontend will appear in either iOS or web. You may sign in with Google and click the sync button in the top right.
@@ -299,8 +299,8 @@ When you click sync, after some moments, it will generate a list of Stories and 
 ### Flutter
 
 All changes must be compatible for Flutter web, iOS, and Android.
-In general we ask that you do not try snd change msny patterns unless there is discussion beforehand and approved by repo owner.
-Spend some tkme studying the repo's use of Riverpod, BuildContext extensions, and other Flutter development patterns.
+In general we ask that you do not try and change many patterns unless there is discussion beforehand and approved by repo owner.
+Spend some time studying the repo's use of Riverpod, BuildContext extensions, and other Flutter development patterns.
 Note that we use declarative programming almost entirely in the fullstack application.
 
 ### Firebase
@@ -311,5 +311,5 @@ Feel free to study the repo's patterns and suggest changes.
 ### AI/ML
 
 We have complex AI strategies to solve our news problem. We strongly recommend deeply examining the logic before contributing to this portion.
-We have chosen not to use a wrapper framework for now purely out of dev simplicity in direclty using OpenAI APIs. 
+We have chosen not to use a wrapper framework for now purely out of dev simplicity in directly using OpenAI APIs. 
 
