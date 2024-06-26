@@ -35,7 +35,7 @@ const geo = require("geofire-common");
  * @return {Promise<void>}
  * ***************************************************************
  * */
-const findStoriesAndClaims = async function (post) {
+const findStoriesAndClaims = async function(post) {
   if (!post) {
     functions.logger.error("Post is null");
     return;
@@ -84,15 +84,15 @@ const findStoriesAndClaims = async function (post) {
 
   const resp =
     await generateCompletions(
-      findStoriesAndClaimsPrompt({
-        post: post,
-        stories: gstories,
-        claims: claims,
-        training: true,
-        includePhotos: true,
-      }),
-      "findStoriesAndClaims " + post.pid,
-      true,
+        findStoriesAndClaimsPrompt({
+          post: post,
+          stories: gstories,
+          claims: claims,
+          training: true,
+          includePhotos: true,
+        }),
+        "findStoriesAndClaims " + post.pid,
+        true,
     );
 
   // const resp =
@@ -222,7 +222,7 @@ const findStoriesAndClaims = async function (post) {
  * @return {Promise<void>}
  * ***************************************************************
  */
-const findStories = async function (post) {
+const findStories = async function(post) {
   if (!post) {
     functions.logger.error("Post is null");
     return;
@@ -246,9 +246,9 @@ const findStories = async function (post) {
   });
 
   const resp = await generateCompletions(
-    _prompt,
-    "findStories " + post.pid,
-    true,
+      _prompt,
+      "findStories " + post.pid,
+      true,
   );
 
   // const resp =
@@ -273,7 +273,7 @@ const findStories = async function (post) {
  * @param {Post} post
  * @return {Promise<boolean>}
  */
-const savePostEmbeddings = async function (post) {
+const savePostEmbeddings = async function(post) {
   const strings = getPostEmbeddingStrings(post);
   if (strings.length === 0) {
     return true;
@@ -288,7 +288,7 @@ const savePostEmbeddings = async function (post) {
  * @param {Post} post
  * @return {string[]}
  */
-const getPostEmbeddingStrings = function (post) {
+const getPostEmbeddingStrings = function(post) {
   const ret = [];
   if (post.title) {
     ret.push(post.title);

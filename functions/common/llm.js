@@ -7,7 +7,7 @@ const {getContent, setContent} = require("../common/storage");
 const _openApiKey = defineSecret("OPENAI_API_KEY");
 
 // need to add secret to functions.js
-const OPENAI_API_KEY = function () {
+const OPENAI_API_KEY = function() {
   return _openApiKey.value();
 };
 
@@ -16,7 +16,7 @@ let _openAi;
  * Returns the OpenAI instance
  * @return {OpenAI} openai instance
  * */
-const llm = function () {
+const llm = function() {
   if (!_openAi) {
     _openAi = new OpenAI(_openApiKey.value());
   }
@@ -30,9 +30,9 @@ const llm = function () {
  * @param {string} imageModel whether we need a model that supports images
  * @return {Promise<string>} completion response
  */
-const generateCompletions = async function (messages,
-  loggingText = null,
-  imageModel = true,
+const generateCompletions = async function(messages,
+    loggingText = null,
+    imageModel = true,
 ) {
   if (messages.length === 0) {
     functions.logger.error("No messages provided");
@@ -84,7 +84,7 @@ const generateCompletions = async function (messages,
  * @param {Array<string>} texts
  * @return {Promise<Array<number>>} vector response
  */
-const generateEmbeddings = async function (texts) {
+const generateEmbeddings = async function(texts) {
   if (texts.length === 0) {
     functions.logger.error("No texts provided");
     return null;
@@ -96,10 +96,10 @@ const generateEmbeddings = async function (texts) {
   const concatenatedTexts = texts.join(" ");
 
   const textEmbeddingResponse = await llm()
-    .embeddings.create({
-      model: "text-embedding-3-small",
-      input: concatenatedTexts,
-    });
+      .embeddings.create({
+        model: "text-embedding-3-small",
+        input: concatenatedTexts,
+      });
   if (textEmbeddingResponse?.data?.[0]?.embedding === undefined) {
     functions.logger.error("Error: no data in response");
   }
@@ -122,7 +122,7 @@ const findStoriesAndClaimsPath = "assistants/findStoriesAndClaims.json";
  * @param {string} prompt
  * @return {Promise<string>} assistant id
  */
-const getAssistant = async function (prompt) {
+const getAssistant = async function(prompt) {
   if (prompt !== "findStories" && prompt !== "findStoriesAndClaims") {
     functions.logger.error("Invalid prompt");
     throw new Error("Invalid prompt");
@@ -159,7 +159,7 @@ const getAssistant = async function (prompt) {
   return assistant.id;
 };
 
-const generateAssistantCompletions = async function (messages, promptName) {
+const generateAssistantCompletions = async function(messages, promptName) {
   const assistantId = await getAssistant(promptName);
 
   const thread = await llm().beta.threads.create({
@@ -173,8 +173,8 @@ const generateAssistantCompletions = async function (messages, promptName) {
 
 
   const run = await llm().beta.threads.runs.createAndPoll(
-    thread.id,
-    {assistant_id: assistantId},
+      thread.id,
+      {assistant_id: assistantId},
   );
 
   // tokens used
@@ -182,7 +182,7 @@ const generateAssistantCompletions = async function (messages, promptName) {
 
   if (run.status === "completed") {
     const _messages = await llm().beta.threads.messages.list(
-      run.thread_id,
+        run.thread_id,
     );
     return JSON.parse(_messages[0].content);
   } else {

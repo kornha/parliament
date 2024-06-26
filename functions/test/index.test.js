@@ -4,10 +4,9 @@ const sinon = require("sinon");
 const rewire = require("rewire");
 const myFunctions = rewire("../ai/post_ai");
 
-describe("AI Tests", function () {
-  describe("findStories", function () {
-
-    it("should find 1 Story when there are none entered", async function () {
+describe("AI Tests", () => {
+  describe("findStories", () => {
+    it("should find 1 Story when there are none entered", async function() {
       this.timeout(20000);
 
       const candidateStories = [];
@@ -50,22 +49,22 @@ describe("AI Tests", function () {
       expect(searchVectorsStub.calledOnce).to.be.true;
       expect(writeTrainingDataStub.calledOnce).to.be.true;
       //
-      expect(stories).to.be.an('array').that.is.not.empty;
-      expect(stories[0]).to.have.property('sid', null);
-      expect(stories[0]).to.have.property('title').that.is.not.null;
-      expect(stories[0]).to.have.property('description').that.is.not.null;
-      expect(stories[0]).to.have.property('headline').that.is.not.null;
-      expect(stories[0]).to.have.property('subHeadline').that.is.not.null;
-      expect(stories[0]).to.have.property('importance').that.is.within(0.4, 0.5);
+      expect(stories).to.be.an("array").that.is.not.empty;
+      expect(stories[0]).to.have.property("sid", null);
+      expect(stories[0]).to.have.property("title").that.is.not.null;
+      expect(stories[0]).to.have.property("description").that.is.not.null;
+      expect(stories[0]).to.have.property("headline").that.is.not.null;
+      expect(stories[0]).to.have.property("subHeadline").that.is.not.null;
+      expect(stories[0]).to.have.property("importance").that.is.within(0.4, 0.5);
       expect(new Date(stories[0].happenedAt).getTime()).to.be.closeTo(expectedDate, deltaTime);
       expect(stories[0].lat).to.be.closeTo(31.5, deltaLatLong);
       expect(stories[0].long).to.be.closeTo(34.47, deltaLatLong);
-      expect(stories[0]).to.have.property('photos').that.is.an('array').that.is.not.empty;
-      expect(stories[0].photos[0]).to.have.property('photoURL', "https://pbs.twimg.com/media/GQJM_1ZWkAECNcx?format=jpg&name=small");
-      expect(stories[0].photos[0]).to.have.property('description').that.is.not.null;
+      expect(stories[0]).to.have.property("photos").that.is.an("array").that.is.not.empty;
+      expect(stories[0].photos[0]).to.have.property("photoURL", "https://pbs.twimg.com/media/GQJM_1ZWkAECNcx?format=jpg&name=small");
+      expect(stories[0].photos[0]).to.have.property("description").that.is.not.null;
     });
 
-    it("should merge Stories to the candidate one", async function () {
+    it("should merge Stories to the candidate one", async function() {
       this.timeout(20000);
 
       const candidateStories = [
@@ -173,23 +172,23 @@ describe("AI Tests", function () {
       expect(searchVectorsStub.calledOnce).to.be.true;
       expect(writeTrainingDataStub.calledOnce).to.be.true;
       //
-      expect(stories).to.be.an('array').that.is.not.empty;
-      expect(stories[0]).to.have.property('sid').that.is.equal(candidateStories[0].sid);
-      expect(stories[0]).to.have.property('title').that.is.not.null;
-      expect(stories[0]).to.have.property('description').that.is.not.equal(candidateStories[0].description);
-      expect(stories[0]).to.have.property('headline').that.is.not.null;
-      expect(stories[0]).to.have.property('subHeadline').that.is.not.equal(candidateStories[0].headline);
-      expect(stories[0]).to.have.property('importance').that.is.within(0.4, 0.5);
+      expect(stories).to.be.an("array").that.is.not.empty;
+      expect(stories[0]).to.have.property("sid").that.is.equal(candidateStories[0].sid);
+      expect(stories[0]).to.have.property("title").that.is.not.null;
+      expect(stories[0]).to.have.property("description").that.is.not.equal(candidateStories[0].description);
+      expect(stories[0]).to.have.property("headline").that.is.not.null;
+      expect(stories[0]).to.have.property("subHeadline").that.is.not.equal(candidateStories[0].headline);
+      expect(stories[0]).to.have.property("importance").that.is.within(0.4, 0.5);
       expect(new Date(stories[0].happenedAt).getTime()).to.be.closeTo(expectedDate, deltaTime);
       expect(stories[0].lat).to.be.closeTo(31.5, deltaLatLong);
       expect(stories[0].long).to.be.closeTo(34.47, deltaLatLong);
-      expect(stories[0]).to.have.property('photos').that.is.an('array').that.is.not.empty;
-      expect(stories[0].photos[0]).to.have.property('photoURL', "https://pbs.twimg.com/media/GQJM_1ZWkAECNcx?format=jpg&name=small");
+      expect(stories[0]).to.have.property("photos").that.is.an("array").that.is.not.empty;
+      expect(stories[0].photos[0]).to.have.property("photoURL", "https://pbs.twimg.com/media/GQJM_1ZWkAECNcx?format=jpg&name=small");
       // photo description is not passed in so we don't output
       // expect(stories[0].photos[0]).to.have.property('description').that.is.not.null;
     });
 
-    it("should find a different Story than the similar candidate one", async function () {
+    it("should find a different Story than the similar candidate one", async function() {
       this.timeout(20000);
 
       const candidateStories = [{
@@ -260,20 +259,20 @@ describe("AI Tests", function () {
       expect(searchVectorsStub.calledOnce).to.be.true;
       expect(writeTrainingDataStub.calledOnce).to.be.true;
       //
-      expect(stories).to.be.an('array').that.has.lengthOf(1);
-      expect(stories[0]).to.have.property('sid', null);
-      expect(stories[0]).to.have.property('title').that.is.not.null;
-      expect(stories[0]).to.have.property('description').that.is.not.null;
-      expect(stories[0]).to.have.property('headline').that.is.not.null;
-      expect(stories[0]).to.have.property('subHeadline').that.is.not.null;
-      expect(stories[0]).to.have.property('importance').that.is.within(0.0, 0.1);
+      expect(stories).to.be.an("array").that.has.lengthOf(1);
+      expect(stories[0]).to.have.property("sid", null);
+      expect(stories[0]).to.have.property("title").that.is.not.null;
+      expect(stories[0]).to.have.property("description").that.is.not.null;
+      expect(stories[0]).to.have.property("headline").that.is.not.null;
+      expect(stories[0]).to.have.property("subHeadline").that.is.not.null;
+      expect(stories[0]).to.have.property("importance").that.is.within(0.0, 0.1);
       expect(new Date(stories[0].happenedAt).getTime()).to.be.closeTo(expectedDate, deltaTime);
       expect(stories[0].lat).to.be.closeTo(31.5, deltaLatLong);
       expect(stories[0].long).to.be.closeTo(34.47, deltaLatLong);
-      expect(stories[0].photos).to.be.an('array').that.has.lengthOf(0);
+      expect(stories[0].photos).to.be.an("array").that.has.lengthOf(0);
     });
 
-    it("should find a different Story than the 2 similar candidate ones", async function () {
+    it("should find a different Story than the 2 similar candidate ones", async function() {
       this.timeout(20000);
 
       const candidateStories = [
@@ -381,22 +380,21 @@ describe("AI Tests", function () {
       expect(searchVectorsStub.calledOnce).to.be.true;
       expect(writeTrainingDataStub.calledOnce).to.be.true;
       //
-      expect(stories).to.be.an('array').that.has.lengthOf(1);
-      expect(stories[0]).to.have.property('sid', null);
-      expect(stories[0]).to.have.property('title').that.is.not.null;
-      expect(stories[0]).to.have.property('description').that.is.not.null;
-      expect(stories[0]).to.have.property('headline').that.is.not.null;
-      expect(stories[0]).to.have.property('subHeadline').that.is.not.null;
-      expect(stories[0]).to.have.property('importance').that.is.within(0.19, 0.41);
+      expect(stories).to.be.an("array").that.has.lengthOf(1);
+      expect(stories[0]).to.have.property("sid", null);
+      expect(stories[0]).to.have.property("title").that.is.not.null;
+      expect(stories[0]).to.have.property("description").that.is.not.null;
+      expect(stories[0]).to.have.property("headline").that.is.not.null;
+      expect(stories[0]).to.have.property("subHeadline").that.is.not.null;
+      expect(stories[0]).to.have.property("importance").that.is.within(0.19, 0.41);
       expect(new Date(stories[0].happenedAt).getTime()).to.be.closeTo(expectedDate, deltaTime);
       expect(stories[0].lat).to.be.closeTo(31.5, deltaLatLong);
       expect(stories[0].long).to.be.closeTo(34.47, deltaLatLong);
-      expect(stories[0].photos).to.be.an('array').that.has.lengthOf(0);
+      expect(stories[0].photos).to.be.an("array").that.has.lengthOf(0);
     });
-
   });
 
-  afterEach(function () {
+  afterEach(() => {
     sinon.restore();
   });
 });

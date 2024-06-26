@@ -2,7 +2,7 @@
 const _ = require("lodash");
 const {millisToIso} = require("../common/utils");
 
-const generateImageDescriptionPrompt = function (photoURL) {
+const generateImageDescriptionPrompt = function(photoURL) {
   const messages = [];
   messages.push({
     type: "text",
@@ -17,7 +17,7 @@ const generateImageDescriptionPrompt = function (photoURL) {
   return messages;
 };
 
-const findStoriesPrompt = function ({post, stories, training = false, includePhotos = true}) {
+const findStoriesPrompt = function({post, stories, training = false, includePhotos = true}) {
   // Prepare the initial set of messages with description texts
   const messages = training ? [
     {type: "text", text: findStoriesForTrainingText()},
@@ -51,7 +51,7 @@ const findStoriesPrompt = function ({post, stories, training = false, includePho
 };
 
 
-const findStoriesAndClaimsPrompt = function ({
+const findStoriesAndClaimsPrompt = function({
   post,
   stories,
   claims,
@@ -105,7 +105,7 @@ const findStoriesAndClaimsPrompt = function ({
 // Story
 //
 
-const findStoriesForTrainingText = function () {
+const findStoriesForTrainingText = function() {
   return `
   You will be given a Post and a list of candidate Stories (can be empty).
 
@@ -131,7 +131,7 @@ const findStoriesForTrainingText = function () {
 `;
 };
 
-const findStoriesAndClaimsForTrainingText = function () {
+const findStoriesAndClaimsForTrainingText = function() {
   return `
   You will be given a Post, a list of Stories (can be empty), and a list of Claims (can be empty).
 
@@ -162,7 +162,7 @@ const findStoriesAndClaimsForTrainingText = function () {
 `;
 };
 
-const newStoryPrompt = function () {
+const newStoryPrompt = function() {
   return `
   SID:
   SID should be null for new Stories, and copied if outputting an existing Story.
@@ -199,7 +199,7 @@ const newStoryPrompt = function () {
   'photos' (sometimes described photoURL and photoDescription) are, optionally, the photos that are associated with the Story. They should be ordered by most interesting, and deduped, removing not only identical but even very similar photos. Iff the Post has a photoURL that is relevant to the Story and is not a dupe, it should be included in the Story's photos. Do not include the Post URL in the photoURL.`;
 };
 
-const storyDescriptionPrompt = function () {
+const storyDescriptionPrompt = function() {
   return `A Story is an something that happened. Some specific time, place, and subject.
   The information is formed from collection of Posts that are 'talking about the same specific event.'
   A Story has a title, a description, a headline, a subheadline, which are textual descriptions of the Story.
@@ -211,7 +211,7 @@ const storyDescriptionPrompt = function () {
   `;
 };
 
-const storyJSONOutput = function (claims = false) {
+const storyJSONOutput = function(claims = false) {
   return `{"sid":ID of the Story or null if Story is new, "title": "title of the story", "description": "the full description of the story is a useful vector searchable description", "headline" "short, active, engaging title shown to users", "subHeadline":"active, engaging, short description shown to users", "importance": 0.0-1.0 relative importance of the story, "happenedAt": ISO 8601 time format that the event happened at, or null if it cannot be determined, "lat": lattitude best estimate of the location of the Story, "long": longitude best estimate, "photos:[{"photoURL":photoURL field in the Post if any, "description": photoDescription field in the Post, if any}, ...list of UNIQUE photos taken from the Posts ordered by most interesting]${claims ? `, "claims":[${claimJSONOutput()}, ...]` : ""}}`;
 };
 
@@ -219,7 +219,7 @@ const storyJSONOutput = function (claims = false) {
 // Post
 //
 
-const postDescriptionPrompt = function () {
+const postDescriptionPrompt = function() {
   return `A Post is a social media posting or an article. It can come from X (Twitter), Instagram, or other social sources.
         It may also be a news article published to an online platform.
         A Post can have a title, a description, and a body, the latter two of which are optional.
@@ -233,7 +233,7 @@ const postDescriptionPrompt = function () {
 // Claims
 //
 
-const claimsDescriptionPrompt = function () {
+const claimsDescriptionPrompt = function() {
   return `A Claim is a statement that has "pro" and "against" list of Posts either supporting or refuting the Claim.
             A Claim has a "value" field, which is the statement itself.
             A Claim has a "pro" field, which is a list of Posts that support the Claim.
@@ -242,7 +242,7 @@ const claimsDescriptionPrompt = function () {
             A Claim may have a "context" field, which provides more information about the Claim, and helps for search.`;
 };
 
-const newClaimPrompt = function () {
+const newClaimPrompt = function() {
   return `CID:
   CID should be null for new Claims, and copied if outputting an existing Claim.
 
@@ -256,7 +256,7 @@ const newClaimPrompt = function () {
   'claimedAt' is the time the Claim is valid for. This is the time window in which the Claim was made that other Claims can be compared to. Generally within 24-48 hours we assume that new Claims are about the same event. The 'claimedAt' should be the time the Claim was made, in ISO 8601 format.`;
 };
 
-const claimJSONOutput = function () {
+const claimJSONOutput = function() {
   return `{"cid":ID of the Claim or null if the Claim is new, "value": "text of the claim", "pro": [pid of the post] or [] if post is not in support, "against": [pid of the post] or [] if the post is not against the claim", "claimedAt": "ISO 8601 time format that informs us what the Claim is valid for"}`;
 };
 
@@ -264,7 +264,7 @@ const claimJSONOutput = function () {
 // Credibility and Bias
 //
 
-const credibilityDescriptionPrompt = function () {
+const credibilityDescriptionPrompt = function() {
   return `
             Creditability Score ranges from 0.0 - 1.0 and assesses how likely we think something is to be true.
             A score of 0.5 indicates total uncertainty, about the subject (which could be a Claim, Entity, Post, or other object with a Credibility Score).
@@ -278,11 +278,11 @@ const credibilityDescriptionPrompt = function () {
         `;
 };
 
-const credibilityJSONOutput = function () {
+const credibilityJSONOutput = function() {
   return `Output this JSON: {"credibility": 0.0-1.0, "reason": "why"}`;
 };
 
-const biasDescriptionPrompt = function () {
+const biasDescriptionPrompt = function() {
   return `
             Bias Scores range from 0.0 - 360.0 and assesses the political bias of the subject.
             A score of 0.0 indicates a right wing bias, 180.0 indicates a left wing bias, 270.0 indicates an extremist bias, and 90.0 indicates a centrist bias.
@@ -297,11 +297,11 @@ const biasDescriptionPrompt = function () {
         `;
 };
 
-const biasJSONOutput = function () {
+const biasJSONOutput = function() {
   return `Output this JSON: {"angle": 0.0-360.0, "reason": "why"}`;
 };
 
-const findStoryExample = function () {
+const findStoryExample = function() {
   return ` As was stated;
     A Post "belongs to" a Story if and only if one of these criteria are met:
     1. The Post *directly mentions* either by text or image the key events in the Story,
@@ -373,7 +373,7 @@ const findStoryExample = function () {
     If, for example the Posts each had the same photo OR VERY SIMILAR PHOTOS about the attack, you would output the photoURL and photoDescription of the first photo only (so as to dedupe), copied from one of the Posts. If the photos are different enough and both are relevant, you would output both photos, ordered by most interesting. If another Post were to come in with an unclear description, but the same photo, it is very likely part of the same Story. Try and order the insteresting photos first.`;
 };
 
-const findClaimsAndStoriesExample = function () {
+const findClaimsAndStoriesExample = function() {
   return `Let's say we have a Post that says: 
     "The loss of life in Gaza, military or civilian, is a tragedy that belongs to Hamas.
     I grieve as a father and my thoughts are with the families who lost their brave children."
@@ -403,7 +403,7 @@ const findClaimsAndStoriesExample = function () {
  * @param {boolean} includePhotoDescription // we can ommit if the outer fn has photos
  * @return {string} JSON string
  * */
-const postToJSON = function (post, includePhotoDescription = true) {
+const postToJSON = function(post, includePhotoDescription = true) {
   const formatted = {
     pid: post.pid,
     title: post.title,
@@ -425,7 +425,7 @@ const postToJSON = function (post, includePhotoDescription = true) {
   return JSON.stringify(formatted);
 };
 
-const claimToJSON = function (claim) {
+const claimToJSON = function(claim) {
   const formatted = {
     cid: claim.cid,
     value: claim.value,
@@ -443,7 +443,7 @@ const claimToJSON = function (claim) {
  * @param {Array<Claim>} claims
  * @return {string} JSON string
  * */
-const claimsToJSON = function (claims) {
+const claimsToJSON = function(claims) {
   return "[" + claims.map((claim) => claimToJSON(claim)) + "]";
 };
 
@@ -454,7 +454,7 @@ const claimsToJSON = function (claims) {
  * @param {boolean} includePhotoDescription
  * @return {string} JSON string
  * */
-const storyToJSON = function (story, includePhotoDescription = true) {
+const storyToJSON = function(story, includePhotoDescription = true) {
   const formatted = {
     sid: story.sid,
     title: story.title,
@@ -487,7 +487,7 @@ const storyToJSON = function (story, includePhotoDescription = true) {
  * @param {boolean} includePhotosDescription
  * @return {string} JSON string
  * */
-const storiesToJSON = function (stories, includePhotosDescription = true) {
+const storiesToJSON = function(stories, includePhotosDescription = true) {
   return "[" + stories.map((story) => storyToJSON(story, includePhotosDescription)) + "]";
 };
 
