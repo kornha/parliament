@@ -8,6 +8,24 @@
                 "<node_internals>/**"
             ],
             "type": "node"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Debug Mocha Tests",
+            "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
+            "args": [
+                "--require",
+                "esm",
+                "--timeout",
+                "999999",
+                "--colors",
+                "${workspaceFolder}/test/index.test.js"
+            ],
+            "internalConsoleOptions": "openOnSessionStart",
+            "skipFiles": [
+                "<node_internals>/**"
+            ]
         }
     ]
 }

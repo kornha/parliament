@@ -30,7 +30,7 @@ const _userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
  * Scrapes X feed for new posts and publishes the urls
  * @return {Promise<void>}
  * */
-const scrapeXFeed = async function() {
+const scrapeXFeed = async function () {
   const browser = await puppeteer.launch({headless: "new"});
   const page = await browser.newPage();
 
@@ -55,7 +55,7 @@ const scrapeXFeed = async function() {
  * Logs in if cookies are not sufficient
  * @param {page} page the page instance to connect with
  * */
-const connectToX = async function(page) {
+const connectToX = async function (page) {
   functions.logger.info("Connecting to X.");
 
   const email = _xEmailKey.value();
@@ -217,7 +217,7 @@ const autoScrollX = async function* (page, maxDuration = 90000) {
  * @param {string} poster uid to apply if posted by user
  * @return {Promise<Array<string>>} with pids
  * */
-const processXLinks = async function(xLinks, poster = null) {
+const processXLinks = async function (xLinks, poster = null) {
   const pids = [];
 
   for (const link of xLinks) {
@@ -269,7 +269,7 @@ const processXLinks = async function(xLinks, poster = null) {
  * @return {string} with creator
  * @return {string?} with photoURL
  */
-const getContentFromX = async function(url) {
+const getContentFromX = async function (url) {
   const browser = await puppeteer.launch({headless: "new"});
   const page = await browser.newPage();
 
@@ -277,7 +277,7 @@ const getContentFromX = async function(url) {
   let tweetVideoURL = null; // Initialize the video URL variable
   page.on("request", (request) => {
     if ((request.resourceType() === "media" ||
-    request.url().includes(".mp4")) && !tweetVideoURL) {
+      request.url().includes(".mp4")) && !tweetVideoURL) {
       tweetVideoURL = request.url();
     }
   });
@@ -295,7 +295,7 @@ const getContentFromX = async function(url) {
   // Hack, to be solved with x API
   // in this case needs a div, span at the end. Not sure why.
   const tweetAuthorSelector =
-  "article [data-testid=\"User-Name\"] div:nth-of-type(2) div span";
+    "article [data-testid=\"User-Name\"] div:nth-of-type(2) div span";
 
   // Selector for the image within the tweet, based on your structure
   const tweetImageSelector = "[data-testid='tweetPhoto'] img";
@@ -323,11 +323,11 @@ const getContentFromX = async function(url) {
     // eslint-disable-next-line no-undef
     const element = document.querySelector(selector);
     return element && element.innerText && element.innerText[0] == "@" ?
-    element.innerText : null;
+      element.innerText : null;
   }, tweetAuthorSelector);
 
   // Extract the 'src' attribute of the image
-  const tweetPhotoURL= await page.evaluate((selector) => {
+  const tweetPhotoURL = await page.evaluate((selector) => {
     // eslint-disable-next-line no-undef
     const element = document.querySelector(selector);
     return element ? element.src : null;
@@ -357,10 +357,10 @@ const getContentFromX = async function(url) {
  * Updates a post with metadata from X
  * @param {Post} post with xid, eid, pid
  * */
-const xupdatePost = async function(post) {
+const xupdatePost = async function (post) {
   if (!post || !post.xid || !post.eid || !post.url) {
     throw new functions.https
-        .HttpsError("invalid-argument", "No post provided.");
+      .HttpsError("invalid-argument", "No post provided.");
   }
 
   functions.logger.info(`Updating post: ${post.pid} with X metadata.`);
@@ -368,8 +368,8 @@ const xupdatePost = async function(post) {
   const xMetaData = await getContentFromX(post.url);
   if (!xMetaData) {
     throw new functions.https
-        .HttpsError("invalid-argument",
-            "Could not fetch content from " + post.url);
+      .HttpsError("invalid-argument",
+        "Could not fetch content from " + post.url);
   }
 
   const time = isoToMillis(xMetaData.isoTime);
@@ -407,7 +407,7 @@ const xupdatePost = async function(post) {
  * @param {string} sourceType in the post in question.
  * @return {string} with photoURL
  */
-const getEntityImage = async function(handle, sourceType) {
+const getEntityImage = async function (handle, sourceType) {
   if (sourceType == "x") {
     return await getEntityImageFromX(handle);
   }
@@ -421,7 +421,7 @@ const getEntityImage = async function(handle, sourceType) {
  * @param {string} handle in the post in question.
  * @return {string} with photoURL
  * */
-const getEntityImageFromX = async function(handle) {
+const getEntityImageFromX = async function (handle) {
   const browser = await puppeteer.launch({headless: "new"});
   const page = await browser.newPage();
 

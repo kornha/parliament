@@ -35,7 +35,7 @@ const geo = require("geofire-common");
  * @return {Promise<void>}
  * ***************************************************************
  * */
-const findStoriesAndClaims = async function(post) {
+const findStoriesAndClaims = async function (post) {
   if (!post) {
     functions.logger.error("Post is null");
     return;
@@ -57,10 +57,10 @@ const findStoriesAndClaims = async function(post) {
   // get all neighbor claims
   // this is a GRAPH search and potentially won't scare with our current db
   const sclaims = (await Promise.all(gstories.map(async (gstory) =>
-  gstory.sid ? (await getAllClaimsForStory(gstory.sid)).map((claim) => ({
-    ...claim,
-    context: gstory.title + " " + gstory.description,
-  })) : [],
+    gstory.sid ? (await getAllClaimsForStory(gstory.sid)).map((claim) => ({
+      ...claim,
+      context: gstory.title + " " + gstory.description,
+    })) : [],
   ))).flat();
 
   // Revearse search all posts from the stories
@@ -70,10 +70,10 @@ const findStoriesAndClaims = async function(post) {
 
   // get all neighbor claims to these posts
   const pclaims = (await Promise.all(posts.map(async (post) =>
-  post.pid ? (await getAllClaimsForPost(post.pid)).map((claim) => ({
-    ...claim,
-    context: post.title + " " + post.description,
-  })) : [],
+    post.pid ? (await getAllClaimsForPost(post.pid)).map((claim) => ({
+      ...claim,
+      context: post.title + " " + post.description,
+    })) : [],
   ))).flat();
 
   // merge the claims and dedupe
@@ -84,15 +84,15 @@ const findStoriesAndClaims = async function(post) {
 
   const resp =
     await generateCompletions(
-        findStoriesAndClaimsPrompt({
-          post: post,
-          stories: gstories,
-          claims: claims,
-          training: true,
-          includePhotos: true,
-        }),
-        "findStoriesAndClaims " + post.pid,
-        true,
+      findStoriesAndClaimsPrompt({
+        post: post,
+        stories: gstories,
+        claims: claims,
+        training: true,
+        includePhotos: true,
+      }),
+      "findStoriesAndClaims " + post.pid,
+      true,
     );
 
   // const resp =
@@ -117,9 +117,9 @@ const findStoriesAndClaims = async function(post) {
     if (index === 0 && post.sid !== sid) {
       await retryAsyncFunction(() => updatePost(post.pid, {
         sid: sid,
-      // updated via callback since the story may not exist yet
-      // sids: g2stories.map((gstory) => gstory.sid),
-      // cids: order does not matter so we add via callback
+        // updated via callback since the story may not exist yet
+        // sids: g2stories.map((gstory) => gstory.sid),
+        // cids: order does not matter so we add via callback
       }));
     }
 
@@ -222,7 +222,7 @@ const findStoriesAndClaims = async function(post) {
  * @return {Promise<void>}
  * ***************************************************************
  */
-const findStories = async function(post) {
+const findStories = async function (post) {
   if (!post) {
     functions.logger.error("Post is null");
     return;
@@ -237,19 +237,18 @@ const findStories = async function(post) {
   }
 
   const stories = await searchVectors(vector, "stories");
-  if (!stories || stories.length === 0) {
-    // functions.logger.info(`Post does not have a story! ${post.pid}`);
-  }
+
+  const _prompt = findStoriesPrompt({
+    post: post,
+    stories: stories,
+    training: true,
+    includePhotos: true,
+  });
 
   const resp = await generateCompletions(
-      findStoriesPrompt({
-        post: post,
-        stories: stories,
-        training: true,
-        includePhotos: true,
-      }),
-      "findStories " + post.pid,
-      true,
+    _prompt,
+    "findStories " + post.pid,
+    true,
   );
 
   // const resp =
@@ -274,7 +273,7 @@ const findStories = async function(post) {
  * @param {Post} post
  * @return {Promise<boolean>}
  */
-const savePostEmbeddings = async function(post) {
+const savePostEmbeddings = async function (post) {
   const strings = getPostEmbeddingStrings(post);
   if (strings.length === 0) {
     return true;
@@ -289,7 +288,7 @@ const savePostEmbeddings = async function(post) {
  * @param {Post} post
  * @return {string[]}
  */
-const getPostEmbeddingStrings = function(post) {
+const getPostEmbeddingStrings = function (post) {
   const ret = [];
   if (post.title) {
     ret.push(post.title);
