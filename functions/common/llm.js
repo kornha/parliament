@@ -57,7 +57,7 @@ const generateCompletions = async function(messages,
 
     ],
     // max_tokens: 300,
-    temperature: 0.01,
+    temperature: 0.00,
     model: imageModel ? "gpt-4o" : "ft:gpt-3.5-turbo-1106:parliament::9VmmK9Vp",
     response_format: {"type": "json_object"},
   });
@@ -148,7 +148,7 @@ const getAssistant = async function(prompt) {
       name: prompt,
       instructions: promptText,
       response_format: {"type": "json_object"},
-      temperature: 0.01,
+      temperature: 0.00,
       model: "gpt-4o",
     });
 

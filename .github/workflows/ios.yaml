@@ -5,7 +5,6 @@ on:
     paths: 
       - 'lib/**'
       - 'ios/**'
-      - 'pubspec.yaml'
       - '.github/workflows/ios.yaml'
 
 jobs:

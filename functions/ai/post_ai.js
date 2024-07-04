@@ -215,6 +215,7 @@ const findStoriesAndClaims = async function(post) {
 /**
  * ***************************************************************
  * Finds and Creates new stories if new stories are detected
+ * Splits and merges stories if needed
  *
  * Searches for nearby stories based on vector distance
  * Uses a Neural second pass to find correct stories for the post
@@ -236,11 +237,11 @@ const findStories = async function(post) {
     return;
   }
 
-  const stories = await searchVectors(vector, "stories");
+  const candidateStories = await searchVectors(vector, "stories");
 
   const _prompt = findStoriesPrompt({
     post: post,
-    stories: stories,
+    stories: candidateStories,
     training: true,
     includePhotos: true,
   });
@@ -251,11 +252,7 @@ const findStories = async function(post) {
       true,
   );
 
-  // const resp =
-  //   generateAssistantCompletions(findStoriesPrompt(post, stories),
-  //       "findStories");
-
-  writeTrainingData("findStories", post, stories, null, resp);
+  writeTrainingData("findStories", post, candidateStories, null, resp);
 
   if (!resp || !resp.stories || resp.stories.length === 0) {
     functions.logger.info(`Post does not have a story! ${post.pid}`);

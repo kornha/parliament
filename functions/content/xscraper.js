@@ -12,6 +12,7 @@ const {v5} = require("uuid");
 const {Timestamp} = require("firebase-admin/firestore");
 const {isoToMillis} = require("../common/utils");
 const {defineSecret} = require("firebase-functions/params");
+const {publishMessage, SHOULD_SCRAPE_FEED} = require("../common/pubsub");
 
 const _xHandleKey = defineSecret("X_HANDLE_KEY");
 const _xPasswordKey = defineSecret("X_PASSWORD_KEY");
@@ -28,20 +29,87 @@ const _userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
  * REQUIRES 1GB TO RUN!
  * REQUIRES LONGER TIMEOUT
  * Scrapes X feed for new posts and publishes the urls
+ * @param {string} feedUrl to start from, if null does not renavigate
  * @return {Promise<void>}
  * */
-const scrapeXFeed = async function() {
+const scrapeXFeed = async function(feedUrl) {
+  functions.logger.info(`Started scraping X feed. ${feedUrl}`);
+
   const browser = await puppeteer.launch({headless: "new"});
   const page = await browser.newPage();
 
   await connectToX(page);
 
+  if (feedUrl) {
+    await page.goto(feedUrl, {waitUntil: "networkidle2"});
+    await page.waitForNetworkIdle({idleTime: 1500});
+  }
+
   // Uses async generator to get links
-  for await (const link of autoScrollX(page)) {
+  for await (const link of autoScrollX(page, false)) {
     await processXLinks([link], null);
   }
 
   functions.logger.info("Finished scraping X feed.");
+
+  await browser.close();
+
+  return Promise.resolve();
+};
+
+/**
+ * REQUIRES 1GB TO RUN!
+ * Scrapes X for top news feeds
+ * @param {number} limit the number of feeds to include.
+ * Max is ~8 depends on the autoscroll duration
+ * @return {Promise<void>}
+ * */
+const scrapeXTopNews = async function(limit = 1) {
+  functions.logger.info("Started scraping top X news.");
+
+
+  const browser = await puppeteer.launch({headless: "new"});
+  const page = await browser.newPage();
+
+  await connectToX(page);
+
+  await page.goto("https://x.com/explore/tabs/news", {waitUntil: "networkidle2"});
+
+  // go to top news url https://x.com/explore/tabs/news
+  const uniqueEntries = new Set();
+  for await (const response of autoScrollX(page, true, 6000)) {
+    // await processXLinks([link], null);
+    if (response?.data?.timeline?.timeline?.instructions?.length) {
+      const entries = response.data.timeline.timeline.instructions
+          .find((item) => item.entries)?.entries ?? [];
+      // sort by sortIndex from X
+      entries.sort((a, b) => b.sortIndex - a.sortIndex);
+      let index = 0;
+      for (const entry of entries) {
+        if (index++ != 5) {
+          continue;
+        }
+        if (entry.entryId) {
+          if (entry?.entryId == "cursor-bottom") {
+            continue;
+          }
+          if (uniqueEntries.has(entry.entryId)) {
+            continue;
+          }
+          if (limit-- <= 0) {
+            break;
+          }
+          // TODO: we dedup here and not in autoScrollX. Change?
+          uniqueEntries.add(entry.entryId);
+          const link = `https://x.com/i/trending/${entry.entryId}`;
+          functions.logger.info(`Queueing feed: ${link}.`);
+          await publishMessage(SHOULD_SCRAPE_FEED, {link: link});
+        }
+      }
+    }
+  }
+
+  functions.logger.info("Finished scraping top X news.");
 
   await browser.close();
 
@@ -163,17 +231,43 @@ const connectToX = async function(page) {
 };
 
 /**
- * Scrolls an X page
+ * Scrolls an X page yielding links or responses
+ * Dedups links, not responses
  * THIS IS AN *ASYNC GENERATOR* FUNCTION,
  * it will yield the links found like a promise.all
  * @param {page} page the page instance to connect with
+ * @param {bool} yieldResponses whether to yield responses or links
  * @param {number} maxDuration the maximum duration to scroll
+ * @return {AsyncGenerator<string>} with response json or link urls
  */
-const autoScrollX = async function* (page, maxDuration = 90000) {
+const autoScrollX = async function* (page,
+    yieldResponses = false,
+    maxDuration = 14000,
+) {
   const startTime = Date.now();
   // eslint-disable-next-line no-undef
   let lastHeight = await page.evaluate(() => document.body.scrollHeight);
   const uniqueLinksSeen = new Set();
+  const responses = [];
+
+  if (yieldResponses) {
+    page.on("response", async (response) => {
+      try {
+        const headers = response.headers();
+
+        if (headers["content-type"]) {
+          const contentType = headers["content-type"];
+
+          if (contentType.includes("application/json")) {
+            const responseBody = await response.json();
+            responses.push(responseBody);
+          }
+        }
+      } catch (error) {
+        console.error("Error getting response body:", error);
+      }
+    });
+  }
 
   while (Date.now() - startTime < maxDuration) {
     // eslint-disable-next-line no-undef
@@ -181,34 +275,42 @@ const autoScrollX = async function* (page, maxDuration = 90000) {
 
     // eslint-disable-next-line no-undef
     const newHeight = await page.evaluate(() => document.body.scrollHeight);
+
     if (newHeight > lastHeight) {
       lastHeight = newHeight;
 
+      if (!yieldResponses) {
       // Fetch links and ensure they are fully
       // loaded by checking the absence of placeholders
-      const links = await page.evaluate(() => {
+        const links = await page.evaluate(() => {
         // eslint-disable-next-line no-undef
-        const items = document.querySelectorAll("article [role='link']");
-        const xRegex = /^https:\/\/x\.com\/\w+\/status\/\d+$/;
-        return Array.from(items).map((item) =>
-          item.href).filter((href) => xRegex.test(href));
-      });
+          const items = document.querySelectorAll("article [role='link']");
+          const xRegex = /^https:\/\/x\.com\/\w+\/status\/\d+$/;
+          return Array.from(items).map((item) =>
+            item.href).filter((href) => xRegex.test(href));
+        });
 
-      // Filter out any duplicates seen in this session
-      const newLinks = links.filter((link) => !uniqueLinksSeen.has(link));
-      newLinks.forEach((link) => uniqueLinksSeen.add(link));
+        // Filter out any duplicates seen in this session
+        const newLinks = links.filter((link) => !uniqueLinksSeen.has(link));
+        newLinks.forEach((link) => uniqueLinksSeen.add(link));
 
-      // Yield each new link found that does not include placeholders
-      for (const link of newLinks) {
-        yield link;
+        // Yield each new link found that does not include placeholders
+        for (const link of newLinks) {
+          yield link;
+        }
       }
     } else {
       // If no new height is detected, wait before the next scroll attempt
       await page.waitForTimeout(2000);
     }
   }
+  if (yieldResponses && responses.length > 0) {
+    for (const responseBody of responses) {
+      yield responseBody;
+    }
+    responses.length = 0; // Clear responses array
+  }
 };
-
 
 /**
  * goes through the links and creates an entity and post if not found
@@ -444,6 +546,7 @@ const getEntityImageFromX = async function(handle) {
 module.exports = {
   xupdatePost,
   scrapeXFeed,
+  scrapeXTopNews,
   processXLinks,
   //
   getContentFromX,

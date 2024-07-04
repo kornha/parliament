@@ -21,6 +21,8 @@ const CLAIM_CHANGED_VECTOR = "onClaimChangedVector";
 const CLAIM_CHANGED_CONTENT = "onClaimChangedContent";
 //
 const ENTITY_SHOULD_CHANGE_IMAGE = "onEntityShouldChangeImage";
+//
+const SHOULD_SCRAPE_FEED = "onShouldScrapeFeed";
 
 /**
  * Publishes a message to a Cloud Pub/Sub Topic.
@@ -53,4 +55,6 @@ module.exports = {
   CLAIM_CHANGED_CONTENT,
   //
   ENTITY_SHOULD_CHANGE_IMAGE,
+  //
+  SHOULD_SCRAPE_FEED,
 };

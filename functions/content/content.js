@@ -1,8 +1,9 @@
 const functions = require("firebase-functions");
 const {authenticate} = require("../common/auth");
-const {gbConfig, gbConfig5Min} = require("../common/functions");
+const {gbConfig, gbConfig5Min, defaultConfig} = require("../common/functions");
 const {urlToSourceType} = require("../common/utils");
-const {processXLinks, scrapeXFeed} = require("./xscraper");
+const {processXLinks, scrapeXTopNews, scrapeXFeed} = require("./xscraper");
+const {SHOULD_SCRAPE_FEED} = require("../common/pubsub");
 // ////////////////////////////
 // API's
 // ////////////////////////////
@@ -47,10 +48,28 @@ const onLinkPaste = functions.runWith(gbConfig)
  * */
 const onScrapeX = functions.runWith(gbConfig5Min)
     .https.onCall(async (data, context) => {
-      await scrapeXFeed();
+      // await scrapeXFeed();
+      await scrapeXTopNews();
       return Promise.resolve();
     });
 
+/**
+ * Pubsub to Scrape X feed
+ */
+const onScrapeFeed = functions
+    .runWith(defaultConfig)
+    .pubsub
+    .topic(SHOULD_SCRAPE_FEED)
+    .onPublish(async (message) => {
+      if (!message.json.link) {
+        functions.logger.error("No link provided.");
+        return Promise.resolve();
+      }
+
+      await scrapeXFeed(message.json.link);
+
+      return Promise.resolve();
+    });
 
 // ////////////////////////////
 // Helpers
@@ -59,4 +78,5 @@ const onScrapeX = functions.runWith(gbConfig5Min)
 module.exports = {
   onLinkPaste,
   onScrapeX,
+  onScrapeFeed,
 };
