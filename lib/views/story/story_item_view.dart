@@ -39,7 +39,7 @@ class _StoryViewState extends ConsumerState<StoryItemView> {
 
     return storyRef.isLoading || allPostsRef.isLoading
         ? const Loading(type: LoadingType.post)
-        : !allPostsRef.hasValue || (allPosts?.isEmpty ?? true)
+        : story == null || !allPostsRef.hasValue || (allPosts?.isEmpty ?? true)
             ? const SizedBox.shrink()
             : Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -47,7 +47,7 @@ class _StoryViewState extends ConsumerState<StoryItemView> {
                 children: [
                   Row(
                     children: [
-                      story?.headline != null
+                      story.headline != null
                           ? Expanded(
                               flex: 5,
                               child: MouseRegion(
@@ -56,7 +56,7 @@ class _StoryViewState extends ConsumerState<StoryItemView> {
                                   onTap: () => context.push(
                                       "${StoryView.location}/${story.sid}"),
                                   child: Text(
-                                    story!.headline!,
+                                    story.headline!,
                                     style: importance < 0.5
                                         ? context.mb
                                         : importance < 0.7
@@ -71,7 +71,7 @@ class _StoryViewState extends ConsumerState<StoryItemView> {
                             )
                           : const SizedBox.shrink(),
                       const Spacer(),
-                      story!.location != null
+                      story.location != null
                           ? LocationMap(location: story.location!)
                           : const SizedBox.shrink(),
                     ],

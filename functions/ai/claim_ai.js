@@ -1,7 +1,35 @@
-// const _ = require("lodash");
-
+const functions = require("firebase-functions");
 const {setVector} = require("../common/database");
-const {generateEmbeddings} = require("../common/llm");
+const {generateEmbeddings, generateCompletions} = require("../common/llm");
+const {writeTrainingData} = require("./trainer");
+const _ = require("lodash");
+const {findClaimsPrompt} = require("./prompts");
+
+const findClaims = async function(post, stories, claims) {
+  if (!post || _.isEmpty(stories)) {
+    functions.logger.error("Post/Stories is are missing. Cannot find claims");
+    return;
+  }
+
+  // Note we need not remove the claims already from the post
+
+  const resp =
+    await generateCompletions(
+        findClaimsPrompt({
+          post: post,
+          stories: stories,
+          claims: claims,
+          training: true,
+          includePhotos: true,
+        }),
+        "findClaims " + post.pid,
+        true,
+    );
+
+  writeTrainingData("findClaims", post, stories, claims, resp);
+
+  return resp.stories;
+};
 
 
 /**
@@ -40,5 +68,6 @@ const getClaimEmbeddingStrings = function(claim) {
 
 
 module.exports = {
+  findClaims,
   saveClaimEmbeddings,
 };

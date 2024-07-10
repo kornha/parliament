@@ -85,8 +85,9 @@ const scrapeXTopNews = async function(limit = 1) {
       // sort by sortIndex from X
       entries.sort((a, b) => b.sortIndex - a.sortIndex);
       let index = 0;
+      const rand = Math.floor(Math.random() * 10);
       for (const entry of entries) {
-        if (index++ != 5) {
+        if (index++ != rand) {
           continue;
         }
         if (entry.entryId) {
@@ -242,7 +243,7 @@ const connectToX = async function(page) {
  */
 const autoScrollX = async function* (page,
     yieldResponses = false,
-    maxDuration = 14000,
+    maxDuration = 11000,
 ) {
   const startTime = Date.now();
   // eslint-disable-next-line no-undef

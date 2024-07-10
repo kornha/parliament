@@ -232,7 +232,7 @@ const deletePost = async function(pid) {
 /**
  * Determines if we can find stories or if it is already in progress
  * Sets the post status to "finding" if we can proceed
- * Requires Post to be in "published" status with a vector
+ * Requires Post to be in "published" or "found" status with a vector
  * @param {String} pid
  * @return {Boolean} shouldProceed
  * */
@@ -250,11 +250,13 @@ const canFindStories = async function(pid) {
     const postDoc = await transaction.get(postRef);
     const post = postDoc.data();
 
-    if (!post || !post.vector || post.status != "published") {
+    if (!post || !post.vector ||
+      (post.status != "published" && post.status != "found")
+    ) {
       return;
     }
 
-    if (post.status == "published") {
+    if (post.status == "published" || post.status == "found") {
       transaction.update(postRef, {status: "finding"});
       shouldProceed = true;
     }
@@ -344,6 +346,21 @@ const getStory = async function(sid) {
   } catch (e) {
     functions.logger.error(e);
     return null;
+  }
+};
+
+const deleteStory = async function(sid) {
+  if (!sid) {
+    functions.logger.error(`Could not delete story: ${sid}`);
+    return;
+  }
+  const storyRef = admin.firestore().collection("stories").doc(sid);
+  try {
+    await storyRef.delete();
+    return true;
+  } catch (e) {
+    functions.logger.error(e);
+    return false;
   }
 };
 
@@ -863,6 +880,7 @@ module.exports = {
   createStory,
   setStory,
   updateStory,
+  deleteStory,
   getStory,
   getRecentStories,
   getStories,

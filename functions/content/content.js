@@ -1,7 +1,8 @@
 const functions = require("firebase-functions");
 const {authenticate} = require("../common/auth");
-const {gbConfig, gbConfig5Min, defaultConfig} = require("../common/functions");
+const {gbConfig, gbConfig5Min} = require("../common/functions");
 const {urlToSourceType} = require("../common/utils");
+// eslint-disable-next-line no-unused-vars
 const {processXLinks, scrapeXTopNews, scrapeXFeed} = require("./xscraper");
 const {SHOULD_SCRAPE_FEED} = require("../common/pubsub");
 // ////////////////////////////
@@ -48,7 +49,7 @@ const onLinkPaste = functions.runWith(gbConfig)
  * */
 const onScrapeX = functions.runWith(gbConfig5Min)
     .https.onCall(async (data, context) => {
-      // await scrapeXFeed();
+      // await scrapeXFeed("...");
       await scrapeXTopNews();
       return Promise.resolve();
     });
@@ -57,7 +58,7 @@ const onScrapeX = functions.runWith(gbConfig5Min)
  * Pubsub to Scrape X feed
  */
 const onScrapeFeed = functions
-    .runWith(defaultConfig)
+    .runWith(gbConfig)
     .pubsub
     .topic(SHOULD_SCRAPE_FEED)
     .onPublish(async (message) => {

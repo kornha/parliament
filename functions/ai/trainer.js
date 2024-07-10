@@ -1,6 +1,6 @@
 /* eslint-disable max-len */
 const {setContent, getContent} = require("../common/storage");
-const {findStoriesPrompt, findStoriesAndClaimsPrompt} = require("./prompts");
+const {findStoriesPrompt, findClaimsPrompt} = require("./prompts");
 const functions = require("firebase-functions");
 
 const filePath = "training/fine_tune.jsonl";
@@ -33,10 +33,10 @@ async function(promptName, post, stories, claims, output) {
         includePhotos: false,
       }),
     });
-  } else if (promptName === "findStoriesAndClaims") {
+  } else if (promptName === "findClaims") {
     messages.push({
       role: "user",
-      content: findStoriesAndClaimsPrompt({
+      content: findClaimsPrompt({
         post: post,
         stories: stories,
         claims: claims,

@@ -2,7 +2,7 @@ const {defineSecret} = require("firebase-functions/params");
 const {OpenAI} = require("openai");
 const functions = require("firebase-functions");
 const {findStoriesForTrainingText,
-  findStoriesAndClaimsForTrainingText} = require("../ai/prompts");
+  findClaimsForTrainingText} = require("../ai/prompts");
 const {getContent, setContent} = require("../common/storage");
 const _openApiKey = defineSecret("OPENAI_API_KEY");
 
@@ -115,21 +115,22 @@ const generateEmbeddings = async function(texts) {
 };
 
 const findStoriesPath = "assistants/findStories.json";
-const findStoriesAndClaimsPath = "assistants/findStoriesAndClaims.json";
+const findClaimsPath = "assistants/findClaims.json";
 
 /**
+ * DEPRECATED
  * Using the assistants api, get the reuseable assistant for the given prompt
  * @param {string} prompt
  * @return {Promise<string>} assistant id
  */
 const getAssistant = async function(prompt) {
-  if (prompt !== "findStories" && prompt !== "findStoriesAndClaims") {
+  if (prompt !== "findStories" && prompt !== "findClaims") {
     functions.logger.error("Invalid prompt");
     throw new Error("Invalid prompt");
   }
 
   const path =
-    prompt == "findStories" ? findStoriesPath : findStoriesAndClaimsPath;
+    prompt == "findStories" ? findStoriesPath : findClaimsPath;
 
   const assistantStorage = await getContent(path);
 
@@ -141,7 +142,7 @@ const getAssistant = async function(prompt) {
   }
 
   const promptText = prompt == "findStories" ?
-    findStoriesForTrainingText() : findStoriesAndClaimsForTrainingText();
+    findStoriesForTrainingText() : findClaimsForTrainingText();
 
   const assistant =
     await llm().beta.assistants.create({

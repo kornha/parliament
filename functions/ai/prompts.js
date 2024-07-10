@@ -45,13 +45,13 @@ const findStoriesPrompt = function({post, stories, training = false, includePhot
   }
 
   messages.push({type: "text", text: "Only output Stories that you are certain Post belongs to. The Post must either directly mention the content in the Story, or make a Claim about the Story. For any Stories that you output, order them by most to least relevant."});
-  messages.push({type: "text", text: `{"stories":[${storyJSONOutput()}, ...]}`});
+  messages.push({type: "text", text: `{"stories":[${storyJSONOutput()}, ...], "removed":["sid1", "sid2", ...]}`});
 
   return messages;
 };
 
 
-const findStoriesAndClaimsPrompt = function({
+const findClaimsPrompt = function({
   post,
   stories,
   claims,
@@ -59,7 +59,7 @@ const findStoriesAndClaimsPrompt = function({
   includePhotos = true}) {
   // Assuming each post and story has an 'photoURL' property
   const messages = training ? [
-    {type: "text", text: findStoriesAndClaimsForTrainingText()},
+    {type: "text", text: findClaimsForTrainingText()},
   ] : [];
 
   messages.push({type: "text", text: `Here is the Post: ${postToJSON(post, !includePhotos)}`});
@@ -115,11 +115,16 @@ const findStoriesForTrainingText = function() {
   Description of a Story:
   ${storyDescriptionPrompt()}
 
-  Return only Stories that this Post "belongs to". Create new Stories if the Post "belongs to" a Story that is not in the list of candidate Stories.
+  - Return only Stories that this Post "belongs to". 
+  - Create new Stories if the Post "belongs to" a Story that is not in the list of candidate Stories. 
+  - If multiple candidate Stories "belong to" each other, or in contrast if a candidate Story is overloaded and discussing multiple events, you may choose to Merge or Split the Story(ies). In this case, Simply output the new merged/split Story(ies) as a new Story(ies), and include the old Stor(ies) in the 'removed' output.
+  - You should always return at least 1 Story (new or candidate).
   
   A Post "belongs to" a Story if and only if one of these criteria are met:
   1. The Post *directly mentions* the key events in the Story,
   2. The Post *makes a claim* specifically about the Story's key event.
+  3. The Post is *overwhelmingly likely* to be about the Story, and mentions some details of the Story.
+  4. The Post contains a photo that is relevant or duplicated from the Story.
 
   If a Post does not meet these criteria, it does not "belong to" the Story and should *NOT* be included in the output. Output a new Story if the Post provides sufficient information to define a distinct new event that is not covered by any existing candidate Stories.
 
@@ -131,7 +136,7 @@ const findStoriesForTrainingText = function() {
 `;
 };
 
-const findStoriesAndClaimsForTrainingText = function() {
+const findClaimsForTrainingText = function() {
   return `
   You will be given a Post, a list of Stories (can be empty), and a list of Claims (can be empty).
 
@@ -304,8 +309,12 @@ const biasJSONOutput = function() {
 const findStoryExample = function() {
   return ` As was stated;
     A Post "belongs to" a Story if and only if one of these criteria are met:
-    1. The Post *directly mentions* either by text or image the key events in the Story,
+    1. The Post *directly mentions* the key events in the Story,
     2. The Post *makes a claim* specifically about the Story's key event.
+    3. The Post is *very likely* to be about the Story, and mentions some details of the Story.
+    4. The Post contains a photo that is relevant or duplicated from the Story.
+
+    You may also need to Merge or Split Stories if the Post introduces information that causes a candidate Story to be Merged or Split.
 
     This is an example that demonstrates this:
     
@@ -334,13 +343,15 @@ const findStoryExample = function() {
 
     We have 1 candidate Story, the Eight Soldier Story just created above.
     
+    POST 2 OUTPUT:
     This Post does *NOT* belong to the candidate Story "Eight Israeli Soldiers Killed in Gaza Attack" because it does not directly mention the key event (8 soldiers killed) or make a claim about the soldiers being killed. 
     Compared to our criteria:
-    1. The Post *directly mentions* either by text or image the key events in the Story, NOT FULFILLED
-    2. The Post *makes a claim* specifically about the Story's key event. NOT FULFILLED
+    1. The Post *directly mentions* the key events in the Story, NOT FULLFILLED.
+    2. The Post *makes a claim* specifically about the Story's key event. NOT FULLFILLED.
+    3. The Post is *very likely* to be about the Story, and mentions some details of the Story. NOT FULLFILLED, the Post is not *very likly* to be specifically related to the Soliders death though it is a similar time and place.
+    4. The Post contains a photo that is relevant or duplicated from the Story. NOT FULLFILLED.
     Since this Post does not meet the criteria for belonging to the existing Story, we will output only a new Story.
-
-    POST 2 OUTPUT: 
+ 
     The output is only the *new* Story, which is titled: "Palestinian Peace Activists Against Hamas". It is an Opinion with only 1 Post, so it has ultra low importance, 0.05. Its happenedAt is vague and should be set to the time of the sourceCreatedAt. The lat/long should be the best guess of the location of the Post, which is likely Gaza. The other fields can be inferred, and are omitted in this instruction.
 
     POST 3, 2 CANDIDATE STORIES: 
@@ -357,17 +368,87 @@ const findStoryExample = function() {
 
     The importance could be updated to 0.5 as there are 2 Posts now. The happenedAt will still refer to the initial threat, and our best guess of 3 hours before the first Post is still the most reasonable. The lat/long should also remain the same.
 
-    POST 4, 2 CANDIDATE STORIES:
+    POST 4, 1 CANIDATE STORY:
+    Post:
+    "Italy raided factories & found that Armani and Dior bags are made by illegal Chinese workers in Italy who sleep in the workshop and make €2-3/hr. Both companies have been placed under Italian court administration. \n\nDior paid a supplier $57 to assemble* a handbag that sells for $2,780\n\nArmani bags that were sold to consumers for €1,800 cost €93* to make. \n\n(These don’t include raw materials costs)\n\nPeople often wrongly conflate higher prices for higher ethical standards."
+    sourceCreatedAt: "2024-07-04T04:00:00Z"
+    photo: "A woman carrying a Dior bag".
+
+    Candidate Story:
+    title: "Dior Bag Production Costs",
+    headline: "Dior Bags: $57 to Make, $2,780 to Buy",
+    subHeadline: "Italian prosecutors reveal Dior's production costs for luxury bags.",
+    description: "Italian prosecutors have uncovered that Dior pays only $57 to produce bags that retail for $2,780. This revelation raises questions about the pricing strategies of luxury brands and the value they offer to consumers.
+    happenedAt: "2024-07-03T23:00:00Z"
+
+    POST 4 OUTPUT:
+    Post 4 belongs to the Dior Bag Story, as it mentions elements of the Story, is a similar time and place, and is *very likely* to be talking about the Story.
+
+    POST 5, 2 CANDIDATE STORIES:
     "I was talking to a friend from Gaza this morning, and I thought I knew what they were going through until he opened the camera and showed me the massive destruction of an area where we used to hang out. At first, I were unsure of him because I struggled to recall the neighborhood, which I used to visit at least once each week. Observing people's shapes can reveal how they are suffering as a result of the scarcity of food entering Gaza."
     sourceCreatedAt: "2024-06-15T8:08:00Z"
 
     The two candidate Stories are the Eight Soldier Story and the Palestinian Peace Activists Story. 
     
-    POST 4 OUTPUT:
+    POST 5 OUTPUT:
     This Post does not belong to either of the Stories. It *does not directly mention* the death of the soldiers, nor does it make a Claim about the Story. It does not mention the Palestinian peace activists, nor does it make a Claim about them either. It is its own Story. 
     It should have an importance of 0.2, since it's a personal anecdote, and not providing newsworthy information.
 
-    END RESULT: 4 POSTS, 3 STORIES
+    POST 6, 2 CANDIDATE STORIES:
+    "BREAKING: Israeli Haaretz: IDF Ordered Hannibal Directive on October 7 to Prevent Hamas Taking Soldiers Captive Documents and testimonies obtained by Haaretz reveal the Hannibal operational order, which directs the use of force to prevent soldiers being taken into captivity, was employed at three army facilities infiltrated by Hamas, potentially endangering civilians as well. Haaretz proves once again that Israel allowed October 7th to happen, and is responsible for the largest number of Israeli civilian casualties on that day."
+    sourceCreatedAt: "2024-06-20T8:08:00Z"
+
+    Candidate Stories:
+    1) 
+      title: "IDF Hannibal Directive on October 7",
+      headline: "IDF Used Hannibal Directive to Prevent Hamas Capturing Soldiers",
+      subHeadline: "IDF's Hannibal directive on October 7 aimed to prevent Hamas from taking soldiers captive, potentially endangering civilians.",
+      description: "Documents and testimonies obtained by Haaretz reveal that the IDF employed the Hannibal operational order on October 7 to prevent soldiers from being taken captive by Hamas. This directive, which directs the use of force to prevent soldiers from being taken into captivity, was employed at three army facilities infiltrated by Hamas, potentially endangering civilians as well.",
+      happenedAt: "2024-06-20T8:08:00Z"
+    2)
+      title: "Hannibal Directive Used on October 7",
+      headline: "Israel Used Hannibal Directive on October 7",
+      subHeadline: "Haaretz confirms Israel's use of the Hannibal directive on October 7, targeting vehicles and areas near Gaza.",
+      description: "Haaretz confirms that Israel used the Hannibal directive on October 7, which included orders to attack any vehicle driving towards Gaza, indiscriminately bomb the area with mortar shells and artillery, and make it a 'kill zone'. Drones were also dispatched to attack the Re’im outpost close to the Nova festival. The directive was employed at three army facilities infiltrated by Hamas, potentially endangering civilians.",
+      happenedAt: "2024-06-20T8:08:00Z"
+
+    POST 6 OUTPUT:
+    Clearly, the two candidate Stories are about the same event, the IDF's use of the Hannibal Directive on October 7. The Stories should be Merged, and the Post belongs to the Merged Story. Hence, the output should be a new Story, with information from both events (omitted here). The "removed" section of the output should include the SIDs from both candidate Stories.
+
+    POST 7, 4 CANDIDATE STORIES:
+    "Senator JD Vance says he has “not gotten the call” from Trump asking him to be his VP. This comes amid a whirlwind of speculation about who Trump will pick as his running mate.",
+    sourceCreatedAt: "2024-06-20T8:08:00Z"
+
+    Candidate Stories:
+    1) 
+      title: "Trump VP Selection Speculation",
+      headline: "Trump's VP Pick: White Man or Marco Rubio?",
+      subHeadline: "Speculation arises about Trump's potential VP pick being a white man or Marco Rubio.",
+      description: "Donald Trump is speculated to pick a white man or Marco Rubio, who is perceived by some as thinking he is white, for his Vice President. This speculation is based on a social media post by Dean Obeidallah. Additionally, there is speculation that Trump will not choose a running mate who is a hardliner on abortion. All the aspirants clearly understand that and are willing to abandon positions they held for decades with the exception of Tim Scott, which is one reason he won’t be picked. The new post suggests that the VP choice will not be someone from Florida, indicating a disappointment in the current political landscape.",
+      happenedAt: "2024-06-20T8:08:00Z"
+    2)
+      title: "Trump Vice President Appointment",
+      headline: "Who Will Trump Appoint as Vice President?",
+      subHeadline: "Public asked for opinions on Trump's Vice President appointment.",
+      description: "A social media post is asking the public who they want to see President Trump appoint as his Vice President. The post does not provide any further details or context about the appointment.",
+      happenedAt: "2024-06-20T9:31:00Z"
+    3) 
+      title: "Trump VP Selection Announcement",
+      headline: "Trump to Announce VP Selection This Week",
+      subHeadline: "Donald Trump is expected to reveal his Vice Presidential pick this week.",
+      description: "Donald Trump is reportedly set to announce his Vice Presidential selection this week. The announcement is highly anticipated and has generated significant public interest. Additionally, there is speculation that Trump will not choose a running mate who is a hardliner on abortion.",
+      happenedAt: "2024-06-20T10:01:00Z"
+    4)
+      title: "Palestinian Peace Activists Against Hamas",
+      headline: "Palestinian Peace Activists Speak Out Against Hamas",
+      subHeadline: "Palestinian peace activists face imprisonment and death for criticizing Hamas.",
+      description: "The Post discusses the plight of Palestinian peace activists who argue against Hamas' ideology and face imprisonment and death for their criticism.",
+      happenedAt: "2024-06-20T10:01:00Z"
+
+    POST 5 OUTPUT:
+    In this case, the first 3 candidate Stories are clearly discussing the speculation around Trump's VP pick. The Stories have a very similar happenedAt, and have the same subject. They clearly "belong to" each other, and should be Merged. The 4th candidate Story does not belong to the other Stories. The Post "belongs to" the new, Merged, Story. Hence the output is a new Story, and the removed section should include the 3 SIDs of the Stories that were merged. The 4th candidate Story is not outputted at all.
+
+    END OF EXAMPLE.
 
     A note on photos:
     If, for example the Posts each had the same photo OR VERY SIMILAR PHOTOS about the attack, you would output the photoURL and photoDescription of the first photo only (so as to dedupe), copied from one of the Posts. If the photos are different enough and both are relevant, you would output both photos, ordered by most interesting. If another Post were to come in with an unclear description, but the same photo, it is very likely part of the same Story. Try and order the insteresting photos first.`;
@@ -493,9 +574,9 @@ const storiesToJSON = function(stories, includePhotosDescription = true) {
 
 module.exports = {
   findStoriesPrompt,
-  findStoriesAndClaimsPrompt,
+  findClaimsPrompt,
   findStoriesForTrainingText,
-  findStoriesAndClaimsForTrainingText,
+  findClaimsForTrainingText,
   //
   generateImageDescriptionPrompt,
   //

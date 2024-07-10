@@ -41,8 +41,11 @@ exports.onStoryUpdate = functions
         _update && (before.sid != after.sid ||
           !_.isEqual(before.pids, after.pids)) ||
         _delete && !_.isEmpty(before.pids)) {
-        // for updating the story vector
-        publishMessage(STORY_CHANGED_POSTS, {sid: after?.sid || before?.sid});
+        // noop if story was deleted
+        if (!_delete) {
+          // for updating the story vector
+          publishMessage(STORY_CHANGED_POSTS, {sid: after?.sid || before?.sid});
+        }
 
         // for updating the post, can probably use the pubsub
         await storyChangedPosts(before, after);
@@ -80,13 +83,13 @@ exports.onStoryChangedPosts = functions
         return Promise.resolve();
       }
 
-      publishMessage(STORY_SHOULD_CHANGE_VECTOR, {sid: sid});
-
       const story = await getStory(sid);
       if (!story) {
-        functions.logger.error(`Could not fetch story to regenerate: ${sid}`);
+        functions.logger.info(`Story deleted: ${sid}`);
         return Promise.resolve();
       }
+
+      publishMessage(STORY_SHOULD_CHANGE_VECTOR, {sid: sid});
 
       return Promise.resolve();
     });
@@ -109,7 +112,7 @@ exports.onStoryShouldChangeVector = functions
       }
       const story = await getStory(sid);
       if (!story) {
-        functions.logger.error(`Could not fetch story to regenerate: ${sid}`);
+        functions.logger.info(`Story deleted: ${sid}`);
         return Promise.resolve();
       }
 

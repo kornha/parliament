@@ -11,20 +11,18 @@ const {
   createStory,
   updatePost,
   setVector,
-  searchVectors} = require("../common/database");
-const {generateCompletions, generateEmbeddings} = require("../common/llm");
+  deleteStory,
+} = require("../common/database");
+const {generateEmbeddings} = require("../common/llm");
 
-const {
-  findStoriesPrompt,
-  findStoriesAndClaimsPrompt,
-  // findStoriesPrompt,
-  // findStoriesAndClaimsPrompt,
-} = require("./prompts");
 const {retryAsyncFunction, isoToMillis} = require("../common/utils");
 const {v4} = require("uuid");
 const {Timestamp, FieldValue, GeoPoint} = require("firebase-admin/firestore");
-const {writeTrainingData} = require("./trainer");
 const geo = require("geofire-common");
+const {findStories} = require("./story_ai");
+const {findClaims} = require("./claim_ai");
+const {publishMessage, POST_SHOULD_FIND_STORIES_AND_CLAIMS} =
+require("../common/pubsub");
 
 /** FLAGSHIP FUNCTION
  * ***************************************************************
@@ -41,18 +39,21 @@ const findStoriesAndClaims = async function(post) {
     return;
   }
 
-  functions.logger.info(`Finding stories and claims for post ${post.pid}`);
+  functions.logger.info(`findStoriesAndClaims for post ${post.pid}`);
 
   // Finds stories based on 2 leg K-mean/Neural search
-  const gstories = await findStories(post);
+  const resp = await findStories(post);
+  const gstories = resp.stories;
+  const removedSids = resp.removed;
 
   if (!gstories || gstories.length === 0) {
     functions.logger.warn(`Post does not have a gstory! ${post.pid}`);
     return;
   }
 
-  functions.logger.info(`Found ${gstories.length}
-  stories for post ${post.pid}`);
+  functions.logger.info("Found " +
+    gstories.length + " stories for post " + post.pid);
+
 
   // get all neighbor claims
   // this is a GRAPH search and potentially won't scare with our current db
@@ -80,28 +81,7 @@ const findStoriesAndClaims = async function(post) {
   // this represents all P-[2]-C claims
   const claims = _.uniqBy([...sclaims, ...pclaims], "cid");
 
-  // Note we need not remove the claims already from the post
-
-  const resp =
-    await generateCompletions(
-        findStoriesAndClaimsPrompt({
-          post: post,
-          stories: gstories,
-          claims: claims,
-          training: true,
-          includePhotos: true,
-        }),
-        "findStoriesAndClaims " + post.pid,
-        true,
-    );
-
-  // const resp =
-  // generateAssistantCompletions("findStoriesAndClaims",
-  //     findStoriesAndClaimsPrompt(post, gstories, claims));
-
-  writeTrainingData("findStoriesAndClaims", post, gstories, claims, resp);
-
-  const g2stories = resp.stories;
+  const g2stories = await findClaims(post, gstories, claims);
 
   if (_.isEmpty(g2stories)) {
     functions.logger.warn(`Could not generate stories or claims for post. 
@@ -171,8 +151,8 @@ const findStoriesAndClaims = async function(post) {
     if (!_.isEmpty(gstoryClaim.claims)) {
       await Promise.all(gstoryClaim.claims.map(async (gclaim) => {
         if (gclaim.cid) {
-          functions.logger.info(`Processing claim ${gclaim.cid} 
-          for story ${sid}, for post ${post.pid}`);
+          functions.logger.info("Processing claim " +
+             gclaim.cid + " for story " + sid + ", for post " + post.pid);
 
           await retryAsyncFunction(() => updateClaim(gclaim.cid, {
             sids: FieldValue.arrayUnion(sid),
@@ -189,8 +169,10 @@ const findStoriesAndClaims = async function(post) {
           }));
         } else {
           const _cid = v4();
-          functions.logger.info(`Creating claim claim ${_cid} 
-          for story ${sid}, for post ${post.pid}`);
+
+          functions.logger.info("Creating claim " +
+            _cid + " for story " + sid + ", from post " + post.pid);
+
           await retryAsyncFunction(() => createClaim({
             cid: _cid,
             value: gclaim.value,
@@ -207,61 +189,36 @@ const findStoriesAndClaims = async function(post) {
     }
   }));
 
-  functions.logger.info(`Done finding stories and claims for post ${post.pid}`);
+  if (!_.isEmpty(removedSids)) {
+    functions.logger.info(`removing sids ${removedSids}`);
+
+    // Revearse search all posts from the stories
+    const changedPosts = (await Promise.all(removedSids.map((sid) =>
+      getAllPostsForStory(sid),
+    ))).flat();
+
+    if (_.isEmpty(changedPosts)) {
+      functions.logger.error(`No posts found, 
+      not deleting Stories ${removedSids}`);
+    } else {
+      // delete stories
+      await Promise.all(removedSids.map(async (sid) => {
+        await retryAsyncFunction(() => deleteStory(sid));
+      }));
+
+      functions.logger.info(`Deleted stories ${removedSids}`);
+
+      changedPosts.forEach((post) => {
+        publishMessage(POST_SHOULD_FIND_STORIES_AND_CLAIMS, {pid: post.pid});
+      });
+    }
+  }
+
+
+  functions.logger.info(`Done findStoriesAndClaims for post ${post.pid}`);
 
   return Promise.resolve();
 };
-
-/**
- * ***************************************************************
- * Finds and Creates new stories if new stories are detected
- * Splits and merges stories if needed
- *
- * Searches for nearby stories based on vector distance
- * Uses a Neural second pass to find correct stories for the post
- * @param {Post} post
- * @return {Promise<void>}
- * ***************************************************************
- */
-const findStories = async function(post) {
-  if (!post) {
-    functions.logger.error("Post is null");
-    return;
-  }
-
-  // use a retriable with longer backoff since the db is eventually consistent
-  const vector = post.vector;
-  if (!vector) {
-    functions.logger.error(`Post does not have a vector! ${post.pid}`);
-    // should we add it here??
-    return;
-  }
-
-  const candidateStories = await searchVectors(vector, "stories");
-
-  const _prompt = findStoriesPrompt({
-    post: post,
-    stories: candidateStories,
-    training: true,
-    includePhotos: true,
-  });
-
-  const resp = await generateCompletions(
-      _prompt,
-      "findStories " + post.pid,
-      true,
-  );
-
-  writeTrainingData("findStories", post, candidateStories, null, resp);
-
-  if (!resp || !resp.stories || resp.stories.length === 0) {
-    functions.logger.info(`Post does not have a story! ${post.pid}`);
-    return;
-  }
-
-  return resp.stories;
-};
-
 
 /**
  * Fetches the post embeddings from OpenAI and saves them to the database
@@ -303,7 +260,6 @@ const getPostEmbeddingStrings = function(post) {
 };
 
 module.exports = {
-  findStories,
   findStoriesAndClaims,
   savePostEmbeddings,
   getPostEmbeddingStrings,

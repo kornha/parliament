@@ -1,10 +1,70 @@
 const functions = require("firebase-functions");
 const {getPostsForStory,
-  setVector} = require("../common/database");
-const {generateEmbeddings} = require("../common/llm");
+  setVector,
+  searchVectors} = require("../common/database");
+const {generateEmbeddings, generateCompletions} = require("../common/llm");
 const {calculateMeanVector} = require("../common/utils");
-const {getPostEmbeddingStrings} = require("./post_ai");
 const _ = require("lodash");
+const {writeTrainingData} = require("./trainer");
+const {findStoriesPrompt} = require("./prompts");
+
+/**
+ * ***************************************************************
+ * Finds and Creates new stories if new stories are detected
+ * Splits and merges stories if needed
+ *
+ * Searches for nearby stories based on vector distance
+ * Uses a Neural second pass to find correct stories for the post
+ * @param {Post} post
+ * @return {Promise<Gstories,Removed>}
+ * ***************************************************************
+ */
+const findStories = async function(post) {
+  if (!post) {
+    functions.logger.error("Post is null");
+    return;
+  }
+
+  // use a retriable with longer backoff since the db is eventually consistent
+  const vector = post.vector;
+  if (!vector) {
+    functions.logger.error(`Post does not have a vector! ${post.pid}`);
+    // should we add it here??
+    return;
+  }
+
+  const candidateStories = await searchVectors(vector, "stories");
+
+  functions.logger.info("Found " +
+     candidateStories.length + " candidate stories for post " + post.pid);
+
+
+  candidateStories.forEach((story, index) => {
+    functions.logger.info(`Candidate story ${index + 1}: ${story.sid}`);
+  });
+
+  const _prompt = findStoriesPrompt({
+    post: post,
+    stories: candidateStories,
+    training: true,
+    includePhotos: true,
+  });
+
+  const resp = await generateCompletions(
+      _prompt,
+      "findStories " + post.pid,
+      true,
+  );
+
+  writeTrainingData("findStories", post, candidateStories, null, resp);
+
+  if (!resp || !resp.stories || resp.stories.length === 0) {
+    functions.logger.info(`Post does not have a story! ${post.pid}`);
+    return;
+  }
+
+  return resp;
+};
 
 /**
  * K MEANS STREAMING ALGORITHM
@@ -57,16 +117,29 @@ const resetStoryVector = async function(story) {
 };
 
 /**
- * Currently calls getPostEmbeddingStrings
  * @param {Story} story
  * @return {Array}
  * @async
  * */
 const getStoryEmbeddingStrings = function(story) {
-  return getPostEmbeddingStrings(story);
+  const ret = [];
+  if (story.title) {
+    ret.push(story.title);
+  }
+  if (story.headline) {
+    ret.push(story.headline);
+  }
+  if (story.subHeadline) {
+    ret.push(story.subHeadline);
+  }
+  if (story.description) {
+    ret.push(story.description);
+  }
+  return ret;
 };
 
 module.exports = {
+  findStories,
   resetStoryVector,
 };
 
