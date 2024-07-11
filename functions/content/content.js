@@ -58,7 +58,7 @@ const onScrapeX = functions.runWith(gbConfig5Min)
  * Pubsub to Scrape X feed
  */
 const onScrapeFeed = functions
-    .runWith(gbConfig)
+    .runWith(gbConfig5Min)
     .pubsub
     .topic(SHOULD_SCRAPE_FEED)
     .onPublish(async (message) => {

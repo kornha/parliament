@@ -24,6 +24,10 @@
       "collectionId": "stories",
       "fields": [
         {
+          "fieldPath": "happenedAt",
+          "mode": "DESCENDING"
+        },
+        {
           "fieldPath": "vector",
           "vectorConfig": {
             "dimension": 1536,
