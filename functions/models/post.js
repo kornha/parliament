@@ -142,7 +142,10 @@ exports.onPostPublished = functions
     });
 
 exports.onPostShouldFindStoriesAndClaims = functions
-    .runWith(gbConfig)
+    .runWith({
+      ...gbConfig,
+      maxInstances: 1, // IMPORTANT! Forces FindStoriesAndClaims in sequence
+    })
     .pubsub
     .topic(POST_SHOULD_FIND_STORIES_AND_CLAIMS)
     .onPublish(async (message) => {
@@ -157,6 +160,9 @@ exports.onPostShouldFindStoriesAndClaims = functions
       await findStoriesAndClaims(post);
 
       await updatePost(pid, {status: "found"});
+
+      // sleep for 3s to await vectorization
+      await new Promise((resolve) => setTimeout(resolve, 4000));
 
       return Promise.resolve();
     });

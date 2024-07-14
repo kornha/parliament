@@ -49,7 +49,7 @@ const onLinkPaste = functions.runWith(gbConfig)
  * */
 const onScrapeX = functions.runWith(gbConfig5Min)
     .https.onCall(async (data, context) => {
-      // await scrapeXFeed("...");
+    // await scrapeXFeed("...");
       await scrapeXTopNews();
       return Promise.resolve();
     });
