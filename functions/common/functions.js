@@ -1,13 +1,13 @@
 exports.gbConfig = {
   timeoutSeconds: 60,
-  memory: "1GB",
+  memory: "2GB",
   secrets: ["OPENAI_API_KEY", "PINECONE_KEY",
     "X_HANDLE_KEY", "X_PASSWORD_KEY", "X_EMAIL_KEY"],
 };
 
 exports.gbConfig5Min = {
   timeoutSeconds: 300,
-  memory: "1GB",
+  memory: "2GB",
   secrets: ["OPENAI_API_KEY", "PINECONE_KEY",
     "X_HANDLE_KEY", "X_PASSWORD_KEY", "X_EMAIL_KEY"],
 };

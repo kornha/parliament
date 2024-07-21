@@ -40,17 +40,27 @@ const scrapeXFeed = async function(feedUrl) {
 
   await connectToX(page);
 
+  // const takeScreenshots = setInterval(async () => {
+  //   const screenshotBuffer = await page.screenshot();
+  //   const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+  //   const fileName = `screenshots/screenshot-${timestamp}.png`;
+  //   await setContent(fileName, screenshotBuffer, "image/png");
+  // }, 2000);
+
   if (feedUrl) {
     await page.goto(feedUrl, {waitUntil: "networkidle2"});
     await page.waitForNetworkIdle({idleTime: 1500});
   }
 
   // Uses async generator to get links
-  for await (const link of autoScrollX(page, false)) {
+  for await (const link of autoScrollX(page, false, 10000)) {
+    // console.log("Link: ", link);
     await processXLinks([link], null);
   }
 
   functions.logger.info("Finished scraping X feed.");
+
+  // clearInterval(takeScreenshots);
 
   await browser.close();
 
@@ -78,7 +88,6 @@ const scrapeXTopNews = async function(limit = 1) {
   // go to top news url https://x.com/explore/tabs/news
   const uniqueEntries = new Set();
   for await (const response of autoScrollX(page, true, 6000)) {
-    // await processXLinks([link], null);
     if (response?.data?.timeline?.timeline?.instructions?.length) {
       const entries = response.data.timeline.timeline.instructions
           .find((item) => item.entries)?.entries ?? [];
@@ -243,7 +252,7 @@ const connectToX = async function(page) {
  */
 const autoScrollX = async function* (page,
     yieldResponses = false,
-    maxDuration = 11000,
+    maxDuration = 10000,
 ) {
   const startTime = Date.now();
   // eslint-disable-next-line no-undef

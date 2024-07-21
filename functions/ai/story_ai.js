@@ -1,7 +1,8 @@
 const functions = require("firebase-functions");
 const {getPostsForStory,
   setVector,
-  searchVectors} = require("../common/database");
+  searchVectors,
+  getStory} = require("../common/database");
 const {generateEmbeddings, generateCompletions} = require("../common/llm");
 const {calculateMeanVector} = require("../common/utils");
 const _ = require("lodash");
@@ -69,17 +70,17 @@ const findStories = async function(post) {
 /**
  * K MEANS STREAMING ALGORITHM
  * Updates the story vector
- * @param {Story} story - The story id to update
+ * @param {String} sid - The story id to update
  * @return {Promise<void>}
  * @async
  * */
-const resetStoryVector = async function(story) {
-  if (!story || !story.sid) {
+const resetStoryVector = async function(sid) {
+  if (!sid) {
     functions.logger.error(`Could not fetch story to update vector: 
-    ${story.sid}`);
+    ${sid}`);
     return;
   }
-  const posts = await getPostsForStory(story.sid);
+  const posts = await getPostsForStory(sid);
   const pids = posts.map((post) => post.pid);
   const vectors = _.isEmpty(pids) ? [] : posts.map((post) => post.vector);
   if (vectors.length > 0) {
@@ -88,7 +89,7 @@ const resetStoryVector = async function(story) {
     const mean = calculateMeanVector(vectors);
 
     try {
-      await setVector(story.sid, mean, "stories");
+      await setVector(sid, mean, "stories");
       return true;
     } catch (e) {
       functions.logger.error("Error saving Story embeddings", e);
@@ -97,17 +98,18 @@ const resetStoryVector = async function(story) {
   }
 
   // if no vectors, we default to title/description for the vector
+  const story = await getStory(sid);
   const strings = getStoryEmbeddingStrings(story);
   if (strings.length === 0) {
     functions.logger.error(`Could not save Story embeddings, 
-    no strings! ${story.sid}`);
+    no strings! ${sid}`);
     return;
   }
 
   try {
     // images will need to be added here if we create them
     const embeddings = await generateEmbeddings(strings);
-    await setVector(story.sid, embeddings, "stories");
+    await setVector(sid, embeddings, "stories");
     // publishMessage(POST_CHANGED_VECTOR, {pid: post.pid});
     return true;
   } catch (e) {

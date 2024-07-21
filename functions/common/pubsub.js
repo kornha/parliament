@@ -12,7 +12,6 @@ const POST_SHOULD_FIND_STORIES_AND_CLAIMS = "onPostShouldFindStoriesAndClaims";
 //
 const STORY_CHANGED_VECTOR = "onStoryChangedVector";
 const STORY_CHANGED_POSTS = "onStoryChangedPosts";
-const STORY_SHOULD_CHANGE_VECTOR = "onStoryShouldChangeVector";
 const STORY_SHOULD_CHANGE_CLAIMS = "onStoryShouldChangeClaims";
 //
 const CLAIM_CHANGED_POSTS = "onClaimChangedPosts";
@@ -46,7 +45,6 @@ module.exports = {
   //
   STORY_CHANGED_POSTS,
   STORY_SHOULD_CHANGE_CLAIMS,
-  STORY_SHOULD_CHANGE_VECTOR,
   STORY_CHANGED_VECTOR,
   //
   CLAIM_CHANGED_POSTS,

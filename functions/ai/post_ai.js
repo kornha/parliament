@@ -19,10 +19,13 @@ const {retryAsyncFunction, isoToMillis} = require("../common/utils");
 const {v4} = require("uuid");
 const {Timestamp, FieldValue, GeoPoint} = require("firebase-admin/firestore");
 const geo = require("geofire-common");
-const {findStories} = require("./story_ai");
+const {findStories, resetStoryVector} = require("./story_ai");
 const {findClaims} = require("./claim_ai");
+// eslint-disable-next-line no-unused-vars
 const {publishMessage, POST_SHOULD_FIND_STORIES_AND_CLAIMS} =
 require("../common/pubsub");
+const {POST_SHOULD_FIND_STORIES_AND_CLAIMS_TASK, queueTask} =
+require("../common/tasks");
 
 /** FLAGSHIP FUNCTION
  * ***************************************************************
@@ -146,7 +149,9 @@ const findStoriesAndClaims = async function(post) {
         // cids: gstoryClaim.claims.map((gclaim) => gclaim.cid),
       }));
     }
-
+    // NOTE!: Duplicate logic as in story.js but done here so that later
+    // posts find the stories without waiting for a separate update
+    await resetStoryVector(sid);
 
     if (!_.isEmpty(gstoryClaim.claims)) {
       await Promise.all(gstoryClaim.claims.map(async (gclaim) => {
@@ -208,8 +213,9 @@ const findStoriesAndClaims = async function(post) {
 
       functions.logger.info(`Deleted stories ${removedSids}`);
 
-      changedPosts.forEach((post) => {
-        publishMessage(POST_SHOULD_FIND_STORIES_AND_CLAIMS, {pid: post.pid});
+      changedPosts.forEach(async (post) => {
+        // publishMessage(POST_SHOULD_FIND_STORIES_AND_CLAIMS, {pid: post.pid});
+        queueTask(POST_SHOULD_FIND_STORIES_AND_CLAIMS_TASK, {pid: post.pid});
       });
     }
   }

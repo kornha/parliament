@@ -4,8 +4,6 @@ const functions = require("firebase-functions");
 const {defaultConfig} = require("../common/functions");
 const {publishMessage,
   STORY_CHANGED_POSTS,
-  STORY_SHOULD_CHANGE_VECTOR,
-
 } = require("../common/pubsub");
 const _ = require("lodash");
 const {resetStoryVector} = require("../ai/story_ai");
@@ -89,34 +87,7 @@ exports.onStoryChangedPosts = functions
         return Promise.resolve();
       }
 
-      publishMessage(STORY_SHOULD_CHANGE_VECTOR, {sid: sid});
-
-      return Promise.resolve();
-    });
-
-/**
- * called when a story should change its vector
- * eg because it has new posts
- * @param {string} sid
- * @return {Promise<void>}
- */
-exports.onStoryShouldChangeVector = functions
-    .runWith(defaultConfig)
-    .pubsub
-    .topic(STORY_SHOULD_CHANGE_VECTOR)
-    .onPublish(async (message) => {
-      const sid = message.json.sid;
-      if (!sid) {
-        functions.logger.error(`Invalid sid: ${sid}`);
-        return Promise.resolve();
-      }
-      const story = await getStory(sid);
-      if (!story) {
-        functions.logger.info(`Story deleted: ${sid}`);
-        return Promise.resolve();
-      }
-
-      resetStoryVector(story);
+      await resetStoryVector(story.sid);
 
       return Promise.resolve();
     });

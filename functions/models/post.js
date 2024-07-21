@@ -19,6 +19,8 @@ const {FieldValue} = require("firebase-admin/firestore");
 const {xupdatePost} = require("../content/xscraper");
 const {generateCompletions} = require("../common/llm");
 const {generateImageDescriptionPrompt} = require("../ai/prompts");
+const {queueTask, POST_SHOULD_FIND_STORIES_AND_CLAIMS_TASK} =
+require("../common/tasks");
 
 
 //
@@ -112,7 +114,13 @@ exports.onPostChangedVector = functions
       }
 
       if (post.status == "published" && post.sid == null) {
-        await publishMessage(POST_SHOULD_FIND_STORIES_AND_CLAIMS, {pid: pid});
+        const canFind = await canFindStories(pid);
+        if (canFind) {
+        // await publishMessage
+          // (POST_SHOULD_FIND_STORIES_AND_CLAIMS, {pid: pid});
+          await queueTask(POST_SHOULD_FIND_STORIES_AND_CLAIMS_TASK,
+              {pid: pid});
+        }
       }
 
       return Promise.resolve();
@@ -133,36 +141,16 @@ exports.onPostPublished = functions
       const post = await getPost(pid);
 
       if (post && post.vector) {
-        await publishMessage(POST_SHOULD_FIND_STORIES_AND_CLAIMS, {pid: pid});
+        const canFind = await canFindStories(pid);
+        if (canFind) {
+        // await publishMessage
+        // (POST_SHOULD_FIND_STORIES_AND_CLAIMS, {pid: pid});
+          await queueTask(POST_SHOULD_FIND_STORIES_AND_CLAIMS_TASK,
+              {pid: pid});
+        }
       }
 
       await createNewRoom(pid, "posts");
-
-      return Promise.resolve();
-    });
-
-exports.onPostShouldFindStoriesAndClaims = functions
-    .runWith({
-      ...gbConfig,
-      maxInstances: 1, // IMPORTANT! Forces FindStoriesAndClaims in sequence
-    })
-    .pubsub
-    .topic(POST_SHOULD_FIND_STORIES_AND_CLAIMS)
-    .onPublish(async (message) => {
-      const pid = message.json.pid;
-
-      const canFind = await canFindStories(pid);
-      if (!canFind) {
-        return Promise.resolve();
-      }
-
-      const post = await getPost(pid);
-      await findStoriesAndClaims(post);
-
-      await updatePost(pid, {status: "found"});
-
-      // sleep for 3s to await vectorization
-      await new Promise((resolve) => setTimeout(resolve, 4000));
 
       return Promise.resolve();
     });
@@ -317,3 +305,61 @@ exports.claimChangedPosts = async function(before, after) {
     }
   }
 };
+
+//
+// FIND STORIES AND CLAIMS
+//
+// We have both a pubsub & tasks for this since we are using concurrency control
+// which we need tasks for. They implement the same function
+//
+
+exports.onPostShouldFindStoriesAndClaimsTask = functions.runWith(gbConfig)
+    .tasks.taskQueue({
+      retryConfig: {
+        maxAttempts: 2,
+      },
+      rateLimits: {
+        maxConcurrentDispatches: 1,
+      },
+    }).onDispatch(async (message) => {
+      functions.logger.info(
+          `onPostShouldFindStoriesAndClaimsTask: ${message.pid}`);
+      const pid = message.pid;
+      await _shouldFindStoriesAndClaims(pid);
+      return Promise.resolve();
+    });
+
+/**
+ * Finds stories and claims for a post
+ * @param {Message} message
+ * @return {Promise<void>}
+ * */
+exports.onPostShouldFindStoriesAndClaims = functions
+    .runWith(gbConfig)
+    .pubsub
+    .topic(POST_SHOULD_FIND_STORIES_AND_CLAIMS)
+    .onPublish(async (message) => {
+      functions.logger.info(
+          `onPostShouldFindStoriesAndClaimsPubsub: ${message.pid}`);
+      const pid = message.json.pid;
+      await _shouldFindStoriesAndClaims(pid);
+      return Promise.resolve();
+    });
+
+const _shouldFindStoriesAndClaims = async function(pid) {
+  // const canFind = await canFindStories(pid);
+  // if (!canFind) {
+  //   return Promise.resolve();
+  // }
+
+  const post = await getPost(pid);
+  await findStoriesAndClaims(post);
+
+  await updatePost(pid, {status: "found"});
+
+  // sleep to await vectorization
+  await new Promise((resolve) => setTimeout(resolve, 7000));
+
+  return Promise.resolve();
+};
+exports.shouldFindStoriesAndClaims = _shouldFindStoriesAndClaims;

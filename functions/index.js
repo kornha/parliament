@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 const admin = require("firebase-admin");
 const {onRoomChange, startDebate} = require("./messages/room");
 const {onMessageChange} = require("./messages/message");
@@ -7,7 +8,9 @@ const {TaskQueue} = require( "firebase-admin/functions");
 const {onPostUpdate, onPostPublished,
   onPostShouldFindStoriesAndClaims,
   onPostChangedXid,
-  onPostChangedVector} = require("./models/post");
+  onPostChangedVector,
+  shouldFindStoriesAndClaims,
+  onPostShouldFindStoriesAndClaimsTask} = require("./models/post");
 const {onVoteBiasChange, onVoteCredibilityChange} = require("./models/vote");
 const {generateBiasTraining} = require("./ai/scripts");
 const {onLinkPaste, onScrapeX, onScrapeFeed} = require("./content/content");
@@ -24,17 +27,26 @@ const {onEntityUpdate,
 admin.initializeApp();
 
 // For Local Task Mocking Only
-Object.assign(TaskQueue.prototype, {
-  enqueue: (data, params) => {
-    const end = new Date(params.scheduleTime);
-    const now = Date.now();
-    const delta = end - now;
-
-    setTimeout(() => {
-      debateDidTimeOut(data);
-    }, delta);
-  },
-});
+if (process.env.FUNCTIONS_EMULATOR == "true") {
+  Object.assign(TaskQueue.prototype, {
+    enqueue: async (message, params) => {
+      if (message.pid) {
+      // post
+        functions.logger.info(
+            `local onPostShouldFindStoriesAndClaimsTask: ${message.pid}`);
+        await shouldFindStoriesAndClaims(message.pid);
+      } else {
+      // debate
+        const end = new Date(params.scheduleTime);
+        const now = Date.now();
+        const delta = end - now;
+        setTimeout(() => {
+          debateDidTimeOut(message);
+        }, delta);
+      }
+    },
+  });
+}
 
 // Used as a dev-time helper to test functions
 const functions = require("firebase-functions");
@@ -53,6 +65,7 @@ module.exports = {
   onMessageChange,
   onPostPublished,
   onPostShouldFindStoriesAndClaims,
+  onPostShouldFindStoriesAndClaimsTask,
   onPostChangedVector,
   onPostChangedXid,
   // Story
