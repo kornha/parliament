@@ -347,18 +347,10 @@ exports.onPostShouldFindStoriesAndClaims = functions
     });
 
 const _shouldFindStoriesAndClaims = async function(pid) {
-  // const canFind = await canFindStories(pid);
-  // if (!canFind) {
-  //   return Promise.resolve();
-  // }
-
   const post = await getPost(pid);
   await findStoriesAndClaims(post);
 
   await updatePost(pid, {status: "found"});
-
-  // sleep to await vectorization
-  await new Promise((resolve) => setTimeout(resolve, 7000));
 
   return Promise.resolve();
 };

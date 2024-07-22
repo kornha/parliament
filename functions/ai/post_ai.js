@@ -149,6 +149,7 @@ const findStoriesAndClaims = async function(post) {
         // cids: gstoryClaim.claims.map((gclaim) => gclaim.cid),
       }));
     }
+
     // NOTE!: Duplicate logic as in story.js but done here so that later
     // posts find the stories without waiting for a separate update
     await resetStoryVector(sid);
