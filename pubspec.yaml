@@ -82,6 +82,29 @@ flutter:
     - family: Minecart
       fonts:
         - asset: assets/fonts/Minecart_LCD.ttf
+    - family: Georgia
+      fonts:
+        - asset: assets/fonts/georgia.ttf
+        - asset: assets/fonts/georgia_bold.ttf
+          weight: 700
+        - asset: assets/fonts/georgia_italic.ttf
+          style: italic
+        - asset: assets/fonts/georgia_z.ttf
+          weight: 700
+          style: italic
+    - family: Avenir
+      fonts:
+        - asset: assets/fonts/avenir_book.ttf
+          weight: 400
+        - asset: assets/fonts/avenir_heavy.ttf
+          weight: 700
+        - asset: assets/fonts/avenir_light.ttf
+          weight: 300
+        - asset: assets/fonts/avenir_black.ttf
+          weight: 900
+        - asset: assets/fonts/avenir_regular.ttf
+          weight: 500
+    
 
 # run this command to regenerate
 # flutter pub run flutter_launcher_icons

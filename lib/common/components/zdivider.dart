@@ -26,9 +26,9 @@ class ZDivider extends StatelessWidget {
             )
           : Divider(
               color: type == DividerType.PRIMARY
-                  ? context.primaryColor
+                  ? context.surfaceColorBright
                   : context.surfaceColor,
-              thickness: type == DividerType.PRIMARY ? 2 : 2,
+              thickness: type == DividerType.PRIMARY ? 1.5 : 1.5,
             ),
     );
   }

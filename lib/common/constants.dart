@@ -64,6 +64,7 @@ class IconSize {
   static const double large = 33;
   static const double xl = 50;
   static const double xxl = 75;
+  static const double xxxl = 100;
 }
 
 class Block {

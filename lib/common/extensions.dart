@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
@@ -372,6 +373,7 @@ extension ConstantsExt on BuildContext {
   double get iconSizeLarge => IconSize.large;
   double get iconSizeXL => IconSize.xl;
   double get iconSizeXXL => IconSize.xxl;
+  double get iconSizeXXXL => IconSize.xxxl;
 }
 
 extension TextExt on BuildContext {
@@ -397,18 +399,29 @@ extension TextExt on BuildContext {
       color: primaryColor,
       fontFamily: "Minecart");
 
-  TextStyle get sb => s.copyWith(fontWeight: FontWeight.bold);
-  TextStyle get mb => m.copyWith(fontWeight: FontWeight.bold);
-  TextStyle get lb => l.copyWith(fontWeight: FontWeight.bold);
-  TextStyle get h3b => h3.copyWith(fontWeight: FontWeight.bold);
-  TextStyle get h2b => h2.copyWith(fontWeight: FontWeight.bold);
-  TextStyle get h1b => h1.copyWith(fontWeight: FontWeight.bold);
-
-  // Theme.of(this).textTheme.displayLarge!;
+  TextStyle get d1 => Theme.of(this).textTheme.displayLarge!;
+  TextStyle get d2 => Theme.of(this).textTheme.displayMedium!;
+  TextStyle get d3 => Theme.of(this).textTheme.displaySmall!;
   TextStyle get h1 => Theme.of(this).textTheme.headlineLarge!;
   TextStyle get h2 => Theme.of(this).textTheme.headlineMedium!;
   TextStyle get h3 => Theme.of(this).textTheme.headlineSmall!;
+  TextStyle get h4 => Theme.of(this).textTheme.titleLarge!;
+  TextStyle get h5 => Theme.of(this).textTheme.titleMedium!;
+  TextStyle get h6 => Theme.of(this).textTheme.titleSmall!;
+  TextStyle get l => Theme.of(this).textTheme.bodyLarge!;
   TextStyle get m => Theme.of(this).textTheme.bodyMedium!;
   TextStyle get s => Theme.of(this).textTheme.bodySmall!;
-  TextStyle get l => Theme.of(this).textTheme.bodyLarge!;
+
+  TextStyle get d1b => d1.copyWith(fontWeight: FontWeight.bold);
+  TextStyle get d2b => d2.copyWith(fontWeight: FontWeight.bold);
+  TextStyle get d3b => d3.copyWith(fontWeight: FontWeight.bold);
+  TextStyle get h1b => h1.copyWith(fontWeight: FontWeight.bold);
+  TextStyle get h2b => h2.copyWith(fontWeight: FontWeight.bold);
+  TextStyle get h3b => h3.copyWith(fontWeight: FontWeight.bold);
+  TextStyle get h4b => h4.copyWith(fontWeight: FontWeight.bold);
+  TextStyle get h5b => h5.copyWith(fontWeight: FontWeight.bold);
+  TextStyle get h6b => h6.copyWith(fontWeight: FontWeight.bold);
+  TextStyle get lb => l.copyWith(fontWeight: FontWeight.bold);
+  TextStyle get mb => m.copyWith(fontWeight: FontWeight.bold);
+  TextStyle get sb => s.copyWith(fontWeight: FontWeight.bold);
 }

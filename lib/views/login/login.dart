@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:political_think/common/components/logo.dart';
 import 'package:political_think/common/components/zscaffold.dart';
 import 'package:political_think/common/extensions.dart';
 import 'package:political_think/common/services/auth.dart';
@@ -26,6 +27,11 @@ class _LoginState extends ConsumerState<Login> {
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            const Spacer(),
+            const Logo(size: 150),
+            context.sd,
+            Text("Parliament", style: context.d1),
+            const Spacer(flex: 5),
             TextButton(
               child: const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -44,6 +50,7 @@ class _LoginState extends ConsumerState<Login> {
                 );
               },
             ),
+            context.sf,
           ],
         ),
       ),

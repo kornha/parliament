@@ -58,9 +58,9 @@ class _StoryViewState extends ConsumerState<StoryItemView> {
                                   child: Text(
                                     story.headline!,
                                     style: importance < 0.5
-                                        ? context.mb
+                                        ? context.h5b
                                         : importance < 0.7
-                                            ? context.lb
+                                            ? context.h4b
                                             : importance < 0.9
                                                 ? context.h3b
                                                 : context.h2b,

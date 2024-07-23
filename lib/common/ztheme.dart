@@ -26,7 +26,7 @@ class ZTheme {
     inputDecorationTheme: const InputDecorationTheme(
       fillColor: Colors.red,
     ),
-    textTheme: GoogleFonts.nunitoTextTheme().apply(
+    textTheme: textTheme().apply(
       bodyColor: Palette.white,
       displayColor: Palette.white,
     ),
@@ -54,8 +54,7 @@ class ZTheme {
     inputDecorationTheme: const InputDecorationTheme(
       fillColor: Colors.red,
     ),
-
-    textTheme: GoogleFonts.nunitoTextTheme(),
+    textTheme: textTheme(),
     fontFamily: GoogleFonts.nunito().fontFamily,
     // highlightColor: Colors.transparent,
     // splashColor: Colors.transparent,
@@ -137,4 +136,69 @@ class ZTheme {
       ),
     ),
   );
+
+  static TextTheme textTheme() {
+    return const TextTheme(
+      displayLarge: TextStyle(
+        fontFamily: 'Georgia',
+        color: Palette.black,
+      ),
+      displayMedium: TextStyle(
+        fontFamily: 'Georgia',
+        color: Palette.black,
+      ),
+      displaySmall: TextStyle(
+        fontFamily: 'Georgia',
+        color: Palette.black,
+      ),
+      headlineLarge: TextStyle(
+        fontFamily: 'Georgia',
+        color: Palette.black,
+      ),
+      headlineMedium: TextStyle(
+        fontFamily: 'Georgia',
+        color: Palette.black,
+      ),
+      headlineSmall: TextStyle(
+        fontFamily: 'Georgia',
+        color: Palette.black,
+      ),
+      titleLarge: TextStyle(
+        fontFamily: 'Georgia',
+        color: Palette.black,
+      ),
+      titleMedium: TextStyle(
+        fontFamily: 'Georgia',
+        color: Palette.black,
+      ),
+      titleSmall: TextStyle(
+        fontFamily: 'Georgia',
+        color: Palette.black,
+      ),
+      bodyLarge: TextStyle(
+        fontFamily: 'Avenir',
+        color: Palette.black,
+      ),
+      bodyMedium: TextStyle(
+        fontFamily: 'Avenir',
+        color: Palette.black,
+      ),
+      bodySmall: TextStyle(
+        fontFamily: 'Avenir',
+        color: Palette.black,
+      ),
+      labelLarge: TextStyle(
+        fontFamily: 'Avenir',
+        color: Palette.black,
+      ),
+      labelMedium: TextStyle(
+        fontFamily: 'Avenir',
+        color: Palette.black,
+      ),
+      labelSmall: TextStyle(
+        fontFamily: 'Avenir',
+        color: Palette.black,
+      ),
+    );
+  }
 }
