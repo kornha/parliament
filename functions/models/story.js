@@ -4,13 +4,15 @@ const functions = require("firebase-functions");
 const {defaultConfig} = require("../common/functions");
 const {publishMessage,
   STORY_CHANGED_POSTS,
+  STORY_CHANGED_CLAIMS,
+  CLAIM_CHANGED_STORIES,
+  POST_CHANGED_STORIES,
 } = require("../common/pubsub");
 const _ = require("lodash");
 const {resetStoryVector} = require("../ai/story_ai");
-const {getStory, updateStory} = require("../common/database");
+const {updateStory} = require("../common/database");
 const {retryAsyncFunction} = require("../common/utils");
 const {FieldValue} = require("firebase-admin/firestore");
-const {storyChangedPosts} = require("./post");
 
 //
 // Firestore
@@ -33,22 +35,6 @@ exports.onStoryUpdate = functions
       const _delete = before && !after;
       const _update = before && after;
 
-      // Story changed posts
-      if (
-        _create && !_.isEmpty(after.pids) ||
-        _update && (before.sid != after.sid ||
-          !_.isEqual(before.pids, after.pids)) ||
-        _delete && !_.isEmpty(before.pids)) {
-        // noop if story was deleted
-        if (!_delete) {
-          // for updating the story vector
-          publishMessage(STORY_CHANGED_POSTS, {sid: after?.sid || before?.sid});
-        }
-
-        // for updating the post, can probably use the pubsub
-        await storyChangedPosts(before, after);
-      }
-
       if (
         _create && (after.title || after.description) ||
         _delete && (before.title || before.description) ||
@@ -58,32 +44,40 @@ exports.onStoryUpdate = functions
         // storyChangedContent
       }
 
+      if (
+        _create && !_.isEmpty(after.pids) ||
+        _update && !_.isEqual(before.pids, after.pids) ||
+        _delete && !_.isEmpty(before.pids)) {
+        await publishMessage(STORY_CHANGED_POSTS,
+            {before: before, after: after});
+      }
+
+      if (
+        _create && !_.isEmpty(after.cids) ||
+        _update && !_.isEqual(before.cids, after.cids) ||
+        _delete && !_.isEmpty(before.cids)) {
+        await publishMessage(STORY_CHANGED_CLAIMS,
+            {before: before, after: after});
+      }
+
       return Promise.resolve();
     });
 
 /**
- * Regenerates the story title, description, and happenedAt
- * Signals to update vector
- *
- * called when a story changes its Posts
- * need to regenerate the story vector and data
+ * Called when a story changes its Posts
+ * Regenerates the story vector via K means
+ * Semi-duplicated logic from findStories
  * @param {string} sid
  * @return {Promise<void>}
  */
-exports.onStoryChangedPosts = functions
+exports.onStoryShouldChangeVector = functions
     .runWith(defaultConfig)
     .pubsub
-    .topic(STORY_CHANGED_POSTS)
+    .topic(STORY_CHANGED_POSTS) // NOTE THE PUBSUB TOPIC
     .onPublish(async (message) => {
-      const sid = message.json.sid;
-      if (!sid) {
-        functions.logger.error(`Invalid sid: ${sid}`);
-        return Promise.resolve();
-      }
-
-      const story = await getStory(sid);
-      if (!story) {
-        functions.logger.info(`Story deleted: ${sid}`);
+      const story = message.json.after;
+      if (!story || !story.sid) {
+        // noop if deleted
         return Promise.resolve();
       }
 
@@ -98,37 +92,52 @@ exports.onStoryChangedPosts = functions
  * @param {Post} before
  * @param {Post} after
  */
-exports.postChangedStories = function(before, after) {
-  if (!after) {
-    (before.sids || []).forEach((sid) => {
-      retryAsyncFunction(() => updateStory(sid, {
-        pids: FieldValue.arrayRemove(before.pid),
-      }));
-    });
-  } else if (!before) {
-    (after.sids || []).forEach((sid) => {
-      retryAsyncFunction(() => updateStory(sid, {
-        pids: FieldValue.arrayUnion(after.pid),
-      }));
-    });
-  } else {
-    const removed = (before.sids || [])
-        .filter((sid) => !(after.sids || []).includes(sid));
-    const added = (after.sids || [])
-        .filter((sid) => !(before.sids || []).includes(sid));
+exports.onPostChangedStories = functions
+    .runWith(defaultConfig)
+    .pubsub
+    .topic(POST_CHANGED_STORIES) // NOTE THE PUBSUB TOPIC
+    .onPublish(async (message) => {
+      const before = message.json.before;
+      const after = message.json.after;
+      if (!after) {
+        for (const sid of (before.sids || [])) {
+          await retryAsyncFunction(() => updateStory(sid, {
+            pids: FieldValue.arrayRemove(before.pid),
+          },
+          5, // skip not found errors
+          ));
+        }
+      } else if (!before) {
+        for (const sid of (after.sids || [])) {
+          await retryAsyncFunction(() => updateStory(sid, {
+            pids: FieldValue.arrayUnion(after.pid),
+          },
+          5, // skip not found errors
+          ));
+        }
+      } else {
+        const removed = (before.sids || [])
+            .filter((sid) => !(after.sids || []).includes(sid));
+        const added = (after.sids || [])
+            .filter((sid) => !(before.sids || []).includes(sid));
 
-    removed.forEach((sid) => {
-      retryAsyncFunction(() => updateStory(sid, {
-        pids: FieldValue.arrayRemove(after.pid),
-      }));
+        for (const sid of removed) {
+          await retryAsyncFunction(() => updateStory(sid, {
+            pids: FieldValue.arrayRemove(after.pid),
+          },
+          5, // skip not found errors
+          ));
+        }
+        for (const sid of added) {
+          await retryAsyncFunction(() => updateStory(sid, {
+            pids: FieldValue.arrayUnion(after.pid),
+          },
+          5, // skip not found errors
+          ));
+        }
+      }
+      return Promise.resolve();
     });
-    added.forEach((sid) => {
-      retryAsyncFunction(() => updateStory(sid, {
-        pids: FieldValue.arrayUnion(after.pid),
-      }));
-    });
-  }
-};
 
 /**
  * 'TXN' - called from claim.js
@@ -136,34 +145,49 @@ exports.postChangedStories = function(before, after) {
  * @param {Claim} before
  * @param {Claim} after
  */
-exports.claimChangedStories = async function(before, after) {
-  if (!after) {
-    for (const sid of (before.sids || [])) {
-      await retryAsyncFunction(() => updateStory(sid, {
-        cids: FieldValue.arrayRemove(before.cid),
-      }));
-    }
-  } else if (!before) {
-    for (const sid of (after.sids || [])) {
-      await retryAsyncFunction(() => updateStory(sid, {
-        cids: FieldValue.arrayUnion(after.cid),
-      }));
-    }
-  } else {
-    const removed = (before.sids || [])
-        .filter((sid) => !(after.sids || []).includes(sid));
-    const added = (after.sids || [])
-        .filter((sid) => !(before.sids || []).includes(sid));
+exports.onClaimChangedStories = functions
+    .runWith(defaultConfig)
+    .pubsub
+    .topic(CLAIM_CHANGED_STORIES) // NOTE THE PUBSUB TOPIC
+    .onPublish(async (message) => {
+      const before = message.json.before;
+      const after = message.json.after;
+      if (!after) {
+        for (const sid of (before.sids || [])) {
+          await retryAsyncFunction(() => updateStory(sid, {
+            cids: FieldValue.arrayRemove(before.cid),
+          },
+          5, // skip not found errors
+          ));
+        }
+      } else if (!before) {
+        for (const sid of (after.sids || [])) {
+          await retryAsyncFunction(() => updateStory(sid, {
+            cids: FieldValue.arrayUnion(after.cid),
+          },
+          5,
+          ));
+        }
+      } else {
+        const removed = (before.sids || [])
+            .filter((sid) => !(after.sids || []).includes(sid));
+        const added = (after.sids || [])
+            .filter((sid) => !(before.sids || []).includes(sid));
 
-    for (const sid of removed) {
-      await retryAsyncFunction(() => updateStory(sid, {
-        cids: FieldValue.arrayRemove(after.cid),
-      }));
-    }
-    for (const sid of added) {
-      await retryAsyncFunction(() => updateStory(sid, {
-        cids: FieldValue.arrayUnion(after.cid),
-      }));
-    }
-  }
-};
+        for (const sid of removed) {
+          await retryAsyncFunction(() => updateStory(sid, {
+            cids: FieldValue.arrayRemove(after.cid),
+          },
+          5,
+          ));
+        }
+        for (const sid of added) {
+          await retryAsyncFunction(() => updateStory(sid, {
+            cids: FieldValue.arrayUnion(after.cid),
+          },
+          5,
+          ));
+        }
+      }
+      return Promise.resolve();
+    });

@@ -37,7 +37,7 @@ const getUsers = async function(uids) {
   }
 };
 
-const updateUser = async function(uid, values) {
+const updateUser = async function(uid, values, skipError) {
   if (!uid || !values) {
     functions.logger.error(`Could not update user: ${uid}`);
     return;
@@ -47,6 +47,9 @@ const updateUser = async function(uid, values) {
     await userRef.update(values);
     return true;
   } catch (e) {
+    if (e?.code && e?.code == skipError) {
+      return true;
+    }
     functions.logger.error(e);
     return false;
   }
@@ -87,16 +90,19 @@ const createPost = async function(post) {
   }
 };
 
-const updatePost = async function(pid, values) {
+const updatePost = async function(pid, values, skipError) {
   if (!pid || !values) {
     functions.logger.error(`Could not update post: ${pid}`);
     return;
   }
   const postRef = admin.firestore().collection("posts").doc(pid);
   try {
-    await postRef.update(values, {merge: true});
+    await postRef.update(values);
     return true;
   } catch (e) {
+    if (e?.code && e?.code == skipError) {
+      return true;
+    }
     functions.logger.error(e);
     return false;
   }
@@ -319,16 +325,19 @@ const setStory = async function(sid, values) {
   }
 };
 
-const updateStory = async function(sid, values) {
+const updateStory = async function(sid, values, skipError) {
   if (!sid || !values) {
     functions.logger.error(`Could not update story: ${sid}`);
     return;
   }
   const storyRef = admin.firestore().collection("stories").doc(sid);
   try {
-    await storyRef.update(values, {merge: true});
+    await storyRef.update(values);
     return true;
   } catch (e) {
+    if (e?.code && e?.code == skipError) {
+      return true;
+    }
     functions.logger.error(e);
     return false;
   }
@@ -444,7 +453,7 @@ const createEntity = async function(entity) {
   }
 };
 
-const updateEntity = async function(eid, values) {
+const updateEntity = async function(eid, values, skipError) {
   if (!eid || !values) {
     functions.logger.error(`Could not update entity: ${eid}`);
     return;
@@ -454,6 +463,9 @@ const updateEntity = async function(eid, values) {
     await entityRef.update(values);
     return true;
   } catch (e) {
+    if (e?.code && e?.code == skipError) {
+      return true;
+    }
     functions.logger.error(e);
     return false;
   }
@@ -597,7 +609,7 @@ const setRoom = async function(rid, values) {
   }
 };
 
-const updateRoom = async function(rid, values) {
+const updateRoom = async function(rid, values, skipError) {
   if (!rid || !values) {
     functions.logger.error(`Could not update room: ${rid}`);
     return;
@@ -605,11 +617,13 @@ const updateRoom = async function(rid, values) {
   const roomRef = admin.firestore()
       .collection("rooms")
       .doc(rid);
-
   try {
     await roomRef.update(values);
     return true;
   } catch (e) {
+    if (e?.code && e?.code == skipError) {
+      return true;
+    }
     functions.logger.error(e);
     return false;
   }
@@ -663,7 +677,7 @@ const createClaim = async function(claim) {
   }
 };
 
-const updateClaim = async function(cid, values) {
+const updateClaim = async function(cid, values, skipError) {
   if (!cid || !values) {
     functions.logger.error(`Could not update claim: ${cid}`);
     return;
@@ -673,6 +687,9 @@ const updateClaim = async function(cid, values) {
     await claimRef.update(values);
     return true;
   } catch (e) {
+    if (e?.code && e?.code == skipError) {
+      return true;
+    }
     functions.logger.error(e);
     return false;
   }

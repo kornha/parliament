@@ -10,16 +10,22 @@ const {onPostUpdate, onPostPublished,
   onPostChangedXid,
   onPostChangedVector,
   shouldFindStoriesAndClaims,
-  onPostShouldFindStoriesAndClaimsTask} = require("./models/post");
+  onPostShouldFindStoriesAndClaimsTask,
+  onStoryChangedPosts,
+  onClaimChangedPosts} = require("./models/post");
 const {onVoteBiasChange, onVoteCredibilityChange} = require("./models/vote");
 const {generateBiasTraining} = require("./ai/scripts");
 const {onLinkPaste, onScrapeX, onScrapeFeed} = require("./content/content");
 const {debateDidTimeOut, debateDidTimeOutTask} = require("./messages/clock");
-const {onStoryUpdate, onStoryPostsChanged, onStoryChangedPosts,
+const {onStoryUpdate, onStoryPostsChanged,
   onStoryShouldChangeVector, onStoryShouldChangeClaims,
+  onClaimChangedStories,
+  onPostChangedStories,
 } = require("./models/story");
 const {onClaimUpdate, onClaimChangedVector,
-  onClaimChangedPosts, onClaimShouldChangeContext} = require("./models/claim");
+  onClaimShouldChangeContext,
+  onPostChangedClaims,
+  onStoryChangedClaims} = require("./models/claim");
 const {onEntityUpdate,
   onEntityShouldChangeImage} = require("./models/entity");
 
@@ -68,12 +74,21 @@ module.exports = {
   onPostShouldFindStoriesAndClaimsTask,
   onPostChangedVector,
   onPostChangedXid,
+  onStoryChangedPosts,
+  onClaimChangedPosts,
   // Story
   onStoryUpdate,
   onStoryPostsChanged,
-  onStoryChangedPosts,
   onStoryShouldChangeVector,
   onStoryShouldChangeClaims,
+  onClaimChangedStories,
+  onPostChangedStories,
+  // Claim
+  onClaimUpdate,
+  onClaimChangedVector,
+  onClaimShouldChangeContext,
+  onStoryChangedClaims,
+  onPostChangedClaims,
   // Room
   onRoomChange,
   startDebate,
@@ -81,11 +96,6 @@ module.exports = {
   // Entity
   onEntityUpdate,
   onEntityShouldChangeImage,
-  // Claim
-  onClaimUpdate,
-  onClaimChangedVector,
-  onClaimChangedPosts,
-  onClaimShouldChangeContext,
   // Content
   onLinkPaste,
   onScrapeX,
