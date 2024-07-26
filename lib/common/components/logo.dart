@@ -40,12 +40,24 @@ class LogoName extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         const Logo(),
-        Text(
-          " PARLIAMENT",
-          style: context.l,
-          textAlign: TextAlign.start,
-        ),
+        context.sh,
+        const LogoText(),
       ],
     );
+  }
+}
+
+// TODO: Experimental, not final
+class LogoText extends StatelessWidget {
+  final double? size;
+
+  const LogoText({
+    super.key,
+    this.size,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Text("Parliament", style: context.d3.copyWith(letterSpacing: 9));
   }
 }

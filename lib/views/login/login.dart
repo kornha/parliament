@@ -28,10 +28,10 @@ class _LoginState extends ConsumerState<Login> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Spacer(),
-            const Logo(size: 150),
-            context.sd,
-            Text("Parliament", style: context.d1),
-            const Spacer(flex: 5),
+            Logo(size: context.iconSizeXXXL),
+            context.st,
+            const LogoText(),
+            const Spacer(flex: 9),
             TextButton(
               child: const Row(
                 mainAxisAlignment: MainAxisAlignment.center,

@@ -1,18 +1,16 @@
-import 'dart:math';
-
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:political_think/common/constants.dart';
 import 'package:political_think/common/extensions.dart';
 import 'package:shimmer/shimmer.dart';
 
 class LoadingShimmer extends StatelessWidget {
   final Widget child;
+  final Color? color;
 
   const LoadingShimmer({
     super.key,
     required this.child,
+    this.color,
   });
 
   @override
@@ -25,9 +23,9 @@ class LoadingShimmer extends StatelessWidget {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                context.surfaceColor,
-                context.surfaceColor.withAlpha(100),
-                context.surfaceColor,
+                color ?? context.surfaceColor,
+                color?.withAlpha(100) ?? context.surfaceColor.withAlpha(100),
+                color ?? context.surfaceColor,
               ],
               stops: const <double>[
                 0.3,
