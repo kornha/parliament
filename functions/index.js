@@ -1,48 +1,55 @@
 /* eslint-disable no-unused-vars */
 const admin = require("firebase-admin");
+const {logger} = require("firebase-functions/v2");
 const {onRoomChange, startDebate} = require("./messages/room");
 const {onMessageChange} = require("./messages/message");
-const {onAuthUserCreate, onAuthUserDelete,
+const {onAuthUserCreate,
+  onAuthUserDelete,
   setUsername} = require("./models/user");
-const {TaskQueue} = require( "firebase-admin/functions");
-const {onPostUpdate, onPostPublished,
+const {TaskQueue} = require("firebase-admin/functions");
+const {
+  onPostUpdate, onPostPublished,
   onPostShouldFindStoriesAndClaims,
   onPostChangedXid,
   onPostChangedVector,
   shouldFindStoriesAndClaims,
   onPostShouldFindStoriesAndClaimsTask,
   onStoryChangedPosts,
-  onClaimChangedPosts} = require("./models/post");
+  onClaimChangedPosts,
+} = require("./models/post");
 const {onVoteBiasChange, onVoteCredibilityChange} = require("./models/vote");
 const {generateBiasTraining} = require("./ai/scripts");
 const {onLinkPaste, onScrapeX, onScrapeFeed} = require("./content/content");
 const {debateDidTimeOut, debateDidTimeOutTask} = require("./messages/clock");
-const {onStoryUpdate, onStoryPostsChanged,
+const {
+  onStoryUpdate, onStoryPostsChanged,
   onStoryShouldChangeVector, onStoryShouldChangeClaims,
   onClaimChangedStories,
   onPostChangedStories,
 } = require("./models/story");
-const {onClaimUpdate, onClaimChangedVector,
+const {
+  onClaimUpdate, onClaimChangedVector,
   onClaimShouldChangeContext,
   onPostChangedClaims,
-  onStoryChangedClaims} = require("./models/claim");
-const {onEntityUpdate,
-  onEntityShouldChangeImage} = require("./models/entity");
-
+  onStoryChangedClaims,
+} = require("./models/claim");
+const {
+  onEntityUpdate,
+  onEntityShouldChangeImage,
+} = require("./models/entity");
 
 admin.initializeApp();
 
 // For Local Task Mocking Only
-if (process.env.FUNCTIONS_EMULATOR == "true") {
+// cannot use isLocal from utils as its not initialized
+if (process.env.FUNCTIONS_EMULATOR === "true") {
   Object.assign(TaskQueue.prototype, {
     enqueue: async (message, params) => {
       if (message.pid) {
-      // post
-        functions.logger.info(
+        logger.info(
             `local onPostShouldFindStoriesAndClaimsTask: ${message.pid}`);
         await shouldFindStoriesAndClaims(message.pid);
       } else {
-      // debate
         const end = new Date(params.scheduleTime);
         const now = Date.now();
         const delta = end - now;
@@ -55,10 +62,11 @@ if (process.env.FUNCTIONS_EMULATOR == "true") {
 }
 
 // Used as a dev-time helper to test functions
-const functions = require("firebase-functions");
+const functions = require("firebase-functions/v2");
 
-const test = functions
-    .https.onCall(async (data, context) => {});
+const test = functions.https.onCall(async (data, context) => {
+  // Your logic here
+});
 
 module.exports = {
   onAuthUserCreate,

@@ -1,4 +1,4 @@
-const functions = require("firebase-functions");
+const {logger} = require("firebase-functions/v2");
 const _ = require("lodash");
 
 const {
@@ -12,6 +12,9 @@ const {
   updatePost,
   setVector,
   deleteStory,
+  getPost,
+  getAllPostsForClaim,
+  deleteClaim,
 } = require("../common/database");
 const {generateEmbeddings} = require("../common/llm");
 
@@ -20,7 +23,7 @@ const {v4} = require("uuid");
 const {Timestamp, FieldValue, GeoPoint} = require("firebase-admin/firestore");
 const geo = require("geofire-common");
 const {findStories, resetStoryVector} = require("./story_ai");
-const {findClaims} = require("./claim_ai");
+const {findClaims, resetClaimVector} = require("./claim_ai");
 // eslint-disable-next-line no-unused-vars
 const {publishMessage, POST_SHOULD_FIND_STORIES_AND_CLAIMS} =
 require("../common/pubsub");
@@ -29,7 +32,7 @@ require("../common/tasks");
 
 /** FLAGSHIP FUNCTION
  * ***************************************************************
- * Finds/creates stories, find/creates claims
+ * Finds/creates stories, find/creates claims, find/creates opinions
  * sets claims to stories, claims to posts, and posts to stories
  *
  * @param {Post} post
@@ -38,33 +41,35 @@ require("../common/tasks");
  * */
 const findStoriesAndClaims = async function(post) {
   if (!post) {
-    functions.logger.error("Post is null");
+    logger.error("Post is null");
     return;
   }
 
-  functions.logger.info(`findStoriesAndClaims for post ${post.pid}`);
+  logger.info(`findStoriesAndClaims for post ${post.pid}`);
 
   // Finds stories based on 2 leg K-mean/Neural search
   const resp = await findStories(post);
   const gstories = resp.stories;
-  const removedSids = resp.removed;
+  const removedSids = resp.removedStories;
 
   if (!gstories || gstories.length === 0) {
-    functions.logger.warn(`Post does not have a gstory! ${post.pid}`);
+    logger.warn(`Post does not have a gstory! ${post.pid}`);
     return;
   }
 
-  functions.logger.info("Found " +
+  logger.info("Found " +
     gstories.length + " stories for post " + post.pid);
 
+  // find vector claims
+  //
 
-  // get all neighbor claims
-  // this is a GRAPH search and potentially won't scare with our current db
+  /**
+   * get all neighbor claims P-[2]-C
+   * this is a GRAPH search and potentially won't scale with our current db
+   */
+
   const sclaims = (await Promise.all(gstories.map(async (gstory) =>
-    gstory.sid ? (await getAllClaimsForStory(gstory.sid)).map((claim) => ({
-      ...claim,
-      context: gstory.title + " " + gstory.description,
-    })) : [],
+    gstory.sid ? (await getAllClaimsForStory(gstory.sid)) : [],
   ))).flat();
 
   // Revearse search all posts from the stories
@@ -74,20 +79,16 @@ const findStoriesAndClaims = async function(post) {
 
   // get all neighbor claims to these posts
   const pclaims = (await Promise.all(posts.map(async (post) =>
-    post.pid ? (await getAllClaimsForPost(post.pid)).map((claim) => ({
-      ...claim,
-      context: post.title + " " + post.description,
-    })) : [],
+  post.pid ? await getAllClaimsForPost(post.pid) : [],
   ))).flat();
 
   // merge the claims and dedupe
-  // this represents all P-[2]-C claims
   const claims = _.uniqBy([...sclaims, ...pclaims], "cid");
 
   const g2stories = await findClaims(post, gstories, claims);
 
   if (_.isEmpty(g2stories)) {
-    functions.logger.warn(`Could not generate stories or claims for post. 
+    logger.warn(`Could not generate stories or claims for post. 
       Orphaned! ${post.pid}`);
     return;
   }
@@ -95,7 +96,7 @@ const findStoriesAndClaims = async function(post) {
   await Promise.all(g2stories.map(async (gstoryClaim, index) => {
     const sid = gstoryClaim.sid ? gstoryClaim.sid : v4();
 
-    functions.logger.info(`Processing story ${sid} for post ${post.pid}`);
+    logger.info(`Processing story ${sid} for post ${post.pid}`);
 
     if (index === 0 && post.sid !== sid) {
       await retryAsyncFunction(() => updatePost(post.pid, {
@@ -156,14 +157,16 @@ const findStoriesAndClaims = async function(post) {
 
     if (!_.isEmpty(gstoryClaim.claims)) {
       await Promise.all(gstoryClaim.claims.map(async (gclaim) => {
+        const cid = gclaim.cid ? gclaim.cid : v4();
         if (gclaim.cid) {
-          functions.logger.info("Processing claim " +
+          logger.info("Processing claim " +
              gclaim.cid + " for story " + sid + ", for post " + post.pid);
 
-          await retryAsyncFunction(() => updateClaim(gclaim.cid, {
+          await retryAsyncFunction(() => updateClaim(cid, {
             sids: FieldValue.arrayUnion(sid),
             pids: FieldValue.arrayUnion(post.pid),
             value: gclaim.value,
+            context: gclaim.context,
             updatedAt: Timestamp.now().toMillis(),
             claimedAt: isoToMillis(gclaim.claimedAt),
             // some grade a level horse shit to get around
@@ -174,16 +177,15 @@ const findStoriesAndClaims = async function(post) {
               {against: FieldValue.arrayUnion(...gclaim.against)}),
           }));
         } else {
-          const _cid = v4();
-
-          functions.logger.info("Creating claim " +
-            _cid + " for story " + sid + ", from post " + post.pid);
+          logger.info("Creating claim " +
+            cid + " for story " + sid + ", from post " + post.pid);
 
           await retryAsyncFunction(() => createClaim({
-            cid: _cid,
+            cid: cid,
             value: gclaim.value,
             pro: gclaim.pro,
             against: gclaim.against,
+            context: gclaim.context,
             sids: [sid],
             pids: [post.pid],
             claimedAt: isoToMillis(gclaim.claimedAt),
@@ -191,12 +193,40 @@ const findStoriesAndClaims = async function(post) {
             createdAt: Timestamp.now().toMillis(),
           }));
         }
+
+        // save embedding here to avoid race condition
+        await resetClaimVector(cid);
       }));
+    }
+
+    // handle removed claims
+    if (!_.isEmpty(gstoryClaim.removedClaims)) {
+      // get all posts that will be affected by the removal
+      const changedPosts = (await Promise.all(gstoryClaim.removedClaims.map(
+          (cid) => getAllPostsForClaim(cid),
+      ))).flat();
+
+      if (_.isEmpty(changedPosts)) {
+        logger.error(`No posts found, 
+        not deleting Claims ${gstoryClaim.removedClaims}`);
+      } else {
+        // delete claims
+        await Promise.all(gstoryClaim.removedClaims.map(async (cid) => {
+          await retryAsyncFunction(() => deleteClaim(cid));
+        }));
+
+        logger.info(`Deleted claims ${gstoryClaim.removedClaims}`);
+
+        changedPosts.forEach(async (post) => {
+        // publishMessage(POST_SHOULD_FIND_STORIES_AND_CLAIMS, {pid: post.pid});
+          queueTask(POST_SHOULD_FIND_STORIES_AND_CLAIMS_TASK, {pid: post.pid});
+        });
+      }
     }
   }));
 
   if (!_.isEmpty(removedSids)) {
-    functions.logger.info(`removing sids ${removedSids}`);
+    logger.info(`removing sids ${removedSids}`);
 
     // Revearse search all posts from the stories
     const changedPosts = (await Promise.all(removedSids.map((sid) =>
@@ -204,7 +234,7 @@ const findStoriesAndClaims = async function(post) {
     ))).flat();
 
     if (_.isEmpty(changedPosts)) {
-      functions.logger.error(`No posts found, 
+      logger.error(`No posts found, 
       not deleting Stories ${removedSids}`);
     } else {
       // delete stories
@@ -212,7 +242,7 @@ const findStoriesAndClaims = async function(post) {
         await retryAsyncFunction(() => deleteStory(sid));
       }));
 
-      functions.logger.info(`Deleted stories ${removedSids}`);
+      logger.info(`Deleted stories ${removedSids}`);
 
       changedPosts.forEach(async (post) => {
         // publishMessage(POST_SHOULD_FIND_STORIES_AND_CLAIMS, {pid: post.pid});
@@ -222,7 +252,7 @@ const findStoriesAndClaims = async function(post) {
   }
 
 
-  functions.logger.info(`Done findStoriesAndClaims for post ${post.pid}`);
+  logger.info(`Done findStoriesAndClaims for post ${post.pid}`);
 
   return Promise.resolve();
 };
@@ -231,10 +261,15 @@ const findStoriesAndClaims = async function(post) {
  * Fetches the post embeddings from OpenAI and saves them to the database
  * returns nothing if there are no qualified post embeddings
  * publishes a message to the PubSub topic POST_CHANGED_VECTOR
- * @param {Post} post
+ * @param {String} pid
  * @return {Promise<boolean>}
  */
-const savePostEmbeddings = async function(post) {
+const resetPostVector = async function(pid) {
+  const post = await getPost(pid);
+  if (!post) {
+    logger.error(`Post not found: ${pid}`);
+    return false;
+  }
   const strings = getPostEmbeddingStrings(post);
   if (strings.length === 0) {
     return true;
@@ -268,6 +303,6 @@ const getPostEmbeddingStrings = function(post) {
 
 module.exports = {
   findStoriesAndClaims,
-  savePostEmbeddings,
+  resetPostVector,
   getPostEmbeddingStrings,
 };

@@ -1,17 +1,15 @@
 /* eslint-disable require-jsdoc */
 
-const functions = require("firebase-functions");
+const {onTaskDispatched} = require("firebase-functions/v2/tasks");
 const {getFunctions} = require("firebase-admin/functions");
 const {Timestamp, FieldValue} = require("firebase-admin/firestore");
 const {getRoom, updateRoom} = require("../common/database");
 const {defaultConfig} = require("../common/functions");
+const {logger} = require("firebase-functions/v2");
 
-// /////////////////////////////////////////
-// timer
-// /////////////////////////////////////////
-
-exports.debateDidTimeOutTask = functions.runWith(defaultConfig)
-    .tasks.taskQueue({
+// Task Queue handler for debateDidTimeOutTask
+exports.debateDidTimeOutTask = onTaskDispatched(
+    {
       retryConfig: {
         maxAttempts: 5,
         minBackoffSeconds: 30,
@@ -19,30 +17,33 @@ exports.debateDidTimeOutTask = functions.runWith(defaultConfig)
       rateLimits: {
         maxConcurrentDispatches: 12,
       },
-    }).onDispatch(async (data) => {
-      this.debateDidTimeOut(data);
-    });
+      ...defaultConfig,
+    },
+    async (data) => {
+      await debateDidTimeOut(data);
+    },
+);
 
 const debateDidTimeOut = async function(data) {
   if (!data.rid) {
-    functions.logger.error(`Room ${data.rid} timed out with no rid`);
+    logger.error(`Room ${data.rid} timed out with no rid`);
     return;
   }
 
   const room = await getRoom(data.rid);
   if (!room) {
-    functions.logger.error(`Room ${data.rid} not found`);
+    logger.error(`Room ${data.rid} not found`);
     return;
   }
 
   if (roomTimeIsActive(room)) {
-    functions.logger.info(`Room not timed out. Queueing new time ${room.rid}`);
-    queueDebateTimer(room, room.clock.start + room.clock.duration * 1000);
+    logger.info(`Room not timed out. Queueing new time ${room.rid}`);
+    await queueDebateTimer(room, room.clock.start + room.clock.duration * 1000);
     return;
   }
 
-  functions.logger.info(`Room ${data.rid} debateDidTimeOut`);
-  updateRoom(data.rid, {
+  logger.info(`Room ${data.rid} debateDidTimeOut`);
+  await updateRoom(data.rid, {
     status: "judging",
   });
 };
@@ -57,41 +58,38 @@ async function queueDebateTimer(room, time) {
       },
       {
         scheduleTime: new Date(time),
-        dispatchDeadlineSeconds: 60, // 5 minutes
+        dispatchDeadlineSeconds: 60, // 1 minute
         uri: targetUri,
-      });
-  console.log("Enqueued task");
+      },
+  );
+  logger.info("Enqueued task");
 }
 
 async function incrementDebateTimer(room) {
-  if (!room || !room.clock || !room.clock.start || !room.clock.duration ||
-    !room.clock.increment) {
-    functions.logger.error(`Cannot increment clock for ${room.rid}`);
+  if (!room || !room.clock ||
+    !room.clock.start || !room.clock.duration || !room.clock.increment) {
+    logger.error(`Cannot increment clock for ${room.rid}`);
     return;
   }
 
-  updateRoom(room.rid, {
+  await updateRoom(room.rid, {
     "clock.duration": FieldValue.increment(room.clock.increment),
   });
 }
 
 async function _getFunctionUrl(name, _location = "us-central1") {
   return `https://127.0.0.1:5001/political-think/us-central1/${name}`;
-  // https://127.0.0.1:5001/political-think/us-central1/debateDidTimeOut
-  // if (!auth) {
-  //     auth = new GoogleAuth({
-  //         scopes: "https://www.googleapis.com/auth/cloud-platform",
-  //     });
-  // }
-  // const projectId = await auth.getProjectId();
-  // const url = "https://cloudfunctions.googleapis.com/v2beta/" +
-  //     `projects/${projectId}/locations/${location}/functions/${name}`;
-
-  // const client = await auth.getClient();
+  // Uncomment and adjust the following lines if needed for production
+  // const gAuth = new GoogleAuth({
+  //   scopes: "https://www.googleapis.com/auth/cloud-platform",
+  // });
+  // const projectId = await gAuth.getProjectId();
+  // const url = `https://cloudfunctions.googleapis.com/v2/projects/${projectId}/locations/${_location}/functions/${name}`;
+  // const client = await gAuth.getClient();
   // const res = await client.request({ url });
   // const uri = res.data?.serviceConfig?.uri;
   // if (!uri) {
-  //     throw new Error(`Unable to retreive uri for function at ${url}`);
+  //   throw new Error(`Unable to retrieve URI for function at ${url}`);
   // }
   // return uri;
 }
@@ -101,7 +99,6 @@ function roomTimeIsActive(room) {
   if (end && end > Timestamp.now().toMillis()) {
     return true;
   }
-
   return false;
 }
 
@@ -110,7 +107,6 @@ function roomTimeIsExpired(room) {
   if (end && end < Timestamp.now().toMillis()) {
     return true;
   }
-
   return false;
 }
 
@@ -122,8 +118,7 @@ function getEnd(room) {
   return end;
 }
 
-
-module.exports = exports = {
+module.exports = {
   debateDidTimeOut,
   getEnd,
   roomTimeIsActive,

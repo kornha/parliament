@@ -1,22 +1,23 @@
-
 const admin = require("firebase-admin");
-const functions = require("firebase-functions");
+const {logger} = require("firebase-functions");
 
 /**
   * @param {String} path
   * @param {String} content
   * @param {String} contentType application/json or text/plain
   */
-const setContent = async function(
-    path,
+const setContent = async function(path,
     content,
-    contentType = "application/json",
-) {
+    contentType = "application/json") {
   const file = admin.storage().bucket().file(path);
-  await file.save(content, {
-    contentType: contentType,
-    // gzip: gzip,
-  });
+  try {
+    await file.save(content, {
+      contentType: contentType,
+      // gzip: gzip,
+    });
+  } catch (error) {
+    logger.error(`Error setting content at path: ${path}`, error);
+  }
 };
 
 /**
@@ -27,13 +28,16 @@ const setContent = async function(
 const getContent = async function(path) {
   const file = admin.storage().bucket().file(path);
   const [exists] = await file.exists();
-  if (!exists) return null;
+  if (!exists) {
+    logger.warn(`File does not exist at path: ${path}`);
+    return null;
+  }
 
   try {
     const dataBuffer = await file.download();
     return dataBuffer[0].toString();
   } catch (error) {
-    functions.logger.error(`Error downloading file: ${path}`);
+    logger.error(`Error downloading file: ${path}`, error);
     return null;
   }
 };

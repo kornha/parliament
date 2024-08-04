@@ -1,7 +1,7 @@
 /* eslint-disable require-jsdoc */
 const admin = require("firebase-admin");
-const functions = require("firebase-functions");
 const {FieldValue} = require("firebase-admin/firestore");
+const {logger} = require("firebase-functions/v2");
 
 // TODO: could abstract these
 const applyVoteToBias = async function(pid, vote, {add = true}) {
@@ -12,7 +12,7 @@ const applyVoteToBias = async function(pid, vote, {add = true}) {
       const doc = await t.get(postRef);
 
       if (!doc.exists) {
-        functions.logger.error(`Post ${pid} does not exist!`);
+        logger.error(`Post ${pid} does not exist!`);
         return;
       }
 
@@ -23,7 +23,7 @@ const applyVoteToBias = async function(pid, vote, {add = true}) {
         post.voteCountBias <= 0 ||
         post.userBias === null) {
         if (!add) {
-          functions.logger.error(`Cannot remove vote in ${pid}, empty!`);
+          logger.error(`Cannot remove vote in ${pid}, empty!`);
           return;
         }
         newBiasPosVal = vote.bias.position.angle;
@@ -51,7 +51,7 @@ const applyVoteToBias = async function(pid, vote, {add = true}) {
       });
     });
   } catch (e) {
-    functions.logger.error(e);
+    logger.error(e);
   }
 };
 
@@ -63,7 +63,7 @@ const applyDebateToBias = async function(pid, winningPosition, {add = true}) {
       const doc = await t.get(postRef);
 
       if (!doc.exists) {
-        functions.logger.error(`Post ${pid} does not exist!`);
+        logger.error(`Post ${pid} does not exist!`);
         return;
       }
 
@@ -74,7 +74,7 @@ const applyDebateToBias = async function(pid, winningPosition, {add = true}) {
         post.debateCountBias <= 0 ||
         post.debateBias === null) {
         if (!add) {
-          functions.logger.error(`Cannot remove debate bias in ${pid}, empty!`);
+          logger.error(`Cannot remove debate bias in ${pid}, empty!`);
           return;
         }
         newBiasPosVal = winningPosition.angle;
@@ -102,7 +102,7 @@ const applyDebateToBias = async function(pid, winningPosition, {add = true}) {
       });
     });
   } catch (e) {
-    functions.logger.error(e);
+    logger.error(e);
   }
 };
 
@@ -148,7 +148,7 @@ const getDistance = function(currAngle, newAngle) {
 
 const addPosition = function(currAngle, magnitude, direction) {
   if (direction != "clockwise" && direction != "counterclockwise") {
-    functions.logger.error("Invalid direction");
+    logger.error("Invalid direction");
     return;
   }
   const newAngle = direction == "clockwise" ?
@@ -171,7 +171,7 @@ module.exports = {
 //   const content = await getTextContentForPost(post);
 
 //   if (!content) {
-//     functions.logger.error(`Invalid content for ${post.url}, ${content}`);
+//     logger.error(`Invalid content for ${post.url}, ${content}`);
 //     return;
 //   }
 //   const prompt = `You will be given text from a webpage.
@@ -205,7 +205,7 @@ module.exports = {
 //   try {
 //     const position = JSON.parse(completion.choices[0].message.content);
 //     if (position.angle == null) {
-//       functions.logger.error(`Invalid decision: ${position}`);
+//       logger.error(`Invalid decision: ${position}`);
 //       return;
 //     }
 //     admin.firestore()
@@ -215,8 +215,8 @@ module.exports = {
 //           aiBias: {position: position},
 //         });
 //   } catch (e) {
-//     functions.logger.error(`Invalid decision: ${e}`);
-//     functions.logger.error(completion);
+//     logger.error(`Invalid decision: ${e}`);
+//     logger.error(completion);
 //     return;
 //   }
 // };

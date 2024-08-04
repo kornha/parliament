@@ -1,26 +1,29 @@
-const functions = require("firebase-functions");
-const admin = require("firebase-admin");
+const {onCall} = require("firebase-functions/v2/https");
+const {getFirestore} = require("firebase-admin/firestore");
+const {getStorage} = require("firebase-admin/storage");
+const {logger} = require("firebase-functions/v2");
 const {getTextContentFromStorage} = require("../common/utils");
-
 
 // To generate
 // go to terminal and start a firebase shell:
 // firebase functions:shell
 // then run this in shell terminal: generateBiasTraining({}, {})
-exports.generateBiasTraining = functions
-    .https
-    .onCall(async (data, context) => {
-      // get posts
-      // get user bias
-      // draft jsonl
-      // upload to storage
-      // return
-      console.log("Generating bias training data");
-      const posts = await admin.firestore()
+exports.generateBiasTraining = onCall(
+    async (data, context) => {
+    // get posts
+    // get user bias
+    // draft jsonl
+    // upload to storage
+    // return
+      logger.info("Generating bias training data");
+      const firestore = getFirestore();
+      const storage = getStorage();
+
+      const posts = await firestore
           .collection("posts")
           .where("userBias", "!=", null)
           .get();
-      console.log("posts:", posts.docs.length);
+      logger.info("posts:", posts.docs.length);
 
       const systemContent =
       `You are a machine that only returns and replies with valid, 
@@ -35,8 +38,7 @@ exports.generateBiasTraining = functions
       the output should be between 0 and 270, something like: {'angle': 315}. 
       Prompts are the exact scraping of webpage text`;
 
-
-      const content = await Promise.all(posts.docs.map( async (pd) => {
+      const content = await Promise.all(posts.docs.map(async (pd) => {
         const post = pd.data();
         const content = await getTextContentFromStorage(post);
         if (!content || !post.userBias) {
@@ -47,21 +49,20 @@ exports.generateBiasTraining = functions
           messages: [
             {"role": "system", "content": systemContent},
             {"role": "user", "content": content},
-            {"role": "assistant", "content":
-                post.userBias.angle.toFixed(2)},
+            {"role": "assistant", "content": post.userBias.angle.toFixed(2)},
           ],
         });
       }));
 
-      const jsonl = (await content).join("\n");
+      const jsonl = content.filter(Boolean).join("\n");
 
-      console.log("jsonl created", jsonl.length);
-      const file = admin.storage().bucket().file(`ai/bias.json`);
+      logger.info("jsonl created", jsonl.length);
+      const file = storage.bucket().file(`ai/bias.json`);
       await file.save(jsonl, {
         contentType: "application/json",
         gzip: true,
       });
-      console.log("Done generating bias training data");
+      logger.info("Done generating bias training data");
       return;
-    });
-
+    },
+);

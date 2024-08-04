@@ -1,6 +1,6 @@
 /* eslint-disable max-len */
 /* eslint-disable require-jsdoc */
-const functions = require("firebase-functions");
+const {logger} = require("firebase-functions/v2");
 const {OpenAI} = require("openai");
 const {getMessages, getDBDocument,
   setRoom, updateRoom, getUsers} = require("../common/database");
@@ -16,11 +16,11 @@ const {OPENAI_API_KEY} = require("../common/llm");
 
 const reevaluateRoom = async function(room) {
   if (room.status == "finished") {
-    functions.logger.info(`Room ${room.rid} already finished`);
+    logger.info(`Room ${room.rid} already finished`);
     return;
   }
 
-  functions.logger.info(`Reevaluating room ${room.rid}`);
+  logger.info(`Reevaluating room ${room.rid}`);
 
   const end = getEnd(room);
 
@@ -140,10 +140,10 @@ const reevaluateRoom = async function(room) {
     const decision = JSON.parse(completion.choices[0].message.content);
     const positions = decision.positions;
     await _handleReevaluation(room, positions);
-    functions.logger.info(`Reevaluating of room ${room.rid} complete`);
+    logger.info(`Reevaluating of room ${room.rid} complete`);
   } catch (e) {
-    functions.logger.error(`Invalid decision: ${e}`);
-    functions.logger.error(completion);
+    logger.error(`Invalid decision: ${e}`);
+    logger.error(completion);
     return;
   }
 };
@@ -209,17 +209,17 @@ const startDebate = async function(room) {
     clock: {start: now, duration: duration, increment: increment},
   })) {
     queueDebateTimer(room, now + (duration * 1000));
-    functions.logger.info(`Starting debate for ${room.rid}`);
+    logger.info(`Starting debate for ${room.rid}`);
   } else {
-    functions.logger.error(`Cannot start debate for room ${room.rid}`);
+    logger.error(`Cannot start debate for room ${room.rid}`);
   }
 };
 
 const finalizeDebate = async function(room) {
-  functions.logger.info(`Finalizing debate for ${room.rid}`);
+  logger.info(`Finalizing debate for ${room.rid}`);
   if (room.score != null &&
     room.score.updatedAt > (room.clock.start + room.clock.duration * 1000)) {
-    functions.logger.info(`Debate ${room.rid} already evaluated after time`);
+    logger.info(`Debate ${room.rid} already evaluated after time`);
   } else {
     await reevaluateRoom(room);
   }
@@ -227,10 +227,10 @@ const finalizeDebate = async function(room) {
 };
 
 const scoreDebate = async function(room) {
-  functions.logger.info(`Scoring debate for ${room.rid}`);
+  logger.info(`Scoring debate for ${room.rid}`);
 
   if (room.winningPosition != null && room.winners != null) {
-    functions.logger.info(`Debate ${room.rid} already finalized`);
+    logger.info(`Debate ${room.rid} already finalized`);
     // return;
   }
 
@@ -296,7 +296,7 @@ const getWinningPosition = function(room) {
 };
 
 const calculateEloDelta = async function(room, winners) {
-  functions.logger.info(`Calculating elo for ${room.rid}`);
+  logger.info(`Calculating elo for ${room.rid}`);
   const isDraw = winners.length == 0;
   const eloScores = {};
 
@@ -312,7 +312,7 @@ const calculateEloDelta = async function(room, winners) {
   // get elos for each player
   const playerUsers = await getUsers(players);
   if (!playerUsers) {
-    functions.logger.error(`Elo failed: Could not get users for ${room.rid}`);
+    logger.error(`Elo failed: Could not get users for ${room.rid}`);
     return;
   }
 
@@ -353,7 +353,7 @@ const calculateEloDelta = async function(room, winners) {
     }
     eloScores[user.uid] = newElo - user.elo;
   }
-  functions.logger.info(`Elo for ${room.rid} calculated, 
+  logger.info(`Elo for ${room.rid} calculated, 
   ${JSON.stringify(eloScores)}`);
   return eloScores;
 };

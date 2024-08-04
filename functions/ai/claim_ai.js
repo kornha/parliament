@@ -1,5 +1,5 @@
 const functions = require("firebase-functions");
-const {setVector} = require("../common/database");
+const {setVector, getClaim} = require("../common/database");
 const {generateEmbeddings, generateCompletions} = require("../common/llm");
 const {writeTrainingData} = require("./trainer");
 const _ = require("lodash");
@@ -36,10 +36,15 @@ const findClaims = async function(post, stories, claims) {
  * Fetches the claim embeddings from OpenAI and saves them to the database
  * returns nothing if there are no qualified claim embeddings
  * publishes a message to the PubSub topic CLAIM_CHANGED_VECTOR
- * @param {Claim} claim
+ * @param {String} cid
  * @return {Promise<boolean>}
  */
-const saveClaimEmbeddings = async function(claim) {
+const resetClaimVector = async function(cid) {
+  const claim = await getClaim(cid);
+  if (!claim) {
+    functions.logger.error(`Claim not found: ${cid}`);
+    return false;
+  }
   const strings = getClaimEmbeddingStrings(claim);
   if (strings.length === 0) {
     return true;
@@ -69,5 +74,5 @@ const getClaimEmbeddingStrings = function(claim) {
 
 module.exports = {
   findClaims,
-  saveClaimEmbeddings,
+  resetClaimVector,
 };

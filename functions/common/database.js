@@ -1,16 +1,17 @@
-const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const {Timestamp, FieldPath, FieldValue} = require("firebase-admin/firestore");
 const {v4} = require("uuid");
 const _ = require("lodash");
 const {retryAsyncFunction} = require("./utils");
+const {logger} = require("firebase-functions/v2");
+
 
 // /////////////////////////////////////////
 // User
 // /////////////////////////////////////////
 const createUser = async function(user) {
   if (!user.uid) {
-    functions.logger.error(`Could not create user: ${user}`);
+    logger.error(`Could not create user: ${user}`);
     return;
   }
   const userRef = admin.firestore().collection("users").doc(user.uid);
@@ -18,14 +19,14 @@ const createUser = async function(user) {
     await userRef.create(user);
     return true;
   } catch (e) {
-    functions.logger.error(e);
+    logger.error(e);
     return false;
   }
 };
 
 const getUsers = async function(uids) {
   if (!uids) {
-    functions.logger.error(`Could not get users: ${uids}`);
+    logger.error(`Could not get users: ${uids}`);
     return;
   }
   const usersRef = admin.firestore().collection("users");
@@ -39,7 +40,7 @@ const getUsers = async function(uids) {
 
 const updateUser = async function(uid, values, skipError) {
   if (!uid || !values) {
-    functions.logger.error(`Could not update user: ${uid}`);
+    logger.error(`Could not update user: ${uid}`);
     return;
   }
   const userRef = admin.firestore().collection("users").doc(uid);
@@ -50,14 +51,14 @@ const updateUser = async function(uid, values, skipError) {
     if (e?.code && e?.code == skipError) {
       return true;
     }
-    functions.logger.error(e);
+    logger.error(e);
     return false;
   }
 };
 
 const deleteUser = async function(uid) {
   if (!uid) {
-    functions.logger.error(`Could not delete user: ${uid}`);
+    logger.error(`Could not delete user: ${uid}`);
     return;
   }
   const userRef = admin.firestore().collection("users").doc(uid);
@@ -65,7 +66,7 @@ const deleteUser = async function(uid) {
     await userRef.delete();
     return true;
   } catch (e) {
-    functions.logger.error(e);
+    logger.error(e);
     return false;
   }
 };
@@ -77,7 +78,7 @@ const deleteUser = async function(uid) {
 // Important! For most cases use atomicCreatePost instead
 const createPost = async function(post) {
   if (!post.pid || !post.createdAt || !post.updatedAt || !post.status ) {
-    functions.logger.error(`Could not create post: ${post}`);
+    logger.error(`Could not create post: ${post}`);
     return;
   }
   const postRef = admin.firestore().collection("posts").doc(post.pid);
@@ -85,14 +86,14 @@ const createPost = async function(post) {
     await postRef.create(post);
     return true;
   } catch (e) {
-    functions.logger.error(e);
+    logger.error(e);
     return false;
   }
 };
 
 const updatePost = async function(pid, values, skipError) {
   if (!pid || !values) {
-    functions.logger.error(`Could not update post: ${pid}`);
+    logger.error(`Could not update post: ${pid}`);
     return;
   }
   const postRef = admin.firestore().collection("posts").doc(pid);
@@ -103,14 +104,14 @@ const updatePost = async function(pid, values, skipError) {
     if (e?.code && e?.code == skipError) {
       return true;
     }
-    functions.logger.error(e);
+    logger.error(e);
     return false;
   }
 };
 
 const setPost = async function(pid, values) {
   if (!pid || !values) {
-    functions.logger.error(`Could not set post: ${pid}`);
+    logger.error(`Could not set post: ${pid}`);
     return;
   }
   const postRef = admin.firestore().collection("posts").doc(pid);
@@ -118,7 +119,7 @@ const setPost = async function(pid, values) {
     await postRef.set(values, {merge: true});
     return true;
   } catch (e) {
-    functions.logger.error(e);
+    logger.error(e);
     return false;
   }
 };
@@ -126,7 +127,7 @@ const setPost = async function(pid, values) {
 
 const getPost = async function(pid) {
   if (!pid) {
-    functions.logger.error(`Could not get post: ${pid}`);
+    logger.error(`Could not get post: ${pid}`);
     return;
   }
   const postRef = admin.firestore().collection("posts").doc(pid);
@@ -140,12 +141,12 @@ const getPost = async function(pid) {
 
 const getPosts = async function(pids) {
   if (!pids) {
-    functions.logger.error(`Could not get posts: ${pids}`);
+    logger.error(`Could not get posts: ${pids}`);
     return;
   }
 
   if (pids.length > 10) {
-    functions.logger.error(`Too many pids! ${pids}`);
+    logger.error(`Too many pids! ${pids}`);
     return;
   }
 
@@ -167,7 +168,7 @@ const getPosts = async function(pids) {
  * */
 const getPostByXid = async function(xid, sourceType) {
   if (!xid) {
-    functions.logger.error(`Could not get post by xid: ${xid}`);
+    logger.error(`Could not get post by xid: ${xid}`);
     return;
   }
   const postsRef = admin.firestore().collection("posts")
@@ -187,7 +188,7 @@ const getPostByXid = async function(xid, sourceType) {
  */
 const getPostsForStory = async function(sid) {
   if (!sid) {
-    functions.logger.error(`Could not get posts for story: ${sid}`);
+    logger.error(`Could not get posts for story: ${sid}`);
     return;
   }
   const postsRef = admin.firestore().collection("posts")
@@ -207,7 +208,7 @@ const getPostsForStory = async function(sid) {
  */
 const getAllPostsForStory = async function(sid) {
   if (!sid) {
-    functions.logger.error(`Could not get posts mentioning story: ${sid}`);
+    logger.error(`Could not get posts mentioning story: ${sid}`);
     return;
   }
   const postsRef = admin.firestore().collection("posts")
@@ -220,9 +221,29 @@ const getAllPostsForStory = async function(sid) {
   }
 };
 
+/**
+ * get all posts for claim
+ * @param {*} cid
+ * @return {Array<Post>} of posts
+ * */
+const getAllPostsForClaim = async function(cid) {
+  if (!cid) {
+    logger.error(`Could not get posts for claim: ${cid}`);
+    return;
+  }
+  const postsRef = admin.firestore().collection("posts")
+      .where("cids", "array-contains", cid);
+  try {
+    const posts = await postsRef.get();
+    return posts.docs.map((post) => post.data());
+  } catch (e) {
+    return null;
+  }
+};
+
 const deletePost = async function(pid) {
   if (!pid) {
-    functions.logger.error(`Could not delete post: ${pid}`);
+    logger.error(`Could not delete post: ${pid}`);
     return;
   }
   const postRef = admin.firestore().collection("posts").doc(pid);
@@ -230,7 +251,7 @@ const deletePost = async function(pid) {
     await postRef.delete();
     return true;
   } catch (e) {
-    functions.logger.error(e);
+    logger.error(e);
     return false;
   }
 };
@@ -244,7 +265,7 @@ const deletePost = async function(pid) {
  * */
 const canFindStories = async function(pid) {
   if (!pid) {
-    functions.logger.error(`Could not update post: ${pid}`);
+    logger.error(`Could not update post: ${pid}`);
     return;
   }
 
@@ -274,7 +295,7 @@ const canFindStories = async function(pid) {
 // Deprecated
 const bulkSetPosts = async function(posts) {
   if (!posts) {
-    functions.logger.error(`Could not bulk update posts: ${posts}`);
+    logger.error(`Could not bulk update posts: ${posts}`);
     return;
   }
   const batch = admin.firestore().batch();
@@ -286,7 +307,7 @@ const bulkSetPosts = async function(posts) {
     await batch.commit();
     return true;
   } catch (e) {
-    functions.logger.error(e);
+    logger.error(e);
     return false;
   }
 };
@@ -297,7 +318,7 @@ const bulkSetPosts = async function(posts) {
 
 const createStory = async function(story) {
   if (!story.sid || !story.createdAt) {
-    functions.logger.error(`Could not create story: ${story}`);
+    logger.error(`Could not create story: ${story}`);
     return;
   }
   const storyRef = admin.firestore().collection("stories").doc(story.sid);
@@ -305,14 +326,14 @@ const createStory = async function(story) {
     await storyRef.create(story);
     return true;
   } catch (e) {
-    functions.logger.error(e);
+    logger.error(e);
     return false;
   }
 };
 
 const setStory = async function(sid, values) {
   if (!sid || !values) {
-    functions.logger.error(`Could not set story: ${sid}`);
+    logger.error(`Could not set story: ${sid}`);
     return;
   }
   const storyRef = admin.firestore().collection("stories").doc(sid);
@@ -320,14 +341,14 @@ const setStory = async function(sid, values) {
     await storyRef.set(values, {merge: true});
     return true;
   } catch (e) {
-    functions.logger.error(e);
+    logger.error(e);
     return false;
   }
 };
 
 const updateStory = async function(sid, values, skipError) {
   if (!sid || !values) {
-    functions.logger.error(`Could not update story: ${sid}`);
+    logger.error(`Could not update story: ${sid}`);
     return;
   }
   const storyRef = admin.firestore().collection("stories").doc(sid);
@@ -338,14 +359,14 @@ const updateStory = async function(sid, values, skipError) {
     if (e?.code && e?.code == skipError) {
       return true;
     }
-    functions.logger.error(e);
+    logger.error(e);
     return false;
   }
 };
 
 const getStory = async function(sid) {
   if (!sid) {
-    functions.logger.error(`Could not get story: ${sid}`);
+    logger.error(`Could not get story: ${sid}`);
     return;
   }
   const storyRef = admin.firestore().collection("stories").doc(sid);
@@ -353,14 +374,14 @@ const getStory = async function(sid) {
     const story = await storyRef.get();
     return story.data();
   } catch (e) {
-    functions.logger.error(e);
+    logger.error(e);
     return null;
   }
 };
 
 const deleteStory = async function(sid) {
   if (!sid) {
-    functions.logger.error(`Could not delete story: ${sid}`);
+    logger.error(`Could not delete story: ${sid}`);
     return;
   }
   const storyRef = admin.firestore().collection("stories").doc(sid);
@@ -368,7 +389,7 @@ const deleteStory = async function(sid) {
     await storyRef.delete();
     return true;
   } catch (e) {
-    functions.logger.error(e);
+    logger.error(e);
     return false;
   }
 };
@@ -388,12 +409,12 @@ const getRecentStories = async function(time) {
 
 const getStories = async function(sids) {
   if (!sids) {
-    functions.logger.error(`Could not get stories: ${sids}`);
+    logger.error(`Could not get stories: ${sids}`);
     return;
   }
 
   if (sids.length > 10) {
-    functions.logger.error(`Too many sids! ${sids}`);
+    logger.error(`Too many sids! ${sids}`);
     return;
   }
 
@@ -416,7 +437,7 @@ const getStories = async function(sids) {
  * */
 const getAllStoriesForPost = async function(pid) {
   if (!pid) {
-    functions.logger.error(`Could not get stories for post: ${pid}`);
+    logger.error(`Could not get stories for post: ${pid}`);
     return;
   }
   const storiesRef = admin.firestore().collection("stories")
@@ -440,7 +461,7 @@ const getAllStoriesForPost = async function(pid) {
  * */
 const createEntity = async function(entity) {
   if (!entity.eid || !entity.handle || !entity.createdAt || !entity.updatedAt) {
-    functions.logger.error(`Could not create entity: ${entity}`);
+    logger.error(`Could not create entity: ${entity}`);
     return;
   }
   const entityRef = admin.firestore().collection("entities").doc(entity.eid);
@@ -448,14 +469,14 @@ const createEntity = async function(entity) {
     await entityRef.create(entity);
     return true;
   } catch (e) {
-    functions.logger.error(e);
+    logger.error(e);
     return false;
   }
 };
 
 const updateEntity = async function(eid, values, skipError) {
   if (!eid || !values) {
-    functions.logger.error(`Could not update entity: ${eid}`);
+    logger.error(`Could not update entity: ${eid}`);
     return;
   }
   const entityRef = admin.firestore().collection("entities").doc(eid);
@@ -466,7 +487,7 @@ const updateEntity = async function(eid, values, skipError) {
     if (e?.code && e?.code == skipError) {
       return true;
     }
-    functions.logger.error(e);
+    logger.error(e);
     return false;
   }
 };
@@ -479,12 +500,12 @@ const updateEntity = async function(eid, values, skipError) {
  */
 const findCreateEntity = async function(handle, sourceType) {
   if (!handle) {
-    functions.logger.error("No handle provided.");
+    logger.error("No handle provided.");
     return;
   }
 
   if (!sourceType) {
-    functions.logger.error("No sourceType provided.");
+    logger.error("No sourceType provided.");
     return;
   }
   // check if first char is @
@@ -514,7 +535,7 @@ const findCreateEntity = async function(handle, sourceType) {
 
 const getEntity = async function(eid) {
   if (!eid) {
-    functions.logger.error(`Could not get entity: ${eid}`);
+    logger.error(`Could not get entity: ${eid}`);
     return;
   }
   const entityRef = admin.firestore().collection("entities").doc(eid);
@@ -533,7 +554,7 @@ const getEntity = async function(eid) {
  * */
 const getEntityByHandle = async function(handle) {
   if (!handle) {
-    functions.logger.error(`Could not get entity: ${handle}`);
+    logger.error(`Could not get entity: ${handle}`);
     return;
   }
   const entityRef = admin.firestore().collection("entities")
@@ -572,14 +593,14 @@ const createNewRoom = async function(parentId, parentCollection) {
     await roomRef.create(room);
     return true;
   } catch (e) {
-    functions.logger.error(e);
+    logger.error(e);
     return false;
   }
 };
 
 const getRoom = async function(rid) {
   if (!rid) {
-    functions.logger.error(`Could not get room: ${rid}`);
+    logger.error(`Could not get room: ${rid}`);
     return;
   }
   const roomRef = admin.firestore().collection("rooms").doc(rid);
@@ -593,7 +614,7 @@ const getRoom = async function(rid) {
 
 const setRoom = async function(rid, values) {
   if (!rid || !values) {
-    functions.logger.error(`Could not bulk update room: ${rid}`);
+    logger.error(`Could not bulk update room: ${rid}`);
     return;
   }
   const roomRef = admin.firestore()
@@ -604,14 +625,14 @@ const setRoom = async function(rid, values) {
     await roomRef.set(values, {merge: true});
     return true;
   } catch (e) {
-    functions.logger.error(e);
+    logger.error(e);
     return false;
   }
 };
 
 const updateRoom = async function(rid, values, skipError) {
   if (!rid || !values) {
-    functions.logger.error(`Could not update room: ${rid}`);
+    logger.error(`Could not update room: ${rid}`);
     return;
   }
   const roomRef = admin.firestore()
@@ -624,7 +645,7 @@ const updateRoom = async function(rid, values, skipError) {
     if (e?.code && e?.code == skipError) {
       return true;
     }
-    functions.logger.error(e);
+    logger.error(e);
     return false;
   }
 };
@@ -635,7 +656,7 @@ const updateRoom = async function(rid, values, skipError) {
 
 const getMessages = async function(rid, end = null, limit = 100) {
   if (!rid) {
-    functions.logger.error(`Could not get messages for room`);
+    logger.error(`Could not get messages for room`);
     return;
   }
   let messagesRef = admin.firestore()
@@ -664,7 +685,7 @@ const getMessages = async function(rid, end = null, limit = 100) {
 
 const createClaim = async function(claim) {
   if (!claim.cid || !claim.value || !claim.createdAt || !claim.updatedAt) {
-    functions.logger.error(`Could not create claim: ${claim}`);
+    logger.error(`Could not create claim: ${claim}`);
     return;
   }
   const claimRef = admin.firestore().collection("claims").doc(claim.cid);
@@ -672,14 +693,14 @@ const createClaim = async function(claim) {
     await claimRef.create(claim);
     return true;
   } catch (e) {
-    functions.logger.error(e);
+    logger.error(e);
     return false;
   }
 };
 
 const updateClaim = async function(cid, values, skipError) {
   if (!cid || !values) {
-    functions.logger.error(`Could not update claim: ${cid}`);
+    logger.error(`Could not update claim: ${cid}`);
     return;
   }
   const claimRef = admin.firestore().collection("claims").doc(cid);
@@ -690,19 +711,33 @@ const updateClaim = async function(cid, values, skipError) {
     if (e?.code && e?.code == skipError) {
       return true;
     }
-    functions.logger.error(e);
+    logger.error(e);
     return false;
+  }
+};
+
+const getClaim = async function(cid) {
+  if (!cid) {
+    logger.error(`Could not get claim: ${cid}`);
+    return;
+  }
+  const claimRef = admin.firestore().collection("claims").doc(cid);
+  try {
+    const claim = await claimRef.get();
+    return claim.data();
+  } catch (e) {
+    return null;
   }
 };
 
 const getClaims = async function(cids) {
   if (!cids) {
-    functions.logger.error(`Could not get Claims: ${cids}`);
+    logger.error(`Could not get Claims: ${cids}`);
     return;
   }
 
   if (cids.length > 10) {
-    functions.logger.error(`Too many cids! ${cids}`);
+    logger.error(`Too many cids! ${cids}`);
     return;
   }
 
@@ -718,7 +753,7 @@ const getClaims = async function(cids) {
 
 const setClaim = async function(claim) {
   if (!claim.cid || !claim.createdAt || !claim.updatedAt) {
-    functions.logger.error(`Could not create claim: ${claim}`);
+    logger.error(`Could not create claim: ${claim}`);
     return;
   }
   const claimRef = admin.firestore().collection("claims").doc(claim.cid);
@@ -726,14 +761,14 @@ const setClaim = async function(claim) {
     await claimRef.set(claim, {merge: true});
     return true;
   } catch (e) {
-    functions.logger.error(e);
+    logger.error(e);
     return false;
   }
 };
 
 const deleteClaim = async function(cid) {
   if (!cid) {
-    functions.logger.error(`Could not delete claim: ${cid}`);
+    logger.error(`Could not delete claim: ${cid}`);
     return;
   }
   const claimRef = admin.firestore().collection("claims").doc(cid);
@@ -741,7 +776,7 @@ const deleteClaim = async function(cid) {
     await claimRef.delete();
     return true;
   } catch (e) {
-    functions.logger.error(e);
+    logger.error(e);
     return false;
   }
 };
@@ -753,7 +788,7 @@ const deleteClaim = async function(cid) {
  * */
 const getAllClaimsForPost = async function(pid) {
   if (!pid) {
-    functions.logger.error(`Could not get claims for post: ${pid}`);
+    logger.error(`Could not get claims for post: ${pid}`);
     return;
   }
   const claimsRef = admin.firestore().collection("claims")
@@ -773,7 +808,7 @@ const getAllClaimsForPost = async function(pid) {
  * */
 const getAllClaimsForStory = async function(sid) {
   if (!sid) {
-    functions.logger.error(`Could not get claims for story: ${sid}`);
+    logger.error(`Could not get claims for story: ${sid}`);
     return;
   }
   const claimsRef = admin.firestore().collection("claims")
@@ -792,7 +827,7 @@ const getAllClaimsForStory = async function(sid) {
 
 const getDBDocument = async function(id, collectionId) {
   if (!id || !collectionId) {
-    functions.logger.error(`Could not get: ${id}`);
+    logger.error(`Could not get: ${id}`);
     return;
   }
   const ref = admin.firestore().collection(collectionId).doc(id);
@@ -817,7 +852,7 @@ const getDBDocument = async function(id, collectionId) {
  */
 const setVector = async function(id, vector, collectionId) {
   if (!id || !vector || !collectionId) {
-    functions.logger.error(`Could not update: ${id}`);
+    logger.error(`Could not update: ${id}`);
     return;
   }
 
@@ -832,7 +867,7 @@ const setVector = async function(id, vector, collectionId) {
     }, {merge: true});
     return true;
   } catch (e) {
-    functions.logger.error(e);
+    logger.error(e);
     return false;
   }
 };
@@ -846,7 +881,7 @@ const setVector = async function(id, vector, collectionId) {
  */
 const searchVectors = async function(vector, collectionId, topK = 7) {
   if (!vector || !collectionId) {
-    functions.logger.error(`Could not search: ${vector}`);
+    logger.error(`Could not search: ${vector}`);
     return;
   }
 
@@ -871,7 +906,7 @@ const searchVectors = async function(vector, collectionId, topK = 7) {
     const results = vectorQuerySnapshot.docs.map((doc) => doc.data());
     return results;
   } catch (e) {
-    functions.logger.error(e);
+    logger.error(e);
     return null;
   }
 };
@@ -891,6 +926,7 @@ module.exports = {
   getPosts,
   getPostsForStory,
   getAllPostsForStory,
+  getAllPostsForClaim,
   bulkSetPosts,
   canFindStories,
   //
@@ -916,6 +952,7 @@ module.exports = {
   //
   createClaim,
   updateClaim,
+  getClaim,
   getClaims,
   setClaim,
   deleteClaim,

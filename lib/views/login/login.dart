@@ -31,7 +31,7 @@ class _LoginState extends ConsumerState<Login> {
             Logo(size: context.iconSizeXXXL),
             context.st,
             const LogoText(),
-            const Spacer(flex: 9),
+            const Spacer(flex: 20), // hack, change
             TextButton(
               child: const Row(
                 mainAxisAlignment: MainAxisAlignment.center,

@@ -12,6 +12,7 @@ Claim _$ClaimFromJson(Map<String, dynamic> json) => Claim(
       createdAt: Utils.timestampFromJson(json['createdAt'] as int),
       value: json['value'] as String,
       claimedAt: Utils.timestampFromJson(json['claimedAt'] as int),
+      context: json['context'] as String?,
       pro: (json['pro'] as List<dynamic>?)?.map((e) => e as String).toList() ??
           const [],
       against: (json['against'] as List<dynamic>?)
@@ -29,6 +30,7 @@ Claim _$ClaimFromJson(Map<String, dynamic> json) => Claim(
 Map<String, dynamic> _$ClaimToJson(Claim instance) => <String, dynamic>{
       'cid': instance.cid,
       'value': instance.value,
+      'context': instance.context,
       'pro': instance.pro,
       'against': instance.against,
       'pids': instance.pids,

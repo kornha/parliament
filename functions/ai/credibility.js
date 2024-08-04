@@ -1,6 +1,6 @@
 const admin = require("firebase-admin");
-const functions = require("firebase-functions");
 const {FieldValue} = require("firebase-admin/firestore");
+const {logger} = require("firebase-functions/v2");
 
 exports.applyVoteToCredbility = async function(pid, vote, {add = true}) {
   const postRef = admin.firestore().collection("posts").doc(pid);
@@ -10,7 +10,7 @@ exports.applyVoteToCredbility = async function(pid, vote, {add = true}) {
       const doc = await t.get(postRef);
 
       if (!doc.exists) {
-        functions.logger.error(`Post ${pid} does not exist!`);
+        logger.error(`Post ${pid} does not exist!`);
         return;
       }
 
@@ -21,7 +21,7 @@ exports.applyVoteToCredbility = async function(pid, vote, {add = true}) {
           post.voteCountCredibility <= 0 ||
           post.credibility === null) {
         if (!add) {
-          functions.logger.error(`Cannot remove vote in ${pid}, empty!`);
+          logger.error(`Cannot remove vote in ${pid}, empty!`);
           return;
         }
         newCredibility = vote.credibility.value;
@@ -48,6 +48,6 @@ exports.applyVoteToCredbility = async function(pid, vote, {add = true}) {
       });
     });
   } catch (e) {
-    functions.logger.error(e);
+    logger.error(e);
   }
 };

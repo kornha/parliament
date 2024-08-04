@@ -1,9 +1,9 @@
-/* eslint-disable require-jsdoc */
-
-const functions = require("firebase-functions");
+const {onDocumentWritten} = require("firebase-functions/v2/firestore");
+const {onMessagePublished} = require("firebase-functions/v2/pubsub");
 const {defaultConfig, gbConfig} = require("../common/functions");
 const {publishMessage,
   ENTITY_SHOULD_CHANGE_IMAGE} = require("../common/pubsub");
+const {logger} = require("firebase-functions/v2");
 const {getEntityImage} = require("../content/xscraper");
 const {updateEntity} = require("../common/database");
 const {Timestamp} = require("firebase-admin/firestore");
@@ -11,13 +11,14 @@ const {Timestamp} = require("firebase-admin/firestore");
 //
 // Firestore
 //
-exports.onEntityUpdate = functions
-    .runWith(defaultConfig)
-    .firestore
-    .document("entities/{eid}")
-    .onWrite(async (change) => {
-      const before = change.before.data();
-      const after = change.after.data();
+exports.onEntityUpdate = onDocumentWritten(
+    {
+      document: "entities/{eid}",
+      ...defaultConfig,
+    },
+    async (event) => {
+      const before = event.data.before.data();
+      const after = event.data.after.data();
       if (!before && !after) {
         return Promise.resolve();
       }
@@ -29,14 +30,14 @@ exports.onEntityUpdate = functions
       // can revisit if this logic is right
       // for some reason after.handle was null on create
       if (_create && !after.photoURL && after.handle ||
-        _update && before.handle !== after.handle
+      _update && before.handle !== after.handle
       ) {
         publishMessage(ENTITY_SHOULD_CHANGE_IMAGE, after);
       }
 
-
       return Promise.resolve();
-    });
+    },
+);
 
 //
 // PubSub
@@ -47,20 +48,21 @@ exports.onEntityUpdate = functions
  * Requires 1GB to run
  * @param {Entity} message the message.
  */
-exports.onEntityShouldChangeImage = functions
-    .runWith(gbConfig)
-    .pubsub
-    .topic(ENTITY_SHOULD_CHANGE_IMAGE)
-    .onPublish(async (message) => {
-      const entity = message.json;
+exports.onEntityShouldChangeImage = onMessagePublished(
+    {
+      topic: ENTITY_SHOULD_CHANGE_IMAGE,
+      ...gbConfig,
+    },
+    async (event) => {
+      const entity = event.data.message.json;
       if (!entity) {
-        functions.logger.error("No entity provided.");
+        logger.error("No entity provided.");
         return;
       }
 
       const image = await getEntityImage(entity.handle, entity.sourceType);
       if (!image) {
-        functions.logger.error(`No image found for entity ${entity.handle}, 
+        logger.error(`No image found for entity ${entity.handle}, 
           ${entity.sourceType}`);
         return;
       }
@@ -71,6 +73,5 @@ exports.onEntityShouldChangeImage = functions
       });
 
       return Promise.resolve();
-    });
-
-
+    },
+);

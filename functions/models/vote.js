@@ -1,4 +1,5 @@
-const functions = require("firebase-functions");
+const {onDocumentWritten} = require("firebase-functions/v2/firestore");
+const {logger} = require("firebase-functions/v2");
 const {applyVoteToBias} = require("../ai/bias");
 const {applyVoteToCredbility} = require("../ai/credibility");
 
@@ -6,51 +7,50 @@ const {applyVoteToCredbility} = require("../ai/credibility");
 // Vote trigger (subcollection)
 //
 
-exports.onVoteBiasChange = functions.firestore
-    .document("posts/{pid}/votesBias/{uid}")
-    .onWrite(async (change, context) => {
-      const before = change.before.data();
-      const after = change.after.data();
+exports.onVoteBiasChange = onDocumentWritten(
+    {
+      document: "posts/{pid}/votesBias/{uid}",
+    },
+    async (event) => {
+      const before = event.data.before.data();
+      const after = event.data.after.data();
       if (!before && !after) {
-        functions.logger.error(`Vote ${change} without before or after!`);
+        logger.error(`Vote ${event} without before or after!`);
         return;
       } else if (before && after &&
           before.bias.position.angle === after.bias.position.angle) {
         return null;
       } else if (!before && after) {
-        await applyVoteToBias(context.params.pid, after, {add: true});
+        await applyVoteToBias(event.params.pid, after, {add: true});
       } else if (before && !after) {
-        await applyVoteToBias(context.params.pid, before, {add: false});
+        await applyVoteToBias(event.params.pid, before, {add: false});
       } else {
-        await applyVoteToBias(context.params.pid, before, {add: false});
-        await applyVoteToBias(context.params.pid, after, {add: true});
-        // admin.firestore()
-        //     .collection("posts")
-        //     .doc(after.pid).get().then((doc) => {
-        //       const post = doc.data();
-        //       computeBias(post);
-        //     });
+        await applyVoteToBias(event.params.pid, before, {add: false});
+        await applyVoteToBias(event.params.pid, after, {add: true});
       }
-    });
+    },
+);
 
-
-exports.onVoteCredibilityChange = functions.firestore
-    .document("posts/{pid}/votesCredibility/{uid}")
-    .onWrite(async (change, context) => {
-      const before = change.before.data();
-      const after = change.after.data();
+exports.onVoteCredibilityChange = onDocumentWritten(
+    {
+      document: "posts/{pid}/votesCredibility/{uid}",
+    },
+    async (event) => {
+      const before = event.data.before.data();
+      const after = event.data.after.data();
       if (!before && !after) {
-        functions.logger.error(`Vote ${change} without before or after!`);
+        logger.error(`Vote ${event} without before or after!`);
         return;
       } else if (before && after &&
-          before.credibility.value === after.credibility.value) {
+        before.credibility.value === after.credibility.value) {
         return null;
       } else if (!before && after) {
-        await applyVoteToCredbility(context.params.pid, after, {add: true});
+        await applyVoteToCredbility(event.params.pid, after, {add: true});
       } else if (before && !after) {
-        await applyVoteToCredbility(context.params.pid, before, {add: false});
+        await applyVoteToCredbility(event.params.pid, before, {add: false});
       } else {
-        await applyVoteToCredbility(context.params.pid, before, {add: false});
-        await applyVoteToCredbility(context.params.pid, after, {add: true});
+        await applyVoteToCredbility(event.params.pid, before, {add: false});
+        await applyVoteToCredbility(event.params.pid, after, {add: true});
       }
-    });
+    },
+);

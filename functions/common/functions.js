@@ -1,20 +1,24 @@
 exports.gbConfig = {
   timeoutSeconds: 60,
-  memory: "2GB",
+  memory: "2GiB",
   secrets: ["OPENAI_API_KEY", "PINECONE_KEY",
     "X_HANDLE_KEY", "X_PASSWORD_KEY", "X_EMAIL_KEY"],
 };
 
-exports.gbConfig5Min = {
+/* puppeteer limitations
+ * we increase timeout
+ * we don't want multiple browsers running in the same instance
+**/
+exports.scrapeConfig = {
   timeoutSeconds: 300,
-  memory: "2GB",
+  concurrency: 1,
+  memory: "2GiB",
   secrets: ["OPENAI_API_KEY", "PINECONE_KEY",
     "X_HANDLE_KEY", "X_PASSWORD_KEY", "X_EMAIL_KEY"],
 };
 
 exports.defaultConfig = {
   timeoutSeconds: 60,
-  memory: "256MB",
   secrets: ["OPENAI_API_KEY", "PINECONE_KEY",
     "X_HANDLE_KEY", "X_PASSWORD_KEY", "X_EMAIL_KEY"],
 };

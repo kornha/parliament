@@ -45,7 +45,7 @@ const findStoriesPrompt = function({post, stories, training = false, includePhot
   }
 
   messages.push({type: "text", text: "Only output Stories that you are certain Post belongs to. The Post must either directly mention the content in the Story, or make a Claim about the Story. For any Stories that you output, order them by most to least relevant."});
-  messages.push({type: "text", text: `{"stories":[${storyJSONOutput()}, ...], "removed":["sid1", "sid2", ...]}`});
+  messages.push({type: "text", text: `{"stories":[${storyJSONOutput()}, ...], "removedStories":["sid1", "sid2", ...]}`});
 
   return messages;
 };
@@ -117,7 +117,7 @@ const findStoriesForTrainingText = function() {
 
   - Return only Stories that this Post "belongs to". 
   - Create new Stories if the Post "belongs to" a Story that is not in the list of candidate Stories. 
-  - If multiple candidate Stories "belong to" each other, or in contrast if a candidate Story is overloaded and discussing multiple events, you may choose to Merge or Split the Story(ies). In this case, Simply output the new merged/split Story(ies) as a new Story(ies), and include the old Stor(ies) in the 'removed' output.
+  - If multiple candidate Stories "belong to" each other, or in contrast if a candidate Story is overloaded and discussing multiple events, you may choose to Merge or Split the Story(ies). In this case, Simply output the new merged/split Story(ies) as a new Story(ies), and include the old Stor(ies) in the 'removedStories' output.
   - You should always return at least 1 Story (new or candidate).
   
   A Post "belongs to" a Story if and only if one of these criteria are met:
@@ -138,8 +138,6 @@ const findStoriesForTrainingText = function() {
 
 const findClaimsForTrainingText = function() {
   return `
-  You will be given a Post, a list of Stories (can be empty), and a list of Claims (can be empty).
-
   Description of a Post:
   ${postDescriptionPrompt()}
 
@@ -149,21 +147,25 @@ const findClaimsForTrainingText = function() {
   Description of a Claim:
   ${claimsDescriptionPrompt()}
 
-  The Stories represent all Stories the Post is currently associated with.
-  The Claims represent all Claims that are already associated with all these Stories, as well as Claims that are associated with all other Posts already associated with these Stories.
+  The Stories represent all Stories the Post is *currently* associated with.
+  The Claims (aka Candidate Claims), are Claims that are already associated with all these Stories, are close in a graph search (2 degrees) to the Stories, or a vector search to the Stories.
 
-  Your goal is to output the Stories EXACTLY as they are BUT with the following change.
+  You will be given a Post, a list of Stories (can be empty), and a list of Candidate Claims (can be empty).
+
+  Your goal is to output the Stories EXACTLY as they are BUT with the following change. You will also include the Claims that the Post makes about the Stories (but not other Candidate Claims), as follows.
   
-  1) If the Post makes a Claim that is already in the list of Claims, this Claim should be added to the Story, and the Post should be added to the "pro" or "against" list of the Claim.
+  1) If the Post makes a Claim that is in the list of Candidate Claims, this Claim should be included in the Story output, and the Post should be added to the "pro" or "against" list of the Claim.
   1a) DO NOT OUTPUT A CLAIM THAT THE POST DOES NOT MAKE EVEN IF IT IS PART OF THE STORY ALREADY.
   1b) DO NOT OUTPUT OTHER PIDS THAT ARE ALREADY PART OF THE PRO OR AGAINST LIST OF THE CLAIM.
-  2) If the Post makes a Claim that is inherently new (there is no matching Claim in the list), this Claim should be created and added to the Story, and the Post should be added to the "pro" or "against" list of the Claim.
+  1c) For any Claim that you output, you should update the fields in Claim if new information is provided by the Post. The value should not be changed, but the context and claimedAt may be updated.
+  2) If the Post makes a Claim that is inherently new (there is no matching Claim in the list), this new Claim should be created (and it will be added to the Story), and the Post should be added to the "pro" or "against" list of the Claim. 
+  3) You may see two or more Candidate Claims are essentially the same; that is they make the same claim about the same subject (because of concurrency issues or other), at a similar claimedAt time with roughly the same context. If (and only if) the Post belongs to these Claims, output a new Claim and include the old Claims in the 'removedClaims' output.
 
   Here is how to output a new Claim:
   ${newClaimPrompt()}
 
   Here's a high level example:
-  ${findClaimsAndStoriesExample()}
+  ${findClaimsExample()}
 `;
 };
 
@@ -217,7 +219,7 @@ const storyDescriptionPrompt = function() {
 };
 
 const storyJSONOutput = function(claims = false) {
-  return `{"sid":ID of the Story or null if Story is new, "title": "title of the story", "description": "the full description of the story is a useful vector searchable description", "headline" "short, active, engaging title shown to users", "subHeadline":"active, engaging, short description shown to users", "importance": 0.0-1.0 relative importance of the story, "happenedAt": ISO 8601 time format that the event happened at, or null if it cannot be determined, "lat": lattitude best estimate of the location of the Story, "long": longitude best estimate, "photos:[{"photoURL":photoURL field in the Post if any, "description": photoDescription field in the Post, if any}, ...list of UNIQUE photos taken from the Posts ordered by most interesting]${claims ? `, "claims":[${claimJSONOutput()}, ...]` : ""}}`;
+  return `{"sid":ID of the Story or null if Story is new, "title": "title of the story", "description": "the full description of the story is a useful vector searchable description", "headline" "short, active, engaging title shown to users", "subHeadline":"active, engaging, short description shown to users", "importance": 0.0-1.0 relative importance of the story, "happenedAt": ISO 8601 time format that the event happened at, or null if it cannot be determined, "lat": lattitude best estimate of the location of the Story, "long": longitude best estimate, "photos:[{"photoURL":photoURL field in the Post if any, "description": photoDescription field in the Post, if any}, ...list of UNIQUE photos taken from the Posts ordered by most interesting]${claims ? `, "claims":[${claimJSONOutput()}, ...], "removedClaims":["cid1", ...]` : ""}}`;
 };
 
 //
@@ -243,8 +245,8 @@ const claimsDescriptionPrompt = function() {
             A Claim has a "value" field, which is the statement itself.
             A Claim has a "pro" field, which is a list of Posts that support the Claim.
             A Claim has an "against" field, which is a list of Posts that refute the Claim.
-            A Claim has a "claimedAt" field, which is the earliest time that the Claim was made at and is valid for. This is the time window in which the Claim was made that other Claims can be compared to. Generally within 48 hours we assume that new Claims are about the same event.
-            A Claim may have a "context" field, which provides more information about the Claim, and helps for search.`;
+            A Claim has a "context" field that is used for vector search (so it should be heavy on keywords), and also for describing all details about the Claim.
+            A Claim has a "claimedAt" field, which is the earliest time that the Claim was made at and is valid for. This is the time window in which the Claim was made that other Claims can be compared to. Generally within 48 hours we assume that new Claims are about the same event.`;
 };
 
 const newClaimPrompt = function() {
@@ -252,17 +254,20 @@ const newClaimPrompt = function() {
   CID should be null for new Claims, and copied if outputting an existing Claim.
 
   Value:
-  The 'value' field is the text of the Claim. It should be a verifiable statement that is direct and clear, not an opinion. It should be as neutral as possible. Eg., "Trump is a Republican" is a Claim, "Trump is a good president" is an opinion. Any sort of human value judgement is an opinion, and should not be outputted. The value field should also be in the "positive" form, eg., "Trump is a Republican" not "Trump is not a Democrat".
+  The 'value' field is the text of the Claim. It should be a verifiable statement that is direct and clear, not an opinion. It should be as neutral as possible. Eg., "Trump is a Republican" is a Claim, "Trump is a good president" is an opinion. Any sort of human value judgement is an opinion, and should not be outputted. The value field should also be in the "positive" form, eg., "Trump is a Republican", not "Trump is not a Democrat".
 
   Pro/Against:
-  The 'pro' and 'against' fields are lists of Post IDs that support or refute the Claim. If the Post is in support of the Claim, it should be added to the 'pro' list. If the Post is against the Claim, it should be added to the 'against' list.
+  The 'pro' and 'against' fields are lists of Post IDs that support or refute the Claim. If the Post is in support of the Claim, it should be added to the 'pro' list. If the Post is against the Claim, it should be added to the 'against' list. For example, if the Post is 'why do you support Trump even though he hates you', and a Claim is 'Donald Trump hates his supporters', the Post should be added to the 'pro' list, as it supports the Claim.
+
+  Context:
+  'context' is a vector searchable field (so it should be heavy on keywords), that is also for describing all details about the Claim so as to match this Claim with new Posts and Stories coming in. It should be a detailed description of the Claim, and should include ALL known/relevant details, but it should never make any Claims itself, as that is the role of the 'value' field. Context is detached from the Posts and Stories, and should include information in its own right but not references to a specific Post. Context may be continually updated as new info comes in.
 
   ClaimedAt:
-  'claimedAt' is the time the Claim is valid for. This is the time window in which the Claim was made that other Claims can be compared to. Generally within 24-48 hours we assume that new Claims are about the same event. The 'claimedAt' should be the time the Claim was made, in ISO 8601 format.`;
+  'claimedAt' is the time the Claim is valid for. This is the time window in which the Claim was made that other Claims can be compared to. Generally within 24-48 hours we assume that new Claims are about the same event. The 'claimedAt' should be the time the Claim was made, in ISO 8601 format. ClaimedAt may be slightly updated (within a day) as new information comes in, but should not be changed by more than a day.`;
 };
 
 const claimJSONOutput = function() {
-  return `{"cid":ID of the Claim or null if the Claim is new, "value": "text of the claim", "pro": [pid of the post] or [] if post is not in support, "against": [pid of the post] or [] if the post is not against the claim", "claimedAt": "ISO 8601 time format that informs us what the Claim is valid for"}`;
+  return `{"cid":ID of the Claim or null if the Claim is new, "value": "text of the claim", "pro": [pid of the post] or [] if post is not in support, "against": [pid of the post] or [] if the post is not against the claim", "context": "contextual information that is used for vector search, and also for describing all details about the claim", "claimedAt": "ISO 8601 time format that informs us what the Claim is valid for"}`;
 };
 
 //
@@ -413,7 +418,7 @@ const findStoryExample = function() {
       happenedAt: "2024-06-20T8:08:00Z"
 
     POST 6 OUTPUT:
-    Clearly, the two candidate Stories are about the same event, the IDF's use of the Hannibal Directive on October 7. The Stories should be Merged, and the Post belongs to the Merged Story. Hence, the output should be a new Story, with information from both events (omitted here). The "removed" section of the output should include the SIDs from both candidate Stories.
+    Clearly, the two candidate Stories are about the same event, the IDF's use of the Hannibal Directive on October 7. The Stories should be Merged, and the Post belongs to the Merged Story. Hence, the output should be a new Story, with information from both events (omitted here). The "removedStories" section of the output should include the SIDs from both candidate Stories.
 
     POST 7, 4 CANDIDATE STORIES:
     "Senator JD Vance says he has “not gotten the call” from Trump asking him to be his VP. This comes amid a whirlwind of speculation about who Trump will pick as his running mate.",
@@ -446,7 +451,7 @@ const findStoryExample = function() {
       happenedAt: "2024-06-20T10:01:00Z"
 
     POST 5 OUTPUT:
-    In this case, the first 3 candidate Stories are clearly discussing the speculation around Trump's VP pick. The Stories have a very similar happenedAt, and have the same subject. They clearly "belong to" each other, and should be Merged. The 4th candidate Story does not belong to the other Stories. The Post "belongs to" the new, Merged, Story. Hence the output is a new Story, and the removed section should include the 3 SIDs of the Stories that were merged. The 4th candidate Story is not outputted at all.
+    In this case, the first 3 candidate Stories are clearly discussing the speculation around Trump's VP pick. The Stories have a very similar happenedAt, and have the same subject. They clearly "belong to" each other, and should be Merged. The 4th candidate Story does not belong to the other Stories. The Post "belongs to" the new, Merged, Story. Hence the output is a new Story, and the removedStories section should include the 3 SIDs of the Stories that were merged. The 4th candidate Story is not outputted at all.
 
     END OF EXAMPLE.
 
@@ -454,7 +459,7 @@ const findStoryExample = function() {
     If, for example the Posts each had the same photo OR VERY SIMILAR PHOTOS about the attack, you would output the photoURL and photoDescription of the first photo only (so as to dedupe), copied from one of the Posts. If the photos are different enough and both are relevant, you would output both photos, ordered by most interesting. If another Post were to come in with an unclear description, but the same photo, it is very likely part of the same Story. Try and order the insteresting photos first.`;
 };
 
-const findClaimsAndStoriesExample = function() {
+const findClaimsExample = function() {
   return `Let's say we have a Post that says: 
     "The loss of life in Gaza, military or civilian, is a tragedy that belongs to Hamas.
     I grieve as a father and my thoughts are with the families who lost their brave children."
@@ -467,8 +472,19 @@ const findClaimsAndStoriesExample = function() {
     The Story should have the Claims:
     1) 8 Israeli soldiers were killed in an attack in Gaza.
     claimedAt: June 6 2024 5:15PM.
+    context: In an attack on Israeli soldiers in Gaza on June 6 2024, 8 soldiers were killed.
     2) The attack on Israeli soldiers was the deadliest in months.
     claimedAt: June 6 2024 5:15PM.
+    context: The attack on Israeli soldiers in Gaza on June 6 2024 was the deadliest in months.
+
+    Now let's say we have the same Story, but it already has 2 Claims (different from above):
+    1) 8 Israeli soldiers were killed in an attack in Gaza.
+    claimedAt: June 6 2024 5:15PM.
+    context: In an attack on Israeli soldiers in Gaza on June 6 2024, 8 soldiers were killed.
+    2) Eight solders died in an attack in Gaza.
+    claimedAt: June 6 2024 4:10PM.
+
+    These two Claims are clearly making the same Claim about the same subject, and should be merged. To merge, output a new claim, and mark the other 2 as removedClaims.
 
     Put simply, a Claim is any verifiable Claim about a Story (hence not an opinon)`;
 };

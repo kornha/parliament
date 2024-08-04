@@ -1,10 +1,8 @@
-const functions = require("firebase-functions");
 const {Timestamp} = require("firebase-admin/firestore");
 const _ = require("lodash");
+const {logger} = require("firebase-functions/v2");
 
 const isLocal = process.env.FUNCTIONS_EMULATOR === "true";
-// const isDev = !isLocal &&
-//  admin.instanceId().app.options.projectId === "political-think";
 
 const isPerfectSquare = function(x) {
   const s = Math.sqrt(x);
@@ -87,7 +85,7 @@ async function retryAsyncFunction(
       if (result) return result;
     } catch (error) {
       if (showError) {
-        functions.logger.error(`Attempt ${attempt + 1} failed: ${error}`);
+        logger.error(`Attempt ${attempt + 1} failed: ${error}`);
       }
     }
     if (attempt < retries - 1) {
@@ -95,7 +93,7 @@ async function retryAsyncFunction(
     }
   }
   if (showError) {
-    functions.logger.error(`Failed after ${retries} attempts`);
+    logger.error(`Failed after ${retries} attempts`);
   }
   return false;
 }
@@ -139,7 +137,6 @@ const isoToMillis = function(iso) {
 
 module.exports = {
   isLocal,
-  // isDev,
   urlToDomain,
   urlToSourceType,
   isFibonacciNumber,

@@ -1,8 +1,12 @@
+// NOTE! We use v1 here since v2 does not support auth triggers
+// https://github.com/firebase/firebase-functions/issues/1383
 const functions = require("firebase-functions");
+//
 const {createUser, updateUser, deleteUser} = require("../common/database");
 const {FieldValue} = require("firebase-admin/firestore");
 const {authenticate} = require("../common/auth");
 const {defaultConfig} = require("../common/functions");
+const {onCall, HttpsError} = require("firebase-functions/v2/https");
 // const {computeBias} = require("../ai/bias");
 
 
@@ -32,27 +36,27 @@ exports.onAuthUserDelete = functions.runWith(defaultConfig)
 // API's
 //
 
-// api to setUsername, since we need to check uniqueness
-exports.setUsername = functions.runWith(defaultConfig)
-    .https.onCall(async (data, context) => {
-      authenticate(context);
+exports.setUsernameV2 = onCall({...defaultConfig},
+    async (request) => {
+      authenticate(request);
 
+      const data = request.data;
       if (!data.username) {
-        throw new functions.https.HttpsError(
-            "invalid-argument", "No username provided.");
+        throw new HttpsError("invalid-argument", "No username provided.");
       }
       return updateUser(context.auth.uid, {username: data.username});
-    });
+    },
+);
 
 //
 // helpers
 //
+
 exports.applyEloScores = async function(eloScore) {
-  if (!eloScore || !eloScore.values || eloScore.values.size == 0) {
+  if (!eloScore || !eloScore.values || eloScore.values.size === 0) {
     return;
   }
   for (const uid in eloScore.values) {
-    // some JS BS to check if the key exists
     if (Object.prototype.hasOwnProperty.call(eloScore.values, uid)) {
       const delta = eloScore.values[uid];
       updateUser(uid, {

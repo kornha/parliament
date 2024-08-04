@@ -1,4 +1,4 @@
-const functions = require("firebase-functions");
+const {logger} = require("firebase-functions/v2");
 const {getPostsForStory,
   setVector,
   searchVectors,
@@ -22,26 +22,26 @@ const {findStoriesPrompt} = require("./prompts");
  */
 const findStories = async function(post) {
   if (!post) {
-    functions.logger.error("Post is null");
+    logger.error("Post is null");
     return;
   }
 
   // use a retriable with longer backoff since the db is eventually consistent
   const vector = post.vector;
   if (!vector) {
-    functions.logger.error(`Post does not have a vector! ${post.pid}`);
+    logger.error(`Post does not have a vector! ${post.pid}`);
     // should we add it here??
     return;
   }
 
   const candidateStories = await searchVectors(vector, "stories");
 
-  functions.logger.info("Found " +
+  logger.info("Found " +
      candidateStories.length + " candidate stories for post " + post.pid);
 
 
   candidateStories.forEach((story, index) => {
-    functions.logger.info(`Candidate story ${index + 1}: ${story.sid}`);
+    logger.info(`Candidate story ${index + 1}: ${story.sid}`);
   });
 
   const _prompt = findStoriesPrompt({
@@ -60,7 +60,7 @@ const findStories = async function(post) {
   writeTrainingData("findStories", post, candidateStories, null, resp);
 
   if (!resp || !resp.stories || resp.stories.length === 0) {
-    functions.logger.info(`Post does not have a story! ${post.pid}`);
+    logger.info(`Post does not have a story! ${post.pid}`);
     return;
   }
 
@@ -76,7 +76,7 @@ const findStories = async function(post) {
  * */
 const resetStoryVector = async function(sid) {
   if (!sid) {
-    functions.logger.error(`Could not fetch story to update vector: 
+    logger.error(`Could not fetch story to update vector: 
     ${sid}`);
     return;
   }
@@ -92,7 +92,7 @@ const resetStoryVector = async function(sid) {
       await setVector(sid, mean, "stories");
       return true;
     } catch (e) {
-      functions.logger.error("Error saving Story embeddings", e);
+      logger.error("Error saving Story embeddings", e);
       return false;
     }
   }
@@ -101,7 +101,7 @@ const resetStoryVector = async function(sid) {
   const story = await getStory(sid);
   const strings = getStoryEmbeddingStrings(story);
   if (strings.length === 0) {
-    functions.logger.error(`Could not save Story embeddings, 
+    logger.error(`Could not save Story embeddings, 
     no strings! ${sid}`);
     return;
   }
@@ -113,7 +113,7 @@ const resetStoryVector = async function(sid) {
     // publishMessage(POST_CHANGED_VECTOR, {pid: post.pid});
     return true;
   } catch (e) {
-    functions.logger.error("Error saving post embeddings", e);
+    logger.error("Error saving post embeddings", e);
     return false;
   }
 };

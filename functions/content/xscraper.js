@@ -1,4 +1,4 @@
-const functions = require("firebase-functions");
+const {logger} = require("firebase-functions/v2");
 const {
   setContent,
   getContent} = require("../common/storage");
@@ -13,6 +13,7 @@ const {Timestamp} = require("firebase-admin/firestore");
 const {isoToMillis} = require("../common/utils");
 const {defineSecret} = require("firebase-functions/params");
 const {publishMessage, SHOULD_SCRAPE_FEED} = require("../common/pubsub");
+const {HttpsError} = require("firebase-functions/v2/https");
 
 const _xHandleKey = defineSecret("X_HANDLE_KEY");
 const _xPasswordKey = defineSecret("X_PASSWORD_KEY");
@@ -33,7 +34,7 @@ const _userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
  * @return {Promise<void>}
  * */
 const scrapeXFeed = async function(feedUrl) {
-  functions.logger.info(`Started scraping X feed. ${feedUrl}`);
+  logger.info(`Started scraping X feed. ${feedUrl}`);
 
   const browser = await puppeteer.launch({headless: "new"});
   const page = await browser.newPage();
@@ -58,7 +59,7 @@ const scrapeXFeed = async function(feedUrl) {
     await processXLinks([link], null);
   }
 
-  functions.logger.info("Finished scraping X feed.");
+  logger.info("Finished scraping X feed.");
 
   // clearInterval(takeScreenshots);
 
@@ -75,7 +76,7 @@ const scrapeXFeed = async function(feedUrl) {
  * @return {Promise<void>}
  * */
 const scrapeXTopNews = async function(limit = 1) {
-  functions.logger.info("Started scraping top X news.");
+  logger.info("Started scraping top X news.");
 
 
   const browser = await puppeteer.launch({headless: "new"});
@@ -112,14 +113,14 @@ const scrapeXTopNews = async function(limit = 1) {
           // TODO: we dedup here and not in autoScrollX. Change?
           uniqueEntries.add(entry.entryId);
           const link = `https://x.com/i/trending/${entry.entryId}`;
-          functions.logger.info(`Queueing feed: ${link}.`);
+          logger.info(`Queueing feed: ${link}.`);
           await publishMessage(SHOULD_SCRAPE_FEED, {link: link});
         }
       }
     }
   }
 
-  functions.logger.info("Finished scraping top X news.");
+  logger.info("Finished scraping top X news.");
 
   await browser.close();
 
@@ -134,7 +135,7 @@ const scrapeXTopNews = async function(limit = 1) {
  * @param {page} page the page instance to connect with
  * */
 const connectToX = async function(page) {
-  functions.logger.info("Connecting to X.");
+  logger.info("Connecting to X.");
 
   const email = _xEmailKey.value();
   const handle = _xHandleKey.value();
@@ -153,7 +154,7 @@ const connectToX = async function(page) {
     await page.setCookie(...cookies);
     tryRedirect = true;
   } else {
-    functions.logger.info("No cookies found for X.");
+    logger.info("No cookies found for X.");
     tryRedirect = false;
   }
 
@@ -163,12 +164,12 @@ const connectToX = async function(page) {
     // wait for redirect
     await page.waitForNetworkIdle({idleTime: 1500});
     if (!page.url().includes("login")) {
-      functions.logger.info("Already logged in.");
+      logger.info("Already logged in.");
       return;
     }
   }
 
-  functions.logger.info("Logging in to X.");
+  logger.info("Logging in to X.");
 
   // login
   await page.goto("https://x.com/i/flow/login", {waitUntil: "networkidle0"});
@@ -230,7 +231,7 @@ const connectToX = async function(page) {
     }
   });
 
-  functions.logger.info("Logged in to X.");
+  logger.info("Logged in to X.");
 
   // needed?
   await page.waitForNetworkIdle({idleTime: 1000});
@@ -333,19 +334,19 @@ const processXLinks = async function(xLinks, poster = null) {
   const pids = [];
 
   for (const link of xLinks) {
-    functions.logger.info(`Processing X link: ${link}.`);
+    logger.info(`Processing X link: ${link}.`);
     const xid = link.split("/").pop();
     const post = await getPostByXid(xid, "x");
     if (post == null) {
       const handle = link.split("/")[3];
       if (handle == "i" || handle == "@i") {
         // currently not supporting where i is temp handle used by X
-        functions.logger.warn("Skipping link: " + link);
+        logger.warn("Skipping link: " + link);
         continue;
       }
       const eid = await findCreateEntity(handle, "x");
       if (eid == null) {
-        functions.logger.error("Could not find entity for handle: " + handle);
+        logger.error("Could not find entity for handle: " + handle);
         continue; // Skip to the next iteration if no entity is found
       }
       const post = {
@@ -364,7 +365,7 @@ const processXLinks = async function(xLinks, poster = null) {
       if (success) {
         pids.push(post.pid);
       } else {
-        functions.logger.error("Could not create post for xid: " + xid);
+        logger.error("Could not create post for xid: " + xid);
       }
     }
   }
@@ -471,17 +472,15 @@ const getContentFromX = async function(url) {
  * */
 const xupdatePost = async function(post) {
   if (!post || !post.xid || !post.eid || !post.url) {
-    throw new functions.https
-        .HttpsError("invalid-argument", "No post provided.");
+    throw new HttpsError("invalid-argument", "No post provided.");
   }
 
-  functions.logger.info(`Updating post: ${post.pid} with X metadata.`);
+  logger.info(`Updating post: ${post.pid} with X metadata.`);
 
   const xMetaData = await getContentFromX(post.url);
   if (!xMetaData) {
-    throw new functions.https
-        .HttpsError("invalid-argument",
-            "Could not fetch content from " + post.url);
+    throw new HttpsError("invalid-argument",
+        "Could not fetch content from " + post.url);
   }
 
   const time = isoToMillis(xMetaData.isoTime);
@@ -490,7 +489,7 @@ const xupdatePost = async function(post) {
   const supported = xMetaData.videoURL == null;
 
   if (!supported) {
-    functions.logger.warn("Video not supported, skipping post: " + post.pid);
+    logger.warn("Video not supported, skipping post: " + post.pid);
   }
 
   const _post = {
@@ -509,7 +508,7 @@ const xupdatePost = async function(post) {
   };
 
   await updatePost(post.pid, _post);
-  functions.logger.info(`Updated post: ${post.pid} with X metadata.`);
+  logger.info(`Updated post: ${post.pid} with X metadata.`);
 };
 
 /**

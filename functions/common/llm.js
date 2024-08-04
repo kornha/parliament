@@ -1,10 +1,11 @@
 const {defineSecret} = require("firebase-functions/params");
 const {OpenAI} = require("openai");
-const functions = require("firebase-functions");
 const {findStoriesForTrainingText,
   findClaimsForTrainingText} = require("../ai/prompts");
 const {getContent, setContent} = require("../common/storage");
 const _openApiKey = defineSecret("OPENAI_API_KEY");
+const {logger} = require("firebase-functions/v2");
+
 
 // need to add secret to functions.js
 const OPENAI_API_KEY = function() {
@@ -35,11 +36,11 @@ const generateCompletions = async function(messages,
     imageModel = true,
 ) {
   if (messages.length === 0) {
-    functions.logger.error("No messages provided");
+    logger.error("No messages provided");
     return null;
   }
 
-  functions.logger.info(`Generating completions for ` + loggingText ?
+  logger.info(`Generating completions for ` + loggingText ?
     loggingText : `${messages.length} messages`);
 
   const completion = await llm().chat.completions.create({
@@ -64,16 +65,16 @@ const generateCompletions = async function(messages,
   try {
     const generation = JSON.parse(completion.choices[0].message.content);
     if (generation == null) {
-      functions.logger.error(`Invalid generation: ${generation}`);
+      logger.error(`Invalid generation: ${generation}`);
       return null;
     }
 
-    functions.logger.info(`Tokens used: ${completion.usage.total_tokens}`);
+    logger.info(`Tokens used: ${completion.usage.total_tokens}`);
 
     return generation;
   } catch (e) {
-    functions.logger.error(`Invalid decision: ${e}`);
-    functions.logger.error(completion);
+    logger.error(`Invalid decision: ${e}`);
+    logger.error(completion);
     return null;
   }
 };
@@ -86,11 +87,11 @@ const generateCompletions = async function(messages,
  */
 const generateEmbeddings = async function(texts) {
   if (texts.length === 0) {
-    functions.logger.error("No texts provided");
+    logger.error("No texts provided");
     return null;
   }
 
-  functions.logger.info(`Generating embeddings for ${texts.length} texts`);
+  logger.info(`Generating embeddings for ${texts.length} texts`);
 
   // since we want 1 vector
   const concatenatedTexts = texts.join(" ");
@@ -101,15 +102,15 @@ const generateEmbeddings = async function(texts) {
         input: concatenatedTexts,
       });
   if (textEmbeddingResponse?.data?.[0]?.embedding === undefined) {
-    functions.logger.error("Error: no data in response");
+    logger.error("Error: no data in response");
   }
   const vector = textEmbeddingResponse.data[0].embedding;
   if (textEmbeddingResponse.data.length > 1) {
-    functions.logger.warn("Multiple embeddings available");
+    logger.warn("Multiple embeddings available");
   }
 
   // eslint-disable-next-line max-len
-  functions.logger.info(`Tokens used: ${textEmbeddingResponse.usage.total_tokens}`);
+  logger.info(`Tokens used: ${textEmbeddingResponse.usage.total_tokens}`);
 
   return vector;
 };
@@ -125,7 +126,7 @@ const findClaimsPath = "assistants/findClaims.json";
  */
 const getAssistant = async function(prompt) {
   if (prompt !== "findStories" && prompt !== "findClaims") {
-    functions.logger.error("Invalid prompt");
+    logger.error("Invalid prompt");
     throw new Error("Invalid prompt");
   }
 
@@ -153,7 +154,7 @@ const getAssistant = async function(prompt) {
       model: "gpt-4o",
     });
 
-  functions.logger.info(`Created assistant ${assistant.id}`);
+  logger.info(`Created assistant ${assistant.id}`);
 
   await setContent(path, JSON.stringify({assistantId: assistant.id}));
 
@@ -179,7 +180,7 @@ const generateAssistantCompletions = async function(messages, promptName) {
   );
 
   // tokens used
-  functions.logger.info(`Tokens used: ${run.usage.total_tokens}`);
+  logger.info(`Tokens used: ${run.usage.total_tokens}`);
 
   if (run.status === "completed") {
     const _messages = await llm().beta.threads.messages.list(

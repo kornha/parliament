@@ -10,6 +10,7 @@ part 'claim.g.dart';
 class Claim {
   final String cid;
   final String value;
+  final String? context;
   final List<String> pro;
   final List<String> against;
   final List<String> pids;
@@ -28,6 +29,7 @@ class Claim {
     required this.createdAt,
     required this.value,
     required this.claimedAt,
+    this.context,
     this.pro = const [],
     this.against = const [],
     this.pids = const [],

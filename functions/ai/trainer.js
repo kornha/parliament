@@ -1,7 +1,7 @@
 /* eslint-disable max-len */
 const {setContent, getContent} = require("../common/storage");
 const {findStoriesPrompt, findClaimsPrompt} = require("./prompts");
-const functions = require("firebase-functions");
+const {logger} = require("firebase-functions/v2");
 
 const filePath = "training/fine_tune.jsonl";
 
@@ -66,7 +66,7 @@ async function(promptName, post, stories, claims, output) {
   // Write back the updated content to GCS
   await setContent(filePath, newContent,
       "application/json").catch((error) => {
-    functions.logger.error("Error writing JSONL content to GCS: ", error);
+    logger.error("Error writing JSONL content to GCS: ", error);
   });
 };
 
