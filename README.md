@@ -308,6 +308,15 @@ Note that we use declarative programming almost entirely in the fullstack applic
 We are running Node.js functions on Firebase Functions. We use several additional Firebase services, including Firestore, Pubsub, Storage, and Auth. 
 Feel free to study the repo's patterns and suggest changes. 
 
+To Setup, go to [firebase](https://firebase.google.com/) and create a new project. 
+Add an iOS and web project. Copy your variables and create a `.env` file under the parliament/ folder.
+
+### GCP
+
+- After you setup firebase, go to [GCP](https://console.cloud.google.com/).
+- From there, you will need to setup your Maps API. Setup `dark_mode Static – Raster` and `light_mode Static – Raster` maps. 
+- (Optional if you want to match Parliament's look) For each map, add a style that matches the colors in Parliament's [palette](/lib/common/constants.dart#L9), by making the water equal the background color, and the surface equal the `primaryColor` from the [theme](/lib/common/ztheme.dart#L8). All borders are set to the onPrimaryColor.
+
 ### AI/ML
 
 We have complex AI strategies to solve our news problem. We strongly recommend deeply examining the logic before contributing to this portion.
