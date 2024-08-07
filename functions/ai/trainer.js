@@ -1,6 +1,6 @@
 /* eslint-disable max-len */
 const {setContent, getContent} = require("../common/storage");
-const {findStoriesPrompt, findClaimsPrompt} = require("./prompts");
+const {findStoriesPrompt, findStatementsPrompt} = require("./prompts");
 const {logger} = require("firebase-functions/v2");
 
 const filePath = "training/fine_tune.jsonl";
@@ -10,11 +10,11 @@ const filePath = "training/fine_tune.jsonl";
    * @param {string} promptName - The promptName type.
    * @param {Post} post - The post data.
    * @param {List<Story>} stories - List of story objects.
-   * @param {List<Claim>} claims - List of claim objects
+   * @param {List<Statements>} statements - List of statement objects.
    * @param {Object} output - The expected result
    */
 const writeTrainingData =
-async function(promptName, post, stories, claims, output) {
+async function(promptName, post, stories, statements, output) {
   const messages = [];
 
   // System message for context setup
@@ -33,13 +33,13 @@ async function(promptName, post, stories, claims, output) {
         includePhotos: false,
       }),
     });
-  } else if (promptName === "findClaims") {
+  } else if (promptName === "findStatements") {
     messages.push({
       role: "user",
-      content: findClaimsPrompt({
+      content: findStatementsPrompt({
         post: post,
         stories: stories,
-        claims: claims,
+        statements: statements,
         training: false,
         includePhotos: false,
       }),

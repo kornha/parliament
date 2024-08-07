@@ -3,7 +3,7 @@ const {expect} = require("chai");
 const sinon = require("sinon");
 const rewire = require("rewire");
 const storyFunctions = rewire("../ai/story_ai");
-const claimFunctions = rewire("../ai/claim_ai");
+const statementFunctions = rewire("../ai/statement_ai");
 
 describe("AI Tests", () => {
   describe("findStories", () => {
@@ -17,7 +17,7 @@ describe("AI Tests", () => {
 
       storyFunctions.__set__("searchVectors", searchVectorsStub);
       storyFunctions.__set__("writeTrainingData", writeTrainingDataStub);
-      claimFunctions.__set__("writeTrainingData", writeTrainingDataStub);
+      statementFunctions.__set__("writeTrainingData", writeTrainingDataStub);
 
       const post = {
         pid: "fd6d6598-fb5a-5aba-9798-d3aa640047f4",
@@ -84,7 +84,7 @@ describe("AI Tests", () => {
             },
           ],
           happenedAt: 1718468100000,
-          cids: [
+          stids: [
             "c38657a4-b4ea-429f-9ac6-0e124ded7cb0",
             "f6feed16-3574-4473-8539-b27b684cb98c",
           ],
@@ -134,7 +134,7 @@ describe("AI Tests", () => {
               0.027923422,
             ],
           },
-          cids: [
+          stids: [
             "e1d63350-9626-4006-b512-8279e0a8fd62",
             "e769e0c5-affb-4486-a550-00a55f092542",
           ],
@@ -146,7 +146,7 @@ describe("AI Tests", () => {
 
       storyFunctions.__set__("searchVectors", searchVectorsStub);
       storyFunctions.__set__("writeTrainingData", writeTrainingDataStub);
-      claimFunctions.__set__("writeTrainingData", writeTrainingDataStub);
+      statementFunctions.__set__("writeTrainingData", writeTrainingDataStub);
 
       const post = {
         pid: "36aaf14b-1f38-5bff-95de-91d685d9f60e",
@@ -222,7 +222,7 @@ describe("AI Tests", () => {
             geoHash: "sr2ykk5te0",
           },
           happenedAt: 1720030520000,
-          cids: [
+          stids: [
             "b1cdb03f-af19-427a-83f1-938650e751e1",
           ],
           vector: {
@@ -236,7 +236,7 @@ describe("AI Tests", () => {
 
       storyFunctions.__set__("searchVectors", searchVectorsStub);
       storyFunctions.__set__("writeTrainingData", writeTrainingDataStub);
-      claimFunctions.__set__("writeTrainingData", writeTrainingDataStub);
+      statementFunctions.__set__("writeTrainingData", writeTrainingDataStub);
 
       const post = {
         pid: "1e2ce086-cb7c-5bfb-b355-edb4d57b93f7",
@@ -306,7 +306,7 @@ describe("AI Tests", () => {
         vector: {
           _values: [0.050173745],
         },
-        cids: [
+        stids: [
           "0cb194c1-6232-4c53-b21b-39740b767e8e",
           "66194ea0-7455-4895-bf6f-86301188801d",
         ],
@@ -317,7 +317,7 @@ describe("AI Tests", () => {
 
       storyFunctions.__set__("searchVectors", searchVectorsStub);
       storyFunctions.__set__("writeTrainingData", writeTrainingDataStub);
-      claimFunctions.__set__("writeTrainingData", writeTrainingDataStub);
+      statementFunctions.__set__("writeTrainingData", writeTrainingDataStub);
 
       const post = {
         pid: "813416b8-b25f-5bbe-8aad-7f49496efd42",
@@ -365,7 +365,7 @@ describe("AI Tests", () => {
             },
           ],
           happenedAt: 1718468107000,
-          cids: [
+          stids: [
             "ecd01a02-5ad8-4166-89e8-590c0463d25d",
             "b455a92f-ff3e-4f48-a407-7dd2e5dcc8c4",
           ],
@@ -411,7 +411,7 @@ describe("AI Tests", () => {
             geoHash: "sv8e0qkkc1",
           },
           happenedAt: 1718490718000,
-          cids: [
+          stids: [
             "1bf81883-143e-4a0e-9e53-4112195c57b4",
           ],
           vector: {
@@ -427,7 +427,7 @@ describe("AI Tests", () => {
 
       storyFunctions.__set__("searchVectors", searchVectorsStub);
       storyFunctions.__set__("writeTrainingData", writeTrainingDataStub);
-      claimFunctions.__set__("writeTrainingData", writeTrainingDataStub);
+      statementFunctions.__set__("writeTrainingData", writeTrainingDataStub);
 
       const post = {
         pid: "b28b73b9-0567-51a5-8a7d-4dfe304e947c",
@@ -488,7 +488,7 @@ describe("AI Tests", () => {
             },
           ],
           happenedAt: 1718468107000,
-          cids: [
+          stids: [
             "ecd01a02-5ad8-4166-89e8-590c0463d25d",
             "b455a92f-ff3e-4f48-a407-7dd2e5dcc8c4",
           ],
@@ -534,7 +534,7 @@ describe("AI Tests", () => {
             geoHash: "sv8e0qkkc1",
           },
           happenedAt: 1718490718000,
-          cids: [
+          stids: [
             "1bf81883-143e-4a0e-9e53-4112195c57b4",
           ],
           vector: {
@@ -550,7 +550,7 @@ describe("AI Tests", () => {
 
       storyFunctions.__set__("searchVectors", searchVectorsStub);
       storyFunctions.__set__("writeTrainingData", writeTrainingDataStub);
-      claimFunctions.__set__("writeTrainingData", writeTrainingDataStub);
+      statementFunctions.__set__("writeTrainingData", writeTrainingDataStub);
 
       const post = {
         pid: "7557196b-f9c8-5859-8f4f-f00ba59d35cc",
@@ -619,7 +619,7 @@ describe("AI Tests", () => {
           vector: {
             _values: [0.007416474],
           },
-          cids: [
+          stids: [
             "e3d23623-971e-4667-9795-5177de5d8338",
             "5ec58051-4b92-44d4-95a5-6c793b0fda05",
           ],
@@ -652,7 +652,7 @@ describe("AI Tests", () => {
           vector: {
             _values: [0.013121083],
           },
-          cids: [
+          stids: [
             "564cacd4-b41c-41fb-a659-aca31c4175af",
             "1a8007f7-7abd-472f-8f53-1d9957974882",
             "5f59f097-103c-42d3-abfa-d84890994c23",
@@ -685,7 +685,7 @@ describe("AI Tests", () => {
             geoHash: "sv8e1n6hu3",
           },
           happenedAt: 1728259200000,
-          cids: [
+          stids: [
             "98635c84-7a0d-4897-b85d-9e056821223d",
           ],
           vector: {
@@ -696,8 +696,8 @@ describe("AI Tests", () => {
           sid: "972a8676-70b8-4586-ba4a-2ac6d28556dd",
           title: "IOF Officer Disappeared",
           headline: "IOF Officer Disappears After Bold Statement",
-          subHeadline: "IOF officer who claimed Hamas fighters fear them has disappeared.",
-          description: "An IOF officer, who once claimed that Hamas fighters do not dare to appear before them due to their strength, has reportedly disappeared. The incident highlights the ongoing conflict and tensions in the region.",
+          subHeadline: "IOF officer who statemented Hamas fighters fear them has disappeared.",
+          description: "An IOF officer, who once statemented that Hamas fighters do not dare to appear before them due to their strength, has reportedly disappeared. The incident highlights the ongoing conflict and tensions in the region.",
           updatedAt: 1720364233970,
           createdAt: 1720364233970,
           importance: 0.4,
@@ -717,7 +717,7 @@ describe("AI Tests", () => {
             geoHash: "sv8e0q3uu3",
           },
           happenedAt: 1720348559000,
-          cids: [
+          stids: [
             "da253d2e-38bf-4c3d-ad59-a21285f96025",
           ],
           vector: {
@@ -731,7 +731,7 @@ describe("AI Tests", () => {
 
       storyFunctions.__set__("searchVectors", searchVectorsStub);
       storyFunctions.__set__("writeTrainingData", writeTrainingDataStub);
-      claimFunctions.__set__("writeTrainingData", writeTrainingDataStub);
+      statementFunctions.__set__("writeTrainingData", writeTrainingDataStub);
 
       const post = {
         pid: "c635708d-7d7a-5de3-a910-edcd0bc793e7",
@@ -796,7 +796,7 @@ describe("AI Tests", () => {
           vector: {
             _values: [-0.0247240931],
           },
-          cids: [
+          stids: [
             "e6ab464c-3127-4db8-a145-c10cf48c06be",
             "3f970a88-f08a-44d6-9531-20d30fc282d4",
             "be72f59e-c408-4343-8c58-dc3509635add",
@@ -849,7 +849,7 @@ describe("AI Tests", () => {
           vector: {
             _values: [-0.00487804138],
           },
-          cids: [
+          stids: [
             "6b06b405-b263-4bb8-9fbc-33bca66fa258",
             "b0b0d3be-9bf4-459f-a3c2-49a005a955ee",
             "e6ab464c-3127-4db8-a145-c10cf48c06be",
@@ -866,7 +866,7 @@ describe("AI Tests", () => {
 
       storyFunctions.__set__("searchVectors", searchVectorsStub);
       storyFunctions.__set__("writeTrainingData", writeTrainingDataStub);
-      claimFunctions.__set__("writeTrainingData", writeTrainingDataStub);
+      statementFunctions.__set__("writeTrainingData", writeTrainingDataStub);
 
       const post = {
         pid: "0b3ab782-cceb-536b-83f3-98e343e843f8",

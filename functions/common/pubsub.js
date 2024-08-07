@@ -4,20 +4,21 @@ const {PubSub} = require("@google-cloud/pubsub");
 const pubsub = new PubSub();
 const {logger} = require("firebase-functions/v2");
 const POST_CHANGED_STORIES = "onPostChangedStories";
-const POST_CHANGED_CLAIMS = "onPostChangedClaims";
-const POST_PUBLISHED = "onPostPublished";
+const POST_CHANGED_STATEMENTS = "onPostChangedStatements";
 const POST_CHANGED_VECTOR = "onPostChangedVector";
+const POST_PUBLISHED = "onPostPublished";
 const POST_CHANGED_XID = "onPostChangedXid";
-const POST_SHOULD_FIND_STORIES_AND_CLAIMS = "onPostShouldFindStoriesAndClaims";
+const POST_SHOULD_FIND_STORIES_AND_STATEMENTS =
+  "onPostShouldFindStoriesAndStatements";
 
 const STORY_CHANGED_POSTS = "onStoryChangedPosts";
-const STORY_CHANGED_CLAIMS = "onStoryChangedClaims";
+const STORY_CHANGED_STATEMENTS = "onStoryChangedStatements";
 const STORY_CHANGED_VECTOR = "onStoryChangedVector";
 
-const CLAIM_CHANGED_POSTS = "onClaimChangedPosts";
-const CLAIM_CHANGED_STORIES = "onClaimChangedStories";
-const CLAIM_CHANGED_VECTOR = "onClaimChangedVector";
-const CLAIM_CHANGED_CONTENT = "onClaimChangedContent";
+const STATEMENT_CHANGED_POSTS = "onStatementChangedPosts";
+const STATEMENT_CHANGED_STORIES = "onStatementChangedStories";
+const STATEMENT_CHANGED_VECTOR = "onStatementChangedVector";
+const STATEMENT_CHANGED_CONTENT = "onStatementChangedContent";
 
 const ENTITY_SHOULD_CHANGE_IMAGE = "onEntityShouldChangeImage";
 
@@ -39,18 +40,18 @@ async function publishMessage(topic, json) {
 module.exports = {
   publishMessage,
   POST_CHANGED_STORIES,
-  POST_CHANGED_CLAIMS,
+  POST_CHANGED_STATEMENTS,
   POST_PUBLISHED,
   POST_CHANGED_VECTOR,
   POST_CHANGED_XID,
-  POST_SHOULD_FIND_STORIES_AND_CLAIMS,
+  POST_SHOULD_FIND_STORIES_AND_STATEMENTS,
   STORY_CHANGED_POSTS,
-  STORY_CHANGED_CLAIMS,
+  STORY_CHANGED_STATEMENTS,
   STORY_CHANGED_VECTOR,
-  CLAIM_CHANGED_POSTS,
-  CLAIM_CHANGED_STORIES,
-  CLAIM_CHANGED_VECTOR,
-  CLAIM_CHANGED_CONTENT,
+  STATEMENT_CHANGED_POSTS,
+  STATEMENT_CHANGED_STORIES,
+  STATEMENT_CHANGED_VECTOR,
+  STATEMENT_CHANGED_CONTENT,
   ENTITY_SHOULD_CHANGE_IMAGE,
   SHOULD_SCRAPE_FEED,
 };

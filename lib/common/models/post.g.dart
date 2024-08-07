@@ -24,8 +24,8 @@ Post _$PostFromJson(Map<String, dynamic> json) => Post(
       sids:
           (json['sids'] as List<dynamic>?)?.map((e) => e as String).toList() ??
               const [],
-      cids:
-          (json['cids'] as List<dynamic>?)?.map((e) => e as String).toList() ??
+      stids:
+          (json['stids'] as List<dynamic>?)?.map((e) => e as String).toList() ??
               const [],
       url: json['url'] as String?,
       photo: json['photo'] == null
@@ -64,7 +64,7 @@ Map<String, dynamic> _$PostToJson(Post instance) => <String, dynamic>{
       'pid': instance.pid,
       'sid': instance.sid,
       'sids': instance.sids,
-      'cids': instance.cids,
+      'stids': instance.stids,
       'eid': instance.eid,
       'xid': instance.xid,
       'poster': instance.poster,

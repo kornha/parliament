@@ -36,6 +36,9 @@ class Margins {
   static const double triple = full * 3;
   static const double quadruple = full * 4;
   static const double quintuple = full * 5;
+  static const double sextuple = full * 6;
+  static const double septuple = full * 7;
+  static const double octuple = full * 8;
 }
 
 class Curvature {

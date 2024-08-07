@@ -6,8 +6,11 @@ import 'package:political_think/common/components/zapp_bar.dart';
 import 'package:political_think/common/components/zdivider.dart';
 import 'package:political_think/common/components/zscaffold.dart';
 import 'package:political_think/common/extensions.dart';
+import 'package:political_think/common/models/statement.dart';
+import 'package:political_think/common/services/zprovider.dart';
 import 'package:political_think/common/util/utils.dart';
-import 'package:political_think/views/claim/claim_view.dart';
+import 'package:political_think/views/statement/statement_tab_view.dart';
+import 'package:political_think/views/statement/statement_view.dart';
 
 class StoryView extends ConsumerStatefulWidget {
   final String sid;
@@ -24,10 +27,21 @@ class StoryView extends ConsumerStatefulWidget {
 }
 
 class _StoryViewState extends ConsumerState<StoryView> {
+  // mixin needed for tab controller
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     var storyRef = ref.storyWatch(widget.sid);
     var story = storyRef.value;
+
+    var statementsFromStoryRef =
+        ref.watch(statementsFromStoryProvider(widget.sid));
+    var statementsFromStory = statementsFromStoryRef.value;
 
     return ZScaffold(
       appBar: ZAppBar(showBackButton: true),
@@ -71,22 +85,8 @@ class _StoryViewState extends ConsumerState<StoryView> {
                       ),
                     ],
                   ),
-                  context.sf,
                   const ZDivider(type: DividerType.PRIMARY),
-                  context.sh,
-                  story?.cids.isNotEmpty ?? false
-                      ? Column(
-                          children: story!.cids.asMap().entries.expand((entry) {
-                            int index = entry.key;
-                            var cid = entry.value;
-                            return [
-                              ClaimView(cid: cid),
-                              if (index != story.cids.length - 1)
-                                const ZDivider(type: DividerType.SECONDARY),
-                            ];
-                          }).toList(),
-                        )
-                      : const SizedBox.shrink(),
+                  StatementTabView(statements: statementsFromStory),
                 ],
               ),
             ),

@@ -32,8 +32,8 @@ class Database {
   final CollectionReference entityCollection =
       FirebaseFirestore.instance.collection('entities');
 
-  final CollectionReference claimCollection =
-      FirebaseFirestore.instance.collection('claims');
+  final CollectionReference statementCollection =
+      FirebaseFirestore.instance.collection('statements');
 
   Stream<ZUser?> getUser(uid) {
     return userCollection.doc(uid).snapshots().map((snapshot) {

@@ -1,18 +1,18 @@
 const {onDocumentWritten} = require("firebase-functions/v2/firestore");
 const {onMessagePublished} = require("firebase-functions/v2/pubsub");
 const {defaultConfig, gbConfig, gbConfig5Min} = require("../common/functions");
-const {findStoriesAndClaims, resetPostVector} = require("../ai/post_ai");
+const {findStoriesAndStatements, resetPostVector} = require("../ai/post_ai");
 const {logger} = require("firebase-functions/v2");
 const {
   publishMessage,
   POST_PUBLISHED,
   POST_CHANGED_VECTOR,
   POST_CHANGED_XID,
-  POST_SHOULD_FIND_STORIES_AND_CLAIMS,
+  POST_SHOULD_FIND_STORIES_AND_STATEMENTS,
   STORY_CHANGED_POSTS,
-  CLAIM_CHANGED_POSTS,
+  STATEMENT_CHANGED_POSTS,
   POST_CHANGED_STORIES,
-  POST_CHANGED_CLAIMS,
+  POST_CHANGED_STATEMENTS,
 } = require("../common/pubsub");
 const {
   getPost,
@@ -30,7 +30,7 @@ const {xupdatePost} = require("../content/xscraper");
 const {generateCompletions} = require("../common/llm");
 const {generateImageDescriptionPrompt} = require("../ai/prompts");
 const {queueTask,
-  POST_SHOULD_FIND_STORIES_AND_CLAIMS_TASK} = require("../common/tasks");
+  POST_SHOULD_FIND_STORIES_AND_STATEMENTS_TASK} = require("../common/tasks");
 const {onTaskDispatched} = require("firebase-functions/v2/tasks");
 
 
@@ -94,11 +94,11 @@ exports.onPostUpdate = onDocumentWritten(
       }
 
       if (
-        _create && !_.isEmpty(after.cids) ||
-        _update && !_.isEqual(before.cids, after.cids) ||
-        _delete && !_.isEmpty(before.cids)
+        _create && !_.isEmpty(after.stids) ||
+        _update && !_.isEqual(before.stids, after.stids) ||
+        _delete && !_.isEmpty(before.stids)
       ) {
-        await publishMessage(POST_CHANGED_CLAIMS,
+        await publishMessage(POST_CHANGED_STATEMENTS,
             {before: before, after: after});
       }
 
@@ -111,7 +111,7 @@ exports.onPostUpdate = onDocumentWritten(
 //
 
 /**
- * optionally calls findStoriesAndClaims if the post is published beforehand
+ * optionally calls findStoriesAndStatements if the post is published beforehand
  * @param {Message} message
  * @return {Promise<void>}
  * */
@@ -130,7 +130,8 @@ exports.onPostChangedVector = onMessagePublished(
       if (post.status == "published" && post.sid == null) {
         const canFind = await canFindStories(pid);
         if (canFind) {
-          await queueTask(POST_SHOULD_FIND_STORIES_AND_CLAIMS_TASK, {pid: pid});
+          await queueTask(POST_SHOULD_FIND_STORIES_AND_STATEMENTS_TASK,
+              {pid: pid});
         }
       }
 
@@ -156,7 +157,8 @@ exports.onPostPublished = onMessagePublished(
       if (post && post.vector) {
         const canFind = await canFindStories(pid);
         if (canFind) {
-          await queueTask(POST_SHOULD_FIND_STORIES_AND_CLAIMS_TASK, {pid: pid});
+          await queueTask(POST_SHOULD_FIND_STORIES_AND_STATEMENTS_TASK,
+              {pid: pid});
         }
       }
 
@@ -243,10 +245,10 @@ const postChangedContent = async function(before, after) {
 };
 
 //
-// FIND STORIES AND CLAIMS
+// FIND STORIES AND STATEMENTS
 //
 
-exports.onPostShouldFindStoriesAndClaimsTask = onTaskDispatched(
+exports.onPostShouldFindStoriesAndStatementsTask = onTaskDispatched(
     {
       retryConfig: {
         maxAttempts: 2,
@@ -257,44 +259,45 @@ exports.onPostShouldFindStoriesAndClaimsTask = onTaskDispatched(
       ...gbConfig,
     },
     async (event) => {
-      logger.info(`onPostShouldFindStoriesAndClaimsTask: ${event.data.pid}`);
+      logger.info(
+          `onPostShouldFindStoriesAndStatementsTask: ${event.data.pid}`);
       const pid = event.data.pid;
-      await _shouldFindStoriesAndClaims(pid);
+      await _shouldFindStoriesAndStatements(pid);
       return Promise.resolve();
     },
 );
 
 /**
- * Finds stories and claims for a post
+ * Finds stories and statements for a post
  * @param {Message} message
  * @return {Promise<void>}
  * */
-exports.onPostShouldFindStoriesAndClaims = onMessagePublished(
+exports.onPostShouldFindStoriesAndStatements = onMessagePublished(
     {
-      topic: POST_SHOULD_FIND_STORIES_AND_CLAIMS,
+      topic: POST_SHOULD_FIND_STORIES_AND_STATEMENTS,
       ...gbConfig,
     },
     async (event) => {
-      logger.info(`onPostShouldFindStoriesAndClaimsPubsub: 
+      logger.info(`onPostShouldFindStoriesAndStatementsPubsub: 
         ${event.data.message.json.pid}`);
       const pid = event.data.message.json.pid;
-      await _shouldFindStoriesAndClaims(pid);
+      await _shouldFindStoriesAndStatements(pid);
       return Promise.resolve();
     },
 );
 
-const _shouldFindStoriesAndClaims = async function(pid) {
+const _shouldFindStoriesAndStatements = async function(pid) {
   const post = await getPost(pid);
-  await findStoriesAndClaims(post);
+  await findStoriesAndStatements(post);
 
   await updatePost(pid, {status: "found"});
 
   return Promise.resolve();
 };
-exports.shouldFindStoriesAndClaims = _shouldFindStoriesAndClaims;
+exports.shouldFindStoriesAndStatements = _shouldFindStoriesAndStatements;
 
 //
-// Story/Claim sync
+// Story/Statement sync
 //
 
 /**
@@ -345,14 +348,14 @@ exports.onStoryChangedPosts = onMessagePublished(
 );
 
 /**
- * 'TXN' - called from claim.js
- * Updates the claims that this Post is part of
- * @param {Claim} before
- * @param {Claim} after
+ * 'TXN' - called from Statement.js
+ * Updates the Statements that this Post is part of
+ * @param {Statement} before
+ * @param {Statement} after
  */
-exports.onClaimChangedPosts = onMessagePublished(
+exports.onStatementChangedPosts = onMessagePublished(
     {
-      topic: CLAIM_CHANGED_POSTS,
+      topic: STATEMENT_CHANGED_POSTS,
       ...defaultConfig,
     },
     async (event) => {
@@ -361,13 +364,13 @@ exports.onClaimChangedPosts = onMessagePublished(
       if (!after) {
         for (const pid of before.pids || []) {
           await retryAsyncFunction(() => updatePost(pid, {
-            cids: FieldValue.arrayRemove(before.cid),
+            stids: FieldValue.arrayRemove(before.stid),
           }, 5));
         }
       } else if (!before) {
         for (const pid of after.pids || []) {
           await retryAsyncFunction(() => updatePost(pid, {
-            cids: FieldValue.arrayUnion(after.cid),
+            stids: FieldValue.arrayUnion(after.stid),
           }, 5));
         }
       } else {
@@ -378,12 +381,12 @@ exports.onClaimChangedPosts = onMessagePublished(
 
         for (const pid of removed) {
           await retryAsyncFunction(() => updatePost(pid, {
-            cids: FieldValue.arrayRemove(after.cid),
+            stids: FieldValue.arrayRemove(after.stid),
           }, 5));
         }
         for (const pid of added) {
           await retryAsyncFunction(() => updatePost(pid, {
-            cids: FieldValue.arrayUnion(after.cid),
+            stids: FieldValue.arrayUnion(after.stid),
           }, 5));
         }
       }

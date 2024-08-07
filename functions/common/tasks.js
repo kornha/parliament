@@ -3,8 +3,8 @@ const {logger} = require("firebase-functions/v2");
 const {GoogleAuth} = require("google-auth-library");
 const {isLocal} = require("./utils");
 
-const POST_SHOULD_FIND_STORIES_AND_CLAIMS_TASK =
-"onPostShouldFindStoriesAndClaimsTask";
+const POST_SHOULD_FIND_STORIES_AND_STATEMENTS_TASK =
+"onPostShouldFindStoriesAndStatementsTask";
 
 /**
  * Queues a task for a specified queue with a message.
@@ -12,7 +12,7 @@ const POST_SHOULD_FIND_STORIES_AND_CLAIMS_TASK =
  * @param {Object} message - The message to enqueue.
  */
 async function queueTask(queue, message) {
-  logger.info(`Queuing task ${queue} with message ${JSON.stringify(message)}`);
+  logger.info(`Queueing task ${queue} with message ${JSON.stringify(message)}`);
 
   const _queue = getFunctions().taskQueue(queue);
   const targetUri = await getFunctionUrl(queue);
@@ -58,5 +58,5 @@ const getFunctionUrl = async (name, location = "us-central1") => {
 
 module.exports = {
   queueTask,
-  POST_SHOULD_FIND_STORIES_AND_CLAIMS_TASK,
+  POST_SHOULD_FIND_STORIES_AND_STATEMENTS_TASK,
 };

@@ -222,17 +222,17 @@ const getAllPostsForStory = async function(sid) {
 };
 
 /**
- * get all posts for claim
- * @param {*} cid
+ * get all posts for statement
+ * @param {*} stid
  * @return {Array<Post>} of posts
  * */
-const getAllPostsForClaim = async function(cid) {
-  if (!cid) {
-    logger.error(`Could not get posts for claim: ${cid}`);
+const getAllPostsForStatement = async function(stid) {
+  if (!stid) {
+    logger.error(`Could not get posts for statement: ${stid}`);
     return;
   }
   const postsRef = admin.firestore().collection("posts")
-      .where("cids", "array-contains", cid);
+      .where("stids", "array-contains", stid);
   try {
     const posts = await postsRef.get();
     return posts.docs.map((post) => post.data());
@@ -680,17 +680,20 @@ const getMessages = async function(rid, end = null, limit = 100) {
 };
 
 // /////////////////////////////////////////
-// Claims
+// Statements (Statements, Opinions, Phrasings)
 // /////////////////////////////////////////
 
-const createClaim = async function(claim) {
-  if (!claim.cid || !claim.value || !claim.createdAt || !claim.updatedAt) {
-    logger.error(`Could not create claim: ${claim}`);
+const createStatement = async function(statement) {
+  if (!statement.stid ||
+    !statement.value ||
+    !statement.createdAt || !statement.updatedAt) {
+    logger.error(`Could not create statement: ${statement}`);
     return;
   }
-  const claimRef = admin.firestore().collection("claims").doc(claim.cid);
+  const statementRef =
+   admin.firestore().collection("statements").doc(statement.stid);
   try {
-    await claimRef.create(claim);
+    await statementRef.create(statement);
     return true;
   } catch (e) {
     logger.error(e);
@@ -698,14 +701,14 @@ const createClaim = async function(claim) {
   }
 };
 
-const updateClaim = async function(cid, values, skipError) {
-  if (!cid || !values) {
-    logger.error(`Could not update claim: ${cid}`);
+const updateStatement = async function(stid, values, skipError) {
+  if (!stid || !values) {
+    logger.error(`Could not update statement: ${stid}`);
     return;
   }
-  const claimRef = admin.firestore().collection("claims").doc(cid);
+  const statementRef = admin.firestore().collection("statements").doc(stid);
   try {
-    await claimRef.update(values);
+    await statementRef.update(values);
     return true;
   } catch (e) {
     if (e?.code && e?.code == skipError) {
@@ -716,49 +719,50 @@ const updateClaim = async function(cid, values, skipError) {
   }
 };
 
-const getClaim = async function(cid) {
-  if (!cid) {
-    logger.error(`Could not get claim: ${cid}`);
+const getStatement = async function(stid) {
+  if (!stid) {
+    logger.error(`Could not get statement: ${stid}`);
     return;
   }
-  const claimRef = admin.firestore().collection("claims").doc(cid);
+  const statementRef = admin.firestore().collection("statements").doc(stid);
   try {
-    const claim = await claimRef.get();
-    return claim.data();
+    const statement = await statementRef.get();
+    return statement.data();
   } catch (e) {
     return null;
   }
 };
 
-const getClaims = async function(cids) {
-  if (!cids) {
-    logger.error(`Could not get Claims: ${cids}`);
+const getStatements = async function(stids) {
+  if (!stids) {
+    logger.error(`Could not get statements: ${stids}`);
     return;
   }
 
-  if (cids.length > 10) {
-    logger.error(`Too many cids! ${cids}`);
+  if (stids.length > 10) {
+    logger.error(`Too many stids! ${stids}`);
     return;
   }
 
-  const claimsRef = admin.firestore().collection("claims");
+  const statementsRef = admin.firestore().collection("statements");
   try {
-    const claims = await claimsRef.where(FieldPath.documentId(),
-        "in", cids).get();
-    return claims.docs.map((claim) => claim.data());
+    const statements = await statementsRef.where(FieldPath.documentId(),
+        "in", stids).get();
+    return statements.docs.map((statement) => statement.data());
   } catch (e) {
     return null;
   }
 };
 
-const setClaim = async function(claim) {
-  if (!claim.cid || !claim.createdAt || !claim.updatedAt) {
-    logger.error(`Could not create claim: ${claim}`);
+const setStatement = async function(statement) {
+  if (!statement.stid || !statement.createdAt || !statement.updatedAt) {
+    logger.error(`Could not create statement: ${statement}`);
     return;
   }
-  const claimRef = admin.firestore().collection("claims").doc(claim.cid);
+  const statementRef =
+    admin.firestore().collection("statements").doc(statement.stid);
   try {
-    await claimRef.set(claim, {merge: true});
+    await statementRef.set(statement, {merge: true});
     return true;
   } catch (e) {
     logger.error(e);
@@ -766,14 +770,14 @@ const setClaim = async function(claim) {
   }
 };
 
-const deleteClaim = async function(cid) {
-  if (!cid) {
-    logger.error(`Could not delete claim: ${cid}`);
+const deleteStatement = async function(stid) {
+  if (!stid) {
+    logger.error(`Could not delete statement: ${stid}`);
     return;
   }
-  const claimRef = admin.firestore().collection("claims").doc(cid);
+  const statementRef = admin.firestore().collection("statements").doc(stid);
   try {
-    await claimRef.delete();
+    await statementRef.delete();
     return true;
   } catch (e) {
     logger.error(e);
@@ -782,40 +786,40 @@ const deleteClaim = async function(cid) {
 };
 
 /**
- * fetches all claims for a post
+ * fetches all statements for a post
  * @param {*} pid
- * @return {Array<Claim>} of claims
+ * @return {Array<Statement>} of statements
  * */
-const getAllClaimsForPost = async function(pid) {
+const getAllStatementsForPost = async function(pid) {
   if (!pid) {
-    logger.error(`Could not get claims for post: ${pid}`);
+    logger.error(`Could not get statements for post: ${pid}`);
     return;
   }
-  const claimsRef = admin.firestore().collection("claims")
+  const statementsRef = admin.firestore().collection("statements")
       .where("pids", "array-contains", pid);
   try {
-    const claims = await claimsRef.get();
-    return claims.docs.map((claim) => claim.data());
+    const statements = await statementsRef.get();
+    return statements.docs.map((statement) => statement.data());
   } catch (e) {
     return null;
   }
 };
 
 /**
- * fetches all claims for a story
+ * fetches all statements for a story
  * @param {*} sid
- * @return {Array<Claim>} of claims
+ * @return {Array<Statement>} of statements
  * */
-const getAllClaimsForStory = async function(sid) {
+const getAllStatementsForStory = async function(sid) {
   if (!sid) {
-    logger.error(`Could not get claims for story: ${sid}`);
+    logger.error(`Could not get statements for story: ${sid}`);
     return;
   }
-  const claimsRef = admin.firestore().collection("claims")
+  const statementsRef = admin.firestore().collection("statements")
       .where("sids", "array-contains", sid);
   try {
-    const claims = await claimsRef.get();
-    return claims.docs.map((claim) => claim.data());
+    const statements = await statementsRef.get();
+    return statements.docs.map((statement) => statement.data());
   } catch (e) {
     return null;
   }
@@ -926,7 +930,7 @@ module.exports = {
   getPosts,
   getPostsForStory,
   getAllPostsForStory,
-  getAllPostsForClaim,
+  getAllPostsForStatement,
   bulkSetPosts,
   canFindStories,
   //
@@ -950,14 +954,15 @@ module.exports = {
   setRoom,
   updateRoom,
   //
-  createClaim,
-  updateClaim,
-  getClaim,
-  getClaims,
-  setClaim,
-  deleteClaim,
-  getAllClaimsForPost,
-  getAllClaimsForStory,
+  createStatement,
+  updateStatement,
+  getStatement,
+  getStatements,
+  setStatement,
+  deleteStatement,
+  getAllStatementsForPost,
+  getAllStatementsForStory,
+  //
   //
   getMessages,
   //

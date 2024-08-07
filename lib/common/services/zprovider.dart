@@ -2,10 +2,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
-import 'package:political_think/common/models/claim.dart';
+import 'package:political_think/common/models/statement.dart';
 import 'package:political_think/common/models/entity.dart';
 import 'package:political_think/common/models/post.dart';
 import 'package:political_think/common/models/room.dart';
+import 'package:political_think/common/models/statement.dart';
 import 'package:political_think/common/models/story.dart';
 import 'package:political_think/common/models/vote.dart';
 import 'package:political_think/common/models/zsettings.dart';
@@ -165,25 +166,26 @@ final primaryPostsFromStoryProvider =
 });
 
 //////////////////////////////////////////////////////////////
-// Claims
+// Statements
 //////////////////////////////////////////////////////////////
-final claimProvider = StreamProvider.family<Claim?, String>((ref, cid) {
-  final claimRef = Database.instance().claimCollection.doc(cid);
-  return claimRef.snapshots().map((snapshot) {
+final statementProvider =
+    StreamProvider.family<Statement?, String>((ref, stid) {
+  final statementRef = Database.instance().statementCollection.doc(stid);
+  return statementRef.snapshots().map((snapshot) {
     if (snapshot.exists) {
       final data = snapshot.data() as Map<String, dynamic>;
-      return Claim.fromJson(data);
+      return Statement.fromJson(data);
     } else {
       return null;
     }
   });
 });
 
-final claimsFromStoryProvider =
-    StreamProvider.family<List<Claim>?, String>((ref, sid) {
+final statementsFromStoryProvider =
+    StreamProvider.family<List<Statement>?, String>((ref, sid) {
   // int limit = ridlimit.$2;
   return Database.instance()
-      .claimCollection
+      .statementCollection
       .where("sids", arrayContains: sid)
       //.orderBy("importance", descending: true)
       .limit(50) // need to configure
@@ -192,7 +194,7 @@ final claimsFromStoryProvider =
     if (querySnapshot.docs.isNotEmpty) {
       return querySnapshot.docs.map((doc) {
         final data = doc.data() as Map<String, dynamic>;
-        return Claim.fromJson(data);
+        return Statement.fromJson(data);
       }).toList();
     } else {
       return null;

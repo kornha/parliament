@@ -44,22 +44,22 @@ const findStoriesPrompt = function({post, stories, training = false, includePhot
     });
   }
 
-  messages.push({type: "text", text: "Only output Stories that you are certain Post belongs to. The Post must either directly mention the content in the Story, or make a Claim about the Story. For any Stories that you output, order them by most to least relevant."});
+  messages.push({type: "text", text: "Only output Stories that you are certain Post belongs to. The Post must either directly mention the content in the Story, or make a Statement about the Story. For any Stories that you output, order them by most to least relevant."});
   messages.push({type: "text", text: `{"stories":[${storyJSONOutput()}, ...], "removedStories":["sid1", "sid2", ...]}`});
 
   return messages;
 };
 
 
-const findClaimsPrompt = function({
+const findStatementsPrompt = function({
   post,
   stories,
-  claims,
+  statements,
   training = false,
   includePhotos = true}) {
   // Assuming each post and story has an 'photoURL' property
   const messages = training ? [
-    {type: "text", text: findClaimsForTrainingText()},
+    {type: "text", text: findStatementsForTrainingText()},
   ] : [];
 
   messages.push({type: "text", text: `Here is the Post: ${postToJSON(post, !includePhotos)}`});
@@ -82,16 +82,16 @@ const findClaimsPrompt = function({
     });
   }
 
-  if (_.isEmpty(claims)) {
-    messages.push({type: "text", text: "There are no claims associated with the stories/posts."});
+  if (_.isEmpty(statements)) {
+    messages.push({type: "text", text: "There are no statements associated with the stories/posts."});
   } else {
-    messages.push({type: "text", text: `Here are the Claims:`});
-    claims.forEach((claim) => {
-      messages.push({type: "text", text: `${claimToJSON(claim)}`});
+    messages.push({type: "text", text: `Here are the statements:`});
+    statements.forEach((statement) => {
+      messages.push({type: "text", text: `${statementToJSON(statement)}`});
     });
   }
 
-  messages.push({type: "text", text: "Output the stories in the same order as they were passed in, but with the new Claims added to the Stories, as follows:"});
+  messages.push({type: "text", text: "Output the stories in the same order as they were passed in, but with the new Statements added to the Stories, as follows:"});
   messages.push({type: "text", text: `{"stories":[${storyJSONOutput(true)}, ...]}`});
 
   return messages;
@@ -122,7 +122,7 @@ const findStoriesForTrainingText = function() {
   
   A Post "belongs to" a Story if and only if one of these criteria are met:
   1. The Post *directly mentions* the key events in the Story,
-  2. The Post *makes a claim* specifically about the Story's key event.
+  2. The Post *makes a statement* specifically about the Story's key event.
   3. The Post is *overwhelmingly likely* to be about the Story, and mentions some details of the Story.
   4. The Post contains a photo that is relevant or duplicated from the Story.
 
@@ -136,7 +136,11 @@ const findStoriesForTrainingText = function() {
 `;
 };
 
-const findClaimsForTrainingText = function() {
+//
+// Statement
+//
+
+const findStatementsForTrainingText = function() {
   return `
   Description of a Post:
   ${postDescriptionPrompt()}
@@ -144,28 +148,28 @@ const findClaimsForTrainingText = function() {
   Description of a Story:
   ${storyDescriptionPrompt()}
 
-  Description of a Claim:
-  ${claimsDescriptionPrompt()}
+  Description of a Statement:
+  ${statementsDescriptionPrompt()}
 
   The Stories represent all Stories the Post is *currently* associated with.
-  The Claims (aka Candidate Claims), are Claims that are already associated with all these Stories, are close in a graph search (2 degrees) to the Stories, or a vector search to the Stories.
+  The Statements (aka Candidate Statements), are Statements that are already associated with all these Stories, are close in a graph search (2 degrees) to the Stories, or a vector search to the Stories.
 
-  You will be given a Post, a list of Stories (can be empty), and a list of Candidate Claims (can be empty).
+  You will be given a Post, a list of Stories (can be empty), and a list of Candidate Statements (can be empty).
 
-  Your goal is to output the Stories EXACTLY as they are BUT with the following change. You will also include the Claims that the Post makes about the Stories (but not other Candidate Claims), as follows.
+  Your goal is to output the Stories EXACTLY as they are BUT with the following change. You will also include the Statements (both Claims and Opinions) that the Post makes about the Stories (but not other Candidate Statements), as follows.
   
-  1) If the Post makes a Claim that is in the list of Candidate Claims, this Claim should be included in the Story output, and the Post should be added to the "pro" or "against" list of the Claim.
-  1a) DO NOT OUTPUT A CLAIM THAT THE POST DOES NOT MAKE EVEN IF IT IS PART OF THE STORY ALREADY.
-  1b) DO NOT OUTPUT OTHER PIDS THAT ARE ALREADY PART OF THE PRO OR AGAINST LIST OF THE CLAIM.
-  1c) For any Claim that you output, you should update the fields in Claim if new information is provided by the Post. The value should not be changed, but the context and claimedAt may be updated.
-  2) If the Post makes a Claim that is inherently new (there is no matching Claim in the list), this new Claim should be created (and it will be added to the Story), and the Post should be added to the "pro" or "against" list of the Claim. 
-  3) You may see two or more Candidate Claims are essentially the same; that is they make the same claim about the same subject (because of concurrency issues or other), at a similar claimedAt time with roughly the same context. If (and only if) the Post belongs to these Claims, output a new Claim and include the old Claims in the 'removedClaims' output.
+  1) If the Post makes a Statement that is in the list of Candidate Statements, this Statement should be included in the Story output, and the Post should be added to the "pro" or "against" list of the Statement.
+  1a) DO NOT OUTPUT A STATEMENT THAT THE POST DOES NOT MAKE EVEN IF IT IS PART OF THE STORY ALREADY.
+  1b) DO NOT OUTPUT OTHER PIDS THAT ARE ALREADY PART OF THE PRO OR AGAINST LIST OF THE STATEMENT.
+  1c) For any Statement that you output, you should update the fields in Statement if new information is provided by the Post. The value should not be changed, but the context and statedAt may be updated.
+  2) If the Post makes a Statement that is inherently new (there is no matching Statement in the list), this new Statement should be created (and it will be added to the Story), and the Post should be added to the "pro" or "against" list of the Statement. 
+  3) You may see two or more Candidate Statements are essentially the same; that is they make the same claim or opinion about the same subject (because of concurrency issues or other), at a similar statedAt time with roughly the same context, and if (and only if) the Post belongs to these Statements, output a new Statement and include the old Statements in the 'removedStatements' output.
 
-  Here is how to output a new Claim:
-  ${newClaimPrompt()}
+  Here is how to output a new Statement:
+  ${newStatementPrompt()}
 
   Here's a high level example:
-  ${findClaimsExample()}
+  ${findStatementsExample()}
 `;
 };
 
@@ -214,12 +218,12 @@ const storyDescriptionPrompt = function() {
   A Story has an "importance" value, which is a number between 0.0 and 1.0, where 1.0 is the most possibly newsworthy event.
   A Story has a lat and long, which are the best estimates of the location of the Story.
   A Story may have photos, which are images that are associated with the Story.
-  A Story may have Claims, which are statements that are either supported or refuted by the Posts.
+  A Story may have Statements, which are either Claims, or Opinions that are either supported or refuted by the Posts.
   `;
 };
 
-const storyJSONOutput = function(claims = false) {
-  return `{"sid":ID of the Story or null if Story is new, "title": "title of the story", "description": "the full description of the story is a useful vector searchable description", "headline" "short, active, engaging title shown to users", "subHeadline":"active, engaging, short description shown to users", "importance": 0.0-1.0 relative importance of the story, "happenedAt": ISO 8601 time format that the event happened at, or null if it cannot be determined, "lat": lattitude best estimate of the location of the Story, "long": longitude best estimate, "photos:[{"photoURL":photoURL field in the Post if any, "description": photoDescription field in the Post, if any}, ...list of UNIQUE photos taken from the Posts ordered by most interesting]${claims ? `, "claims":[${claimJSONOutput()}, ...], "removedClaims":["cid1", ...]` : ""}}`;
+const storyJSONOutput = function(statements = false) {
+  return `{"sid":ID of the Story or null if Story is new, "title": "title of the story", "description": "the full description of the story is a useful vector searchable description", "headline" "short, active, engaging title shown to users", "subHeadline":"active, engaging, short description shown to users", "importance": 0.0-1.0 relative importance of the story, "happenedAt": ISO 8601 time format that the event happened at, or null if it cannot be determined, "lat": lattitude best estimate of the location of the Story, "long": longitude best estimate, "photos:[{"photoURL":photoURL field in the Post if any, "description": photoDescription field in the Post, if any}, ...list of UNIQUE photos taken from the Posts ordered by most interesting]${statements ? `, "statements":[${statementJSONOutput()}, ...], "removedStatements":["stid1", ...]` : ""}}`;
 };
 
 //
@@ -233,41 +237,52 @@ const postDescriptionPrompt = function() {
         A Post may have images, videos or other media. You may only be given a description of the image, which you will consider in place of an actual image. Otherwise you will be given a URL to the image after the post.
         A Post has an author, which we call an Entity.
         A Post has a "sourceCreatedAt" time which represents when the Post was originally created on the social/news platform.
-        A Post usually belongs to one or many Stories, and may have Claims.`;
+        A Post usually belongs to one or many Stories, and may have Statements.`;
 };
 
 //
-// Claims
+// Statements
 //
 
-const claimsDescriptionPrompt = function() {
-  return `A Claim is a statement that has "pro" and "against" list of Posts either supporting or refuting the Claim.
-            A Claim has a "value" field, which is the statement itself.
-            A Claim has a "pro" field, which is a list of Posts that support the Claim.
-            A Claim has an "against" field, which is a list of Posts that refute the Claim.
-            A Claim has a "context" field that is used for vector search (so it should be heavy on keywords), and also for describing all details about the Claim.
-            A Claim has a "claimedAt" field, which is the earliest time that the Claim was made at and is valid for. This is the time window in which the Claim was made that other Claims can be compared to. Generally within 48 hours we assume that new Claims are about the same event.`;
+const statementsDescriptionPrompt = function() {
+  return `A Statement is a Claim or Opinon that has "pro" and "against" list of Posts either supporting or refuting the Statement.
+      A Statement has a "value" field, which is the statement itself.
+      A Statement has a "pro" field, which is a list of Posts that support the Statement.
+      A Statement has an "against" field, which is a list of Posts that refute the Statement.
+      A Statement has a "context" field that is used for vector search (so it should be heavy on keywords), and also for describing all details about the Statement.
+      A Statement has a "type" field, which is either "claim" or "opinion".
+      - Claims are verifiable statements that are direct and clear, not an opinion. 
+      - Opinions are human value judgements.
+      A Statement has a "statedAt" field, which is the earliest time that the Statement was made at and is valid for. This is the time window in which the Statement was made that other Statements can be compared to. Generally within 48 hours we assume that new Statements are about the same event.`;
 };
 
-const newClaimPrompt = function() {
-  return `CID:
-  CID should be null for new Claims, and copied if outputting an existing Claim.
+const newStatementPrompt = function() {
+  return `STID:
+  STID should be null for new Statements, and copied if outputting an existing Statement.
 
   Value:
-  The 'value' field is the text of the Claim. It should be a verifiable statement that is direct and clear, not an opinion. It should be as neutral as possible. Eg., "Trump is a Republican" is a Claim, "Trump is a good president" is an opinion. Any sort of human value judgement is an opinion, and should not be outputted. The value field should also be in the "positive" form, eg., "Trump is a Republican", not "Trump is not a Democrat".
+  The 'value' field is the text of the Statement. 
+  - For Claims, it should be a verifiable statement that is direct and clear, not an Opinion. It should be as neutral as possible. The value field should also be in the "positive" form, eg., "Trump is a Republican", not "Trump is not a Democrat".
+  - For Opinions, any statement that is a non-verifiable human value judgement is an Opinion. Opinions should also be in the "positive" form, eg., "I like Trump", not "I don't like Trump".
 
   Pro/Against:
-  The 'pro' and 'against' fields are lists of Post IDs that support or refute the Claim. If the Post is in support of the Claim, it should be added to the 'pro' list. If the Post is against the Claim, it should be added to the 'against' list. For example, if the Post is 'why do you support Trump even though he hates you', and a Claim is 'Donald Trump hates his supporters', the Post should be added to the 'pro' list, as it supports the Claim.
+  The 'pro' and 'against' fields are lists of Post IDs that support or refute the Statement. If the Post is in support of the Statement, it should be added to the 'pro' list. If the Post is against the Statement, it should be added to the 'against' list. For example, if the Post is 'why do you support Trump even though he hates you', and a Statement (in this case a Claim) is 'Donald Trump hates his supporters', the Post should be added to the 'pro' list, as it supports the Statement.
 
   Context:
-  'context' is a vector searchable field (so it should be heavy on keywords), that is also for describing all details about the Claim so as to match this Claim with new Posts and Stories coming in. It should be a detailed description of the Claim, and should include ALL known/relevant details, but it should never make any Claims itself, as that is the role of the 'value' field. Context is detached from the Posts and Stories, and should include information in its own right but not references to a specific Post. Context may be continually updated as new info comes in.
+  'context' is a vector searchable field (so it should be heavy on keywords), that is also for describing all details about the Statement so as to match this Statement with new Posts and Stories coming in. It should be a detailed description of the Statement, and should include ALL known/relevant details, but it should never make any Statements itself, as that is the role of the 'value' field. Context is detached from the Posts and Stories, and should include information in its own right but not references to a specific Post. Context may be continually updated as new info comes in.
 
-  ClaimedAt:
-  'claimedAt' is the time the Claim is valid for. This is the time window in which the Claim was made that other Claims can be compared to. Generally within 24-48 hours we assume that new Claims are about the same event. The 'claimedAt' should be the time the Claim was made, in ISO 8601 format. ClaimedAt may be slightly updated (within a day) as new information comes in, but should not be changed by more than a day.`;
+  StatedAt:
+  'statedAt' is the earliest known time in which the Statement was made (by any of the Posts), that other Statements can be compared to. 
+  - For Statements that are Claims, it is very useful as generally within 24-48 hours we assume that new Statements are about the same event, and this can help us determine if a Post matches an existing Claim. StatedAt may be updated as new information comes in, but should be alarming if it changes drastically.
+  - For Statements that are Opinions, these tend be longer lived than Claims, and may be valid for weeks or months. As such, the statedAt for an Opinion is still the earliest time the Opinion was made by any Post, but it may be significantly different than the 'sourceCreatedAt' timestamp of the Post without be alarming.
+  
+  Type:
+  The 'type' field is either 'claim' or 'opinion'. You can output statements of each type (but a statement has only 1 type).
+  `;
 };
 
-const claimJSONOutput = function() {
-  return `{"cid":ID of the Claim or null if the Claim is new, "value": "text of the claim", "pro": [pid of the post] or [] if post is not in support, "against": [pid of the post] or [] if the post is not against the claim", "context": "contextual information that is used for vector search, and also for describing all details about the claim", "claimedAt": "ISO 8601 time format that informs us what the Claim is valid for"}`;
+const statementJSONOutput = function() {
+  return `{"stid":ID of the Statement or null if the Statement is new, "value": "text of the statement", "pro": [pid of the post] or [] if post is not in support, "against": [pid of the post] or [] if the post is not against the statement", "context": "contextual information that is used for vector search, and also for describing all details about the statement", "statedAt": "ISO 8601 time format that informs us what the Statement is valid for", "type": "claim" or "opinion"}`;
 };
 
 //
@@ -311,11 +326,15 @@ const biasJSONOutput = function() {
   return `Output this JSON: {"angle": 0.0-360.0, "reason": "why"}`;
 };
 
+//
+// Example Prompt
+//
+
 const findStoryExample = function() {
   return ` As was stated;
     A Post "belongs to" a Story if and only if one of these criteria are met:
     1. The Post *directly mentions* the key events in the Story,
-    2. The Post *makes a claim* specifically about the Story's key event.
+    2. The Post *makes a statement (claim or opinion)* specifically about the Story's key event.
     3. The Post is *very likely* to be about the Story, and mentions some details of the Story.
     4. The Post contains a photo that is relevant or duplicated from the Story.
 
@@ -349,10 +368,10 @@ const findStoryExample = function() {
     We have 1 candidate Story, the Eight Soldier Story just created above.
     
     POST 2 OUTPUT:
-    This Post does *NOT* belong to the candidate Story "Eight Israeli Soldiers Killed in Gaza Attack" because it does not directly mention the key event (8 soldiers killed) or make a claim about the soldiers being killed. 
+    This Post does *NOT* belong to the candidate Story "Eight Israeli Soldiers Killed in Gaza Attack" because it does not directly mention the key event (8 soldiers killed) or make a statement about the soldiers being killed. 
     Compared to our criteria:
     1. The Post *directly mentions* the key events in the Story, NOT FULLFILLED.
-    2. The Post *makes a claim* specifically about the Story's key event. NOT FULLFILLED.
+    2. The Post *makes a statement (claim or opinion)* specifically about the Story's key event. NOT FULLFILLED.
     3. The Post is *very likely* to be about the Story, and mentions some details of the Story. NOT FULLFILLED, the Post is not *very likly* to be specifically related to the Soliders death though it is a similar time and place.
     4. The Post contains a photo that is relevant or duplicated from the Story. NOT FULLFILLED.
     Since this Post does not meet the criteria for belonging to the existing Story, we will output only a new Story.
@@ -367,7 +386,7 @@ const findStoryExample = function() {
     And we have 2 candidate Stories, the Eight Soldier Story, and the Palestinian Peace Activists Story.
 
     POST 3 OUTPUT:
-    This Post clearly "belongs to" the Eight Soldier Story, as it *directly mentions* the death of Eight Israeli soldiers, and makes a Claim about the Story.
+    This Post clearly "belongs to" the Eight Soldier Story, as it *directly mentions* the death of Eight Israeli soldiers, and makes a Statement about the Story.
     
     When there is more information, update the existing Story. For example, the Title of the Story might remain the same, but the Description should be updated to include the new information, such as the name of the soldier that was killed, how the attack happened, and the total death toll thus far. The subheadline should also change to include this new information, for example "A Namer CEV vehicle was hit, killing eight Israeli soldiers and bringing the IDF death toll to 307".
 
@@ -396,7 +415,7 @@ const findStoryExample = function() {
     The two candidate Stories are the Eight Soldier Story and the Palestinian Peace Activists Story. 
     
     POST 5 OUTPUT:
-    This Post does not belong to either of the Stories. It *does not directly mention* the death of the soldiers, nor does it make a Claim about the Story. It does not mention the Palestinian peace activists, nor does it make a Claim about them either. It is its own Story. 
+    This Post does not belong to either of the Stories. It *does not directly mention* the death of the soldiers, nor does it make a Statement (Claim or Opinion) about the Story. It does not mention the Palestinian peace activists, nor does it make a Statement about them either. It is its own Story. 
     It should have an importance of 0.2, since it's a personal anecdote, and not providing newsworthy information.
 
     POST 6, 2 CANDIDATE STORIES:
@@ -459,7 +478,7 @@ const findStoryExample = function() {
     If, for example the Posts each had the same photo OR VERY SIMILAR PHOTOS about the attack, you would output the photoURL and photoDescription of the first photo only (so as to dedupe), copied from one of the Posts. If the photos are different enough and both are relevant, you would output both photos, ordered by most interesting. If another Post were to come in with an unclear description, but the same photo, it is very likely part of the same Story. Try and order the insteresting photos first.`;
 };
 
-const findClaimsExample = function() {
+const findStatementsExample = function() {
   return `Let's say we have a Post that says: 
     "The loss of life in Gaza, military or civilian, is a tragedy that belongs to Hamas.
     I grieve as a father and my thoughts are with the families who lost their brave children."
@@ -469,24 +488,29 @@ const findClaimsExample = function() {
     And we have a Story that has the Title: 
     "Eight Soldiers Killed in Gaza Attack"
 
-    The Story should have the Claims:
+    The Story should have the Statements as follows:
+    Claims:
     1) 8 Israeli soldiers were killed in an attack in Gaza.
-    claimedAt: June 6 2024 5:15PM.
+    statedAt: June 6 2024 5:15PM.
     context: In an attack on Israeli soldiers in Gaza on June 6 2024, 8 soldiers were killed.
     2) The attack on Israeli soldiers was the deadliest in months.
-    claimedAt: June 6 2024 5:15PM.
+    statedAt: June 6 2024 5:15PM.
     context: The attack on Israeli soldiers in Gaza on June 6 2024 was the deadliest in months.
+    Opinions:
+    1) Hamas is responsible for the death in Gaza.
+    statedAt: June 6 2024 5:15PM.
+    context: The loss of life in Gaza, including Israeli and Gazan Deaths, is a tragedy that belongs to Hamas.
 
-    Now let's say we have the same Story, but it already has 2 Claims (different from above):
+    Now let's say we have the same Story, but it already has 2 Statements (different from above):
+    (in this example, both are Claims but it works for Opinions as well)
     1) 8 Israeli soldiers were killed in an attack in Gaza.
-    claimedAt: June 6 2024 5:15PM.
+    statedAt: June 6 2024 5:15PM.
     context: In an attack on Israeli soldiers in Gaza on June 6 2024, 8 soldiers were killed.
     2) Eight solders died in an attack in Gaza.
-    claimedAt: June 6 2024 4:10PM.
+    statedAt: June 6 2024 4:10PM.
 
-    These two Claims are clearly making the same Claim about the same subject, and should be merged. To merge, output a new claim, and mark the other 2 as removedClaims.
-
-    Put simply, a Claim is any verifiable Claim about a Story (hence not an opinon)`;
+    These two Statements are clearly making the same Claim about the same subject, and should be merged. To merge, output a new Statement, and mark the other 2 as removedStatements.
+    `;
 };
 
 // /////////////////////////////////////
@@ -522,26 +546,27 @@ const postToJSON = function(post, includePhotoDescription = true) {
   return JSON.stringify(formatted);
 };
 
-const claimToJSON = function(claim) {
+const statementToJSON = function(statement) {
   const formatted = {
-    cid: claim.cid,
-    value: claim.value,
-    pro: claim.pro,
-    against: claim.against,
-    claimedAt: millisToIso(claim.claimedAt),
-    context: claim.context,
+    stid: statement.stid,
+    value: statement.value,
+    pro: statement.pro,
+    against: statement.against,
+    statedAt: millisToIso(statement.statedAt),
+    context: statement.context,
+    type: statement.type,
   };
 
   return JSON.stringify(formatted);
 };
 
 /**
- * Converts an array of Claim objects to a prompt JSON string
- * @param {Array<Claim>} claims
+ * Converts an array of Statement objects to a prompt JSON string
+ * @param {Array<Statement>} statements
  * @return {string} JSON string
  * */
-const claimsToJSON = function(claims) {
-  return "[" + claims.map((claim) => claimToJSON(claim)) + "]";
+const statementsToJSON = function(statements) {
+  return "[" + statements.map((statement) => statementToJSON(statement)) + "]";
 };
 
 /**
@@ -590,9 +615,9 @@ const storiesToJSON = function(stories, includePhotosDescription = true) {
 
 module.exports = {
   findStoriesPrompt,
-  findClaimsPrompt,
+  findStatementsPrompt,
   findStoriesForTrainingText,
-  findClaimsForTrainingText,
+  findStatementsForTrainingText,
   //
   generateImageDescriptionPrompt,
   //
@@ -607,8 +632,9 @@ module.exports = {
   postToJSON,
   storiesToJSON,
   storyToJSON,
-  claimsToJSON,
-  claimToJSON,
+  //
+  statementToJSON,
+  statementsToJSON,
 };
 
 

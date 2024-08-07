@@ -1,8 +1,5 @@
 const {defineSecret} = require("firebase-functions/params");
 const {OpenAI} = require("openai");
-const {findStoriesForTrainingText,
-  findClaimsForTrainingText} = require("../ai/prompts");
-const {getContent, setContent} = require("../common/storage");
 const _openApiKey = defineSecret("OPENAI_API_KEY");
 const {logger} = require("firebase-functions/v2");
 
@@ -115,86 +112,8 @@ const generateEmbeddings = async function(texts) {
   return vector;
 };
 
-const findStoriesPath = "assistants/findStories.json";
-const findClaimsPath = "assistants/findClaims.json";
-
-/**
- * DEPRECATED
- * Using the assistants api, get the reuseable assistant for the given prompt
- * @param {string} prompt
- * @return {Promise<string>} assistant id
- */
-const getAssistant = async function(prompt) {
-  if (prompt !== "findStories" && prompt !== "findClaims") {
-    logger.error("Invalid prompt");
-    throw new Error("Invalid prompt");
-  }
-
-  const path =
-    prompt == "findStories" ? findStoriesPath : findClaimsPath;
-
-  const assistantStorage = await getContent(path);
-
-  if (assistantStorage) {
-    const json = JSON.parse(assistantStorage);
-    if (json.assistantId) {
-      return json.assistantId;
-    }
-  }
-
-  const promptText = prompt == "findStories" ?
-    findStoriesForTrainingText() : findClaimsForTrainingText();
-
-  const assistant =
-    await llm().beta.assistants.create({
-      name: prompt,
-      instructions: promptText,
-      response_format: {"type": "json_object"},
-      temperature: 0.00,
-      model: "gpt-4o",
-    });
-
-  logger.info(`Created assistant ${assistant.id}`);
-
-  await setContent(path, JSON.stringify({assistantId: assistant.id}));
-
-  return assistant.id;
-};
-
-const generateAssistantCompletions = async function(messages, promptName) {
-  const assistantId = await getAssistant(promptName);
-
-  const thread = await llm().beta.threads.create({
-    messages: [
-      {
-        "role": "user",
-        "content": messages,
-      },
-    ],
-  });
-
-
-  const run = await llm().beta.threads.runs.createAndPoll(
-      thread.id,
-      {assistant_id: assistantId},
-  );
-
-  // tokens used
-  logger.info(`Tokens used: ${run.usage.total_tokens}`);
-
-  if (run.status === "completed") {
-    const _messages = await llm().beta.threads.messages.list(
-        run.thread_id,
-    );
-    return JSON.parse(_messages[0].content);
-  } else {
-    console.log(run.status);
-  }
-};
-
 module.exports = {
   generateCompletions,
   generateEmbeddings,
-  generateAssistantCompletions,
   OPENAI_API_KEY,
 };

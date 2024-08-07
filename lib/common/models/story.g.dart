@@ -22,8 +22,8 @@ Story _$StoryFromJson(Map<String, dynamic> json) => Story(
       pids:
           (json['pids'] as List<dynamic>?)?.map((e) => e as String).toList() ??
               const [],
-      cids:
-          (json['cids'] as List<dynamic>?)?.map((e) => e as String).toList() ??
+      stids:
+          (json['stids'] as List<dynamic>?)?.map((e) => e as String).toList() ??
               const [],
       photos: (json['photos'] as List<dynamic>?)
               ?.map((e) => Photo.fromJson(e as Map<String, dynamic>))
@@ -39,7 +39,7 @@ Map<String, dynamic> _$StoryToJson(Story instance) => <String, dynamic>{
       'subHeadline': instance.subHeadline,
       'importance': instance.importance,
       'pids': instance.pids,
-      'cids': instance.cids,
+      'stids': instance.stids,
       'location': instance.location?.toJson(),
       'photos': instance.photos.map((e) => e.toJson()).toList(),
       'createdAt': Utils.timestampToJson(instance.createdAt),

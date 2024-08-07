@@ -18,7 +18,7 @@ class Story {
 
   double? importance;
   List<String> pids;
-  List<String> cids;
+  List<String> stids;
   Location? location;
   List<Photo> photos;
 
@@ -43,7 +43,7 @@ class Story {
     this.subHeadline,
     this.importance,
     this.pids = const [],
-    this.cids = const [],
+    this.stids = const [],
     this.photos = const [],
   });
 

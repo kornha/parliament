@@ -12,7 +12,7 @@ import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:political_think/common/components/zapp_bar.dart';
 import 'package:political_think/common/components/zscaffold.dart';
 import 'package:political_think/common/constants.dart';
-import 'package:political_think/common/models/claim.dart';
+import 'package:political_think/common/models/statement.dart';
 import 'package:political_think/common/models/entity.dart';
 import 'package:political_think/common/models/post.dart';
 import 'package:political_think/common/models/room.dart';
@@ -56,10 +56,10 @@ extension ProviderExt on WidgetRef {
   AsyncValue<List<Post>?> postsFromStoryRead(String sid) =>
       read(postsFromStoryProvider(sid));
 
-  AsyncValue<List<Claim>?> claimsFromStoriesWatch(String sid) =>
-      watch(claimsFromStoryProvider(sid));
-  AsyncValue<List<Claim>?> claimsFromStoriesRead(String sid) =>
-      read(claimsFromStoryProvider(sid));
+  AsyncValue<List<Statement>?> statementsFromStoriesWatch(String sid) =>
+      watch(statementsFromStoryProvider(sid));
+  AsyncValue<List<Statement>?> statementsFromStoriesRead(String sid) =>
+      read(statementsFromStoryProvider(sid));
 
   AsyncValue<Entity?> entityWatch(String eid) => watch(entityProvider(eid));
   AsyncValue<Entity?> entityRead(String eid) => read(entityProvider(eid));
@@ -203,6 +203,9 @@ extension Spacing on BuildContext {
 
   // double get blockWidth =>
   //     isMobileOrTablet ? Block.blockWidthSmall : Block.blockWidthLarge;
+  SizedBox get soc => const SizedBox(height: Margins.octuple);
+  SizedBox get ssp => const SizedBox(height: Margins.septuple);
+  SizedBox get ssx => const SizedBox(height: Margins.sextuple);
   SizedBox get sqt =>
       const SizedBox(height: Margins.quintuple, width: Margins.quintuple);
   SizedBox get sqd =>

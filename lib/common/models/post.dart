@@ -24,7 +24,7 @@ class Post {
   final String pid;
   final String? sid;
   final List<String> sids;
-  final List<String> cids;
+  final List<String> stids;
   // creator domain or handle of the originator TODO: move to entities
   String? eid;
   String? xid; // external id
@@ -84,7 +84,7 @@ class Post {
     this.body,
     this.poster, // uid who posted the post
     this.sids = const [],
-    this.cids = const [],
+    this.stids = const [],
     this.url,
     this.photo,
     this.video,

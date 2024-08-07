@@ -9,13 +9,13 @@ const {onAuthUserCreate,
 const {TaskQueue} = require("firebase-admin/functions");
 const {
   onPostUpdate, onPostPublished,
-  onPostShouldFindStoriesAndClaims,
+  onPostShouldFindStoriesAndStatements,
   onPostChangedXid,
   onPostChangedVector,
-  shouldFindStoriesAndClaims,
-  onPostShouldFindStoriesAndClaimsTask,
+  shouldFindStoriesAndStatements,
+  onPostShouldFindStoriesAndStatementsTask,
   onStoryChangedPosts,
-  onClaimChangedPosts,
+  onStatementChangedPosts,
 } = require("./models/post");
 const {onVoteBiasChange, onVoteCredibilityChange} = require("./models/vote");
 const {generateBiasTraining} = require("./ai/scripts");
@@ -23,16 +23,16 @@ const {onLinkPaste, onScrapeX, onScrapeFeed} = require("./content/content");
 const {debateDidTimeOut, debateDidTimeOutTask} = require("./messages/clock");
 const {
   onStoryUpdate, onStoryPostsChanged,
-  onStoryShouldChangeVector, onStoryShouldChangeClaims,
-  onClaimChangedStories,
+  onStoryShouldChangeVector, onStoryShouldChangeStatements,
+  onStatementChangedStories,
   onPostChangedStories,
 } = require("./models/story");
 const {
-  onClaimUpdate, onClaimChangedVector,
-  onClaimShouldChangeContext,
-  onPostChangedClaims,
-  onStoryChangedClaims,
-} = require("./models/claim");
+  onStatementUpdate, onStatementChangedVector,
+  onStatementShouldChangeContext,
+  onPostChangedStatements,
+  onStoryChangedStatements,
+} = require("./models/statement");
 const {
   onEntityUpdate,
   onEntityShouldChangeImage,
@@ -47,8 +47,8 @@ if (process.env.FUNCTIONS_EMULATOR === "true") {
     enqueue: async (message, params) => {
       if (message.pid) {
         logger.info(
-            `local onPostShouldFindStoriesAndClaimsTask: ${message.pid}`);
-        await shouldFindStoriesAndClaims(message.pid);
+            `local onPostShouldFindStoriesAndStatementsTask: ${message.pid}`);
+        await shouldFindStoriesAndStatements(message.pid);
       } else {
         const end = new Date(params.scheduleTime);
         const now = Date.now();
@@ -78,25 +78,25 @@ module.exports = {
   onPostUpdate,
   onMessageChange,
   onPostPublished,
-  onPostShouldFindStoriesAndClaims,
-  onPostShouldFindStoriesAndClaimsTask,
+  onPostShouldFindStoriesAndStatements,
+  onPostShouldFindStoriesAndStatementsTask,
   onPostChangedVector,
   onPostChangedXid,
   onStoryChangedPosts,
-  onClaimChangedPosts,
+  onStatementChangedPosts,
   // Story
   onStoryUpdate,
   onStoryPostsChanged,
   onStoryShouldChangeVector,
-  onStoryShouldChangeClaims,
-  onClaimChangedStories,
+  onStoryShouldChangeStatements,
+  onStatementChangedStories,
   onPostChangedStories,
-  // Claim
-  onClaimUpdate,
-  onClaimChangedVector,
-  onClaimShouldChangeContext,
-  onStoryChangedClaims,
-  onPostChangedClaims,
+  // Statement
+  onStatementUpdate,
+  onStatementChangedVector,
+  onStatementShouldChangeContext,
+  onStoryChangedStatements,
+  onPostChangedStatements,
   // Room
   onRoomChange,
   startDebate,

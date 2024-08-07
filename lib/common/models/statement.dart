@@ -4,31 +4,35 @@ import 'package:political_think/common/models/bias.dart';
 import 'package:political_think/common/models/credibility.dart';
 import 'package:political_think/common/util/utils.dart';
 
-part 'claim.g.dart';
+part 'statement.g.dart';
+
+enum StatementType { claim, opinion }
 
 @JsonSerializable(explicitToJson: true)
-class Claim {
-  final String cid;
+class Statement {
+  final String stid;
   final String value;
   final String? context;
   final List<String> pro;
   final List<String> against;
   final List<String> pids;
   final List<String> sids;
+  final StatementType type;
 
   @JsonKey(fromJson: Utils.timestampFromJson, toJson: Utils.timestampToJson)
-  Timestamp claimedAt;
+  Timestamp statedAt;
   @JsonKey(fromJson: Utils.timestampFromJson, toJson: Utils.timestampToJson)
   Timestamp createdAt;
   @JsonKey(fromJson: Utils.timestampFromJson, toJson: Utils.timestampToJson)
   Timestamp updatedAt;
 
-  Claim({
-    required this.cid,
+  Statement({
+    required this.stid,
     required this.updatedAt,
     required this.createdAt,
     required this.value,
-    required this.claimedAt,
+    required this.statedAt,
+    required this.type,
     this.context,
     this.pro = const [],
     this.against = const [],
@@ -36,7 +40,8 @@ class Claim {
     this.sids = const [],
   });
 
-  factory Claim.fromJson(Map<String, dynamic> json) => _$ClaimFromJson(json);
+  factory Statement.fromJson(Map<String, dynamic> json) =>
+      _$StatementFromJson(json);
 
-  Map<String, dynamic> toJson() => _$ClaimToJson(this);
+  Map<String, dynamic> toJson() => _$StatementToJson(this);
 }

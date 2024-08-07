@@ -4,8 +4,8 @@ const {defaultConfig} = require("../common/functions");
 const {
   publishMessage,
   STORY_CHANGED_POSTS,
-  STORY_CHANGED_CLAIMS,
-  CLAIM_CHANGED_STORIES,
+  STORY_CHANGED_STATEMENTS,
+  STATEMENT_CHANGED_STORIES,
   POST_CHANGED_STORIES,
 } = require("../common/pubsub");
 const _ = require("lodash");
@@ -53,11 +53,11 @@ exports.onStoryUpdate = onDocumentWritten(
       }
 
       if (
-        (_create && !_.isEmpty(after.cids)) ||
-      (_update && !_.isEqual(before.cids, after.cids)) ||
-      (_delete && !_.isEmpty(before.cids))
+        (_create && !_.isEmpty(after.stids)) ||
+      (_update && !_.isEqual(before.stids, after.stids)) ||
+      (_delete && !_.isEmpty(before.stids))
       ) {
-        await publishMessage(STORY_CHANGED_CLAIMS, {before, after});
+        await publishMessage(STORY_CHANGED_STATEMENTS, {before, after});
       }
 
       return Promise.resolve();
@@ -141,14 +141,14 @@ exports.onPostChangedStories = onMessagePublished(
 );
 
 /**
- * 'TXN' - called from claim.js
- * Updates the claims that this Story is part of
- * @param {Claim} before
- * @param {Claim} after
+ * 'TXN' - called from Statement.js
+ * Updates the Statements that this Story is part of
+ * @param {Statement} before
+ * @param {Statement} after
  */
-exports.onClaimChangedStories = onMessagePublished(
+exports.onStatementChangedStories = onMessagePublished(
     {
-      topic: CLAIM_CHANGED_STORIES,
+      topic: STATEMENT_CHANGED_STORIES,
       ...defaultConfig,
     },
     async (event) => {
@@ -157,13 +157,13 @@ exports.onClaimChangedStories = onMessagePublished(
       if (!after) {
         for (const sid of (before.sids || [])) {
           await retryAsyncFunction(() => updateStory(sid, {
-            cids: FieldValue.arrayRemove(before.cid),
+            stids: FieldValue.arrayRemove(before.stid),
           }, 5)); // skip not found errors
         }
       } else if (!before) {
         for (const sid of (after.sids || [])) {
           await retryAsyncFunction(() => updateStory(sid, {
-            cids: FieldValue.arrayUnion(after.cid),
+            stids: FieldValue.arrayUnion(after.stid),
           }, 5)); // skip not found errors
         }
       } else {
@@ -174,12 +174,12 @@ exports.onClaimChangedStories = onMessagePublished(
 
         for (const sid of removed) {
           await retryAsyncFunction(() => updateStory(sid, {
-            cids: FieldValue.arrayRemove(after.cid),
+            stids: FieldValue.arrayRemove(after.stid),
           }, 5)); // skip not found errors
         }
         for (const sid of added) {
           await retryAsyncFunction(() => updateStory(sid, {
-            cids: FieldValue.arrayUnion(after.cid),
+            stids: FieldValue.arrayUnion(after.stid),
           }, 5)); // skip not found errors
         }
       }
