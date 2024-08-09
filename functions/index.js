@@ -16,6 +16,7 @@ const {
   onPostShouldFindStoriesAndStatementsTask,
   onStoryChangedPosts,
   onStatementChangedPosts,
+  onEntityChangedPosts,
 } = require("./models/post");
 const {onVoteBiasChange, onVoteCredibilityChange} = require("./models/vote");
 const {generateBiasTraining} = require("./ai/scripts");
@@ -36,6 +37,7 @@ const {
 const {
   onEntityUpdate,
   onEntityShouldChangeImage,
+  onPostChangedEntity,
 } = require("./models/entity");
 
 admin.initializeApp();
@@ -84,6 +86,7 @@ module.exports = {
   onPostChangedXid,
   onStoryChangedPosts,
   onStatementChangedPosts,
+  onEntityChangedPosts,
   // Story
   onStoryUpdate,
   onStoryPostsChanged,
@@ -104,6 +107,7 @@ module.exports = {
   // Entity
   onEntityUpdate,
   onEntityShouldChangeImage,
+  onPostChangedEntity,
   // Content
   onLinkPaste,
   onScrapeX,

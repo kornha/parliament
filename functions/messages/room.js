@@ -21,6 +21,9 @@ exports.onRoomChange = onDocumentWritten(
     async (event) => {
       const before = event.data.before.data();
       const after = event.data.after.data();
+      if (!after) {
+        return Promise.resolve();
+      }
       const collectionId = after.parentCollection;
       const parentId = after.parentId;
       const rid = event.params.rid;

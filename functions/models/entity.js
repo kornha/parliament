@@ -2,11 +2,15 @@ const {onDocumentWritten} = require("firebase-functions/v2/firestore");
 const {onMessagePublished} = require("firebase-functions/v2/pubsub");
 const {defaultConfig, gbConfig} = require("../common/functions");
 const {publishMessage,
-  ENTITY_SHOULD_CHANGE_IMAGE} = require("../common/pubsub");
+  ENTITY_SHOULD_CHANGE_IMAGE,
+  POST_CHANGED_ENTITY,
+  ENTITY_CHANGED_POSTS} = require("../common/pubsub");
 const {logger} = require("firebase-functions/v2");
 const {getEntityImage} = require("../content/xscraper");
 const {updateEntity} = require("../common/database");
 const {Timestamp} = require("firebase-admin/firestore");
+const {handleChangedRelations} = require("../common/utils");
+const _ = require("lodash");
 
 //
 // Firestore
@@ -24,7 +28,7 @@ exports.onEntityUpdate = onDocumentWritten(
       }
 
       const _create = !before && after;
-      //   const _delete = before && !after;
+      const _delete = before && !after;
       const _update = before && after;
 
       // can revisit if this logic is right
@@ -33,6 +37,15 @@ exports.onEntityUpdate = onDocumentWritten(
       _update && before.handle !== after.handle
       ) {
         publishMessage(ENTITY_SHOULD_CHANGE_IMAGE, after);
+      }
+
+      // entity changed posts
+      if (
+        (_create && !_.isEmpty(after.pids)) ||
+        (_update && !_.isEqual(before.pids, after.pids)) ||
+        (_delete && !_.isEmpty(before.pids))
+      ) {
+        await publishMessage(ENTITY_CHANGED_POSTS, {before, after});
       }
 
       return Promise.resolve();
@@ -71,6 +84,28 @@ exports.onEntityShouldChangeImage = onMessagePublished(
         photoURL: image,
         updatedAt: Timestamp.now().toMillis(),
       });
+
+      return Promise.resolve();
+    },
+);
+
+// post changed entity
+/**
+ * 'TXN' - called from Statement.js
+ * Updates the Statements that this Post is part of
+ * @param {Statement} before
+ * @param {Statement} after
+ */
+exports.onPostChangedEntity = onMessagePublished(
+    {
+      topic: POST_CHANGED_ENTITY,
+      ...defaultConfig,
+    },
+    async (event) => {
+      const before = event.data.message.json.before;
+      const after = event.data.message.json.after;
+      await handleChangedRelations(before, after, "eid",
+          updateEntity, "pid", "pids", {}, "oneToMany");
 
       return Promise.resolve();
     },

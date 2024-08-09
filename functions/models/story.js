@@ -11,8 +11,7 @@ const {
 const _ = require("lodash");
 const {resetStoryVector} = require("../ai/story_ai");
 const {updateStory} = require("../common/database");
-const {retryAsyncFunction} = require("../common/utils");
-const {FieldValue} = require("firebase-admin/firestore");
+const {handleChangedRelations} = require("../common/utils");
 
 //
 // Firestore
@@ -107,35 +106,8 @@ exports.onPostChangedStories = onMessagePublished(
     async (event) => {
       const before = event.data.message.json.before;
       const after = event.data.message.json.after;
-      if (!after) {
-        for (const sid of (before.sids || [])) {
-          await retryAsyncFunction(() => updateStory(sid, {
-            pids: FieldValue.arrayRemove(before.pid),
-          }, 5)); // skip not found errors
-        }
-      } else if (!before) {
-        for (const sid of (after.sids || [])) {
-          await retryAsyncFunction(() => updateStory(sid, {
-            pids: FieldValue.arrayUnion(after.pid),
-          }, 5)); // skip not found errors
-        }
-      } else {
-        const removed = (before.sids || [])
-            .filter((sid) => !(after.sids || []).includes(sid));
-        const added = (after.sids || [])
-            .filter((sid) => !(before.sids || []).includes(sid));
-
-        for (const sid of removed) {
-          await retryAsyncFunction(() => updateStory(sid, {
-            pids: FieldValue.arrayRemove(after.pid),
-          }, 5)); // skip not found errors
-        }
-        for (const sid of added) {
-          await retryAsyncFunction(() => updateStory(sid, {
-            pids: FieldValue.arrayUnion(after.pid),
-          }, 5)); // skip not found errors
-        }
-      }
+      await handleChangedRelations(before, after,
+          "sids", updateStory, "pid", "pids");
       return Promise.resolve();
     },
 );
@@ -154,35 +126,8 @@ exports.onStatementChangedStories = onMessagePublished(
     async (event) => {
       const before = event.data.message.json.before;
       const after = event.data.message.json.after;
-      if (!after) {
-        for (const sid of (before.sids || [])) {
-          await retryAsyncFunction(() => updateStory(sid, {
-            stids: FieldValue.arrayRemove(before.stid),
-          }, 5)); // skip not found errors
-        }
-      } else if (!before) {
-        for (const sid of (after.sids || [])) {
-          await retryAsyncFunction(() => updateStory(sid, {
-            stids: FieldValue.arrayUnion(after.stid),
-          }, 5)); // skip not found errors
-        }
-      } else {
-        const removed = (before.sids || [])
-            .filter((sid) => !(after.sids || []).includes(sid));
-        const added = (after.sids || [])
-            .filter((sid) => !(before.sids || []).includes(sid));
-
-        for (const sid of removed) {
-          await retryAsyncFunction(() => updateStory(sid, {
-            stids: FieldValue.arrayRemove(after.stid),
-          }, 5)); // skip not found errors
-        }
-        for (const sid of added) {
-          await retryAsyncFunction(() => updateStory(sid, {
-            stids: FieldValue.arrayUnion(after.stid),
-          }, 5)); // skip not found errors
-        }
-      }
+      await handleChangedRelations(before, after,
+          "sids", updateStory, "stid", "stids");
       return Promise.resolve();
     },
 );

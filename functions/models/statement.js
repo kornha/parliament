@@ -2,7 +2,7 @@ const {onDocumentWritten} = require("firebase-functions/v2/firestore");
 const {logger} = require("firebase-functions/v2");
 const {onMessagePublished} = require("firebase-functions/v2/pubsub");
 const {defaultConfig} = require("../common/functions");
-const {retryAsyncFunction} = require("../common/utils");
+const {retryAsyncFunction, handleChangedRelations} = require("../common/utils");
 const {setStatement,
   deleteStatement,
   updateStatement} = require("../common/database");
@@ -98,39 +98,18 @@ exports.onPostChangedStatements = onMessagePublished(
     async (event) => {
       const before = event.data.message.json.before;
       const after = event.data.message.json.after;
-      if (!after) {
-        for (const stid of before.stids || []) {
-          await retryAsyncFunction(() => updateStatement(stid, {
-            pids: FieldValue.arrayRemove(before.pid),
-            pro: FieldValue.arrayRemove(before.pid), // also remove here
-            against: FieldValue.arrayRemove(before.pid), // also remove here
-          }, 5));
-        }
-      } else if (!before) {
-        for (const stid of after.stids || []) {
-          await retryAsyncFunction(() => updateStatement(stid, {
-            pids: FieldValue.arrayUnion(after.pid),
-          }, 5));
-        }
-      } else {
-        const removed = (before.stids || [])
-            .filter((stid) => !(after.stids || []).includes(stid));
-        const added = (after.stids || [])
-            .filter((stid) => !(before.stids || []).includes(stid));
-
-        for (const stid of removed) {
-          await retryAsyncFunction(() => updateStatement(stid, {
-            pids: FieldValue.arrayRemove(after.pid),
-            pro: FieldValue.arrayRemove(before.pid), // also remove here
-            against: FieldValue.arrayRemove(before.pid), // also remove here
-          }, 5));
-        }
-        for (const stid of added) {
-          await retryAsyncFunction(() => updateStatement(stid, {
-            pids: FieldValue.arrayUnion(after.pid),
-          }, 5));
-        }
-      }
+      await handleChangedRelations(
+          before,
+          after,
+          "stids",
+          updateStatement,
+          "pid",
+          "pids",
+          {
+            pro: FieldValue.arrayRemove(before?.pid || after?.pid),
+            against: FieldValue.arrayRemove(before?.pid || after?.pid),
+          },
+      );
       return Promise.resolve();
     },
 );
@@ -144,35 +123,8 @@ exports.onStoryChangedStatements = onMessagePublished(
     async (event) => {
       const before = event.data.message.json.before;
       const after = event.data.message.json.after;
-      if (!after) {
-        for (const stid of before.stids || []) {
-          await retryAsyncFunction(() => updateStatement(stid, {
-            sids: FieldValue.arrayRemove(before.sid),
-          }, 5));
-        }
-      } else if (!before) {
-        for (const stid of after.stids || []) {
-          await retryAsyncFunction(() => updateStatement(stid, {
-            sids: FieldValue.arrayUnion(after.sid),
-          }, 5));
-        }
-      } else {
-        const removed = (before.stids || [])
-            .filter((stid) => !(after.stids || []).includes(stid));
-        const added = (after.stids || [])
-            .filter((stid) => !(before.stids || []).includes(stid));
-
-        for (const stid of removed) {
-          await retryAsyncFunction(() => updateStatement(stid, {
-            sids: FieldValue.arrayRemove(after.sid),
-          }, 5));
-        }
-        for (const stid of added) {
-          await retryAsyncFunction(() => updateStatement(stid, {
-            sids: FieldValue.arrayUnion(after.sid),
-          }, 5));
-        }
-      }
+      await handleChangedRelations(before,
+          after, "stids", updateStatement, "sid", "sids");
       return Promise.resolve();
     },
 );

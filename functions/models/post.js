@@ -13,6 +13,8 @@ const {
   STATEMENT_CHANGED_POSTS,
   POST_CHANGED_STORIES,
   POST_CHANGED_STATEMENTS,
+  POST_CHANGED_ENTITY,
+  ENTITY_CHANGED_POSTS,
 } = require("../common/pubsub");
 const {
   getPost,
@@ -23,9 +25,8 @@ const {
   getEntity,
   canFindStories,
 } = require("../common/database");
-const {retryAsyncFunction} = require("../common/utils");
+const {retryAsyncFunction, handleChangedRelations} = require("../common/utils");
 const _ = require("lodash");
-const {FieldValue} = require("firebase-admin/firestore");
 const {xupdatePost} = require("../content/xscraper");
 const {generateCompletions} = require("../common/llm");
 const {generateImageDescriptionPrompt} = require("../ai/prompts");
@@ -71,6 +72,16 @@ exports.onPostUpdate = onDocumentWritten(
             {pid: after?.pid || before?.pid});
       }
 
+      // post changed entity
+      if (
+        _create && after.eid ||
+        _update && before.eid != after.eid ||
+        _delete && before.eid
+      ) {
+        await publishMessage(POST_CHANGED_ENTITY,
+            {before: before, after: after});
+      }
+
       if (
         _create && (after.title || after.body ||
           after.description || after.photo) ||
@@ -84,10 +95,10 @@ exports.onPostUpdate = onDocumentWritten(
       }
 
       if (
-        _create && after.sid ||
+        _create && (after.sid || !_.isEmpty(after.sids)) ||
         _update && (before.sid != after.sid ||
           !_.isEqual(before.sids, after.sids)) ||
-        _delete && before.sid
+        _delete && (before.sid || !_.isEmpty(before.sids))
       ) {
         await publishMessage(POST_CHANGED_STORIES,
             {before: before, after: after});
@@ -314,35 +325,10 @@ exports.onStoryChangedPosts = onMessagePublished(
     async (event) => {
       const before = event.data.message.json.before;
       const after = event.data.message.json.after;
-      if (!after) {
-        for (const pid of before.pids || []) {
-          await retryAsyncFunction(() => updatePost(pid, {
-            sids: FieldValue.arrayRemove(before.sid),
-          }, 5));
-        }
-      } else if (!before) {
-        for (const pid of after.pids || []) {
-          await retryAsyncFunction(() => updatePost(pid, {
-            sids: FieldValue.arrayUnion(after.sid),
-          }, 5));
-        }
-      } else {
-        const removed = (before.pids || [])
-            .filter((pid) => !(after.pids || []).includes(pid));
-        const added = (after.pids || [])
-            .filter((pid) => !(before.pids || []).includes(pid));
-
-        for (const pid of removed) {
-          await retryAsyncFunction(() => updatePost(pid, {
-            sids: FieldValue.arrayRemove(after.sid),
-          }, 5));
-        }
-        for (const pid of added) {
-          await retryAsyncFunction(() => updatePost(pid, {
-            sids: FieldValue.arrayUnion(after.sid),
-          }, 5));
-        }
-      }
+      await handleChangedRelations(before, after,
+          "pids", updatePost, "sid", "sids");
+      await handleChangedRelations(before, after,
+          "pids", updatePost, "sid", "sid", {}, "manyToOne");
       return Promise.resolve();
     },
 );
@@ -361,36 +347,22 @@ exports.onStatementChangedPosts = onMessagePublished(
     async (event) => {
       const before = event.data.message.json.before;
       const after = event.data.message.json.after;
-      if (!after) {
-        for (const pid of before.pids || []) {
-          await retryAsyncFunction(() => updatePost(pid, {
-            stids: FieldValue.arrayRemove(before.stid),
-          }, 5));
-        }
-      } else if (!before) {
-        for (const pid of after.pids || []) {
-          await retryAsyncFunction(() => updatePost(pid, {
-            stids: FieldValue.arrayUnion(after.stid),
-          }, 5));
-        }
-      } else {
-        const removed = (before.pids || [])
-            .filter((pid) => !(after.pids || []).includes(pid));
-        const added = (after.pids || [])
-            .filter((pid) => !(before.pids || []).includes(pid));
-
-        for (const pid of removed) {
-          await retryAsyncFunction(() => updatePost(pid, {
-            stids: FieldValue.arrayRemove(after.stid),
-          }, 5));
-        }
-        for (const pid of added) {
-          await retryAsyncFunction(() => updatePost(pid, {
-            stids: FieldValue.arrayUnion(after.stid),
-          }, 5));
-        }
-      }
+      await handleChangedRelations(before,
+          after, "pids", updatePost, "stid", "stids");
       return Promise.resolve();
     },
 );
 
+exports.onEntityChangedPosts = onMessagePublished(
+    {
+      topic: ENTITY_CHANGED_POSTS, // Make sure to define this topic
+      ...defaultConfig,
+    },
+    async (event) => {
+      const before = event.data.message.json.before;
+      const after = event.data.message.json.after;
+      await handleChangedRelations(before, after,
+          "pids", updatePost, "eid", "eid", {}, "manyToOne");
+      return Promise.resolve();
+    },
+);
