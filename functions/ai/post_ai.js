@@ -167,7 +167,8 @@ const findStoriesAndStatements = async function(post) {
 
           await retryAsyncFunction(() => updateStatement(stid, {
             sids: FieldValue.arrayUnion(sid),
-            pids: FieldValue.arrayUnion(post.pid),
+            pids: FieldValue.arrayUnion(post.pid), // cause error if deleted?
+            eids: FieldValue.arrayUnion(post.eid),
             value: gstatement.value,
             context: gstatement.context,
             type: gstatement.type,
@@ -193,6 +194,7 @@ const findStoriesAndStatements = async function(post) {
             type: gstatement.type,
             sids: [sid],
             pids: [post.pid],
+            eids: [post.eid],
             statedAt: isoToMillis(gstatement.statedAt),
             updatedAt: Timestamp.now().toMillis(),
             createdAt: Timestamp.now().toMillis(),

@@ -4,7 +4,9 @@ const {defaultConfig, gbConfig} = require("../common/functions");
 const {publishMessage,
   ENTITY_SHOULD_CHANGE_IMAGE,
   POST_CHANGED_ENTITY,
-  ENTITY_CHANGED_POSTS} = require("../common/pubsub");
+  ENTITY_CHANGED_POSTS,
+  ENTITY_CHANGED_STATEMENTS,
+  STATEMENT_CHANGED_ENTITIES} = require("../common/pubsub");
 const {logger} = require("firebase-functions/v2");
 const {getEntityImage} = require("../content/xscraper");
 const {updateEntity} = require("../common/database");
@@ -39,13 +41,21 @@ exports.onEntityUpdate = onDocumentWritten(
         publishMessage(ENTITY_SHOULD_CHANGE_IMAGE, after);
       }
 
-      // entity changed posts
       if (
         (_create && !_.isEmpty(after.pids)) ||
         (_update && !_.isEqual(before.pids, after.pids)) ||
         (_delete && !_.isEmpty(before.pids))
       ) {
         await publishMessage(ENTITY_CHANGED_POSTS, {before, after});
+      }
+
+      if (
+        (_create && !_.isEmpty(after.stids)) ||
+        (_update && !_.isEqual(before.stids, after.stids)) ||
+        (_delete && !_.isEmpty(before.stids))
+      ) {
+        await publishMessage(ENTITY_CHANGED_STATEMENTS,
+            {before: before, after: after});
       }
 
       return Promise.resolve();
@@ -89,12 +99,11 @@ exports.onEntityShouldChangeImage = onMessagePublished(
     },
 );
 
-// post changed entity
 /**
- * 'TXN' - called from Statement.js
- * Updates the Statements that this Post is part of
- * @param {Statement} before
- * @param {Statement} after
+ * 'TXN' - from Post.js
+ * Updates the Entities that this Post is part of
+ * @param {Post} before
+ * @param {Post} after
  */
 exports.onPostChangedEntity = onMessagePublished(
     {
@@ -106,6 +115,27 @@ exports.onPostChangedEntity = onMessagePublished(
       const after = event.data.message.json.after;
       await handleChangedRelations(before, after, "eid",
           updateEntity, "pid", "pids", {}, "oneToMany");
+
+      return Promise.resolve();
+    },
+);
+
+/**
+ * 'TXN' - from Statements.js
+ * Updates the Entities that this Statement is part of
+ * @param {Statement} before
+ * @param {Statement} after
+ */
+exports.onStatementChangedEntities = onMessagePublished(
+    {
+      topic: STATEMENT_CHANGED_ENTITIES,
+      ...defaultConfig,
+    },
+    async (event) => {
+      const before = event.data.message.json.before;
+      const after = event.data.message.json.after;
+      await handleChangedRelations(before, after, "eids",
+          updateEntity, "stid", "stids");
 
       return Promise.resolve();
     },

@@ -10,7 +10,9 @@ const _ = require("lodash");
 const {publishMessage,
   STATEMENT_CHANGED_POSTS, STATEMENT_CHANGED_STORIES,
   POST_CHANGED_STATEMENTS,
-  STORY_CHANGED_STATEMENTS} = require("../common/pubsub");
+  STORY_CHANGED_STATEMENTS,
+  STATEMENT_CHANGED_ENTITIES,
+  ENTITY_CHANGED_STATEMENTS} = require("../common/pubsub");
 const {FieldValue} = require("firebase-admin/firestore");
 const {resetStatementVector} = require("../ai/statement_ai");
 
@@ -45,17 +47,26 @@ exports.onStatementUpdate = onDocumentWritten(
 
       if (
         (_create && !_.isEmpty(after.sids)) ||
-      (_update && !_.isEqual(before.sids, after.sids)) ||
-      (_delete && !_.isEmpty(before.sids))
+        (_update && !_.isEqual(before.sids, after.sids)) ||
+        (_delete && !_.isEmpty(before.sids))
       ) {
         await publishMessage(STATEMENT_CHANGED_STORIES,
             {before: before, after: after});
       }
 
       if (
+        (_create && !_.isEmpty(after.eids)) ||
+        (_update && !_.isEqual(before.eids, after.eids)) ||
+        (_delete && !_.isEmpty(before.eids))
+      ) {
+        await publishMessage(STATEMENT_CHANGED_ENTITIES,
+            {before: before, after: after});
+      }
+
+      if (
         (_create && !_.isEmpty(after.pids)) ||
-      (_update && !_.isEqual(before.pids, after.pids)) ||
-      (_delete && !_.isEmpty(before.pids))
+        (_update && !_.isEqual(before.pids, after.pids)) ||
+        (_delete && !_.isEmpty(before.pids))
       ) {
         await publishMessage(STATEMENT_CHANGED_POSTS,
             {before: before, after: after});
@@ -89,7 +100,6 @@ const statementChangedContent = async function(before, after) {
 // posts and stories sync
 //
 
-// post changed statements
 exports.onPostChangedStatements = onMessagePublished(
     {
       topic: POST_CHANGED_STATEMENTS,
@@ -114,7 +124,6 @@ exports.onPostChangedStatements = onMessagePublished(
     },
 );
 
-// story changed statements
 exports.onStoryChangedStatements = onMessagePublished(
     {
       topic: STORY_CHANGED_STATEMENTS,
@@ -125,6 +134,20 @@ exports.onStoryChangedStatements = onMessagePublished(
       const after = event.data.message.json.after;
       await handleChangedRelations(before,
           after, "stids", updateStatement, "sid", "sids");
+      return Promise.resolve();
+    },
+);
+
+exports.onEntityChangedStatements = onMessagePublished(
+    {
+      topic: ENTITY_CHANGED_STATEMENTS,
+      ...defaultConfig,
+    },
+    async (event) => {
+      const before = event.data.message.json.before;
+      const after = event.data.message.json.after;
+      await handleChangedRelations(before,
+          after, "stids", updateStatement, "eid", "eids");
       return Promise.resolve();
     },
 );

@@ -17,6 +17,7 @@ class Statement {
   final List<String> against;
   final List<String> pids;
   final List<String> sids;
+  final List<String> eids;
   final StatementType type;
 
   @JsonKey(fromJson: Utils.timestampFromJson, toJson: Utils.timestampToJson)
@@ -38,6 +39,7 @@ class Statement {
     this.against = const [],
     this.pids = const [],
     this.sids = const [],
+    this.eids = const [],
   });
 
   factory Statement.fromJson(Map<String, dynamic> json) =>

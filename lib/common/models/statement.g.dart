@@ -26,6 +26,9 @@ Statement _$StatementFromJson(Map<String, dynamic> json) => Statement(
       sids:
           (json['sids'] as List<dynamic>?)?.map((e) => e as String).toList() ??
               const [],
+      eids:
+          (json['eids'] as List<dynamic>?)?.map((e) => e as String).toList() ??
+              const [],
     );
 
 Map<String, dynamic> _$StatementToJson(Statement instance) => <String, dynamic>{
@@ -36,6 +39,7 @@ Map<String, dynamic> _$StatementToJson(Statement instance) => <String, dynamic>{
       'against': instance.against,
       'pids': instance.pids,
       'sids': instance.sids,
+      'eids': instance.eids,
       'type': _$StatementTypeEnumMap[instance.type]!,
       'statedAt': Utils.timestampToJson(instance.statedAt),
       'createdAt': Utils.timestampToJson(instance.createdAt),

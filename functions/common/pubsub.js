@@ -9,9 +9,9 @@ const POST_PUBLISHED = "onPostPublished";
 const POST_CHANGED_XID = "onPostChangedXid";
 const POST_SHOULD_FIND_STORIES_AND_STATEMENTS =
   "onPostShouldFindStoriesAndStatements";
-const POST_CHANGED_ENTITY = "onPostChangedEntity";
 const STATEMENT_CHANGED_POSTS = "onStatementChangedPosts";
 const STORY_CHANGED_POSTS = "onStoryChangedPosts";
+const ENTITY_CHANGED_POSTS = "onEntityChangedPosts";
 
 const STORY_CHANGED_VECTOR = "onStoryChangedVector";
 const POST_CHANGED_STORIES = "onPostChangedStories";
@@ -21,9 +21,11 @@ const STATEMENT_CHANGED_VECTOR = "onStatementChangedVector";
 const STATEMENT_CHANGED_CONTENT = "onStatementChangedContent";
 const POST_CHANGED_STATEMENTS = "onPostChangedStatements";
 const STORY_CHANGED_STATEMENTS = "onStoryChangedStatements";
+const ENTITY_CHANGED_STATEMENTS= "onEntityChangedStatements";
 
 const ENTITY_SHOULD_CHANGE_IMAGE = "onEntityShouldChangeImage";
-const ENTITY_CHANGED_POSTS = "onEntityChangedPosts";
+const POST_CHANGED_ENTITY = "onPostChangedEntity";
+const STATEMENT_CHANGED_ENTITIES = "onStatementChangedEntities";
 
 const SHOULD_SCRAPE_FEED = "onShouldScrapeFeed";
 
@@ -58,5 +60,7 @@ module.exports = {
   STATEMENT_CHANGED_CONTENT,
   ENTITY_SHOULD_CHANGE_IMAGE,
   ENTITY_CHANGED_POSTS,
+  ENTITY_CHANGED_STATEMENTS,
+  STATEMENT_CHANGED_ENTITIES,
   SHOULD_SCRAPE_FEED,
 };
