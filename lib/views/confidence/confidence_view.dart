@@ -1,30 +1,29 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/framework.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:political_think/common/components/credibility_component.dart';
+import 'package:political_think/common/components/Confidence_component.dart';
 import 'package:political_think/common/components/loading.dart';
 import 'package:political_think/common/components/logo.dart';
 import 'package:political_think/common/components/profile_icon.dart';
 import 'package:political_think/common/components/zerror.dart';
 import 'package:political_think/common/extensions.dart';
-import 'package:political_think/common/models/credibility.dart';
+import 'package:political_think/common/models/confidence.dart';
 import 'package:political_think/common/models/vote.dart';
-import 'package:political_think/views/credibility/credibility_widget.dart';
+import 'package:political_think/views/confidence/confidence_widget.dart';
 
-class CredibilityView extends ConsumerStatefulWidget {
+class ConfidenceView extends ConsumerStatefulWidget {
   final String pid;
 
-  const CredibilityView({
+  const ConfidenceView({
     super.key,
     required this.pid,
   });
 
   @override
   ConsumerState<ConsumerStatefulWidget> createState() =>
-      _CredibilityViewViewState();
+      _ConfidenceViewViewState();
 }
 
-class _CredibilityViewViewState extends ConsumerState<CredibilityView> {
+class _ConfidenceViewViewState extends ConsumerState<ConfidenceView> {
   @override
   Widget build(BuildContext context) {
     var postRef = ref.postWatch(widget.pid);
@@ -36,7 +35,7 @@ class _CredibilityViewViewState extends ConsumerState<CredibilityView> {
           .voteWatch(
             post.pid,
             ref.user().uid,
-            VoteType.credibility,
+            VoteType.confidence,
           )
           .value;
     }
@@ -55,25 +54,17 @@ class _CredibilityViewViewState extends ConsumerState<CredibilityView> {
                   mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(post!.primaryCredibility?.name ?? "Credibility Score",
+                    Text(post!.primaryConfidence?.name ?? "Confidence Score",
                         style: context.h1, textAlign: TextAlign.start),
                     context.sf,
                     Row(
                       children: [
-                        CredibilityWidget(
+                        ConfidenceWidget(
                           width: context.iconSizeXL,
                           height: context.iconSizeXL,
                           post: post,
                           showValue: false,
                           showModalOnPress: false,
-                        ),
-                        context.sf,
-                        Expanded(
-                          child: Text(
-                            post.primaryCredibility?.reason ?? "",
-                            overflow: TextOverflow.ellipsis,
-                            maxLines: 25, // TODO: Make scrollable!
-                          ),
                         ),
                       ],
                     ),
@@ -85,8 +76,8 @@ class _CredibilityViewViewState extends ConsumerState<CredibilityView> {
                             context.blockPadding.copyWith(top: 0, bottom: 0),
                         child: Logo(size: context.iconSizeStandard),
                       ), // TODO: HACK FOR UI CHANGE TO GRID
-                      post.aiCredibility?.value,
-                      post.aiCredibility?.name,
+                      post.aiConfidence?.value,
+                      post.aiConfidence?.name,
                     ),
                     _infoRow(
                       context,
@@ -95,16 +86,16 @@ class _CredibilityViewViewState extends ConsumerState<CredibilityView> {
                             context.blockPadding
                                 .horizontal, // TODO: HACK FOR UI CHANGE TO GRID
                         child: Text(
-                            post.voteCountCredibility < 1000
-                                ? post.voteCountCredibility.toString()
-                                : "${(post.voteCountCredibility / 1000).toStringAsFixed(1)}k",
+                            post.voteCountConfidence < 1000
+                                ? post.voteCountConfidence.toString()
+                                : "${(post.voteCountConfidence / 1000).toStringAsFixed(1)}k",
                             style: context.am.copyWith(
-                                color: post.userCredibility?.color ??
+                                color: post.userConfidence?.color ??
                                     context.primaryColor),
                             textAlign: TextAlign.center),
                       ),
-                      post.userCredibility?.value,
-                      post.userCredibility?.name,
+                      post.userConfidence?.value,
+                      post.userConfidence?.name,
                     ),
                     _infoRow(
                       context,
@@ -114,8 +105,8 @@ class _CredibilityViewViewState extends ConsumerState<CredibilityView> {
                         child: ProfileIcon(
                             watch: false, radius: context.iconSizeStandard / 2),
                       ), // TODO: HACK FOR UI CHANGE TO GRID
-                      vote?.credibility?.value,
-                      vote?.credibility?.name,
+                      vote?.confidence?.value,
+                      vote?.confidence?.name,
                     ),
                   ],
                 ),
@@ -135,8 +126,8 @@ class _CredibilityViewViewState extends ConsumerState<CredibilityView> {
         children: [
           first,
           context.sd,
-          CredibilityComponent(
-            credibility: Credibility.fromValue(second ?? 0.0),
+          ConfidenceComponent(
+            confidence: Confidence(value: second ?? 0.0),
             width: context.iconSizeStandard,
             height: context.iconSizeStandard,
           ),

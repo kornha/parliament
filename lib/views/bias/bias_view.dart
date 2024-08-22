@@ -53,7 +53,7 @@ class _BiasViewViewState extends ConsumerState<BiasView> {
                   mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text("${post!.aiBias?.position.name ?? "Political"} Bias",
+                    Text("${post!.aiBias?.name ?? "Political"} Bias",
                         style: context.h1, textAlign: TextAlign.start),
                     context.sf,
                     Row(
@@ -63,14 +63,14 @@ class _BiasViewViewState extends ConsumerState<BiasView> {
                           post: post,
                           showModalOnPress: false,
                         ),
-                        context.sf,
-                        Expanded(
-                          child: Text(
-                            post.aiBias!.reason!,
-                            overflow: TextOverflow.ellipsis,
-                            maxLines: 25, // TODO: Make scrollable!
-                          ),
-                        ),
+                        // context.sf,
+                        // Expanded(
+                        //   child: Text(
+                        //     post.aiBias!.reason!,
+                        //     overflow: TextOverflow.ellipsis,
+                        //     maxLines: 25, // TODO: Make scrollable!
+                        //   ),
+                        // ),
                       ],
                     ),
                     context.sf,
@@ -81,8 +81,8 @@ class _BiasViewViewState extends ConsumerState<BiasView> {
                             context.blockPadding.copyWith(top: 0, bottom: 0),
                         child: Logo(size: context.iconSizeStandard),
                       ), // TODO: HACK FOR UI CHANGE TO GRID
-                      post.aiBias?.position,
-                      post.aiBias?.position.name,
+                      post.aiBias,
+                      post.aiBias?.name,
                     ),
                     _infoRow(
                       context,
@@ -95,12 +95,12 @@ class _BiasViewViewState extends ConsumerState<BiasView> {
                                 ? post.voteCountBias.toString()
                                 : "${(post.voteCountBias / 1000).toStringAsFixed(1)}k",
                             style: context.am.copyWith(
-                                color: post.userBias?.position.color ??
+                                color: post.userBias?.color ??
                                     context.primaryColor),
                             textAlign: TextAlign.center),
                       ),
-                      post.userBias?.position,
-                      post.userBias?.position.name,
+                      post.userBias,
+                      post.userBias?.name,
                     ),
                     _infoRow(
                       context,
@@ -110,8 +110,8 @@ class _BiasViewViewState extends ConsumerState<BiasView> {
                         child: ProfileIcon(
                             watch: false, radius: context.iconSizeStandard / 2),
                       ), // TODO: HACK FOR UI CHANGE TO GRID
-                      vote?.bias?.position,
-                      vote?.bias?.position.name,
+                      vote?.bias,
+                      vote?.bias?.name,
                     ),
                   ],
                 ),

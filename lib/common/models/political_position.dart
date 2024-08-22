@@ -1,19 +1,36 @@
 import 'dart:math';
-
 import 'package:flutter/material.dart';
-import 'package:political_think/common/constants.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:political_think/common/constants.dart';
 
 part 'political_position.g.dart';
 
 @JsonSerializable()
 @immutable
 class PoliticalPosition {
+  @JsonKey(fromJson: _fromJson, toJson: _toJson)
   final double angle;
 
   const PoliticalPosition({
     this.angle = 90.0,
   });
+
+  // Operator overloading to enable arithmetic operations
+  PoliticalPosition operator +(PoliticalPosition other) {
+    return PoliticalPosition(angle: (angle + other.angle) % 360);
+  }
+
+  PoliticalPosition operator -(PoliticalPosition other) {
+    return PoliticalPosition(angle: (angle - other.angle + 360) % 360);
+  }
+
+  PoliticalPosition operator *(double factor) {
+    return PoliticalPosition(angle: (angle * factor) % 360);
+  }
+
+  PoliticalPosition operator /(double divisor) {
+    return PoliticalPosition(angle: (angle / divisor) % 360);
+  }
 
   Color get color => quadrant.color;
   Color get onColor => quadrant.onColor;
@@ -64,7 +81,7 @@ class PoliticalPosition {
   bool get isRight => quadrant == Quadrant.right;
   bool get isCenter => quadrant == Quadrant.center;
   bool get isExtreme => quadrant == Quadrant.extreme;
-  //double get angle => value;
+
   double get radians => toRadians(angle);
 
   static double toDegrees(double radians) {
@@ -75,9 +92,6 @@ class PoliticalPosition {
     return degrees * (pi / 180.0);
   }
 
-  // finds the angle against the X axis, up to 360 degrees
-  // kind of hacky but it should work
-  // .abs() is used because I saw -0.00
   static PoliticalPosition? fromCoordinate(double x, double y) {
     if (x == 0 && y == 0) return null;
     var angle = toDegrees(-atan2(y, x));
@@ -88,7 +102,7 @@ class PoliticalPosition {
     return PoliticalPosition(angle: angle);
   }
 
-  factory PoliticalPosition.fromQuandrant(Quadrant quadrant) {
+  factory PoliticalPosition.fromQuadrant(Quadrant quadrant) {
     switch (quadrant) {
       case Quadrant.left:
         return const PoliticalPosition(angle: 180.0);
@@ -136,6 +150,10 @@ class PoliticalPosition {
   bool operator ==(other) => other is PoliticalPosition && angle == other.angle;
   @override
   int get hashCode => angle.hashCode;
+
+  // Custom JSON serialization/deserialization
+  static double _fromJson(dynamic json) => json as double;
+  static double _toJson(double instance) => instance;
 }
 
 enum Quadrant {

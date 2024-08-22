@@ -113,7 +113,6 @@ const findStoriesAndStatements = async function(post) {
         gstoryStatement.long]),
     } : null;
 
-
     if (gstoryStatement.sid) {
       await retryAsyncFunction(() => updateStory(sid, {
         title: gstoryStatement.title,
@@ -176,10 +175,10 @@ const findStoriesAndStatements = async function(post) {
             statedAt: isoToMillis(gstatement.statedAt),
             // some grade a level horse shit to get around
             // arrayUnion unioning an empty array
-            ...(gstatement.pro?.length &&
-              {pro: FieldValue.arrayUnion(...gstatement.pro)}),
-            ...(gstatement.against?.length &&
-              {against: FieldValue.arrayUnion(...gstatement.against)}),
+            ...(gstatement.side == "pro" &&
+              {pro: FieldValue.arrayUnion(post.pid)}),
+            ...(gstatement.side == "against" &&
+              {against: FieldValue.arrayUnion(post.pid)}),
           }));
         } else {
           logger.info("Creating statement " +
@@ -188,8 +187,8 @@ const findStoriesAndStatements = async function(post) {
           await retryAsyncFunction(() => createStatement({
             stid: stid,
             value: gstatement.value,
-            pro: gstatement.pro,
-            against: gstatement.against,
+            pro: gstatement.side == "pro" ? [post.pid] : [],
+            against: gstatement.side == "against" ? [post.pid] : [],
             context: gstatement.context,
             type: gstatement.type,
             sids: [sid],

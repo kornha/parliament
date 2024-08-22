@@ -55,8 +55,8 @@ class _StatementTabViewState extends State<StatementTabView>
         // sqd is a close estimate of the height of a single statement widget
         ConstrainedBox(
           constraints: BoxConstraints(
-            // magic number soc ~= max size of a statement widget
-            maxHeight: _maxCount * context.soc.height!,
+            // TODO: HACK magic number sqt+sqd ~= max size of a statement widget
+            maxHeight: _maxCount * (context.sqt.height! + context.sqd.height!),
           ),
           child: TabBarView(
             controller: _tabController,

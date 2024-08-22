@@ -202,6 +202,26 @@ const getPostsForStory = async function(sid) {
 };
 
 /**
+ * fetches all posts for entity
+ * @param {*} eid
+ * @return {Array<Post>} of posts
+ */
+const getAllPostsForEntity = async function(eid) {
+  if (!eid) {
+    logger.error(`Could not get posts for entity: ${eid}`);
+    return;
+  }
+  const postsRef = admin.firestore().collection("posts")
+      .where("eids", "array-contains", eid);
+  try {
+    const posts = await postsRef.get();
+    return posts.docs.map((post) => post.data());
+  } catch (e) {
+    return null;
+  }
+};
+
+/**
  * fetches primary and secondary posts for story
  * @param {*} sid
  * @return {Array} of posts
@@ -567,6 +587,26 @@ const getEntityByHandle = async function(handle) {
   }
 };
 
+/**
+ * fetches all entities for a statement
+ * @param {*} stid
+ * @return {Array<Statement>} of statements
+ * */
+const getAllEntitiesForStatement = async function(stid) {
+  if (!stid) {
+    logger.error(`Could not get entities for statement: ${stid}`);
+    return;
+  }
+  const entitiesRef = admin.firestore().collection("entities")
+      .where("stids", "array-contains", stid);
+  try {
+    const entities = await entitiesRef.get();
+    return entities.docs.map((entity) => entity.data());
+  } catch (e) {
+    return null;
+  }
+};
+
 // /////////////////////////////////////////
 // Room
 // /////////////////////////////////////////
@@ -825,6 +865,27 @@ const getAllStatementsForStory = async function(sid) {
   }
 };
 
+/**
+ * fetches all statements for an entity
+ * @param {*} eid
+ * @return {Array<Statement>} of statements
+ * */
+const getAllStatementsForEntity = async function(eid) {
+  if (!eid) {
+    logger.error(`Could not get statements for entity: ${eid}`);
+    return;
+  }
+  const statementsRef = admin.firestore().collection("statements")
+      .where("eids", "array-contains", eid);
+  try {
+    const statements = await statementsRef.get();
+    return statements.docs.map((statement) => statement.data());
+  } catch (e) {
+    return null;
+  }
+};
+
+
 // /////////////////////////////////////////
 // Generic
 // /////////////////////////////////////////
@@ -931,6 +992,7 @@ module.exports = {
   getPostsForStory,
   getAllPostsForStory,
   getAllPostsForStatement,
+  getAllPostsForEntity,
   bulkSetPosts,
   canFindStories,
   //
@@ -948,6 +1010,7 @@ module.exports = {
   getEntityByHandle,
   updateEntity,
   findCreateEntity,
+  getAllEntitiesForStatement,
   //
   createNewRoom,
   getRoom,
@@ -962,6 +1025,7 @@ module.exports = {
   deleteStatement,
   getAllStatementsForPost,
   getAllStatementsForStory,
+  getAllStatementsForEntity,
   //
   //
   getMessages,

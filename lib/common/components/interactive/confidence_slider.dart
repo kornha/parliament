@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:political_think/common/components/credibility_component.dart';
+import 'package:political_think/common/components/confidence_component.dart';
 import 'package:political_think/common/components/loading.dart';
-import 'package:political_think/common/models/credibility.dart';
+import 'package:political_think/common/constants.dart';
+import 'package:political_think/common/models/confidence.dart';
 import 'package:syncfusion_flutter_core/theme.dart';
 import 'package:syncfusion_flutter_sliders/sliders.dart';
 
-class CredibilitySlider extends StatefulWidget {
-  final ValueChanged<Credibility>? onCredbilitySelected;
-  Credibility? selectedCredibility;
-  final Credibility? credibility2;
-  final Credibility? credibility3;
+class ConfidenceSlider extends StatefulWidget {
+  final ValueChanged<Confidence>? onConfidenceSelected;
+  Confidence? selectedConfidence;
+  final Confidence? confidence2;
+  final Confidence? confidence3;
   final bool showNull2AsLoading;
   final bool showNull3AsLoading;
   final double width;
@@ -17,40 +18,42 @@ class CredibilitySlider extends StatefulWidget {
   final int? rows;
   final int? columns;
   final bool showUnselected;
+  final bool showText;
 
-  CredibilitySlider({
+  ConfidenceSlider({
     super.key,
-    this.selectedCredibility,
-    this.credibility2,
-    this.credibility3,
-    this.onCredbilitySelected,
-    required this.width,
-    required this.height,
+    this.selectedConfidence,
+    this.confidence2,
+    this.confidence3,
+    this.onConfidenceSelected,
+    this.width = IconSize.large,
+    this.height = IconSize.large,
     this.rows,
     this.columns,
     this.showUnselected = true,
+    this.showText = true,
     this.showNull2AsLoading = false,
     this.showNull3AsLoading = false,
   });
 
   @override
-  State<CredibilitySlider> createState() => _CredibilitySliderState();
+  State<ConfidenceSlider> createState() => _ConfidenceSliderState();
 }
 
-class _CredibilitySliderState extends State<CredibilitySlider> {
+class _ConfidenceSliderState extends State<ConfidenceSlider> {
   bool _isEditing = false;
   double get _width {
     if (_isEditing) {
       return widget.width;
     }
     double count = 0;
-    if (widget.selectedCredibility != null) {
+    if (widget.selectedConfidence != null) {
       count++;
     }
-    if (widget.credibility2 != null || widget.showNull2AsLoading) {
+    if (widget.confidence2 != null || widget.showNull2AsLoading) {
       count++;
     }
-    if (widget.credibility3 != null || widget.showNull3AsLoading) {
+    if (widget.confidence3 != null || widget.showNull3AsLoading) {
       count++;
     }
     if (count == 0) {
@@ -67,29 +70,30 @@ class _CredibilitySliderState extends State<CredibilitySlider> {
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             Visibility(
-              visible: _isEditing || widget.selectedCredibility != null,
-              child: CredibilityComponent(
-                credibility: widget.selectedCredibility,
+              visible: _isEditing || widget.selectedConfidence != null,
+              child: ConfidenceComponent(
+                confidence: widget.selectedConfidence,
                 width: _width,
                 height: widget.height,
                 rows: widget.rows,
                 columns: widget.columns,
                 showUnselected: widget.showUnselected,
+                showText: widget.showText,
               ),
             ),
             Visibility(
               visible: !_isEditing &&
-                  (widget.credibility2 != null || widget.showNull2AsLoading),
-              child: widget.credibility3 == null && widget.showNull3AsLoading
-                  ? LoadingCredibilityAnimation(
+                  (widget.confidence2 != null || widget.showNull2AsLoading),
+              child: widget.confidence3 == null && widget.showNull3AsLoading
+                  ? LoadingConfidenceAnimation(
                       width: _width,
                       height: widget.height,
                       rows: widget.rows,
                       columns: widget.columns,
                       showUnselected: widget.showUnselected,
                     )
-                  : CredibilityComponent(
-                      credibility: widget.credibility2,
+                  : ConfidenceComponent(
+                      confidence: widget.confidence2,
                       width: _width,
                       height: widget.height,
                       rows: widget.rows,
@@ -99,17 +103,17 @@ class _CredibilitySliderState extends State<CredibilitySlider> {
             ),
             Visibility(
               visible: !_isEditing &&
-                  (widget.credibility3 != null || widget.showNull3AsLoading),
-              child: widget.credibility3 == null && widget.showNull3AsLoading
-                  ? LoadingCredibilityAnimation(
+                  (widget.confidence3 != null || widget.showNull3AsLoading),
+              child: widget.confidence3 == null && widget.showNull3AsLoading
+                  ? LoadingConfidenceAnimation(
                       width: _width,
                       height: widget.height,
                       rows: widget.rows,
                       columns: widget.columns,
                       showUnselected: widget.showUnselected,
                     )
-                  : CredibilityComponent(
-                      credibility: widget.credibility3,
+                  : ConfidenceComponent(
+                      confidence: widget.confidence3,
                       width: _width,
                       height: widget.height,
                       rows: widget.rows,
@@ -132,15 +136,15 @@ class _CredibilitySliderState extends State<CredibilitySlider> {
               trackShape: _SfTrackShape(),
               max: 1.0,
               min: 0.0,
-              value: widget.selectedCredibility?.value ?? 0.0,
+              value: widget.selectedConfidence?.value ?? 0.0,
               onChanged: (dynamic newValue) {
                 setState(() {
-                  if (widget.selectedCredibility == null) {
-                    widget.selectedCredibility =
-                        Credibility(value: newValue as double);
+                  if (widget.selectedConfidence == null) {
+                    widget.selectedConfidence =
+                        Confidence(value: newValue as double);
                   } else {
-                    widget.selectedCredibility =
-                        Credibility(value: newValue as double);
+                    widget.selectedConfidence =
+                        Confidence(value: newValue as double);
                   }
                 });
               },
@@ -150,8 +154,8 @@ class _CredibilitySliderState extends State<CredibilitySlider> {
                 });
               },
               onChangeEnd: (value) {
-                widget.onCredbilitySelected
-                    ?.call(Credibility(value: value as double));
+                widget.onConfidenceSelected
+                    ?.call(Confidence(value: value as double));
                 setState(() {
                   _isEditing = false;
                 });
@@ -166,7 +170,7 @@ class _CredibilitySliderState extends State<CredibilitySlider> {
 
 // TODO: in the future should set the track painter. Currently I just
 // set the track color to transparent and use a stack to overlay the
-// credibility component below the slider.
+// confidence component below the slider.
 class _SfTrackShape extends SfTrackShape {
   @override
   void paint(PaintingContext context, Offset offset, Offset? thumbCenter,

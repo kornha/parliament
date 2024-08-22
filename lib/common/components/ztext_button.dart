@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:political_think/common/constants.dart';
 import 'package:political_think/common/extensions.dart';
 
-enum ZButtonTypes { wide, standard, area }
+enum ZButtonTypes { wide, standard, area, icon }
 
 class ZTextButton extends StatelessWidget {
   final Widget child;
@@ -25,11 +25,22 @@ class ZTextButton extends StatelessWidget {
     return TextButton(
       onPressed: onPressed,
       style: TextButton.styleFrom(
+        padding: type == ZButtonTypes.area
+            ? context.blockPadding
+            : type == ZButtonTypes.wide
+                ? context.blockPaddingSmall
+                : type == ZButtonTypes.icon
+                    ? EdgeInsets.zero
+                    : const EdgeInsets.all(0.0),
+        tapTargetSize:
+            type == ZButtonTypes.icon ? MaterialTapTargetSize.shrinkWrap : null,
         shape: type == ZButtonTypes.area
             ? const RoundedRectangleBorder(
                 borderRadius: BRadius.least,
               )
-            : null,
+            : type == ZButtonTypes.icon
+                ? const CircleBorder()
+                : null,
         foregroundColor: foregroundColor ?? context.primaryColor,
         backgroundColor: backgroundColor != null && onPressed != null
             ? backgroundColor
@@ -38,16 +49,11 @@ class ZTextButton extends StatelessWidget {
             ? null
             : type == ZButtonTypes.wide
                 ? Size(context.blockSize.width, context.sd.height!)
-                : null,
+                : type == ZButtonTypes.icon
+                    ? const Size(0, 0)
+                    : null,
       ),
-      child: Padding(
-        padding: type == ZButtonTypes.area
-            ? context.blockPadding
-            : type == ZButtonTypes.wide
-                ? context.blockPaddingSmall
-                : const EdgeInsets.all(0.0),
-        child: child,
-      ),
+      child: child,
     );
   }
 }

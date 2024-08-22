@@ -21,11 +21,15 @@ const STATEMENT_CHANGED_VECTOR = "onStatementChangedVector";
 const STATEMENT_CHANGED_CONTENT = "onStatementChangedContent";
 const POST_CHANGED_STATEMENTS = "onPostChangedStatements";
 const STORY_CHANGED_STATEMENTS = "onStoryChangedStatements";
-const ENTITY_CHANGED_STATEMENTS= "onEntityChangedStatements";
+const ENTITY_CHANGED_STATEMENTS = "onEntityChangedStatements";
+const STATEMENT_SHOULD_CHANGE_CONFIDENCE = "onStatementShouldChangeConfidence";
+const STATEMENT_CHANGED_CONFIDENCE = "onStatementChangedConfidence";
 
 const ENTITY_SHOULD_CHANGE_IMAGE = "onEntityShouldChangeImage";
 const POST_CHANGED_ENTITY = "onPostChangedEntity";
 const STATEMENT_CHANGED_ENTITIES = "onStatementChangedEntities";
+const ENTITY_CHANGED_CONFIDENCE = "onEntityChangedConfidence";
+const ENTITY_SHOULD_CHANGE_CONFIDENCE = "onEntityShouldChangeConfidence";
 
 const SHOULD_SCRAPE_FEED = "onShouldScrapeFeed";
 
@@ -58,9 +62,13 @@ module.exports = {
   STATEMENT_CHANGED_STORIES,
   STATEMENT_CHANGED_VECTOR,
   STATEMENT_CHANGED_CONTENT,
+  STATEMENT_SHOULD_CHANGE_CONFIDENCE,
+  STATEMENT_CHANGED_CONFIDENCE,
   ENTITY_SHOULD_CHANGE_IMAGE,
   ENTITY_CHANGED_POSTS,
   ENTITY_CHANGED_STATEMENTS,
+  ENTITY_CHANGED_CONFIDENCE,
+  ENTITY_SHOULD_CHANGE_CONFIDENCE,
   STATEMENT_CHANGED_ENTITIES,
   SHOULD_SCRAPE_FEED,
 };

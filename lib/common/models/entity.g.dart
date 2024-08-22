@@ -12,13 +12,16 @@ Entity _$EntityFromJson(Map<String, dynamic> json) => Entity(
       sourceType: $enumDecode(_$SourceTypeEnumMap, json['sourceType']),
       createdAt: Utils.timestampFromJson(json['createdAt'] as int),
       updatedAt: Utils.timestampFromJson(json['updatedAt'] as int),
+      photoURL: json['photoURL'] as String?,
       pids:
           (json['pids'] as List<dynamic>?)?.map((e) => e as String).toList() ??
               const [],
       stids:
           (json['stids'] as List<dynamic>?)?.map((e) => e as String).toList() ??
               const [],
-      photoURL: json['photoURL'] as String?,
+      confidence: json['confidence'] == null
+          ? null
+          : Confidence.fromJson((json['confidence'] as num).toDouble()),
     );
 
 Map<String, dynamic> _$EntityToJson(Entity instance) => <String, dynamic>{
@@ -28,6 +31,7 @@ Map<String, dynamic> _$EntityToJson(Entity instance) => <String, dynamic>{
       'photoURL': instance.photoURL,
       'pids': instance.pids,
       'stids': instance.stids,
+      'confidence': instance.confidence?.toJson(),
       'createdAt': Utils.timestampToJson(instance.createdAt),
       'updatedAt': Utils.timestampToJson(instance.updatedAt),
     };

@@ -1,37 +1,39 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/framework.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:political_think/common/components/interactive/credibility_slider.dart';
+import 'package:political_think/common/components/interactive/confidence_slider.dart';
 import 'package:political_think/common/constants.dart';
 import 'package:political_think/common/extensions.dart';
 import 'package:political_think/common/models/post.dart';
 import 'package:political_think/common/models/vote.dart';
 import 'package:political_think/common/services/database.dart';
-import 'package:political_think/views/credibility/credibility_view.dart';
-import 'package:political_think/views/credibility/vote_view.dart';
+import 'package:political_think/views/confidence/confidence_view.dart';
+import 'package:political_think/views/confidence/vote_view.dart';
 
-class CredibilityWidget extends ConsumerStatefulWidget {
+class ConfidenceWidget extends ConsumerStatefulWidget {
   final Post post;
   final double height;
   final double width;
   final bool showModalOnPress;
   final bool showValue;
-  const CredibilityWidget({
+  final bool showText;
+
+  const ConfidenceWidget({
     super.key,
     required this.height,
     required this.width,
     required this.post,
     this.showValue = true,
     this.showModalOnPress = false,
+    this.showText = true,
   });
 
   @override
   ConsumerState<ConsumerStatefulWidget> createState() =>
-      _PostCredibilityViewState();
+      _PostConfidenceViewState();
 }
 
-class _PostCredibilityViewState extends ConsumerState<CredibilityWidget> {
+class _PostConfidenceViewState extends ConsumerState<ConfidenceWidget> {
   Vote? _localVote;
 
   @override
@@ -41,15 +43,15 @@ class _PostCredibilityViewState extends ConsumerState<CredibilityWidget> {
         .voteWatch(
           widget.post.pid,
           ref.user().uid,
-          VoteType.credibility,
+          VoteType.confidence,
         )
         .value;
     // locally set state while waiting for remote
     // unsets on error
     if (vote != null &&
         _localVote != null &&
-        vote.credibility != null &&
-        _localVote!.credibility != null &&
+        vote.confidence != null &&
+        _localVote!.confidence != null &&
         vote.createdAt.millisecondsSinceEpoch >=
             _localVote!.createdAt.millisecondsSinceEpoch) {
       _localVote = null;
@@ -60,20 +62,20 @@ class _PostCredibilityViewState extends ConsumerState<CredibilityWidget> {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            CredibilitySlider(
-              selectedCredibility: _localVote?.credibility ?? vote?.credibility,
-              credibility2: widget.post.userCredibility,
-              credibility3: widget.post.aiCredibility,
+            ConfidenceSlider(
+              selectedConfidence: _localVote?.confidence ?? vote?.confidence,
+              confidence2: widget.post.userConfidence,
+              confidence3: widget.post.aiConfidence,
               showNull3AsLoading: true,
               width: widget.width,
               height: widget.height,
-              onCredbilitySelected: (cred) {
+              onConfidenceSelected: (cred) {
                 Vote v = Vote(
                   uid: ref.user().uid,
                   pid: widget.post.pid,
                   createdAt: Timestamp.now(),
-                  type: VoteType.credibility,
-                  credibility: cred,
+                  type: VoteType.confidence,
+                  confidence: cred,
                 );
                 Database.instance().vote(v).onError((error, stackTrace) {
                   setState(() {
@@ -88,7 +90,7 @@ class _PostCredibilityViewState extends ConsumerState<CredibilityWidget> {
                 context.showModal(VoteView(
                   pid: widget.post.pid,
                   uid: ref.user().uid,
-                  type: VoteType.credibility,
+                  type: VoteType.confidence,
                 ));
               },
             ),
@@ -97,7 +99,7 @@ class _PostCredibilityViewState extends ConsumerState<CredibilityWidget> {
         Visibility(
           visible: widget.showValue,
           child: Text(
-            widget.post.primaryCredibility?.value.toString() ?? "",
+            widget.post.primaryConfidence?.value.toString() ?? "",
             style: widget.width > IconSize.large ? context.h3 : context.l,
             textAlign: TextAlign.center,
           ),
@@ -108,7 +110,7 @@ class _PostCredibilityViewState extends ConsumerState<CredibilityWidget> {
             // the ontap does not intercept the joystick
             onTap: widget.showModalOnPress
                 ? () {
-                    context.showModal(CredibilityView(pid: widget.post.pid));
+                    context.showModal(ConfidenceView(pid: widget.post.pid));
                   }
                 : null,
             child: Container(

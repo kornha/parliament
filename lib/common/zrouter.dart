@@ -5,6 +5,7 @@ import 'package:political_think/common/components/loading.dart';
 import 'package:political_think/common/components/znavigation_scaffold.dart';
 import 'package:political_think/common/extensions.dart';
 import 'package:political_think/common/services/zprovider.dart';
+import 'package:political_think/views/entity/entity_view.dart';
 import 'package:political_think/views/feed/feed.dart';
 import 'package:political_think/views/games/games.dart';
 import 'package:political_think/views/login/login.dart';
@@ -97,6 +98,16 @@ class ZRouter {
                 ),
               ),
             ),
+            GoRoute(
+              parentNavigatorKey: _shellNavigatorKey,
+              path: "${EntityView.location}/:eid",
+              pageBuilder: (context, state) => zPage(
+                context: context,
+                child: EntityView(
+                  eid: state.pathParameters["eid"]!,
+                ),
+              ),
+            ),
           ],
         ),
         GoRoute(
@@ -115,15 +126,6 @@ class ZRouter {
             child: const LoadingPage(),
           ),
         ),
-        // GoRoute(
-        //   parentNavigatorKey: rootNavigatorKey,
-        //   path: "${PostView.location}/:pid",
-        //   pageBuilder: (context, state) => MaterialPage(
-        //     child: PostView(
-        //       pid: state.pathParameters["pid"]!,
-        //     ),
-        //   ),
-        // ),
       ],
       refreshListenable: ref.watch(authProvider),
       redirect: (context, state) {

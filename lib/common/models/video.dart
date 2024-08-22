@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:political_think/common/models/bias.dart';
-import 'package:political_think/common/models/credibility.dart';
+import 'package:political_think/common/models/confidence.dart';
 import 'package:political_think/common/util/utils.dart';
 
 part 'video.g.dart';

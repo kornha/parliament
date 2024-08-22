@@ -1,8 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:political_think/common/models/bias.dart';
-import 'package:political_think/common/models/credibility.dart';
+import 'package:political_think/common/models/confidence.dart';
 import 'package:political_think/common/models/photo.dart';
+import 'package:political_think/common/models/political_position.dart';
 import 'package:political_think/common/models/source_type.dart';
 import 'package:political_think/common/models/video.dart';
 import 'package:political_think/common/util/utils.dart';
@@ -42,18 +42,18 @@ class Post {
   List<String> locations; // currently country codes need to abstract
   //
   int voteCountBias;
-  int voteCountCredibility;
+  int voteCountConfidence;
   // number of rooms reporting debate scores
   // needed to calculate debateBias
   // can be removed if we change course here
   int debateCountBias;
   // between 0.0 and 359.99
-  Bias? userBias;
-  Bias? aiBias;
-  Bias? debateBias;
+  PoliticalPosition? userBias;
+  PoliticalPosition? aiBias;
+  PoliticalPosition? debateBias;
   // between 0.0 and 1.0
-  Credibility? userCredibility;
-  Credibility? aiCredibility;
+  Confidence? userConfidence;
+  Confidence? aiConfidence;
   // between 0.0 and 1.0
   double? importance;
   //
@@ -93,15 +93,15 @@ class Post {
     this.userBias,
     this.aiBias,
     this.debateBias,
-    this.userCredibility,
-    this.aiCredibility,
+    this.userConfidence,
+    this.aiConfidence,
     this.voteCountBias = 0,
-    this.voteCountCredibility = 0,
+    this.voteCountConfidence = 0,
     this.debateCountBias = 0,
   });
 
-  Credibility? get primaryCredibility => aiCredibility ?? userCredibility;
-  Bias? get primaryBias => aiBias ?? userBias;
+  Confidence? get primaryConfidence => aiConfidence ?? userConfidence;
+  PoliticalPosition? get primaryBias => aiBias ?? userBias;
 
   factory Post.fromJson(Map<String, dynamic> json) => _$PostFromJson(json);
 

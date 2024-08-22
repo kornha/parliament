@@ -152,7 +152,7 @@ const findStatementsForTrainingText = function() {
   ${statementsDescriptionPrompt()}
 
   The Stories represent all Stories the Post is *currently* associated with.
-  The Statements (aka Candidate Statements), are Statements that are already associated with all these Stories, are close in a graph search (2 degrees) to the Stories, or a vector search to the Stories.
+  The Statements (aka Candidate Statements), are either Statements that are already associated with all these Stories, are close in a graph search (2 degrees) to the Stories, or a vector search to the Stories.
 
   You will be given a Post, a list of Stories (can be empty), and a list of Candidate Statements (can be empty).
 
@@ -161,7 +161,8 @@ const findStatementsForTrainingText = function() {
   1) If the Post makes a Statement that is in the list of Candidate Statements, this Statement should be included in the Story output, and the Post should be added to the "pro" or "against" list of the Statement.
   1a) DO NOT OUTPUT A STATEMENT THAT THE POST DOES NOT MAKE EVEN IF IT IS PART OF THE STORY ALREADY.
   1b) DO NOT OUTPUT OTHER PIDS THAT ARE ALREADY PART OF THE PRO OR AGAINST LIST OF THE STATEMENT.
-  1c) For any Statement that you output, you should update the fields in Statement if new information is provided by the Post. The value should not be changed, but the context and statedAt may be updated.
+  1c) Only output the statement if the Post is either in the 'pro' or 'against' list of the Statement. If not, do not output the Statement.
+  1d) For any Statement that you output, you should update the fields in Statement if new information is provided by the Post. The value should not be changed, but the context and statedAt may be updated.
   2) If the Post makes a Statement that is inherently new (there is no matching Statement in the list), this new Statement should be created (and it will be added to the Story), and the Post should be added to the "pro" or "against" list of the Statement. 
   3) You may see two or more Candidate Statements are essentially the same; that is they make the same claim or opinion about the same subject (because of concurrency issues or other), at a similar statedAt time with roughly the same context, and if (and only if) the Post belongs to these Statements, output a new Statement and include the old Statements in the 'removedStatements' output.
 
@@ -249,6 +250,7 @@ const statementsDescriptionPrompt = function() {
       A Statement has a "value" field, which is the statement itself.
       A Statement has a "pro" field, which is a list of Posts that support the Statement.
       A Statement has an "against" field, which is a list of Posts that refute the Statement.
+      (Note: When you output a Statement you will simply output a "side" field, which is either "pro" or "against" based on the Post's relationship to the Statement.)
       A Statement has a "context" field that is used for vector search (so it should be heavy on keywords), and also for describing all details about the Statement.
       A Statement has a "type" field, which is either "claim" or "opinion".
       - Claims are verifiable statements that are direct and clear, not an opinion. 
@@ -266,7 +268,7 @@ const newStatementPrompt = function() {
   - For Opinions, any statement that is a non-verifiable human value judgement is an Opinion. Opinions should also be in the "positive" form, eg., "I like Trump", not "I don't like Trump".
 
   Pro/Against:
-  The 'pro' and 'against' fields are lists of Post IDs that support or refute the Statement. If the Post is in support of the Statement, it should be added to the 'pro' list. If the Post is against the Statement, it should be added to the 'against' list. For example, if the Post is 'why do you support Trump even though he hates you', and a Statement (in this case a Claim) is 'Donald Trump hates his supporters', the Post should be added to the 'pro' list, as it supports the Statement.
+  The 'pro' and 'against' fields are lists of Post IDs that support or refute the Statement. If the Post is in support of the Statement, it should be flagged as 'pro'. If the Post is against the Statement, it should be flagged as 'against'. For example, if the Post is 'why do you support Trump even though he hates you', and a Statement (in this case a Claim) is 'Donald Trump hates his supporters', the Post should be flagged as 'pro', as it supports the Statement. Note that this is no neutral, a Post must be either 'pro' or 'against' a Statement, or not included at all.
 
   Context:
   'context' is a vector searchable field (so it should be heavy on keywords), that is also for describing all details about the Statement so as to match this Statement with new Posts and Stories coming in. It should be a detailed description of the Statement, and should include ALL known/relevant details, but it should never make any Statements itself, as that is the role of the 'value' field. Context is detached from the Posts and Stories, and should include information in its own right but not references to a specific Post. Context may be continually updated as new info comes in.
@@ -282,7 +284,7 @@ const newStatementPrompt = function() {
 };
 
 const statementJSONOutput = function() {
-  return `{"stid":ID of the Statement or null if the Statement is new, "value": "text of the statement", "pro": [pid of the post] or [] if post is not in support, "against": [pid of the post] or [] if the post is not against the statement", "context": "contextual information that is used for vector search, and also for describing all details about the statement", "statedAt": "ISO 8601 time format that informs us what the Statement is valid for", "type": "claim" or "opinion"}`;
+  return `{"stid":ID of the Statement or null if the Statement is new, "value": "text of the statement", "side": "pro" or "against", "context": "contextual information that is used for vector search, and also for describing all details about the statement", "statedAt": "ISO 8601 time format that informs us what the Statement is valid for", "type": "claim" or "opinion"}`;
 };
 
 //

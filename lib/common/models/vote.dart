@@ -3,15 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:political_think/common/chat/chat_types/flutter_chat_types.dart'
     as ct;
-import 'package:political_think/common/models/bias.dart';
-import 'package:political_think/common/models/credibility.dart';
+import 'package:political_think/common/models/confidence.dart';
 import 'package:political_think/common/models/political_position.dart';
 
 part 'vote.g.dart';
 
 enum VoteType {
   bias,
-  credibility;
+  confidence;
 
   String get collectionName =>
       "votes${name[0].toUpperCase()}${name.substring(1).toLowerCase()}";
@@ -26,8 +25,8 @@ enum VoteType {
 class Vote {
   final String uid; // this is the docId of the vote
   final String pid;
-  Bias? bias;
-  Credibility? credibility;
+  PoliticalPosition? bias;
+  Confidence? confidence;
   String? reason;
   @JsonKey(fromJson: _timestampFromJson, toJson: _timestampToJson)
   Timestamp createdAt;
@@ -37,7 +36,7 @@ class Vote {
     required this.uid,
     required this.pid, // only needed to override == afaik
     this.bias,
-    this.credibility,
+    this.confidence,
     this.reason,
     required this.type,
     required this.createdAt,
@@ -57,10 +56,10 @@ class Vote {
       other is Vote &&
       uid == other.uid &&
       pid == other.pid &&
-      bias?.position == other.bias?.position &&
-      credibility?.value == other.credibility?.value &&
+      bias == other.bias &&
+      confidence?.value == other.confidence?.value &&
       type == other.type &&
       createdAt == other.createdAt;
   @override
-  int get hashCode => Object.hash(uid, pid, bias, credibility, createdAt);
+  int get hashCode => Object.hash(uid, pid, bias, confidence, createdAt);
 }

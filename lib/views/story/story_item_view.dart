@@ -18,10 +18,10 @@ class StoryItemView extends ConsumerStatefulWidget {
   final String sid;
 
   @override
-  ConsumerState<ConsumerStatefulWidget> createState() => _StoryViewState();
+  ConsumerState<ConsumerStatefulWidget> createState() => _StoryItemViewState();
 }
 
-class _StoryViewState extends ConsumerState<StoryItemView> {
+class _StoryItemViewState extends ConsumerState<StoryItemView> {
   @override
   Widget build(BuildContext context) {
     var storyRef = ref.storyWatch(widget.sid);

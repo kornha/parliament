@@ -2,13 +2,13 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
-import 'package:political_think/common/components/credibility_component.dart';
+import 'package:political_think/common/components/confidence_component.dart';
 import 'package:political_think/common/components/loading_shimmer.dart';
 import 'package:political_think/common/components/political_component.dart';
 import 'package:political_think/common/components/zscaffold.dart';
 import 'package:political_think/common/constants.dart';
 import 'package:political_think/common/extensions.dart';
-import 'package:political_think/common/models/credibility.dart';
+import 'package:political_think/common/models/confidence.dart';
 import 'package:political_think/common/models/political_position.dart';
 
 enum LoadingType {
@@ -197,7 +197,7 @@ class _LoadingPoliticalPositionAnimationState
   }
 }
 
-class LoadingCredibilityAnimation extends StatefulWidget {
+class LoadingConfidenceAnimation extends StatefulWidget {
   final Duration duration;
   final AnimationController? controller;
   final double width;
@@ -209,7 +209,7 @@ class LoadingCredibilityAnimation extends StatefulWidget {
 
   final bool showUnselected;
 
-  LoadingCredibilityAnimation({
+  LoadingConfidenceAnimation({
     Key? key,
     this.duration = const Duration(milliseconds: 1200),
     this.controller,
@@ -221,12 +221,11 @@ class LoadingCredibilityAnimation extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<LoadingCredibilityAnimation> createState() =>
-      _LoadingCredibilityAnimationState();
+  State<LoadingConfidenceAnimation> createState() =>
+      _LoadingConfidenceAnimationState();
 }
 
-class _LoadingCredibilityAnimationState
-    extends State<LoadingCredibilityAnimation>
+class _LoadingConfidenceAnimationState extends State<LoadingConfidenceAnimation>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _animation;
@@ -266,11 +265,12 @@ class _LoadingCredibilityAnimationState
     }
     prev = _animation.value;
 
-    return CredibilityComponent(
+    return ConfidenceComponent(
       width: widget.width,
       height: widget.height,
-      credibility: Credibility.fromValue(
-          topdown ? 1.0 - _animation.value : _animation.value),
+      confidence: Confidence(
+        value: topdown ? 1.0 - _animation.value : _animation.value,
+      ),
     );
   }
 }

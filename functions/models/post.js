@@ -353,6 +353,12 @@ exports.onStatementChangedPosts = onMessagePublished(
     },
 );
 
+/**
+ * 'TXN' - called from Entity.js
+ * Updates the Entity that this Post is part of
+ * @param {Entity} before
+ * @param {Entity} after
+ */
 exports.onEntityChangedPosts = onMessagePublished(
     {
       topic: ENTITY_CHANGED_POSTS, // Make sure to define this topic

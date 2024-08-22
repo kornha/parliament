@@ -1,17 +1,15 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/framework.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:political_think/common/components/interactive/political_position_joystick.dart';
 import 'package:political_think/common/components/loading.dart';
 import 'package:political_think/common/components/political_component.dart';
 import 'package:political_think/common/extensions.dart';
-import 'package:political_think/common/models/bias.dart';
 import 'package:political_think/common/models/post.dart';
 import 'package:political_think/common/models/vote.dart';
 import 'package:political_think/common/services/database.dart';
 import 'package:political_think/views/bias/bias_view.dart';
-import 'package:political_think/views/credibility/vote_view.dart';
+import 'package:political_think/views/confidence/vote_view.dart';
 
 class BiasWidget extends ConsumerStatefulWidget {
   final Post post;
@@ -50,8 +48,8 @@ class _PostBiasViewState extends ConsumerState<BiasWidget> {
     // unsets on error
     if (vote != null &&
         _localVote != null &&
-        vote.bias?.position != null &&
-        _localVote!.bias?.position != null &&
+        vote.bias != null &&
+        _localVote!.bias != null &&
         vote.createdAt.millisecondsSinceEpoch >=
             _localVote!.createdAt.millisecondsSinceEpoch) {
       _localVote = null;
@@ -78,20 +76,19 @@ class _PostBiasViewState extends ConsumerState<BiasWidget> {
                   : PoliticalComponent(
                       radius: widget.radius,
                       rings: 1,
-                      position: widget.post.aiBias?.position,
+                      position: widget.post.aiBias,
                       give: 0.2,
                       showUnselected: false,
                     ),
               PoliticalComponent(
                 radius: widget.radius * 5.0 / 6.0,
                 rings: 1,
-                position: widget.post.userBias?.position,
+                position: widget.post.userBias,
                 give: 0.195,
                 showUnselected: false,
               ),
               PoliticalPositionJoystick(
-                selectedPosition:
-                    _localVote?.bias?.position ?? vote?.bias?.position,
+                selectedPosition: _localVote?.bias ?? vote?.bias,
                 radius: widget.radius * 2.0 / 3.0,
                 give: 0.19,
                 rings: 1,
@@ -102,7 +99,7 @@ class _PostBiasViewState extends ConsumerState<BiasWidget> {
                     pid: widget.post.pid,
                     createdAt: Timestamp.now(),
                     type: VoteType.bias,
-                    bias: Bias(position: pos),
+                    bias: pos,
                   );
                   Database.instance().vote(v).onError((error, stackTrace) {
                     setState(() {
@@ -130,8 +127,8 @@ class _PostBiasViewState extends ConsumerState<BiasWidget> {
                   width: widget.radius * 2.0,
                   child: Text(
                     widget.showPositionAngle
-                        ? "${widget.post.aiBias!.position.angle.round()}°"
-                        : widget.post.userBias!.position.name,
+                        ? "${widget.post.aiBias!.angle.round()}°"
+                        : widget.post.userBias!.name,
                     style: widget.radius >= context.iconSizeXL
                         ? context.mb
                         : context.sb,

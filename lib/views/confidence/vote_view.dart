@@ -2,14 +2,13 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:political_think/common/components/interactive/credibility_slider.dart';
+import 'package:political_think/common/components/interactive/confidence_slider.dart';
 import 'package:political_think/common/components/interactive/political_position_joystick.dart';
 import 'package:political_think/common/components/loading.dart';
 import 'package:political_think/common/components/zerror.dart';
 import 'package:political_think/common/components/ztext_button.dart';
 import 'package:political_think/common/components/ztextfield.dart';
 import 'package:political_think/common/extensions.dart';
-import 'package:political_think/common/models/bias.dart';
 import 'package:political_think/common/models/vote.dart';
 import 'package:political_think/common/services/database.dart';
 
@@ -96,7 +95,7 @@ class _VoteViewState extends ConsumerState<VoteView> {
                     Text(
                         vote!.type == VoteType.bias
                             ? vote.bias!.name
-                            : vote.credibility!.name,
+                            : vote.confidence!.name,
                         style: context.h1,
                         textAlign: TextAlign.start),
                     context.sf,
@@ -105,7 +104,7 @@ class _VoteViewState extends ConsumerState<VoteView> {
                       children: [
                         vote.type == VoteType.bias
                             ? PoliticalPositionJoystick(
-                                selectedPosition: vote.bias?.position,
+                                selectedPosition: vote.bias,
                                 radius: context.iconSizeXL / 2,
                                 onPositionSelected: (pos) {
                                   Vote v = Vote(
@@ -114,7 +113,7 @@ class _VoteViewState extends ConsumerState<VoteView> {
                                     reason: vote.reason,
                                     createdAt: Timestamp.now(),
                                     type: VoteType.bias,
-                                    bias: Bias(position: pos),
+                                    bias: pos,
                                   );
                                   Database.instance()
                                       .vote(v)
@@ -127,18 +126,18 @@ class _VoteViewState extends ConsumerState<VoteView> {
                                   });
                                 },
                               )
-                            : CredibilitySlider(
-                                selectedCredibility: vote.credibility,
+                            : ConfidenceSlider(
+                                selectedConfidence: vote.confidence,
                                 width: context.iconSizeXL,
                                 height: context.iconSizeXL,
-                                onCredbilitySelected: (cred) {
+                                onConfidenceSelected: (cred) {
                                   Vote v = Vote(
                                     uid: ref.user().uid,
                                     pid: vote.pid,
                                     reason: vote.reason,
                                     createdAt: Timestamp.now(),
-                                    type: VoteType.credibility,
-                                    credibility: cred,
+                                    type: VoteType.confidence,
+                                    confidence: cred,
                                   );
                                   Database.instance()
                                       .vote(v)
@@ -162,7 +161,7 @@ class _VoteViewState extends ConsumerState<VoteView> {
                             minLines: 1,
                             cursorColor: vote.type == VoteType.bias
                                 ? vote.bias!.color
-                                : vote.credibility!.color,
+                                : vote.confidence!.color,
                             onChanged: (text) {
                               setState(() {
                                 _isButtonEnabled =
@@ -186,7 +185,7 @@ class _VoteViewState extends ConsumerState<VoteView> {
                                 createdAt: Timestamp.now(),
                                 type: vote.type,
                                 bias: vote.bias,
-                                credibility: vote.credibility,
+                                confidence: vote.confidence,
                               );
                               Database.instance()
                                   .vote(v)
@@ -205,10 +204,10 @@ class _VoteViewState extends ConsumerState<VoteView> {
                             },
                       // backgroundColor: vote.type == VoteType.bias
                       //     ? vote.bias!.color
-                      //     : vote.credibility!.color,
+                      //     : vote.confidence!.color,
                       // foregroundColor: vote.type == VoteType.bias
                       //     ? vote.bias!.onColor
-                      //     : vote.credibility!.color,
+                      //     : vote.confidence!.color,
                       child: const Text("Save"),
                     ),
                   ],

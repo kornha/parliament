@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:political_think/common/components/icon_grid.dart';
+import 'package:political_think/common/components/interactive/confidence_slider.dart';
 import 'package:political_think/common/components/loading.dart';
 import 'package:political_think/common/components/zerror.dart';
 import 'package:political_think/common/extensions.dart';
+import 'package:political_think/common/models/confidence.dart';
+import 'package:political_think/common/services/database.dart';
 import 'package:political_think/common/services/zprovider.dart';
+import 'package:political_think/views/entity/entity_list.dart';
 
 class StatementView extends ConsumerStatefulWidget {
   final String stid;
@@ -39,16 +44,42 @@ class _StatementViewState extends ConsumerState<StatementView> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   context.sh,
-                  Text(
-                    statement.value,
-                    style: context.l,
+                  Row(
+                    children: [
+                      Expanded(
+                        flex: 5, // need as spacer causes issue with text
+                        child: Text(
+                          statement.value,
+                          style: context.l,
+                        ),
+                      ),
+                      const Spacer(),
+                      // TODO: we need to replace this with confidence widget
+                      ConfidenceSlider(
+                        showText: statement.confidence != null,
+                        selectedConfidence:
+                            statement.confidence ?? Confidence(value: 0.5),
+                        width: context.iconSizeLarge,
+                        height: context.iconSizeLarge,
+                        onConfidenceSelected: (conf) {
+                          // TODO: CHANGE TO CONFIDENCE WIDGET!
+                          Database.instance().updateStatement(
+                              statement.stid, {"adminConfidence": conf.value});
+                        },
+                      ),
+                    ],
                   ),
                   context.sh,
                   Row(
                     children: [
                       proList != null && proList.isNotEmpty
                           ? IconGrid(
-                              urls: proList.map((e) => e.photoURL).toList())
+                              urls: proList.map((e) => e.photoURL).toList(),
+                              onPressed: () {
+                                context.showModal(EntityListView(
+                                    eids: proList.map((e) => e.eid).toList()));
+                              },
+                            )
                           : Text(
                               "${statement.pro.length}",
                               style: context.al
@@ -57,7 +88,14 @@ class _StatementViewState extends ConsumerState<StatementView> {
                       const Spacer(),
                       againstList != null && againstList.isNotEmpty
                           ? IconGrid(
-                              urls: againstList.map((e) => e.photoURL).toList())
+                              urls: againstList.map((e) => e.photoURL).toList(),
+                              onPressed: () {
+                                context.showModal(EntityListView(
+                                    eids: againstList
+                                        .map((e) => e.eid)
+                                        .toList()));
+                              },
+                            )
                           : Text(
                               "${statement.against.length}",
                               style: context.al

@@ -6,13 +6,18 @@ const {publishMessage,
   POST_CHANGED_ENTITY,
   ENTITY_CHANGED_POSTS,
   ENTITY_CHANGED_STATEMENTS,
-  STATEMENT_CHANGED_ENTITIES} = require("../common/pubsub");
+  STATEMENT_CHANGED_ENTITIES,
+  ENTITY_CHANGED_CONFIDENCE,
+  STATEMENT_SHOULD_CHANGE_CONFIDENCE,
+  ENTITY_SHOULD_CHANGE_CONFIDENCE,
+} = require("../common/pubsub");
 const {logger} = require("firebase-functions/v2");
 const {getEntityImage} = require("../content/xscraper");
-const {updateEntity} = require("../common/database");
+const {updateEntity, getAllStatementsForEntity} = require("../common/database");
 const {Timestamp} = require("firebase-admin/firestore");
 const {handleChangedRelations} = require("../common/utils");
 const _ = require("lodash");
+const {onEntityShouldChangeConfidence} = require("../ai/confidence");
 
 //
 // Firestore
@@ -35,8 +40,9 @@ exports.onEntityUpdate = onDocumentWritten(
 
       // can revisit if this logic is right
       // for some reason after.handle was null on create
-      if (_create && !after.photoURL && after.handle ||
-      _update && before.handle !== after.handle
+      if (
+        _create && !after.photoURL && after.handle ||
+        _update && before.handle !== after.handle
       ) {
         publishMessage(ENTITY_SHOULD_CHANGE_IMAGE, after);
       }
@@ -56,6 +62,26 @@ exports.onEntityUpdate = onDocumentWritten(
       ) {
         await publishMessage(ENTITY_CHANGED_STATEMENTS,
             {before: before, after: after});
+      }
+
+      // entity changed confidence
+      if (
+        _create && after.confidence ||
+        _update && before.confidence !== after.confidence ||
+        _delete && before.confidence
+      ) {
+        await publishMessage(ENTITY_CHANGED_CONFIDENCE,
+            {before: before, after: after});
+      }
+
+      // changed admin confidence
+      if (
+        _create && after.adminConfidence ||
+        _update && before.adminConfidence !== after.adminConfidence ||
+        _delete && before.adminConfidence
+      ) {
+        await publishMessage(ENTITY_SHOULD_CHANGE_CONFIDENCE,
+            {eid: after?.eid || before?.eid});
       }
 
       return Promise.resolve();
@@ -99,6 +125,62 @@ exports.onEntityShouldChangeImage = onMessagePublished(
     },
 );
 
+// ////////////////////////////////////////////////////////////////////////////
+// Confidence
+// ////////////////////////////////////////////////////////////////////////////
+
+exports.onEntityShouldChangeConfidence = onMessagePublished(
+    {
+      topic: ENTITY_SHOULD_CHANGE_CONFIDENCE,
+      ...defaultConfig,
+    },
+    async (event) => {
+      logger.info("onEntityShouldChangeConfidence");
+      const eid = event.data.message.json.eid;
+      if (!eid) {
+        return Promise.resolve();
+      }
+
+      await onEntityShouldChangeConfidence(eid);
+
+      return Promise.resolve();
+    },
+);
+
+exports.onEntityChangedConfidence = onMessagePublished(
+    {
+      topic: ENTITY_CHANGED_CONFIDENCE,
+      ...defaultConfig,
+    },
+    async (event) => {
+      logger.info("onEntityChangedConfidence");
+      const before = event.data.message.json.before;
+      const after = event.data.message.json.after;
+
+      const eid = after?.eid || before?.eid;
+      if (!eid) {
+        return Promise.resolve();
+      }
+
+      const statements = await getAllStatementsForEntity(eid);
+      if (!statements) {
+        logger.warn(`No statements found for entity ${eid}`);
+        return Promise.resolve();
+      }
+
+      for (const statement of statements) {
+        await publishMessage(STATEMENT_SHOULD_CHANGE_CONFIDENCE,
+            {stid: statement.stid});
+      }
+
+      return Promise.resolve();
+    },
+);
+
+// ////////////////////////////////////////////////////////////////////////////
+// Sync
+// ////////////////////////////////////////////////////////////////////////////
+
 /**
  * 'TXN' - from Post.js
  * Updates the Entities that this Post is part of
@@ -113,9 +195,13 @@ exports.onPostChangedEntity = onMessagePublished(
     async (event) => {
       const before = event.data.message.json.before;
       const after = event.data.message.json.after;
+
+      // NOTE: When a post is deleted and that post
+      // has statements, we don't delete the statements
+      // since its expensive to compute if that statement
+      // is mentioned by another post.
       await handleChangedRelations(before, after, "eid",
           updateEntity, "pid", "pids", {}, "oneToMany");
-
       return Promise.resolve();
     },
 );
@@ -136,7 +222,6 @@ exports.onStatementChangedEntities = onMessagePublished(
       const after = event.data.message.json.after;
       await handleChangedRelations(before, after, "eids",
           updateEntity, "stid", "stids");
-
       return Promise.resolve();
     },
 );

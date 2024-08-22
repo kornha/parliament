@@ -68,7 +68,7 @@ class _PostViewState extends ConsumerState<PostItemView> {
                               children: [
                                 Visibility(
                                   visible: entity?.photoURL != null,
-                                  child: ProfileIcon(url: entity?.photoURL),
+                                  child: ProfileIcon(eid: post?.eid),
                                 ),
                                 Icon(
                                   post?.sourceType.icon,
@@ -159,7 +159,7 @@ class _PostViewState extends ConsumerState<PostItemView> {
                             Visibility(
                               visible: entity?.photoURL != null,
                               child: ProfileIcon(
-                                url: entity?.photoURL,
+                                eid: entity?.eid,
                                 radius: context.iconSizeStandard / 2,
                               ),
                             ),

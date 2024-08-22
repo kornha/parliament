@@ -29,6 +29,9 @@ Statement _$StatementFromJson(Map<String, dynamic> json) => Statement(
       eids:
           (json['eids'] as List<dynamic>?)?.map((e) => e as String).toList() ??
               const [],
+      confidence: json['confidence'] == null
+          ? null
+          : Confidence.fromJson((json['confidence'] as num).toDouble()),
     );
 
 Map<String, dynamic> _$StatementToJson(Statement instance) => <String, dynamic>{
@@ -41,6 +44,7 @@ Map<String, dynamic> _$StatementToJson(Statement instance) => <String, dynamic>{
       'sids': instance.sids,
       'eids': instance.eids,
       'type': _$StatementTypeEnumMap[instance.type]!,
+      'confidence': instance.confidence?.toJson(),
       'statedAt': Utils.timestampToJson(instance.statedAt),
       'createdAt': Utils.timestampToJson(instance.createdAt),
       'updatedAt': Utils.timestampToJson(instance.updatedAt),

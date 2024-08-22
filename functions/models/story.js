@@ -106,6 +106,11 @@ exports.onPostChangedStories = onMessagePublished(
     async (event) => {
       const before = event.data.message.json.before;
       const after = event.data.message.json.after;
+
+      // NOTE: When a post is deleted and that post
+      // has statements, we don't delete the statements
+      // since its expensive to compute if that statement
+      // is mentioned by another post.
       await handleChangedRelations(before, after,
           "sids", updateStory, "pid", "pids");
       return Promise.resolve();

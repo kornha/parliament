@@ -3,12 +3,12 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:political_think/common/constants.dart';
 import 'package:political_think/common/extensions.dart';
-import 'package:political_think/common/models/credibility.dart';
+import 'package:political_think/common/models/confidence.dart';
 
-class CredibilityComponent extends StatefulWidget {
-  final Credibility? credibility;
-  final Credibility? credibility2;
-  final Credibility? credibility3;
+class ConfidenceComponent extends StatefulWidget {
+  final Confidence? confidence;
+  final Confidence? confidence2;
+  final Confidence? confidence3;
   final double width;
   final double height;
   final int? rows;
@@ -20,12 +20,13 @@ class CredibilityComponent extends StatefulWidget {
   final double decay;
   final bool fadeAbove;
   final bool showEndRows;
+  final bool showText;
 
-  CredibilityComponent({
+  ConfidenceComponent({
     Key? key,
-    this.credibility,
-    this.credibility2, // deprecated
-    this.credibility3, // deprecated
+    this.confidence,
+    this.confidence2, // deprecated
+    this.confidence3, // deprecated
     required this.width,
     required this.height,
     this.fadeAbove = true,
@@ -34,46 +35,57 @@ class CredibilityComponent extends StatefulWidget {
     this.rows, // rows and columns must match width and height ratio
     this.columns,
     this.showUnselected = true,
-    this.showEndRows = true,
+    this.showEndRows = false,
+    this.showText = false,
   }) : super(key: key);
 
   @override
-  State<CredibilityComponent> createState() => _CredibilityComponentState();
+  State<ConfidenceComponent> createState() => _ConfidenceComponentState();
 }
 
-class _CredibilityComponentState extends State<CredibilityComponent> {
+class _ConfidenceComponentState extends State<ConfidenceComponent> {
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: widget.width,
-      height: widget.height,
-      child: CustomPaint(
-        painter: CredibilityPainter(
-          context: context,
-          credibility: widget.credibility,
-          credibility2: widget.credibility2,
-          credibility3: widget.credibility3,
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        SizedBox(
           width: widget.width,
           height: widget.height,
-          setColor: widget.setColor,
-          decay: widget.decay,
-          fadeAbove: widget.fadeAbove,
-          rows: widget.rows ?? 28,
-          columns:
-              widget.columns ?? (widget.width / widget.height * 28.0).toInt(),
-          showUnselected: widget.showUnselected,
-          showEndRows: widget.showEndRows,
+          child: CustomPaint(
+            painter: ConfidencePainter(
+              context: context,
+              confidence: widget.confidence,
+              confidence2: widget.confidence2,
+              confidence3: widget.confidence3,
+              width: widget.width,
+              height: widget.height,
+              setColor: widget.setColor,
+              decay: widget.decay,
+              fadeAbove: widget.fadeAbove,
+              rows: widget.rows ?? 28,
+              columns: widget.columns ??
+                  (widget.width / widget.height * 28.0).toInt(),
+              showUnselected: widget.showUnselected,
+              showEndRows: widget.showEndRows,
+            ),
+          ),
         ),
-      ),
+        Visibility(
+            visible: widget.showText,
+            child: Text(
+              widget.confidence.toString(),
+            )),
+      ],
     );
   }
 }
 
-class CredibilityPainter extends CustomPainter {
+class ConfidencePainter extends CustomPainter {
   final BuildContext context;
-  final Credibility? credibility;
-  final Credibility? credibility2;
-  final Credibility? credibility3;
+  final Confidence? confidence;
+  final Confidence? confidence2;
+  final Confidence? confidence3;
   final int rows;
   final int columns;
   final bool showUnselected;
@@ -84,11 +96,11 @@ class CredibilityPainter extends CustomPainter {
   final bool fadeAbove;
   final bool showEndRows;
 
-  CredibilityPainter({
+  ConfidencePainter({
     required this.context,
-    this.credibility,
-    this.credibility2,
-    this.credibility3,
+    this.confidence,
+    this.confidence2,
+    this.confidence3,
     this.setColor,
     this.fadeAbove = true,
     required this.width,
@@ -110,20 +122,20 @@ class CredibilityPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     for (int i = 0; i < columns; i++) {
       for (int j = 0; j < rows; j++) {
-        var currentCredibility =
-            _getCurrentCredibility(i, credibility, credibility2, credibility3);
+        var currentConfidence =
+            _getCurrentConfidence(i, confidence, confidence2, confidence3);
 
         //
         var color =
             showUnselected ? context.surfaceColor : context.backgroundColor;
-        if (currentCredibility != null) {
-          var credibleRow = (rows - 1) -
-              (currentCredibility.value / 1.0 * (rows - 1)).toInt();
+        if (currentConfidence != null) {
+          var credibleRow =
+              (rows - 1) - (currentConfidence.value / 1.0 * (rows - 1)).toInt();
           double exp = pow(decay, (credibleRow - j).abs()).toDouble();
           color = !fadeAbove && credibleRow > j
               ? Colors.transparent
               : setColor?.withOpacity(exp) ??
-                  currentCredibility.color.withOpacity(exp);
+                  currentConfidence.color.withOpacity(exp);
           if (showEndRows) {
             if (j == 0) {
               color = Palette.green;
@@ -152,46 +164,46 @@ class CredibilityPainter extends CustomPainter {
     }
   }
 
-  Credibility? _getCurrentCredibility(int i, Credibility? credibility,
-      Credibility? credibility2, Credibility? credibility3) {
-    if (credibility == null && credibility2 == null && credibility3 == null) {
+  Confidence? _getCurrentConfidence(int i, Confidence? confidence,
+      Confidence? confidence2, Confidence? confidence3) {
+    if (confidence == null && confidence2 == null && confidence3 == null) {
       return null;
     }
-    if (credibility != null && credibility2 == null && credibility3 == null) {
-      return credibility;
+    if (confidence != null && confidence2 == null && confidence3 == null) {
+      return confidence;
     }
-    if (credibility == null && credibility2 != null && credibility3 == null) {
-      return credibility2;
+    if (confidence == null && confidence2 != null && confidence3 == null) {
+      return confidence2;
     }
-    if (credibility == null && credibility2 == null && credibility3 != null) {
-      return credibility3;
+    if (confidence == null && confidence2 == null && confidence3 != null) {
+      return confidence3;
     }
-    if (credibility != null && credibility2 != null && credibility3 == null) {
-      return i % 2 == 0 ? credibility : credibility2;
+    if (confidence != null && confidence2 != null && confidence3 == null) {
+      return i % 2 == 0 ? confidence : confidence2;
     }
-    if (credibility != null && credibility2 == null && credibility3 != null) {
-      return i % 2 == 0 ? credibility : credibility3;
+    if (confidence != null && confidence2 == null && confidence3 != null) {
+      return i % 2 == 0 ? confidence : confidence3;
     }
-    if (credibility == null && credibility2 != null && credibility3 != null) {
-      return i % 2 == 0 ? credibility2 : credibility3;
+    if (confidence == null && confidence2 != null && confidence3 != null) {
+      return i % 2 == 0 ? confidence2 : confidence3;
     }
-    if (credibility != null && credibility2 != null && credibility3 != null) {
+    if (confidence != null && confidence2 != null && confidence3 != null) {
       return i % 3 == 0
-          ? credibility
+          ? confidence
           : i % 3 == 1
-              ? credibility2
-              : credibility3;
+              ? confidence2
+              : confidence3;
     }
     return null;
   }
 
   // USE IF FREQUENTLY UPDATING!
   @override
-  bool shouldRepaint(CredibilityPainter oldDelegate) =>
-      oldDelegate.credibility?.value != credibility?.value;
+  bool shouldRepaint(ConfidencePainter oldDelegate) =>
+      oldDelegate.confidence?.value != confidence?.value;
 }
 
-class PercentComponent extends CredibilityComponent {
+class PercentComponent extends ConfidenceComponent {
   PercentComponent({
     Key? key,
     required width,
@@ -209,6 +221,6 @@ class PercentComponent extends CredibilityComponent {
           setColor: color,
           decay: decay,
           fadeAbove: fadeAbove,
-          credibility: Credibility(value: percent),
+          confidence: Confidence(value: percent),
         );
 }

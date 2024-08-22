@@ -5,13 +5,13 @@ import 'package:political_think/common/extensions.dart';
 import 'package:political_think/common/models/post.dart';
 import 'package:political_think/common/models/story.dart';
 import 'package:political_think/views/bias/bias_widget.dart';
-import 'package:political_think/views/credibility/credibility_widget.dart';
+import 'package:political_think/views/confidence/confidence_widget.dart';
 
 class PostViewButtons extends StatelessWidget {
   final Post post;
   final Story? story;
   final bool showMap;
-  final bool showCredibility;
+  final bool showConfidence;
   final bool showBias;
   final bool showComments;
   //final bool showComments;
@@ -20,7 +20,7 @@ class PostViewButtons extends StatelessWidget {
     super.key,
     required this.post,
     this.showMap = true,
-    this.showCredibility = true,
+    this.showConfidence = true,
     this.showBias = true,
     this.showComments = true,
     this.story,
@@ -55,16 +55,16 @@ class PostViewButtons extends StatelessWidget {
                       (context.iconSizeXL - context.iconSizeLarge) / 2.0),
               child: CommentWidget(
                 comments: post.messageCount,
-                position: post.debateBias?.position,
+                position: post.debateBias,
               ),
             )),
         // padding to space evently with post bias
         Visibility(
-          visible: showCredibility,
+          visible: showConfidence,
           child: Padding(
             padding: EdgeInsets.symmetric(
                 horizontal: (context.iconSizeXL - context.iconSizeLarge) / 2.0),
-            child: CredibilityWidget(
+            child: ConfidenceWidget(
               post: post,
               showModalOnPress: true,
               height: context.iconSizeLarge,

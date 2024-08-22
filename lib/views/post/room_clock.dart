@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_countdown_timer/index.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:political_think/common/components/credibility_component.dart';
+import 'package:political_think/common/components/confidence_component.dart';
 import 'package:political_think/common/components/icon_grid.dart';
 import 'package:political_think/common/components/profile_icon.dart';
 import 'package:political_think/common/constants.dart';
