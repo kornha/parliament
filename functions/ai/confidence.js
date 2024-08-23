@@ -206,17 +206,31 @@ function didCrossThreshold(before, after) {
   const positiveThresholdExceeded = (confidence) =>
     confidence > DECIDED_THRESHOLD;
 
+  // If before is null, assume it's starting from BASE_CONFIDENCE
   const beforeConfidence = before?.confidence ?? BASE_CONFIDENCE;
   const afterConfidence = after?.confidence ?? BASE_CONFIDENCE;
 
-  return negativeThresholdExceeded(beforeConfidence) &&
-            !negativeThresholdExceeded(afterConfidence) ||
-        positiveThresholdExceeded(beforeConfidence) &&
-            !positiveThresholdExceeded(afterConfidence) ||
-        negativeThresholdExceeded(afterConfidence) &&
-         !negativeThresholdExceeded(afterConfidence) ||
-        positiveThresholdExceeded(afterConfidence) &&
-            !positiveThresholdExceeded(afterConfidence);
+  // Check if the threshold has been crossed in either direction
+  const crossedFromNegativeToPositive =
+    negativeThresholdExceeded(beforeConfidence) &&
+    !negativeThresholdExceeded(afterConfidence);
+  const crossedFromPositiveToNegative =
+    positiveThresholdExceeded(beforeConfidence) &&
+    !positiveThresholdExceeded(afterConfidence);
+
+  const crossedToNegative =
+    !negativeThresholdExceeded(beforeConfidence) &&
+    negativeThresholdExceeded(afterConfidence);
+  const crossedToPositive =
+    !positiveThresholdExceeded(beforeConfidence) &&
+    positiveThresholdExceeded(afterConfidence);
+
+  return (
+    crossedFromNegativeToPositive ||
+    crossedFromPositiveToNegative ||
+    crossedToNegative ||
+    crossedToPositive
+  );
 }
 
 
