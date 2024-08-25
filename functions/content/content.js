@@ -2,7 +2,7 @@ const {onCall, HttpsError} = require("firebase-functions/v2/https");
 const {onMessagePublished} = require("firebase-functions/v2/pubsub");
 const {logger} = require("firebase-functions/v2");
 const {authenticate} = require("../common/auth");
-const {gbConfig, gbConfig5Min} = require("../common/functions");
+const {gbConfig, scrapeConfig} = require("../common/functions");
 const {urlToSourceType} = require("../common/utils");
 const {processXLinks, scrapeXTopNews, scrapeXFeed} = require("./xscraper");
 const {SHOULD_SCRAPE_FEED} = require("../common/pubsub");
@@ -50,7 +50,7 @@ const onLinkPaste = onCall(
  * */
 const onScrapeX = onCall(
     {
-      ...gbConfig5Min,
+      ...scrapeConfig,
     },
     async (request) => {
       authenticate(request);
@@ -66,7 +66,7 @@ const onScrapeX = onCall(
  */
 const onScrapeFeed = onMessagePublished(
     {
-      ...gbConfig5Min,
+      ...scrapeConfig,
       topic: SHOULD_SCRAPE_FEED,
     },
     async (event) => {

@@ -1,6 +1,6 @@
 const {onDocumentWritten} = require("firebase-functions/v2/firestore");
 const {onMessagePublished} = require("firebase-functions/v2/pubsub");
-const {defaultConfig, gbConfig, gbConfig5Min} = require("../common/functions");
+const {defaultConfig, gbConfig, scrapeConfig} = require("../common/functions");
 const {findStoriesAndStatements, resetPostVector} = require("../ai/post_ai");
 const {logger} = require("firebase-functions/v2");
 const {
@@ -188,7 +188,7 @@ exports.onPostPublished = onMessagePublished(
 exports.onPostChangedXid = onMessagePublished(
     {
       topic: POST_CHANGED_XID,
-      ...gbConfig5Min,
+      ...scrapeConfig,
     },
     async (event) => {
       logger.info(`onPostChangedXid: ${event.data.message.json.pid}`);
