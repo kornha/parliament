@@ -36,6 +36,8 @@ const {
   onEntityChangedStatements,
   onStatementShouldChangeConfidence,
   onStatementChangedConfidence,
+  onStatementChangedBias,
+  onStatementShouldChangeBias,
 } = require("./models/statement");
 const {
   onEntityUpdate,
@@ -44,6 +46,8 @@ const {
   onStatementChangedEntities,
   onEntityChangedConfidence,
   onEntityShouldChangeConfidence,
+  onEntityShouldChangeBias,
+  onEntityChangedBias,
 } = require("./models/entity");
 
 admin.initializeApp();
@@ -109,6 +113,8 @@ module.exports = {
   onEntityChangedStatements,
   onStatementShouldChangeConfidence,
   onStatementChangedConfidence,
+  onStatementChangedBias,
+  onStatementShouldChangeBias,
   // Room
   onRoomChange,
   startDebate,
@@ -120,6 +126,8 @@ module.exports = {
   onStatementChangedEntities,
   onEntityChangedConfidence,
   onEntityShouldChangeConfidence,
+  onEntityShouldChangeBias,
+  onEntityChangedBias,
   // Content
   onLinkPaste,
   onScrapeX,

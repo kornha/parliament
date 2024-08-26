@@ -44,7 +44,7 @@ async function onEntityShouldChangeConfidence(eid) {
 
   const newConfidence = calculateEntityConfidence(entity, statements);
 
-  if (entity.confidence !== newConfidence) {
+  if (newConfidence != null && entity.confidence !== newConfidence) {
     logger.info(`Updating entity confidence: ${eid} ${newConfidence}`);
     await retryAsyncFunction(() =>
       updateEntity(eid, {confidence: newConfidence}));
@@ -59,6 +59,7 @@ async function onEntityShouldChangeConfidence(eid) {
  */
 function calculateEntityConfidence(entity, statements) {
   let totalScore = BASE_CONFIDENCE;
+  let count = 0;
 
   // Loop through statements most recent first
   for (let i = 0; i < statements.length; i++) {
@@ -67,6 +68,8 @@ function calculateEntityConfidence(entity, statements) {
     if (statement.confidence == null) {
       continue;
     }
+
+    count++;
 
     // more recent statements are penalized/rewarded more
     const decay = Math.pow(DECAY_FACTOR, i);
@@ -96,6 +99,10 @@ function calculateEntityConfidence(entity, statements) {
       totalScore +=
         INCORRECT_PENALTY * totalScore * decay * (1 - statement.confidence);
     }
+  }
+
+  if (count === 0) {
+    return null;
   }
 
   return Math.max(0, Math.min(1, totalScore));
