@@ -31,7 +31,16 @@ Statement _$StatementFromJson(Map<String, dynamic> json) => Statement(
               const [],
       confidence: json['confidence'] == null
           ? null
-          : Confidence.fromJson((json['confidence'] as num).toDouble()),
+          : Confidence.fromJson(json['confidence']),
+      adminConfidence: json['adminConfidence'] == null
+          ? null
+          : Confidence.fromJson(json['adminConfidence']),
+      bias: json['bias'] == null
+          ? null
+          : PoliticalPosition.fromJson(json['bias']),
+      adminBias: json['adminBias'] == null
+          ? null
+          : PoliticalPosition.fromJson(json['adminBias']),
     );
 
 Map<String, dynamic> _$StatementToJson(Statement instance) => <String, dynamic>{
@@ -45,6 +54,9 @@ Map<String, dynamic> _$StatementToJson(Statement instance) => <String, dynamic>{
       'eids': instance.eids,
       'type': _$StatementTypeEnumMap[instance.type]!,
       'confidence': instance.confidence?.toJson(),
+      'adminConfidence': instance.adminConfidence?.toJson(),
+      'bias': instance.bias?.toJson(),
+      'adminBias': instance.adminBias?.toJson(),
       'statedAt': Utils.timestampToJson(instance.statedAt),
       'createdAt': Utils.timestampToJson(instance.createdAt),
       'updatedAt': Utils.timestampToJson(instance.updatedAt),

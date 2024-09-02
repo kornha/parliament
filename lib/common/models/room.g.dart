@@ -43,8 +43,7 @@ Room _$RoomFromJson(Map<String, dynamic> json) => Room(
     )
       ..winningPosition = json['winningPosition'] == null
           ? null
-          : PoliticalPosition.fromJson(
-              json['winningPosition'] as Map<String, dynamic>)
+          : PoliticalPosition.fromJson(json['winningPosition'])
       ..winners =
           (json['winners'] as List<dynamic>?)?.map((e) => e as String).toList()
       ..eloScore = json['eloScore'] == null

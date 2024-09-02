@@ -59,12 +59,13 @@ class _ConfidenceViewViewState extends ConsumerState<ConfidenceView> {
                     context.sf,
                     Row(
                       children: [
+                        // need stid or eid! won'tt compile!
                         ConfidenceWidget(
                           width: context.iconSizeXL,
                           height: context.iconSizeXL,
-                          post: post,
-                          showValue: false,
-                          showModalOnPress: false,
+                          // post: post,
+                          // showValue: false,
+                          // showModalOnPress: false,
                         ),
                       ],
                     ),

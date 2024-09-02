@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:political_think/common/components/political_component.dart';
 import 'package:political_think/common/extensions.dart';
@@ -17,6 +15,7 @@ class PoliticalPositionJoystick extends StatefulWidget {
   final double maxCirclesPerRing;
   final bool showUnselected;
   final bool showStick;
+  final bool showNullBackround;
 
   const PoliticalPositionJoystick({
     super.key,
@@ -29,6 +28,7 @@ class PoliticalPositionJoystick extends StatefulWidget {
     this.maxCirclesPerRing = 75,
     this.showUnselected = true,
     this.showStick = false,
+    this.showNullBackround = true,
   });
 
   @override
@@ -85,6 +85,7 @@ class _PoliticalPositionJoystickState extends State<PoliticalPositionJoystick> {
         give: widget.give,
         maxCirclesPerRing: widget.maxCirclesPerRing,
         showUnselected: widget.showUnselected,
+        showNullBackround: widget.showNullBackround,
       ),
       period: Duration(milliseconds: _period),
       listener: (StickDragDetails details) {

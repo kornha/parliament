@@ -57,6 +57,9 @@ class Confidence {
 
   // Custom JSON serialization/deserialization
   factory Confidence.fromJson(dynamic json) {
+    if (json is int) {
+      return Confidence(value: json.toDouble());
+    }
     return Confidence(value: json as double);
   }
 

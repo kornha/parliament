@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:political_think/common/models/confidence.dart';
+import 'package:political_think/common/models/political_position.dart';
 import 'package:political_think/common/util/utils.dart';
 
 part 'statement.g.dart';
@@ -20,6 +21,8 @@ class Statement {
   final StatementType type;
   final Confidence? confidence;
   final Confidence? adminConfidence;
+  final PoliticalPosition? bias;
+  final PoliticalPosition? adminBias;
 
   @JsonKey(fromJson: Utils.timestampFromJson, toJson: Utils.timestampToJson)
   Timestamp statedAt;
@@ -43,6 +46,8 @@ class Statement {
     this.eids = const [],
     this.confidence,
     this.adminConfidence,
+    this.bias,
+    this.adminBias,
   });
 
   factory Statement.fromJson(Map<String, dynamic> json) =>

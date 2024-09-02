@@ -21,7 +21,16 @@ Entity _$EntityFromJson(Map<String, dynamic> json) => Entity(
               const [],
       confidence: json['confidence'] == null
           ? null
-          : Confidence.fromJson((json['confidence'] as num).toDouble()),
+          : Confidence.fromJson(json['confidence']),
+      adminConfidence: json['adminConfidence'] == null
+          ? null
+          : Confidence.fromJson(json['adminConfidence']),
+      bias: json['bias'] == null
+          ? null
+          : PoliticalPosition.fromJson(json['bias']),
+      adminBias: json['adminBias'] == null
+          ? null
+          : PoliticalPosition.fromJson(json['adminBias']),
     );
 
 Map<String, dynamic> _$EntityToJson(Entity instance) => <String, dynamic>{
@@ -32,6 +41,9 @@ Map<String, dynamic> _$EntityToJson(Entity instance) => <String, dynamic>{
       'pids': instance.pids,
       'stids': instance.stids,
       'confidence': instance.confidence?.toJson(),
+      'adminConfidence': instance.adminConfidence?.toJson(),
+      'bias': instance.bias?.toJson(),
+      'adminBias': instance.adminBias?.toJson(),
       'createdAt': Utils.timestampToJson(instance.createdAt),
       'updatedAt': Utils.timestampToJson(instance.updatedAt),
     };

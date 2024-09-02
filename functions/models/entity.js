@@ -10,6 +10,9 @@ const {publishMessage,
   ENTITY_CHANGED_CONFIDENCE,
   STATEMENT_SHOULD_CHANGE_CONFIDENCE,
   ENTITY_SHOULD_CHANGE_CONFIDENCE,
+  ENTITY_SHOULD_CHANGE_BIAS,
+  ENTITY_CHANGED_BIAS,
+  STATEMENT_SHOULD_CHANGE_BIAS,
 } = require("../common/pubsub");
 const {logger} = require("firebase-functions/v2");
 const {getEntityImage} = require("../content/xscraper");
@@ -18,6 +21,7 @@ const {Timestamp} = require("firebase-admin/firestore");
 const {handleChangedRelations} = require("../common/utils");
 const _ = require("lodash");
 const {onEntityShouldChangeConfidence} = require("../ai/confidence");
+const {onEntityShouldChangeBias} = require("../ai/bias");
 
 //
 // Firestore
@@ -62,9 +66,16 @@ exports.onEntityUpdate = onDocumentWritten(
       ) {
         await publishMessage(ENTITY_CHANGED_STATEMENTS,
             {before: before, after: after});
+        await publishMessage(ENTITY_SHOULD_CHANGE_CONFIDENCE,
+            {eid: after?.eid || before?.eid});
+        await publishMessage(ENTITY_SHOULD_CHANGE_BIAS,
+            {eid: after?.eid || before?.eid});
       }
 
-      // entity changed confidence
+      //
+      // Confidence and Bias
+      //
+
       if (
         _create && after.confidence ||
         _update && before.confidence !== after.confidence ||
@@ -74,13 +85,30 @@ exports.onEntityUpdate = onDocumentWritten(
             {before: before, after: after});
       }
 
-      // changed admin confidence
       if (
         _create && after.adminConfidence ||
         _update && before.adminConfidence !== after.adminConfidence ||
         _delete && before.adminConfidence
       ) {
         await publishMessage(ENTITY_SHOULD_CHANGE_CONFIDENCE,
+            {eid: after?.eid || before?.eid});
+      }
+
+      if (
+        _create && after.bias ||
+        _update && before.bias !== after.bias ||
+        _delete && before.bias
+      ) {
+        await publishMessage(ENTITY_CHANGED_BIAS,
+            {before: before, after: after});
+      }
+
+      if (
+        _create && after.adminBias ||
+        _update && before.adminBias !== after.adminBias ||
+        _delete && before.adminBias
+      ) {
+        await publishMessage(ENTITY_SHOULD_CHANGE_BIAS,
             {eid: after?.eid || before?.eid});
       }
 
@@ -169,7 +197,64 @@ exports.onEntityChangedConfidence = onMessagePublished(
       }
 
       for (const statement of statements) {
-        await publishMessage(STATEMENT_SHOULD_CHANGE_CONFIDENCE,
+        if (statement.type == "claim") {
+          await publishMessage(STATEMENT_SHOULD_CHANGE_CONFIDENCE,
+              {stid: after?.stid || before?.stid});
+        } else if (statement.type == "opinion") {
+          await publishMessage(STATEMENT_SHOULD_CHANGE_BIAS,
+              {stid: after?.stid || before?.stid});
+        }
+      }
+
+      return Promise.resolve();
+    },
+);
+
+// ////////////////////////////////////////////////////////////////////////////
+// Bias
+// ////////////////////////////////////////////////////////////////////////////
+
+exports.onEntityShouldChangeBias = onMessagePublished(
+    {
+      topic: ENTITY_SHOULD_CHANGE_BIAS,
+      ...defaultConfig,
+    },
+    async (event) => {
+      logger.info("onEntityShouldChangeBias");
+      const eid = event.data.message.json.eid;
+      if (!eid) {
+        return Promise.resolve();
+      }
+
+      await onEntityShouldChangeBias(eid);
+
+      return Promise.resolve();
+    },
+);
+
+exports.onEntityChangedBias = onMessagePublished(
+    {
+      topic: ENTITY_CHANGED_BIAS,
+      ...defaultConfig,
+    },
+    async (event) => {
+      logger.info("onEntityChangedBias");
+      const before = event.data.message.json.before;
+      const after = event.data.message.json.after;
+
+      const eid = after?.eid || before?.eid;
+      if (!eid) {
+        return Promise.resolve();
+      }
+
+      const statements = await getAllStatementsForEntity(eid);
+      if (!statements) {
+        logger.warn(`No statements found for entity ${eid}`);
+        return Promise.resolve();
+      }
+
+      for (const statement of statements) {
+        await publishMessage(STATEMENT_SHOULD_CHANGE_BIAS,
             {stid: statement.stid});
       }
 

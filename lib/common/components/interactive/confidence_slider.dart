@@ -19,6 +19,7 @@ class ConfidenceSlider extends StatefulWidget {
   final int? columns;
   final bool showUnselected;
   final bool showText;
+  final bool showNullBackround;
 
   ConfidenceSlider({
     super.key,
@@ -31,6 +32,7 @@ class ConfidenceSlider extends StatefulWidget {
     this.rows,
     this.columns,
     this.showUnselected = true,
+    this.showNullBackround = true,
     this.showText = true,
     this.showNull2AsLoading = false,
     this.showNull3AsLoading = false,
@@ -70,7 +72,9 @@ class _ConfidenceSliderState extends State<ConfidenceSlider> {
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             Visibility(
-              visible: _isEditing || widget.selectedConfidence != null,
+              visible: _isEditing ||
+                  widget.selectedConfidence != null ||
+                  widget.showNullBackround,
               child: ConfidenceComponent(
                 confidence: widget.selectedConfidence,
                 width: _width,
@@ -79,6 +83,7 @@ class _ConfidenceSliderState extends State<ConfidenceSlider> {
                 columns: widget.columns,
                 showUnselected: widget.showUnselected,
                 showText: widget.showText,
+                showNullBackround: widget.showNullBackround,
               ),
             ),
             Visibility(
@@ -99,6 +104,7 @@ class _ConfidenceSliderState extends State<ConfidenceSlider> {
                       rows: widget.rows,
                       columns: widget.columns,
                       showUnselected: widget.showUnselected,
+                      showNullBackround: widget.showNullBackround,
                     ),
             ),
             Visibility(
@@ -119,6 +125,7 @@ class _ConfidenceSliderState extends State<ConfidenceSlider> {
                       rows: widget.rows,
                       columns: widget.columns,
                       showUnselected: widget.showUnselected,
+                      showNullBackround: widget.showNullBackround,
                     ),
             ),
           ],

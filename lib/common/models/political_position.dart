@@ -1,18 +1,13 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:json_annotation/json_annotation.dart';
 import 'package:political_think/common/constants.dart';
 
-part 'political_position.g.dart';
-
-@JsonSerializable()
-@immutable
+// Json serialization not used here
 class PoliticalPosition {
-  @JsonKey(fromJson: _fromJson, toJson: _toJson)
   final double angle;
 
   const PoliticalPosition({
-    this.angle = 90.0,
+    required this.angle,
   });
 
   // Operator overloading to enable arithmetic operations
@@ -31,6 +26,14 @@ class PoliticalPosition {
   PoliticalPosition operator /(double divisor) {
     return PoliticalPosition(angle: (angle / divisor) % 360);
   }
+
+  @override
+  String toString() => angle.toStringAsFixed(1);
+
+  @override
+  bool operator ==(other) => other is PoliticalPosition && angle == other.angle;
+  @override
+  int get hashCode => angle.hashCode;
 
   Color get color => quadrant.color;
   Color get onColor => quadrant.onColor;
@@ -136,24 +139,20 @@ class PoliticalPosition {
     return PoliticalPosition(angle: toDegrees(radians));
   }
 
-  factory PoliticalPosition.fromJson(Map<String, dynamic> json) =>
-      _$PoliticalPositionFromJson(json);
-
-  Map<String, dynamic> toJson() => _$PoliticalPositionToJson(this);
-
   double distance(PoliticalPosition other) {
     var delta = (angle - other.angle).abs();
     return min(delta, 360.0 - delta);
   }
 
-  @override
-  bool operator ==(other) => other is PoliticalPosition && angle == other.angle;
-  @override
-  int get hashCode => angle.hashCode;
-
   // Custom JSON serialization/deserialization
-  static double _fromJson(dynamic json) => json as double;
-  static double _toJson(double instance) => instance;
+  factory PoliticalPosition.fromJson(dynamic json) {
+    if (json is int) {
+      return PoliticalPosition(angle: json.toDouble());
+    }
+    return PoliticalPosition(angle: json as double);
+  }
+
+  dynamic toJson() => angle;
 }
 
 enum Quadrant {

@@ -15,11 +15,15 @@ const {publishMessage,
   ENTITY_CHANGED_STATEMENTS,
   STATEMENT_SHOULD_CHANGE_CONFIDENCE,
   STATEMENT_CHANGED_CONFIDENCE,
-  ENTITY_SHOULD_CHANGE_CONFIDENCE} = require("../common/pubsub");
+  ENTITY_SHOULD_CHANGE_CONFIDENCE,
+  STATEMENT_CHANGED_BIAS,
+  STATEMENT_SHOULD_CHANGE_BIAS,
+  ENTITY_SHOULD_CHANGE_BIAS} = require("../common/pubsub");
 const {FieldValue} = require("firebase-admin/firestore");
 const {resetStatementVector} = require("../ai/statement_ai");
 const {didCrossThreshold,
   onStatementShouldChangeConfidence} = require("../ai/confidence");
+const {onStatementShouldChangeBias} = require("../ai/bias");
 
 //
 // Firestore
@@ -42,15 +46,6 @@ exports.onStatementUpdate = onDocumentWritten(
       const _update = before && after;
 
       if (
-        (_create && (after.value || after.context)) ||
-        (_delete && (before.value || before.context)) ||
-        (_update &&
-        (before.value != after.value || before.context != after.context))
-      ) {
-        await statementChangedContent(before, after);
-      }
-
-      if (
         (_create && !_.isEmpty(after.sids)) ||
         (_update && !_.isEqual(before.sids, after.sids)) ||
         (_delete && !_.isEmpty(before.sids))
@@ -60,14 +55,33 @@ exports.onStatementUpdate = onDocumentWritten(
       }
 
       if (
+        (_create && !_.isEmpty(after.pids)) ||
+        (_update && !_.isEqual(before.pids, after.pids)) ||
+        (_delete && !_.isEmpty(before.pids))
+      ) {
+        await publishMessage(STATEMENT_CHANGED_POSTS,
+            {before: before, after: after});
+      }
+
+      //
+      // Confidence
+      //
+
+      if (
         (_create && !_.isEmpty(after.eids)) ||
         (_update && !_.isEqual(before.eids, after.eids)) ||
         (_delete && !_.isEmpty(before.eids))
       ) {
         await publishMessage(STATEMENT_CHANGED_ENTITIES,
             {before: before, after: after});
-        await publishMessage(STATEMENT_SHOULD_CHANGE_CONFIDENCE,
-            {stid: after?.stid || before?.stid});
+
+        if ((before ?? after).type == "claim") {
+          await publishMessage(STATEMENT_SHOULD_CHANGE_CONFIDENCE,
+              {stid: after?.stid || before?.stid});
+        } else if ((before ?? after).type == "opinion") {
+          await publishMessage(STATEMENT_SHOULD_CHANGE_BIAS,
+              {stid: after?.stid || before?.stid});
+        }
       }
 
       if (
@@ -89,12 +103,33 @@ exports.onStatementUpdate = onDocumentWritten(
       }
 
       if (
-        (_create && !_.isEmpty(after.pids)) ||
-        (_update && !_.isEqual(before.pids, after.pids)) ||
-        (_delete && !_.isEmpty(before.pids))
+        _create && after.bias ||
+        _update && before.bias != after.bias ||
+        _delete && before.bias
       ) {
-        await publishMessage(STATEMENT_CHANGED_POSTS,
+        await publishMessage(STATEMENT_CHANGED_BIAS,
             {before: before, after: after});
+      }
+
+      if (
+        _create && after.adminBias ||
+        _update && before.adminBias != after.adminBias ||
+        _delete && before.adminBias
+      ) {
+        await publishMessage(STATEMENT_SHOULD_CHANGE_BIAS,
+            {stid: after?.stid || before?.stid});
+      }
+
+      //
+      //
+
+      if (
+        (_create && (after.value || after.context)) ||
+        (_delete && (before.value || before.context)) ||
+        (_update &&
+        (before.value != after.value || before.context != after.context))
+      ) {
+        await statementChangedContent(before, after);
       }
 
       return Promise.resolve();
@@ -142,6 +177,54 @@ exports.onStatementChangedConfidence = onMessagePublished(
 
       for (const eid of eids) {
         await publishMessage(ENTITY_SHOULD_CHANGE_CONFIDENCE, {eid: eid});
+      }
+
+      // TODO: also inform the story to update its description
+
+      return Promise.resolve();
+    },
+);
+
+// ////////////////////////////////////////////////////////////////////////////
+// Bias
+// ////////////////////////////////////////////////////////////////////////////
+exports.onStatementShouldChangeBias = onMessagePublished(
+    {
+      topic: STATEMENT_SHOULD_CHANGE_BIAS,
+      ...defaultConfig,
+    },
+    async (event) => {
+      logger.info("onStatementShouldChangeBias");
+      const stid = event.data.message.json.stid;
+      if (!stid) {
+        return Promise.resolve();
+      }
+
+      // compute new Bias via algorithm
+      await onStatementShouldChangeBias(stid);
+
+      return Promise.resolve();
+    },
+);
+
+exports.onStatementChangedBias = onMessagePublished(
+    {
+      topic: STATEMENT_CHANGED_BIAS,
+      ...defaultConfig,
+    },
+    async (event) => {
+      logger.info("onStatementChangedBias");
+      const before = event.data.message.json.before;
+      const after = event.data.message.json.after;
+
+      if (!didCrossThreshold(before, after)) {
+        return Promise.resolve();
+      }
+
+      const eids = after?.eids ?? before?.eids;
+
+      for (const eid of eids) {
+        await publishMessage(ENTITY_SHOULD_CHANGE_BIAS, {eid: eid});
       }
 
       // TODO: also inform the story to update its description

@@ -41,21 +41,19 @@ Post _$PostFromJson(Map<String, dynamic> json) => Post(
       importance: (json['importance'] as num?)?.toDouble(),
       userBias: json['userBias'] == null
           ? null
-          : PoliticalPosition.fromJson(
-              json['userBias'] as Map<String, dynamic>),
+          : PoliticalPosition.fromJson(json['userBias']),
       aiBias: json['aiBias'] == null
           ? null
-          : PoliticalPosition.fromJson(json['aiBias'] as Map<String, dynamic>),
+          : PoliticalPosition.fromJson(json['aiBias']),
       debateBias: json['debateBias'] == null
           ? null
-          : PoliticalPosition.fromJson(
-              json['debateBias'] as Map<String, dynamic>),
+          : PoliticalPosition.fromJson(json['debateBias']),
       userConfidence: json['userConfidence'] == null
           ? null
-          : Confidence.fromJson((json['userConfidence'] as num).toDouble()),
+          : Confidence.fromJson(json['userConfidence']),
       aiConfidence: json['aiConfidence'] == null
           ? null
-          : Confidence.fromJson((json['aiConfidence'] as num).toDouble()),
+          : Confidence.fromJson(json['aiConfidence']),
       voteCountBias: json['voteCountBias'] as int? ?? 0,
       voteCountConfidence: json['voteCountConfidence'] as int? ?? 0,
       debateCountBias: json['debateCountBias'] as int? ?? 0,
