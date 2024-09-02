@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:political_think/common/constants.dart';
 import 'package:political_think/common/extensions.dart';
 import 'package:political_think/common/models/political_position.dart';
 
@@ -18,6 +19,7 @@ class PoliticalComponent extends StatefulWidget {
   final double give;
   final double maxCirclesPerRing;
   final bool showUnselected;
+  final bool showNullBackround;
 
   const PoliticalComponent({
     Key? key,
@@ -28,6 +30,7 @@ class PoliticalComponent extends StatefulWidget {
     this.give = 0.26,
     this.maxCirclesPerRing = 75,
     this.showUnselected = true,
+    this.showNullBackround = true,
   }) : super(key: key);
 
   @override
@@ -50,6 +53,9 @@ class _PoliticalComponentState extends State<PoliticalComponent> {
           maxCirclesPerRing: widget.maxCirclesPerRing,
           showUnselected: widget.showUnselected,
           give: widget.give,
+          backgroundColor: widget.showNullBackround && widget.position == null
+              ? Palette.teal.withOpacity(0.4)
+              : null,
         ),
       ),
     );
@@ -65,6 +71,7 @@ class PoliticalPainter extends CustomPainter {
   final int rings;
   final double maxCirclesPerRing;
   final bool showUnselected;
+  final Color? backgroundColor;
 
   late final double _radiusSmall = radius / (maxCirclesPerRing * 0.4);
 
@@ -79,6 +86,7 @@ class PoliticalPainter extends CustomPainter {
     this.give = 0.26,
     this.maxCirclesPerRing = 55,
     this.showUnselected = true,
+    this.backgroundColor,
   });
 
   late final _paintOuter = Paint()
@@ -125,7 +133,7 @@ class PoliticalPainter extends CustomPainter {
       PoliticalPosition circlePosition =
           PoliticalPosition(angle: PoliticalPosition.toDegrees(rdns));
 
-      Color color = context.surfaceColor;
+      Color color = backgroundColor ?? context.surfaceColor;
 
       // color only if we are close enough to the political position
       // not to be confused with the geometric position!

@@ -11,10 +11,10 @@ Vote _$VoteFromJson(Map<String, dynamic> json) => Vote(
       pid: json['pid'] as String,
       bias: json['bias'] == null
           ? null
-          : PoliticalPosition.fromJson(json['bias'] as Map<String, dynamic>),
+          : PoliticalPosition.fromJson(json['bias']),
       confidence: json['confidence'] == null
           ? null
-          : Confidence.fromJson((json['confidence'] as num).toDouble()),
+          : Confidence.fromJson(json['confidence']),
       reason: json['reason'] as String?,
       type: $enumDecode(_$VoteTypeEnumMap, json['type']),
       createdAt: Vote._timestampFromJson(json['createdAt'] as int),

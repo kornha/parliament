@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:political_think/common/components/comment_widget.dart';
-import 'package:political_think/common/components/location_map.dart';
 import 'package:political_think/common/extensions.dart';
 import 'package:political_think/common/models/post.dart';
 import 'package:political_think/common/models/story.dart';
-import 'package:political_think/views/bias/bias_widget.dart';
+import 'package:political_think/views/bias/political_position_widget.dart';
 import 'package:political_think/views/confidence/confidence_widget.dart';
+
+// DEPRECATED: This widget is no longer used in the app
 
 class PostViewButtons extends StatelessWidget {
   final Post post;
@@ -64,9 +65,8 @@ class PostViewButtons extends StatelessWidget {
           child: Padding(
             padding: EdgeInsets.symmetric(
                 horizontal: (context.iconSizeXL - context.iconSizeLarge) / 2.0),
+            // need stid or eid! won't compile!
             child: ConfidenceWidget(
-              post: post,
-              showModalOnPress: true,
               height: context.iconSizeLarge,
               width: context.iconSizeLarge,
             ),
@@ -74,9 +74,8 @@ class PostViewButtons extends StatelessWidget {
         ),
         Visibility(
           visible: showBias,
-          child: BiasWidget(
-            post: post,
-            showModalOnPress: true,
+          // need stid or eid! won't compile!
+          child: PoliticalPositionWidget(
             radius: context.iconSizeXL / 2,
           ),
         ),

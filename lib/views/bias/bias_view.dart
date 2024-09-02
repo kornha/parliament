@@ -8,7 +8,7 @@ import 'package:political_think/common/components/zerror.dart';
 import 'package:political_think/common/extensions.dart';
 import 'package:political_think/common/models/political_position.dart';
 import 'package:political_think/common/models/vote.dart';
-import 'package:political_think/views/bias/bias_widget.dart';
+import 'package:political_think/views/bias/political_position_widget.dart';
 
 class BiasView extends ConsumerStatefulWidget {
   final String pid;
@@ -58,10 +58,9 @@ class _BiasViewViewState extends ConsumerState<BiasView> {
                     context.sf,
                     Row(
                       children: [
-                        BiasWidget(
+                        // NEED TO ADD STID OR EID!
+                        PoliticalPositionWidget(
                           radius: context.iconSizeXL,
-                          post: post,
-                          showModalOnPress: false,
                         ),
                         // context.sf,
                         // Expanded(

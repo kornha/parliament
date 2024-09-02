@@ -21,6 +21,7 @@ class ConfidenceComponent extends StatefulWidget {
   final bool fadeAbove;
   final bool showEndRows;
   final bool showText;
+  final bool showNullBackround;
 
   ConfidenceComponent({
     Key? key,
@@ -37,6 +38,7 @@ class ConfidenceComponent extends StatefulWidget {
     this.showUnselected = true,
     this.showEndRows = false,
     this.showText = false,
+    this.showNullBackround = true,
   }) : super(key: key);
 
   @override
@@ -55,7 +57,8 @@ class _ConfidenceComponentState extends State<ConfidenceComponent> {
           child: CustomPaint(
             painter: ConfidencePainter(
               context: context,
-              confidence: widget.confidence,
+              confidence: widget.confidence ??
+                  (widget.showNullBackround ? Confidence(value: 0.5) : null),
               confidence2: widget.confidence2,
               confidence3: widget.confidence3,
               width: widget.width,
@@ -72,7 +75,7 @@ class _ConfidenceComponentState extends State<ConfidenceComponent> {
           ),
         ),
         Visibility(
-            visible: widget.showText,
+            visible: widget.showText && widget.confidence != null,
             child: Text(
               widget.confidence.toString(),
             )),

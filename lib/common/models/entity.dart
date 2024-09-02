@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:political_think/common/models/confidence.dart';
+import 'package:political_think/common/models/political_position.dart';
 import 'package:political_think/common/models/source_type.dart';
 import 'package:political_think/common/util/utils.dart';
 
@@ -15,6 +16,9 @@ class Entity {
   final List<String> pids;
   final List<String> stids;
   final Confidence? confidence;
+  final Confidence? adminConfidence;
+  final PoliticalPosition? bias;
+  final PoliticalPosition? adminBias;
 
   @JsonKey(fromJson: Utils.timestampFromJson, toJson: Utils.timestampToJson)
   Timestamp createdAt;
@@ -31,6 +35,9 @@ class Entity {
     this.pids = const [],
     this.stids = const [],
     this.confidence,
+    this.adminConfidence,
+    this.bias,
+    this.adminBias,
   });
 
   factory Entity.fromJson(Map<String, dynamic> json) => _$EntityFromJson(json);

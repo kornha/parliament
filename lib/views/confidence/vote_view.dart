@@ -12,6 +12,8 @@ import 'package:political_think/common/extensions.dart';
 import 'package:political_think/common/models/vote.dart';
 import 'package:political_think/common/services/database.dart';
 
+// DEPRECATED: This widget is no longer used in the app
+
 class VoteView extends ConsumerStatefulWidget {
   // final Vote vote;
   final String pid;

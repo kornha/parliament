@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:political_think/common/components/interactive/confidence_slider.dart';
+import 'package:political_think/common/components/interactive/political_position_joystick.dart';
 import 'package:political_think/common/components/loading.dart';
 import 'package:political_think/common/components/profile_icon.dart';
 import 'package:political_think/common/components/zerror.dart';
 import 'package:political_think/common/extensions.dart';
-import 'package:political_think/common/models/confidence.dart';
-import 'package:political_think/common/models/entity.dart';
 import 'package:political_think/common/models/source_type.dart';
 import 'package:political_think/common/services/database.dart';
-import 'package:political_think/common/util/zimage.dart';
+import 'package:political_think/views/Confidence/Confidence_widget.dart';
+import 'package:political_think/views/bias/political_position_widget.dart';
 import 'package:political_think/views/entity/entity_view.dart';
 
 class EntityItemView extends ConsumerStatefulWidget {
@@ -38,18 +37,19 @@ class _EntityItemViewState extends ConsumerState<EntityItemView> {
             : Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  entity.photoURL != null
-                      ? ProfileIcon(
-                          eid: widget.eid,
-                          // we override onPressed here since we need to pop the context
-                          // otherwise we can allow default navigation from ProfileIcon
-                          onPressed: () {
-                            context
-                                .push("${EntityView.location}/${widget.eid}");
-                            context.pop();
-                          },
-                        )
-                      : const SizedBox.shrink(),
+                  ProfileIcon(
+                    radius: context.iconSizeLarge / 2,
+                    eid: widget.eid,
+                    // we override onPressed here since we need to pop the context
+                    // otherwise we can allow default navigation from ProfileIcon
+                    onPressed: () {
+                      context.push("${EntityView.location}/${widget.eid}");
+                      context.pop();
+                    },
+                  ),
+                  context.sh,
+                  // used to even the sides but theres other ways
+                  SizedBox.square(dimension: context.iconSizeLarge),
                   const Spacer(),
                   Text(
                     entity.handle,
@@ -63,17 +63,14 @@ class _EntityItemViewState extends ConsumerState<EntityItemView> {
                     applyTextScaling: true,
                   ),
                   const Spacer(),
-                  // TODO: we need to replace this with confidence widget
-                  ConfidenceSlider(
-                    showText: entity.confidence != null,
-                    selectedConfidence:
-                        entity.confidence ?? Confidence(value: 0.5),
-                    width: context.iconSizeLarge,
-                    height: context.iconSizeLarge,
-                    onConfidenceSelected: (conf) {
-                      Database.instance().updateEntity(
-                          entity.eid, {"adminConfidence": conf.value});
-                    },
+                  PoliticalPositionWidget(
+                    position: entity.bias,
+                    eid: entity.eid,
+                  ),
+                  context.sh,
+                  ConfidenceWidget(
+                    confidence: entity.confidence,
+                    eid: entity.eid,
                   ),
                 ],
               );

@@ -146,6 +146,9 @@ class PoliticalPosition {
 
   // Custom JSON serialization/deserialization
   factory PoliticalPosition.fromJson(dynamic json) {
+    if (json is int) {
+      return PoliticalPosition(angle: json.toDouble());
+    }
     return PoliticalPosition(angle: json as double);
   }
 

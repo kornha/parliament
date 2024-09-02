@@ -1,15 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:political_think/common/components/loading.dart';
 import 'package:political_think/common/components/modal_container.dart';
 import 'package:political_think/common/components/zdivider.dart';
-import 'package:political_think/common/components/zerror.dart';
 import 'package:political_think/common/extensions.dart';
-import 'package:political_think/common/models/entity.dart';
-import 'package:political_think/common/models/zuser.dart';
-import 'package:political_think/common/services/database.dart';
 import 'package:political_think/views/entity/entity_item_view.dart';
-import 'package:syncfusion_flutter_sliders/sliders.dart';
 
 class EntityListView extends ConsumerStatefulWidget {
   final List<String> eids;
