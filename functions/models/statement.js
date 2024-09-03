@@ -21,9 +21,10 @@ const {publishMessage,
   ENTITY_SHOULD_CHANGE_BIAS} = require("../common/pubsub");
 const {FieldValue} = require("firebase-admin/firestore");
 const {resetStatementVector} = require("../ai/statement_ai");
-const {didCrossThreshold,
+const {confidenceDidCrossThreshold,
   onStatementShouldChangeConfidence} = require("../ai/confidence");
-const {onStatementShouldChangeBias} = require("../ai/bias");
+const {onStatementShouldChangeBias,
+  biasDidCrossThreshold} = require("../ai/bias");
 
 //
 // Firestore
@@ -169,7 +170,7 @@ exports.onStatementChangedConfidence = onMessagePublished(
       const before = event.data.message.json.before;
       const after = event.data.message.json.after;
 
-      if (!didCrossThreshold(before, after)) {
+      if (!confidenceDidCrossThreshold(before, after)) {
         return Promise.resolve();
       }
 
@@ -217,7 +218,7 @@ exports.onStatementChangedBias = onMessagePublished(
       const before = event.data.message.json.before;
       const after = event.data.message.json.after;
 
-      if (!didCrossThreshold(before, after)) {
+      if (!biasDidCrossThreshold(before, after)) {
         return Promise.resolve();
       }
 

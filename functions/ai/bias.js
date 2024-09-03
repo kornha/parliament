@@ -127,6 +127,44 @@ function calculateAverageBias(iterable) {
   return (averageBias + 360) % 360;
 }
 
+/**
+ * Check if a biased changed quadrant. Might want to change to octant.
+ * @param {Bias} before The Bias object before the change.
+ * @param {Bias} after The Bias object after the change.
+ * @return {boolean} Whether the Bias crossed the threshold.
+ */
+function biasDidCrossThreshold(before, after) {
+  if (before == null && after != null ||
+      before != null && after == null) {
+    return true;
+  }
+  const q1 = getQuadrant(before.bias);
+  const q2 = getQuadrant(after.bias);
+  return q1 !== q2;
+}
+
+/**
+ * Gets the political position quadrant of an angle.
+ * @param {number} angle The angle to get the quadrant of.
+ * @return {string} The quadrant of the angle or null if invalid.
+ */
+function getQuadrant(angle) {
+  if (angle == null || angle < 0 || angle >= 360) {
+    return null;
+  }
+  const temp = angle % 360;
+
+  if (temp >= 315.0 || temp <= 45.0) {
+    return "right";
+  } else if (temp >= 135 && temp <= 225) {
+    return "left";
+  } else if (temp > 45.0 && temp < 135.0) {
+    return "center";
+  } else {
+    return "extreme";
+  }
+}
+
 // ////////////////////////////////////////////////////////////////////////////
 // Deprecated
 // ////////////////////////////////////////////////////////////////////////////
@@ -292,4 +330,5 @@ module.exports = {
   getDirection,
   getDistance,
   addPosition,
+  biasDidCrossThreshold,
 };

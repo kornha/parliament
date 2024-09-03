@@ -1,6 +1,6 @@
 const {onDocumentWritten} = require("firebase-functions/v2/firestore");
 const {onMessagePublished} = require("firebase-functions/v2/pubsub");
-const {defaultConfig, gbConfig} = require("../common/functions");
+const {defaultConfig, scrapeConfig} = require("../common/functions");
 const {publishMessage,
   ENTITY_SHOULD_CHANGE_IMAGE,
   POST_CHANGED_ENTITY,
@@ -128,7 +128,7 @@ exports.onEntityUpdate = onDocumentWritten(
 exports.onEntityShouldChangeImage = onMessagePublished(
     {
       topic: ENTITY_SHOULD_CHANGE_IMAGE,
-      ...gbConfig,
+      ...scrapeConfig, // currently this heavy config, we get images by scraping
     },
     async (event) => {
       const entity = event.data.message.json;

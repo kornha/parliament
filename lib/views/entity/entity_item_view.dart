@@ -36,6 +36,7 @@ class _EntityItemViewState extends ConsumerState<EntityItemView> {
             ? const ZError()
             : Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   ProfileIcon(
                     radius: context.iconSizeLarge / 2,
@@ -53,7 +54,7 @@ class _EntityItemViewState extends ConsumerState<EntityItemView> {
                   const Spacer(),
                   Text(
                     entity.handle,
-                    style: context.h3b,
+                    style: context.h4b,
                   ),
                   context.sl,
                   Icon(

@@ -207,7 +207,7 @@ function calculateStatementConfidence(statement, entities) {
  * @param {Statement} after The statement object after the change.
  * @return {boolean} Whether the statement crossed the threshold.
  */
-function didCrossThreshold(before, after) {
+function confidenceDidCrossThreshold(before, after) {
   const negativeThresholdExceeded = (confidence) =>
     confidence < 1 - DECIDED_THRESHOLD;
   const positiveThresholdExceeded = (confidence) =>
@@ -242,7 +242,7 @@ function didCrossThreshold(before, after) {
 
 
 module.exports = {
-  didCrossThreshold,
+  confidenceDidCrossThreshold,
   onEntityShouldChangeConfidence,
   calculateEntityConfidence,
   onStatementShouldChangeConfidence,

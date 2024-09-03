@@ -14,6 +14,7 @@ exports.gbConfig = {
 };
 
 /* puppeteer limitations
+ * 1 max instance!
  * we increase timeout
  * we don't want multiple browsers running in the same instance
 **/
