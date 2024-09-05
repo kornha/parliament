@@ -4,6 +4,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:political_think/common/components/loading.dart';
 import 'package:political_think/common/components/zapp_bar.dart';
 import 'package:political_think/common/components/zdivider.dart';
+import 'package:political_think/common/components/zicon_text.dart';
 import 'package:political_think/common/components/zscaffold.dart';
 import 'package:political_think/common/extensions.dart';
 import 'package:political_think/common/models/statement.dart';
@@ -73,16 +74,9 @@ class _StoryViewState extends ConsumerState<StoryView> {
                         ),
                       ),
                       const Spacer(),
-                      Icon(FontAwesomeIcons.triangleExclamation,
-                          size: context.iconSizeSmall,
-                          color: context.secondaryColor),
-                      context.sq,
-                      Text(
-                        story?.importance?.toString() ?? "",
-                        style: context.m.copyWith(
-                          color: context.secondaryColor,
-                        ),
-                      ),
+                      ZIconText(
+                          icon: FontAwesomeIcons.triangleExclamation,
+                          text: story?.importance?.toString() ?? ""),
                     ],
                   ),
                   const ZDivider(type: DividerType.PRIMARY),

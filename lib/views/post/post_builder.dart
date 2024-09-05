@@ -61,53 +61,57 @@ class _PostBuilderState extends ConsumerState<PostBuilder> {
 
     // we check title because the post can be created without a title while its scraping
     if (postRef != null &&
-            postRef.hasValue &&
-            post?.status == PostStatus.draft ||
-        post?.status == PostStatus.unsupported) {
+        postRef.hasValue &&
+        post?.status != PostStatus.scraping) {
       return ModalContainer(
         child: Column(
           children: [
-            PostItemView(
-                pid: _pid!, showPostButtons: false, gestureDetection: false),
+            PostItemView(pid: _pid!, gestureDetection: false),
             context.sf,
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                ZTextButton(
-                  onPressed: () {
-                    Database.instance().deletePost(postRef!.value!);
-                    setState(() {
-                      _pid = null;
-                      _loading = false;
-                    });
-                  },
-                  foregroundColor: context.primaryColor,
-                  backgroundColor: context.backgroundColor,
-                  child: const Text("Discard"),
+                Visibility(
+                  visible: post?.status == PostStatus.draft,
+                  child: ZTextButton(
+                    onPressed: () {
+                      Database.instance().deletePost(postRef!.value!);
+                      setState(() {
+                        _pid = null;
+                        _loading = false;
+                      });
+                    },
+                    foregroundColor: context.primaryColor,
+                    backgroundColor: context.backgroundColor,
+                    child: const Text("Discard"),
+                  ),
                 ),
                 context.sf,
-                ZTextButton(
-                  onPressed: post?.status == PostStatus.unsupported
-                      ? null // disable button
-                      : () {
-                          Post? p = postRef!.value;
-                          if (p == null) {
-                            context.pop();
-                          } else {
-                            Database.instance().updatePost(p.pid, {
-                              "status": PostStatus.published.name,
-                              "updatedAt":
-                                  Timestamp.now().millisecondsSinceEpoch,
-                            });
-                            context.pop();
-                            context.push("${PostView.location}/${_pid!}");
-                          }
-                        },
-                  backgroundColor: context.secondaryColor,
-                  foregroundColor: context.onSecondaryColor,
-                  child: post?.status == PostStatus.unsupported
-                      ? const Text("Unsupported")
-                      : const Text("Generate"),
+                Visibility(
+                  visible: post?.status == PostStatus.draft,
+                  child: ZTextButton(
+                    onPressed: post?.status == PostStatus.unsupported
+                        ? null // disable button
+                        : () {
+                            Post? p = postRef!.value;
+                            if (p == null) {
+                              context.pop();
+                            } else {
+                              Database.instance().updatePost(p.pid, {
+                                "status": PostStatus.published.name,
+                                "updatedAt":
+                                    Timestamp.now().millisecondsSinceEpoch,
+                              });
+                              context.pop();
+                              context.push("${PostView.location}/${_pid!}");
+                            }
+                          },
+                    backgroundColor: context.secondaryColor,
+                    foregroundColor: context.onSecondaryColor,
+                    child: post?.status == PostStatus.unsupported
+                        ? const Text("Unsupported")
+                        : const Text("Generate"),
+                  ),
                 ),
               ],
             ),

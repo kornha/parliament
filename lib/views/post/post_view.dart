@@ -94,7 +94,7 @@ class _PostViewState extends ConsumerState<PostView> {
                       color: context.backgroundColor,
                       borderRadius: BRadius.standard,
                     ),
-                    child: PostItemView(pid: post!.pid, showPostButtons: false),
+                    child: PostItemView(pid: post!.pid),
                   ),
                   pinnedMessageFooter:
                       _messages.isNotEmpty ? RoomClock(room: room!) : null,

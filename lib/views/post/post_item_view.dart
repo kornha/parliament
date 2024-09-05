@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:political_think/common/components/loading.dart';
 import 'package:political_think/common/components/profile_icon.dart';
+import 'package:political_think/common/components/zicon_text.dart';
 import 'package:political_think/common/extensions.dart';
 import 'package:political_think/common/models/entity.dart';
 import 'package:political_think/common/models/source_type.dart';
 import 'package:political_think/common/models/story.dart';
+import 'package:political_think/common/util/utils.dart';
 import 'package:political_think/common/util/zimage.dart';
 import 'package:political_think/views/post/post_view.dart';
 import 'package:political_think/views/post/post_view_buttons.dart';
@@ -15,7 +18,6 @@ class PostItemView extends ConsumerStatefulWidget {
   final String pid;
   final Story? story;
   final bool isSubView;
-  final bool showPostButtons;
   final bool gestureDetection;
 
   const PostItemView({
@@ -23,7 +25,6 @@ class PostItemView extends ConsumerStatefulWidget {
     required this.pid,
     this.isSubView = false,
     this.story,
-    this.showPostButtons = false,
     this.gestureDetection = true,
   });
 
@@ -106,14 +107,43 @@ class _PostViewState extends ConsumerState<PostItemView> {
                                 (post!.description?.isNotEmpty ?? false),
                             child: Text(post?.description ?? "",
                                 style: context.m)),
-                        Visibility(
-                            visible: widget.showPostButtons, child: context.sf),
-                        Visibility(
-                          visible: widget.showPostButtons && post != null,
-                          child: PostViewButtons(
-                            post: post!,
-                            story: widget.story,
-                          ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Visibility(
+                              visible: post?.replies != null,
+                              child: ZIconText(
+                                  icon: FontAwesomeIcons.comment,
+                                  text:
+                                      Utils.intToReadableString(post?.replies)),
+                            ),
+                            Visibility(
+                              visible: post?.reposts != null,
+                              child: ZIconText(
+                                  icon: FontAwesomeIcons.retweet,
+                                  text:
+                                      Utils.intToReadableString(post?.reposts)),
+                            ),
+                            Visibility(
+                              visible: post?.likes != null,
+                              child: ZIconText(
+                                  icon: FontAwesomeIcons.heart,
+                                  text: Utils.intToReadableString(post?.likes)),
+                            ),
+                            Visibility(
+                              visible: post?.bookmarks != null,
+                              child: ZIconText(
+                                  icon: FontAwesomeIcons.bookmark,
+                                  text: Utils.intToReadableString(
+                                      post?.bookmarks)),
+                            ),
+                            Visibility(
+                              visible: post?.views != null,
+                              child: ZIconText(
+                                  icon: FontAwesomeIcons.eye,
+                                  text: Utils.intToReadableString(post?.views)),
+                            ),
+                          ],
                         ),
                       ],
                     )

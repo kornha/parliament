@@ -40,13 +40,14 @@ class Post {
   String? url;
   final SourceType sourceType;
   List<String> locations; // currently country codes need to abstract
+  // stats
+  int? replies;
+  int? reposts;
+  int? likes;
+  int? bookmarks;
+  int? views;
   //
-  int voteCountBias;
-  int voteCountConfidence;
-  // number of rooms reporting debate scores
-  // needed to calculate debateBias
-  // can be removed if we change course here
-  int debateCountBias;
+  // DEPRECATED!
   // between 0.0 and 359.99
   PoliticalPosition? userBias;
   PoliticalPosition? aiBias;
@@ -54,6 +55,13 @@ class Post {
   // between 0.0 and 1.0
   Confidence? userConfidence;
   Confidence? aiConfidence;
+  //
+  int voteCountBias;
+  int voteCountConfidence;
+  // number of rooms reporting debate scores
+  // needed to calculate debateBias
+  // can be removed if we change course here
+  int debateCountBias;
   // between 0.0 and 1.0
   double? importance;
   //

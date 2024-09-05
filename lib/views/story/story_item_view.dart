@@ -129,7 +129,6 @@ class _StoryItemViewState extends ConsumerState<StoryItemView> {
                             pid: post.pid,
                             story: story,
                             isSubView: true,
-                            showPostButtons: false,
                           );
                         },
                         separatorBuilder: (context, index) =>

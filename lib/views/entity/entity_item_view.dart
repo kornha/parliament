@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:political_think/common/components/interactive/political_position_joystick.dart';
 import 'package:political_think/common/components/loading.dart';
 import 'package:political_think/common/components/profile_icon.dart';
 import 'package:political_think/common/components/zerror.dart';
 import 'package:political_think/common/extensions.dart';
 import 'package:political_think/common/models/source_type.dart';
-import 'package:political_think/common/services/database.dart';
 import 'package:political_think/views/Confidence/Confidence_widget.dart';
 import 'package:political_think/views/bias/political_position_widget.dart';
 import 'package:political_think/views/entity/entity_view.dart';

@@ -367,6 +367,10 @@ const processXLinks = async function(xLinks, poster = null) {
       } else {
         logger.error("Could not create post for xid: " + xid);
       }
+    } else {
+      logger.info("Post already exists for xid: " + xid);
+      await xupdatePost(post);
+      pids.push(post.pid);
     }
   }
 
@@ -388,10 +392,47 @@ const getContentFromX = async function(url) {
 
   // for video we do it by fetch since scraping directly is hard
   let tweetVideoURL = null; // Initialize the video URL variable
+  let tweetPhotoURL = null; // Initialize the photo URL variable
   page.on("request", (request) => {
     if ((request.resourceType() === "media" ||
       request.url().includes(".mp4")) && !tweetVideoURL) {
       tweetVideoURL = request.url();
+    }
+    if (request.resourceType() === "image" &&
+      request.url().includes("media")) {
+      tweetPhotoURL = request.url();
+    }
+  });
+
+  // Extract the tweet details
+  let tweetText = null;
+  let tweetAuthor = null;
+  let tweetTime = null;
+  let tweetLikes = null;
+  let tweetReposts = null;
+  let tweetBookmarks = null;
+  let tweetViews = null;
+  let tweetReplies = null;
+
+  page.on("response", async (response) => {
+    const url = response.url();
+    if (url.includes("graphql") && url.includes("TweetResultByRestId")) {
+      try {
+        const responseBody = await response.json();
+        const tweetData = responseBody.data.tweetResult.result;
+        // Extract the tweet details
+        tweetText = tweetData.legacy.full_text;
+        tweetAuthor = tweetData.core.user_results.result.legacy.name;
+        tweetTime = tweetData.legacy.created_at;
+        tweetReplies = tweetData.legacy.reply_count;
+        tweetReposts = tweetData.legacy.retweet_count;
+        tweetLikes = tweetData.legacy.favorite_count;
+        tweetBookmarks = tweetData.legacy.bookmark_count;
+        tweetViews = parseInt(tweetData.views.count, 10); // X views are string
+      } catch (error) {
+        // do nothing, as there's an errant request that enters here
+        // cannot filter at the if statement level
+      }
     }
   });
 
@@ -399,59 +440,6 @@ const getContentFromX = async function(url) {
   // networkidle0 waits for the page to load entirely
   // eg networkidle2 waits for 2 remaining active items
   await page.goto(url, {waitUntil: "networkidle0"});
-
-  // Finds the tweet text
-  // Hack, to be solved with x API
-  const tweetTextSelector = "article [data-testid=\"tweetText\"]";
-
-  // Finds the account handle
-  // Hack, to be solved with x API
-  // in this case needs a div, span at the end. Not sure why.
-  const tweetAuthorSelector =
-    "article [data-testid=\"User-Name\"] div:nth-of-type(2) div span";
-
-  // Selector for the image within the tweet, based on your structure
-  const tweetImageSelector = "[data-testid='tweetPhoto'] img";
-
-  // Selector for the video within the tweet, based on your structure
-  // const tweetVideoSelector =
-  //   "[data-testid='videoComponent'] video source[type='video/mp4']";
-
-
-  // Selector for the time of the tweet
-  const tweetTimeSelector = "article time[datetime]";
-
-  // this gets the users display name
-  // const tweetProfileSelector
-  // = "article [data-testid=\"User-Name\"] div span";
-
-  // Extract tweet text and author using the selectors
-  const tweetText = await page.evaluate((selector) => {
-    // eslint-disable-next-line no-undef
-    const element = document.querySelector(selector);
-    return element ? element.innerText : null;
-  }, tweetTextSelector);
-
-  const tweetAuthor = await page.evaluate((selector) => {
-    // eslint-disable-next-line no-undef
-    const element = document.querySelector(selector);
-    return element && element.innerText && element.innerText[0] == "@" ?
-      element.innerText : null;
-  }, tweetAuthorSelector);
-
-  // Extract the 'src' attribute of the image
-  const tweetPhotoURL = await page.evaluate((selector) => {
-    // eslint-disable-next-line no-undef
-    const element = document.querySelector(selector);
-    return element ? element.src : null;
-  }, tweetImageSelector);
-
-
-  const tweetTime = await page.evaluate((selector) => {
-    // eslint-disable-next-line no-undef
-    const element = document.querySelector(selector);
-    return element ? element.getAttribute("datetime") : null;
-  }, tweetTimeSelector);
 
   // do we need to await here
   await browser.close();
@@ -462,6 +450,11 @@ const getContentFromX = async function(url) {
     photoURL: tweetPhotoURL,
     videoURL: tweetVideoURL,
     isoTime: tweetTime,
+    replies: tweetReplies,
+    reposts: tweetReposts,
+    likes: tweetLikes,
+    bookmarks: tweetBookmarks,
+    views: tweetViews,
   };
 };
 
@@ -492,9 +485,17 @@ const xupdatePost = async function(post) {
     logger.warn("Video not supported, skipping post: " + post.pid);
   }
 
+  // if the post already exists (eg., not scraping, draft, and not null), keep
+  // if the post has a poster, set to draft
+  // otherwise, if created from backend, set to published
+  const status = (post.status != "scraping" &&
+    post.status != "draft" &&
+    post.status != null) ? post.status :
+    !supported ? "unsupported" : post.poster ? "draft" : "published";
+
   const _post = {
     // we set to published unless status is in draft
-    status: supported ? post.poster ? "draft" : "published" : "unsupported",
+    status: status,
     sourceCreatedAt: time,
     updatedAt: Timestamp.now().toMillis(),
     title: xMetaData.title,
@@ -505,6 +506,11 @@ const xupdatePost = async function(post) {
     // don't set the photo at all if its null
     photo: xMetaData.photoURL ? {photoURL: xMetaData.photoURL} : null,
     video: xMetaData.videoURL ? {videoURL: xMetaData.videoURL} : null,
+    replies: xMetaData.replies,
+    reposts: xMetaData.reposts,
+    likes: xMetaData.likes,
+    bookmarks: xMetaData.bookmarks,
+    views: xMetaData.views,
   };
 
   await updatePost(post.pid, _post);
@@ -536,15 +542,16 @@ const getEntityImageFromX = async function(handle) {
   const browser = await puppeteer.launch({headless: "new"});
   const page = await browser.newPage();
 
+  let photoURL = null;
+  page.on("request", (request) => {
+    const url = request.url();
+    if (request.resourceType() === "image" &&
+      url.includes("profile_images")) {
+      photoURL = url;
+    }
+  });
+
   await page.goto(`https://x.com/${handle}/photo`, {waitUntil: "networkidle0"});
-
-  const imageSelector = "img[alt='Image']";
-
-  const photoURL = await page.evaluate((selector) => {
-    // eslint-disable-next-line no-undef
-    const element = document.querySelector(selector);
-    return element ? element.src : null;
-  }, imageSelector);
 
   // do we need to await here
   await browser.close();
