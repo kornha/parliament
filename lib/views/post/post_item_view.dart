@@ -98,15 +98,18 @@ class _PostViewState extends ConsumerState<PostItemView> {
                         storyImportance > 0.0 && post?.photo?.photoURL != null
                             ? ZImage(photoURL: post?.photo?.photoURL ?? "")
                             : const SizedBox.shrink(),
-                        Visibility(
-                            visible: post?.description != null &&
-                                (post!.description?.isNotEmpty ?? false),
-                            child: context.sf),
+                        storyImportance > 0.0 && post?.photo?.photoURL != null
+                            ? context.sf
+                            : const SizedBox.shrink(),
                         Visibility(
                             visible: post?.description != null &&
                                 (post!.description?.isNotEmpty ?? false),
                             child: Text(post?.description ?? "",
                                 style: context.m)),
+                        Visibility(
+                            visible: post?.description != null &&
+                                (post!.description?.isNotEmpty ?? false),
+                            child: context.sf),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -115,33 +118,33 @@ class _PostViewState extends ConsumerState<PostItemView> {
                               child: ZIconText(
                                   icon: FontAwesomeIcons.comment,
                                   text:
-                                      Utils.intToReadableString(post?.replies)),
+                                      Utils.numToReadableString(post?.replies)),
                             ),
                             Visibility(
                               visible: post?.reposts != null,
                               child: ZIconText(
                                   icon: FontAwesomeIcons.retweet,
                                   text:
-                                      Utils.intToReadableString(post?.reposts)),
+                                      Utils.numToReadableString(post?.reposts)),
                             ),
                             Visibility(
                               visible: post?.likes != null,
                               child: ZIconText(
                                   icon: FontAwesomeIcons.heart,
-                                  text: Utils.intToReadableString(post?.likes)),
+                                  text: Utils.numToReadableString(post?.likes)),
                             ),
                             Visibility(
                               visible: post?.bookmarks != null,
                               child: ZIconText(
                                   icon: FontAwesomeIcons.bookmark,
-                                  text: Utils.intToReadableString(
+                                  text: Utils.numToReadableString(
                                       post?.bookmarks)),
                             ),
                             Visibility(
                               visible: post?.views != null,
                               child: ZIconText(
                                   icon: FontAwesomeIcons.eye,
-                                  text: Utils.intToReadableString(post?.views)),
+                                  text: Utils.numToReadableString(post?.views)),
                             ),
                           ],
                         ),

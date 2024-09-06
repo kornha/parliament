@@ -19,6 +19,11 @@ Story _$StoryFromJson(Map<String, dynamic> json) => Story(
       headline: json['headline'] as String?,
       subHeadline: json['subHeadline'] as String?,
       importance: (json['importance'] as num?)?.toDouble(),
+      avgReplies: (json['avgReplies'] as num?)?.toDouble(),
+      avgReposts: (json['avgReposts'] as num?)?.toDouble(),
+      avgLikes: (json['avgLikes'] as num?)?.toDouble(),
+      avgBookmarks: (json['avgBookmarks'] as num?)?.toDouble(),
+      avgViews: (json['avgViews'] as num?)?.toDouble(),
       pids:
           (json['pids'] as List<dynamic>?)?.map((e) => e as String).toList() ??
               const [],
@@ -42,6 +47,11 @@ Map<String, dynamic> _$StoryToJson(Story instance) => <String, dynamic>{
       'stids': instance.stids,
       'location': instance.location?.toJson(),
       'photos': instance.photos.map((e) => e.toJson()).toList(),
+      'avgReplies': instance.avgReplies,
+      'avgReposts': instance.avgReposts,
+      'avgLikes': instance.avgLikes,
+      'avgBookmarks': instance.avgBookmarks,
+      'avgViews': instance.avgViews,
       'createdAt': Utils.timestampToJson(instance.createdAt),
       'updatedAt': Utils.timestampToJson(instance.updatedAt),
       'happenedAt': Utils.timestampToJsonNullable(instance.happenedAt),

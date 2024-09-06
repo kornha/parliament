@@ -165,6 +165,27 @@ final primaryPostsFromStoryProvider =
   });
 });
 
+final postsFromEntityProvider =
+    StreamProvider.family<List<Post>?, String>((ref, eid) {
+  // int limit = ridlimit.$2;
+  return Database.instance()
+      .postCollection
+      .where("eid", isEqualTo: eid)
+      //.orderBy("importance", descending: true)
+      .limit(25) // need to configure
+      .snapshots()
+      .map((querySnapshot) {
+    if (querySnapshot.docs.isNotEmpty) {
+      return querySnapshot.docs.map((doc) {
+        final data = doc.data() as Map<String, dynamic>;
+        return Post.fromJson(data);
+      }).toList();
+    } else {
+      return null;
+    }
+  });
+});
+
 //////////////////////////////////////////////////////////////
 // Statements
 //////////////////////////////////////////////////////////////

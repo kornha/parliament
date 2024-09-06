@@ -12,6 +12,11 @@ Entity _$EntityFromJson(Map<String, dynamic> json) => Entity(
       sourceType: $enumDecode(_$SourceTypeEnumMap, json['sourceType']),
       createdAt: Utils.timestampFromJson(json['createdAt'] as int),
       updatedAt: Utils.timestampFromJson(json['updatedAt'] as int),
+      avgReplies: (json['avgReplies'] as num?)?.toDouble(),
+      avgReposts: (json['avgReposts'] as num?)?.toDouble(),
+      avgLikes: (json['avgLikes'] as num?)?.toDouble(),
+      avgBookmarks: (json['avgBookmarks'] as num?)?.toDouble(),
+      avgViews: (json['avgViews'] as num?)?.toDouble(),
       photoURL: json['photoURL'] as String?,
       pids:
           (json['pids'] as List<dynamic>?)?.map((e) => e as String).toList() ??
@@ -44,6 +49,11 @@ Map<String, dynamic> _$EntityToJson(Entity instance) => <String, dynamic>{
       'adminConfidence': instance.adminConfidence?.toJson(),
       'bias': instance.bias?.toJson(),
       'adminBias': instance.adminBias?.toJson(),
+      'avgReplies': instance.avgReplies,
+      'avgReposts': instance.avgReposts,
+      'avgLikes': instance.avgLikes,
+      'avgBookmarks': instance.avgBookmarks,
+      'avgViews': instance.avgViews,
       'createdAt': Utils.timestampToJson(instance.createdAt),
       'updatedAt': Utils.timestampToJson(instance.updatedAt),
     };

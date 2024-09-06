@@ -78,6 +78,9 @@ class _ConfidenceComponentState extends State<ConfidenceComponent> {
             visible: widget.showText && widget.confidence != null,
             child: Text(
               widget.confidence.toString(),
+              style: widget.width > context.iconSizeLarge
+                  ? context.am
+                  : context.as,
             )),
       ],
     );

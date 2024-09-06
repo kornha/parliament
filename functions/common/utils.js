@@ -136,6 +136,63 @@ const isoToMillis = function(iso) {
 };
 
 /**
+ * Calculate the average of the stats for a post
+ * @param {Array<Object>} posts - the list of posts
+ * @return {Array<Object>} the avg stats; UNDEFINED if the field is not present
+ * */
+function calculateAverageStats(posts) {
+  if (_.isEmpty(posts)) return {};
+
+  const fields = ["replies", "reposts", "likes", "bookmarks", "views"];
+  const totals = {
+    replies: 0,
+    reposts: 0,
+    likes: 0,
+    bookmarks: 0,
+    views: 0,
+  };
+  const counts = {
+    replies: 0,
+    reposts: 0,
+    likes: 0,
+    bookmarks: 0,
+    views: 0,
+  };
+
+  posts.forEach((post) => {
+    fields.forEach((field) => {
+      if (post[field] !== null && post[field] !== undefined) {
+        totals[field] += post[field];
+        counts[field] += 1;
+      }
+    });
+  });
+
+  const averages = {};
+
+  if (counts.replies > 0) {
+    averages.avgReplies =
+      parseFloat((totals.replies / counts.replies).toFixed(2));
+  }
+  if (counts.reposts > 0) {
+    averages.avgReposts =
+      parseFloat((totals.reposts / counts.reposts).toFixed(2));
+  }
+  if (counts.likes > 0) {
+    averages.avgLikes = parseFloat((totals.likes / counts.likes).toFixed(2));
+  }
+  if (counts.bookmarks > 0) {
+    averages.avgBookmarks =
+      parseFloat((totals.bookmarks / counts.bookmarks).toFixed(2));
+  }
+  if (counts.views > 0) {
+    averages.avgViews = parseFloat((totals.views / counts.views).toFixed(2));
+  }
+
+  return averages;
+}
+
+/**
  * Handles changed relations between two objects
  * Eg., if a Post has sids, and a Story has pids, when the Post is updated
  * this function will update the Story's pids, and vice versa.
@@ -272,5 +329,6 @@ module.exports = {
   calculateMeanVector,
   millisToIso,
   isoToMillis,
+  calculateAverageStats,
   handleChangedRelations,
 };

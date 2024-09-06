@@ -30,7 +30,7 @@ class Utils {
     return timeago.format(date, locale: "en_short");
   }
 
-  static String intToReadableString(int? number) {
+  static String numToReadableString(num? number) {
     if (number == null) {
       return "";
     }

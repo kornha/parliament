@@ -20,6 +20,12 @@ class Entity {
   final PoliticalPosition? bias;
   final PoliticalPosition? adminBias;
 
+  double? avgReplies;
+  double? avgReposts;
+  double? avgLikes;
+  double? avgBookmarks;
+  double? avgViews;
+
   @JsonKey(fromJson: Utils.timestampFromJson, toJson: Utils.timestampToJson)
   Timestamp createdAt;
   @JsonKey(fromJson: Utils.timestampFromJson, toJson: Utils.timestampToJson)
@@ -31,6 +37,11 @@ class Entity {
     required this.sourceType,
     required this.createdAt,
     required this.updatedAt,
+    this.avgReplies,
+    this.avgReposts,
+    this.avgLikes,
+    this.avgBookmarks,
+    this.avgViews,
     this.photoURL,
     this.pids = const [],
     this.stids = const [],

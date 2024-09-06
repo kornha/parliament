@@ -22,6 +22,12 @@ class Story {
   Location? location;
   List<Photo> photos;
 
+  double? avgReplies;
+  double? avgReposts;
+  double? avgLikes;
+  double? avgBookmarks;
+  double? avgViews;
+
   @JsonKey(fromJson: Utils.timestampFromJson, toJson: Utils.timestampToJson)
   Timestamp createdAt;
   @JsonKey(fromJson: Utils.timestampFromJson, toJson: Utils.timestampToJson)
@@ -42,6 +48,11 @@ class Story {
     this.headline,
     this.subHeadline,
     this.importance,
+    this.avgReplies,
+    this.avgReposts,
+    this.avgLikes,
+    this.avgBookmarks,
+    this.avgViews,
     this.pids = const [],
     this.stids = const [],
     this.photos = const [],

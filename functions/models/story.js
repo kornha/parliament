@@ -7,11 +7,13 @@ const {
   STORY_CHANGED_STATEMENTS,
   STATEMENT_CHANGED_STORIES,
   POST_CHANGED_STORIES,
+  STORY_SHOULD_CHANGE_STATS,
 } = require("../common/pubsub");
 const _ = require("lodash");
 const {resetStoryVector} = require("../ai/story_ai");
-const {updateStory} = require("../common/database");
-const {handleChangedRelations} = require("../common/utils");
+const {updateStory, getAllPostsForStory} = require("../common/database");
+const {handleChangedRelations,
+  calculateAverageStats} = require("../common/utils");
 
 //
 // Firestore
@@ -49,6 +51,8 @@ exports.onStoryUpdate = onDocumentWritten(
         _delete && !_.isEmpty(before.pids)
       ) {
         await publishMessage(STORY_CHANGED_POSTS, {before, after});
+        await publishMessage(STORY_SHOULD_CHANGE_STATS,
+            {sid: after?.sid || before?.sid});
       }
 
       if (
@@ -91,6 +95,42 @@ exports.onStoryShouldChangeVector = onMessagePublished(
       return Promise.resolve();
     },
 );
+
+// ////////////////////////////////////////////////////////////////////////////
+// Stats
+// ////////////////////////////////////////////////////////////////////////////
+
+exports.onStoryShouldChangeStats = onMessagePublished(
+    {
+      topic: STORY_SHOULD_CHANGE_STATS,
+      ...defaultConfig,
+    },
+    async (event) => {
+      const sid = event.data.message.json.sid;
+      if (!sid) {
+        return Promise.resolve();
+      }
+
+      const posts = await getAllPostsForStory(sid);
+      if (_.isEmpty(posts)) {
+        return Promise.resolve();
+      }
+
+      const stats = calculateAverageStats(posts);
+      if (_.isEmpty(stats)) {
+        return Promise.resolve();
+      }
+
+      await updateStory(sid, stats);
+
+
+      return Promise.resolve();
+    },
+);
+
+// ////////////////////////////////////////////////////////////////////////////
+// Sync
+// ////////////////////////////////////////////////////////////////////////////
 
 /**
  * 'TXN' - called from post.js

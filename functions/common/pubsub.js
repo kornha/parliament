@@ -16,6 +16,7 @@ const ENTITY_CHANGED_POSTS = "onEntityChangedPosts";
 const STORY_CHANGED_VECTOR = "onStoryChangedVector";
 const POST_CHANGED_STORIES = "onPostChangedStories";
 const STATEMENT_CHANGED_STORIES = "onStatementChangedStories";
+const STORY_SHOULD_CHANGE_STATS = "onStoryShouldChangeStats";
 
 const STATEMENT_CHANGED_VECTOR = "onStatementChangedVector";
 const STATEMENT_CHANGED_CONTENT = "onStatementChangedContent";
@@ -34,6 +35,7 @@ const ENTITY_CHANGED_CONFIDENCE = "onEntityChangedConfidence";
 const ENTITY_SHOULD_CHANGE_CONFIDENCE = "onEntityShouldChangeConfidence";
 const ENTITY_CHANGED_BIAS = "onEntityChangedBias";
 const ENTITY_SHOULD_CHANGE_BIAS = "onEntityShouldChangeBias";
+const ENTITY_SHOULD_CHANGE_STATS = "onEntityShouldChangeStats";
 
 const SHOULD_SCRAPE_FEED = "onShouldScrapeFeed";
 
@@ -62,6 +64,7 @@ module.exports = {
   STORY_CHANGED_POSTS,
   STORY_CHANGED_STATEMENTS,
   STORY_CHANGED_VECTOR,
+  STORY_SHOULD_CHANGE_STATS,
   STATEMENT_CHANGED_POSTS,
   STATEMENT_CHANGED_STORIES,
   STATEMENT_CHANGED_VECTOR,
@@ -77,6 +80,7 @@ module.exports = {
   ENTITY_SHOULD_CHANGE_CONFIDENCE,
   ENTITY_CHANGED_BIAS,
   ENTITY_SHOULD_CHANGE_BIAS,
+  ENTITY_SHOULD_CHANGE_STATS,
   STATEMENT_CHANGED_ENTITIES,
   SHOULD_SCRAPE_FEED,
 };

@@ -13,12 +13,15 @@ const {publishMessage,
   ENTITY_SHOULD_CHANGE_BIAS,
   ENTITY_CHANGED_BIAS,
   STATEMENT_SHOULD_CHANGE_BIAS,
+  ENTITY_SHOULD_CHANGE_STATS,
 } = require("../common/pubsub");
 const {logger} = require("firebase-functions/v2");
 const {getEntityImage} = require("../content/xscraper");
-const {updateEntity, getAllStatementsForEntity} = require("../common/database");
+const {updateEntity, getAllStatementsForEntity,
+  getAllPostsForEntity} = require("../common/database");
 const {Timestamp} = require("firebase-admin/firestore");
-const {handleChangedRelations} = require("../common/utils");
+const {handleChangedRelations,
+  calculateAverageStats} = require("../common/utils");
 const _ = require("lodash");
 const {onEntityShouldChangeConfidence} = require("../ai/confidence");
 const {onEntityShouldChangeBias} = require("../ai/bias");
@@ -57,6 +60,8 @@ exports.onEntityUpdate = onDocumentWritten(
         (_delete && !_.isEmpty(before.pids))
       ) {
         await publishMessage(ENTITY_CHANGED_POSTS, {before, after});
+        await publishMessage(ENTITY_SHOULD_CHANGE_STATS,
+            {eid: after?.eid || before?.eid});
       }
 
       if (
@@ -257,6 +262,38 @@ exports.onEntityChangedBias = onMessagePublished(
         await publishMessage(STATEMENT_SHOULD_CHANGE_BIAS,
             {stid: statement.stid});
       }
+
+      return Promise.resolve();
+    },
+);
+
+// ////////////////////////////////////////////////////////////////////////////
+// Stats
+// ////////////////////////////////////////////////////////////////////////////
+
+exports.onEntityShouldChangeStats = onMessagePublished(
+    {
+      topic: ENTITY_SHOULD_CHANGE_STATS,
+      ...defaultConfig,
+    },
+    async (event) => {
+      const eid = event.data.message.json.eid;
+      if (!eid) {
+        return Promise.resolve();
+      }
+
+      const posts = await getAllPostsForEntity(eid);
+      if (_.isEmpty(posts)) {
+        return Promise.resolve();
+      }
+
+      const stats = calculateAverageStats(posts);
+      if (_.isEmpty(stats)) {
+        return Promise.resolve();
+      }
+
+      await updateEntity(eid, stats);
+
 
       return Promise.resolve();
     },

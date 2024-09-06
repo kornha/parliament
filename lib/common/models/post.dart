@@ -25,46 +25,49 @@ class Post {
   final String? sid;
   final List<String> sids;
   final List<String> stids;
-  // creator domain or handle of the originator TODO: move to entities
+
   String? eid;
   String? xid; // external id
+
   // user who posted the post, if any
   String? poster;
+
   PostStatus status;
-  //
+
   String? title;
   String? description;
   String? body;
   Photo? photo;
   Video? video;
   String? url;
-  final SourceType sourceType;
-  List<String> locations; // currently country codes need to abstract
-  // stats
+  SourceType sourceType;
+  List<String> locations;
+
   int? replies;
   int? reposts;
   int? likes;
   int? bookmarks;
   int? views;
-  //
+
   // DEPRECATED!
-  // between 0.0 and 359.99
+
   PoliticalPosition? userBias;
   PoliticalPosition? aiBias;
   PoliticalPosition? debateBias;
-  // between 0.0 and 1.0
+
   Confidence? userConfidence;
   Confidence? aiConfidence;
-  //
+
   int voteCountBias;
   int voteCountConfidence;
+
   // number of rooms reporting debate scores
   // needed to calculate debateBias
   // can be removed if we change course here
   int debateCountBias;
-  // between 0.0 and 1.0
+
   double? importance;
-  //
+
   int? messageCount; // not sure if we want to keep this record but we do now
 
   @JsonKey(fromJson: Utils.timestampFromJson, toJson: Utils.timestampToJson)

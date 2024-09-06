@@ -211,8 +211,9 @@ const getAllPostsForEntity = async function(eid) {
     logger.error(`Could not get posts for entity: ${eid}`);
     return;
   }
+  // one to many entity:posts
   const postsRef = admin.firestore().collection("posts")
-      .where("eids", "array-contains", eid);
+      .where("eid", "==", eid);
   try {
     const posts = await postsRef.get();
     return posts.docs.map((post) => post.data());

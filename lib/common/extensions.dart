@@ -55,6 +55,10 @@ extension ProviderExt on WidgetRef {
       watch(postsFromStoryProvider(sid));
   AsyncValue<List<Post>?> postsFromStoryRead(String sid) =>
       read(postsFromStoryProvider(sid));
+  AsyncValue<List<Post>?> postsFromEntityWatch(String eid) =>
+      watch(postsFromEntityProvider(eid));
+  AsyncValue<List<Post>?> postsFromEntityRead(String eid) =>
+      read(postsFromEntityProvider(eid));
 
   AsyncValue<List<Statement>?> statementsFromStoriesWatch(String sid) =>
       watch(statementsFromStoryProvider(sid));
@@ -203,9 +207,12 @@ extension Spacing on BuildContext {
 
   // double get blockWidth =>
   //     isMobileOrTablet ? Block.blockWidthSmall : Block.blockWidthLarge;
-  SizedBox get soc => const SizedBox(height: Margins.octuple);
-  SizedBox get ssp => const SizedBox(height: Margins.septuple);
-  SizedBox get ssx => const SizedBox(height: Margins.sextuple);
+  SizedBox get soc =>
+      const SizedBox(height: Margins.octuple, width: Margins.octuple);
+  SizedBox get ssp =>
+      const SizedBox(height: Margins.septuple, width: Margins.septuple);
+  SizedBox get ssx =>
+      const SizedBox(height: Margins.sextuple, width: Margins.sextuple);
   SizedBox get sqt =>
       const SizedBox(height: Margins.quintuple, width: Margins.quintuple);
   SizedBox get sqd =>

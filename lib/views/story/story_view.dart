@@ -79,6 +79,43 @@ class _StoryViewState extends ConsumerState<StoryView> {
                           text: story?.importance?.toString() ?? ""),
                     ],
                   ),
+                  context.sh,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Visibility(
+                        visible: story?.avgReplies != null,
+                        child: ZIconText(
+                            icon: FontAwesomeIcons.comment,
+                            text: Utils.numToReadableString(story?.avgReplies)),
+                      ),
+                      Visibility(
+                        visible: story?.avgReposts != null,
+                        child: ZIconText(
+                            icon: FontAwesomeIcons.retweet,
+                            text: Utils.numToReadableString(story?.avgReposts)),
+                      ),
+                      Visibility(
+                        visible: story?.avgLikes != null,
+                        child: ZIconText(
+                            icon: FontAwesomeIcons.heart,
+                            text: Utils.numToReadableString(story?.avgLikes)),
+                      ),
+                      Visibility(
+                        visible: story?.avgBookmarks != null,
+                        child: ZIconText(
+                            icon: FontAwesomeIcons.bookmark,
+                            text:
+                                Utils.numToReadableString(story?.avgBookmarks)),
+                      ),
+                      Visibility(
+                        visible: story?.avgViews != null,
+                        child: ZIconText(
+                            icon: FontAwesomeIcons.eye,
+                            text: Utils.numToReadableString(story?.avgViews)),
+                      ),
+                    ],
+                  ),
                   const ZDivider(type: DividerType.PRIMARY),
                   StatementTabView(statements: statementsFromStory),
                 ],

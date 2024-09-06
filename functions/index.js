@@ -27,6 +27,7 @@ const {
   onStoryShouldChangeVector, onStoryShouldChangeStatements,
   onStatementChangedStories,
   onPostChangedStories,
+  onStoryShouldChangeStats,
 } = require("./models/story");
 const {
   onStatementUpdate, onStatementChangedVector,
@@ -48,6 +49,7 @@ const {
   onEntityShouldChangeConfidence,
   onEntityShouldChangeBias,
   onEntityChangedBias,
+  onEntityShouldChangeStats,
 } = require("./models/entity");
 
 admin.initializeApp();
@@ -104,6 +106,7 @@ module.exports = {
   onStoryShouldChangeStatements,
   onStatementChangedStories,
   onPostChangedStories,
+  onStoryShouldChangeStats,
   // Statement
   onStatementUpdate,
   onStatementChangedVector,
@@ -128,6 +131,7 @@ module.exports = {
   onEntityShouldChangeConfidence,
   onEntityShouldChangeBias,
   onEntityChangedBias,
+  onEntityShouldChangeStats,
   // Content
   onLinkPaste,
   onScrapeX,
