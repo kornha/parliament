@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 /* eslint-disable max-len */
+=======
+>>>>>>> main
 /* eslint-disable no-unused-vars */
 const admin = require("firebase-admin");
 const {logger} = require("firebase-functions/v2");

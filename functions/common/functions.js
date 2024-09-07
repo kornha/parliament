@@ -34,4 +34,3 @@ exports.marketConfig = {
     "POLYMARKET_WALLET",
   ],
 };
-
