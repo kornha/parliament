@@ -1,0 +1,30 @@
+name: Deploy Backend
+on:
+  push: 
+    branches: [ "main" ]
+    paths: 
+      - 'functions/**'
+      - '**/*.json'
+      - '**/*.rules'
+      - '.github/workflows/backend.yaml'
+jobs:
+  deploy_functions:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Firebase CLI and Functions dependencies
+        run: |
+          npm install -g firebase-tools
+          npm install
+        working-directory: ./functions # Specify again if it's not a global setting
+
+      - name: Deploy to Firebase
+        run: firebase deploy
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+        working-directory: ./functions

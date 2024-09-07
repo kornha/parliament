@@ -1,0 +1,62 @@
+{
+  "indexes": [
+    {
+      "collectionId": "posts",
+      "fields": [
+        {
+          "fieldPath": "sid",
+          "mode": "ASCENDING"
+        },
+        {
+          "fieldPath": "importance",
+          "mode": "DESCENDING"
+        },
+        {
+          "fieldPath": "vector",
+          "vectorConfig": {
+            "dimension": 1536,
+            "flat": {}
+          }
+        }
+      ]
+    },
+    {
+      "collectionId": "stories",
+      "fields": [
+        {
+          "fieldPath": "vector",
+          "vectorConfig": {
+            "dimension": 1536,
+            "flat": {}
+          }
+        }
+      ]
+    },
+    {
+      "collectionId": "claims",
+      "fields": [
+        {
+          "fieldPath": "vector",
+          "vectorConfig": {
+            "dimension": 1536,
+            "flat": {}
+          }
+        }
+      ]
+    },
+    {
+      "collectionId": "rooms",
+      "fields": [
+        {
+          "fieldPath": "parentId",
+          "mode": "ASCENDING"
+        },
+        {
+          "fieldPath": "createdAt",
+          "mode": "DESCENDING"
+        }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

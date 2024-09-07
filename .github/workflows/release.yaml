@@ -1,0 +1,38 @@
+name: Create Release
+
+on:
+  push: 
+    branches: [ "main" ]
+    paths:
+      - 'pubspec.yaml'
+      - '.github/workflows/release.yaml'
+
+jobs:
+  create_release:
+    name: Create Release
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Extract version from pubspec.yaml
+        id: get_version
+        run: |
+          VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //')
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ env.VERSION }}
+          release_name: v${{ env.VERSION }}
+          body: |
+            Changes in this release:
+            - See commit history ${{ github.ref }} for more details.
+          draft: false
+          prerelease: false

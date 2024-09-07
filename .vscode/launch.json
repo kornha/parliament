@@ -1,0 +1,40 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Current Device",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "web",
+            "request": "launch",
+            "type": "dart",
+            "args": [
+                "--web-port",
+                "7357"
+            ]
+        },
+        {
+            "name": "iPhone14",
+            "request": "launch",
+            "type": "dart",
+            "deviceId": "D0FC93D1-D417-43B0-A5E7-97DCF7C89132",
+        },
+        {
+            "name": "iPhoneSE",
+            "request": "launch",
+            "type": "dart",
+            "deviceId": "481E785A-F871-4812-AAA0-DDB53BDD7427"
+        },
+    ],
+    "compounds": [
+        {
+            "name": "All Devices",
+            "configurations": [
+                "iPhone14",
+                "iPhoneSE"
+            ],
+        }
+    ]
+}
