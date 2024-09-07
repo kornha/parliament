@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-/* eslint-disable max-len */
-=======
->>>>>>> main
 /* eslint-disable no-unused-vars */
 const admin = require("firebase-admin");
 const {logger} = require("firebase-functions/v2");
@@ -83,12 +79,15 @@ if (process.env.FUNCTIONS_EMULATOR === "true") {
 const functions = require("firebase-functions/v2");
 
 const {updateAssetData} = require("./market/scripts");
-const {getMarkets, getMarket, getCondition, getEvents} = require("./market/polymarket");
+const {getMarkets, getMarket,
+  getCondition, getEvents} = require("./market/polymarket");
 const {initBq} = require("./warehouse/bq");
 const {isoToMillis} = require("./common/utils");
 
 const test = functions.https.onCall(async (data, context) => {
-  // uploadAssetData("21742633143463906290569050155826241533067272736897614950488156847949938836455");
+  // uploadAssetData("
+  // 21742633143463906290569050155826241533
+  // 067272736897614950488156847949938836455");
   // const q = await getMarket("506171");
   // const events = await getEvents();
   // logger.info(events);
