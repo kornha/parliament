@@ -204,10 +204,7 @@ exports.onEntityChangedConfidence = onMessagePublished(
       for (const statement of statements) {
         if (statement.type == "claim") {
           await publishMessage(STATEMENT_SHOULD_CHANGE_CONFIDENCE,
-              {stid: after?.stid || before?.stid});
-        } else if (statement.type == "opinion") {
-          await publishMessage(STATEMENT_SHOULD_CHANGE_BIAS,
-              {stid: after?.stid || before?.stid});
+              {stid: statement.stid});
         }
       }
 

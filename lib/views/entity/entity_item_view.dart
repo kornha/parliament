@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:political_think/common/components/loading.dart';
 import 'package:political_think/common/components/profile_icon.dart';
+import 'package:political_think/common/components/zdivider.dart';
 import 'package:political_think/common/components/zerror.dart';
 import 'package:political_think/common/extensions.dart';
 import 'package:political_think/common/models/source_type.dart';
@@ -47,12 +48,15 @@ class _EntityItemViewState extends ConsumerState<EntityItemView> {
                     },
                   ),
                   context.sh,
-                  // used to even the sides but theres other ways
-                  SizedBox.square(dimension: context.iconSizeLarge),
-                  const Spacer(),
-                  Text(
-                    entity.handle,
-                    style: context.h4b,
+                  GestureDetector(
+                    child: Text(
+                      entity.handle,
+                      style: context.h5b,
+                    ),
+                    onTap: () {
+                      context.push("${EntityView.location}/${widget.eid}");
+                      context.pop();
+                    },
                   ),
                   context.sl,
                   Icon(
@@ -66,7 +70,11 @@ class _EntityItemViewState extends ConsumerState<EntityItemView> {
                     position: entity.bias,
                     eid: entity.eid,
                   ),
-                  context.sh,
+                  SizedBox(
+                      // need this here or the divider will not show
+                      height: context.sth.height!,
+                      child:
+                          const ZDivider(type: DividerType.VERTICAL_SECONDARY)),
                   ConfidenceWidget(
                     confidence: entity.confidence,
                     eid: entity.eid,

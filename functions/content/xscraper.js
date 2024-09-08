@@ -214,6 +214,8 @@ const connectToX = async function(page) {
     await page.waitForNetworkIdle({idleTime: 1500});
   }
   // ///////////////////////////////////////////////////
+  // if you need to manually log in, put this timeout in here to give you time
+  // await page.waitForTimeout(40000);
   // Select the password input
   await page.waitForSelector("[autocomplete=\"current-password\"]");
   await page.type("[autocomplete=\"current-password\"]", password, {delay: 50});
