@@ -8,9 +8,9 @@ const {getStatement,
 const {retryAsyncFunction} = require("../common/utils");
 
 // Parameters
-const CORRECT_REWARD = 0.01;
-const INCORRECT_PENALTY = -0.1;
-const DECAY_FACTOR = 0.9; // Exp. decay (1 = slower decay, 0 = faster decay)
+const CORRECT_REWARD = 0.05;
+const INCORRECT_PENALTY = -0.15;
+const DECAY_FACTOR = 0.95; // Exp. decay (1 = slower decay, 0 = faster decay)
 const BASE_CONFIDENCE = 0.5;
 const DECIDED_THRESHOLD = 0.9;
 
@@ -92,12 +92,15 @@ function calculateEntityConfidence(entity, statements) {
       isIncorrect = entity.pids.some((pid) => statement.pro.includes(pid));
     }
 
+    // this allows us to weight the confidence equally for distance to 0 or 1
+    const adjustedConfidence = Math.abs(statement.confidence - 0.5) * 2;
+
     if (isCorrect) {
       totalScore +=
-        CORRECT_REWARD * (1 - totalScore) * decay * statement.confidence;
+        CORRECT_REWARD * (1 - totalScore) * decay * adjustedConfidence;
     } else if (isIncorrect) {
       totalScore +=
-        INCORRECT_PENALTY * totalScore * decay * (1 - statement.confidence);
+        INCORRECT_PENALTY * totalScore * decay * adjustedConfidence;
     }
   }
 

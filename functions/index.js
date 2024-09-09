@@ -17,6 +17,7 @@ const {
   onStoryChangedPosts,
   onStatementChangedPosts,
   onEntityChangedPosts,
+  onPostChangedStats,
 } = require("./models/post");
 const {onVoteBiasChange, onVoteCredibilityChange} = require("./models/vote");
 const {generateBiasTraining} = require("./ai/scripts");
@@ -133,6 +134,7 @@ module.exports = {
   onStoryChangedPosts,
   onStatementChangedPosts,
   onEntityChangedPosts,
+  onPostChangedStats,
   // Story
   onStoryUpdate,
   onStoryPostsChanged,

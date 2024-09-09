@@ -61,7 +61,7 @@ class _StatementViewState extends ConsumerState<StatementView> {
                         visible: statement.type == StatementType.claim,
                         child: ConfidenceWidget(
                           confidence: statement.confidence,
-                          eid: statement.stid,
+                          stid: statement.stid,
                         ),
                       ),
                       Visibility(

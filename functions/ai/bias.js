@@ -37,7 +37,7 @@ async function onEntityShouldChangeBias(eid) {
 
   const statements = await getAllStatementsForEntity(eid);
 
-  const newBias = calculateAverageBias(statements);
+  const newBias = calculateAverageBias(statements, entity, true);
 
   if (newBias != null && entity.bias !== newBias) {
     logger.info(`Updating entity bias: ${eid} ${newBias}`);
@@ -74,7 +74,7 @@ async function onStatementShouldChangeBias(stid) {
 
   const entities = await getAllEntitiesForStatement(stid);
 
-  const newBias = calculateAverageBias(entities);
+  const newBias = calculateAverageBias(entities, statement, false);
 
   if (newBias != null && statement.bias !== newBias) {
     logger.info(`Updating statement bias: ${stid} ${newBias}`);
@@ -86,11 +86,14 @@ async function onStatementShouldChangeBias(stid) {
 }
 
 /**
- * Takes in a list of iterables with bias, and returns the avg bias.
- * @param {Object[]} iterable (entities or statements) with bias
- * @return {number} The bias (angle) of the entity.
- */
-function calculateAverageBias(iterable) {
+ * Takes in a list of iterables (entities or statements) and returns avg.
+ * Accounts for whether the post is pro or against.
+ * @param {Object[]} iterable A list of entities or statements.
+ * @param {Object} target The target object, either an entity or statement.
+ * @param {boolean} isEntityTarget Whether the target is an entity
+ * @return {number} The bias (angle) of the entity or statement.
+ * */
+function calculateAverageBias(iterable, target, isEntityTarget) {
   let x = 0;
   let y = 0;
   let count = 0;
@@ -103,7 +106,31 @@ function calculateAverageBias(iterable) {
       continue;
     }
 
-    const angleInRadians = (biasObj.bias * Math.PI) / 180;
+    let pro = false;
+    let against = false;
+
+    if (isEntityTarget) {
+      // Target is entity: Check if posts are in the pro/against lists
+      pro = biasObj.pro?.some((pid) => target.pids.includes(pid)) ?? false;
+      against = biasObj.against?.
+          some((pid) => target.pids.includes(pid)) ?? false;
+    } else {
+      // Target is statement: does statement's lists contain the entity's posts
+      pro = target.pro?.some((pid) => biasObj.pids.includes(pid)) ?? false;
+      against = target.against?.
+          some((pid) => biasObj.pids.includes(pid)) ?? false;
+    }
+
+    let bias = biasObj.bias;
+
+    // Reverse the bias if it's in the against list
+    if (against) {
+      bias = (bias + 180) % 360;
+    } else if (pro) {
+      // do nothing
+    }
+
+    const angleInRadians = (bias * Math.PI) / 180;
 
     // Convert the angle to a vector and accumulate
     x += Math.cos(angleInRadians);

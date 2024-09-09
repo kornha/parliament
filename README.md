@@ -42,9 +42,10 @@
         1. [Story](#story)
         2. [Post](#post)
         3. [Entity](#entity)
-        4. [Claim](#claim)
-        5. [Opinion](#opinion)
-        6. [Phrase](#phrase)
+        4. [Statement](#statement)
+        5. [Claim](#claim)
+        6. [Opinion](#opinion)
+        7. [Phrase](#phrase)
 2. [Contact](#contact)
     1. [Socials](#socials) 
 2. [Development](#development)
@@ -91,7 +92,7 @@ Parliament takes what you may call the additional level of abstraction to the ab
 
 ### Algorithm
 
-We will only cover a high level of the confidence algorithm here, as the specifics are written in the code. 
+We will only cover a high level of the confidence algorithm here, as the specifics are [written in the code](functions/ai/confidence.js). 
 
 Let us say as a human I am introduced to a new user on X/IG/TikTok etc. Now, depending on who introduced me, perhaps the platform's algorithm, perhaps a friend, I may view content differently. Regardless, I will have a measure of doubt as to how much I trust the author (aka `Entity`), which may change over time.
 
@@ -99,14 +100,127 @@ At Parliament we assume new sources are of even uncertainty; currently we assume
 
 We then look at the `Claims` a given `Entity` has made. If these claims are mutually agreed on by many parties, old and new, we can start to collect a `Consensus` on a claim, much like a blockchain algorithm, which is a possible future implementation. Once claims form a level of consensus, we can then punish the people who have been wrong, and reward the people who have been right. Of course, once we punish/reward the `Entities`, other claims may change consensus, creating a finite ripple effect.
 
-Currently we track confidence in an entity by:
+Currently we track `confidence` in an `Entity` by:
 ```
-running_average = 1.0;
-for each claim of Entity.claims:
-  running_average = claim.consensus_confidence * correct_or_incorrect_scalar * running_average;
-Entity.confidence = running_average / num_claims;
+/**
+ * Calculate the confidence of an entity based on its past statements.
+ * @param {Entity} entity The entity object.
+ * @param {Statement[]} statements The array of statement objects.
+ * @return {number} The confidence of the entity.
+ */
+function calculateEntityConfidence(entity, statements) {
+  let totalScore = BASE_CONFIDENCE;
+  let count = 0;
+
+  // Loop through statements most recent first
+  for (let i = 0; i < statements.length; i++) {
+    const statement = statements[i];
+
+    if (statement.confidence == null) {
+      continue;
+    }
+
+    count++;
+
+    // more recent statements are penalized/rewarded more
+    const decay = Math.pow(DECAY_FACTOR, i);
+
+    const decidedPro = statement.confidence > DECIDED_THRESHOLD;
+    const decidedAgainst = statement.confidence < 1 - DECIDED_THRESHOLD;
+
+    if (!decidedPro && !decidedAgainst) {
+      continue;
+    }
+
+    let isCorrect = false;
+    let isIncorrect = false;
+
+    if (decidedPro) {
+      isCorrect = entity.pids.some((pid) => statement.pro.includes(pid));
+      isIncorrect = entity.pids.some((pid) => statement.against.includes(pid));
+    } else if (decidedAgainst) {
+      isCorrect = entity.pids.some((pid) => statement.against.includes(pid));
+      isIncorrect = entity.pids.some((pid) => statement.pro.includes(pid));
+    }
+
+    // this allows us to weight the confidence equally for distance to 0 or 1
+    const adjustedConfidence = Math.abs(statement.confidence - 0.5) * 2;
+
+    if (isCorrect) {
+      totalScore +=
+        CORRECT_REWARD * (1 - totalScore) * decay * adjustedConfidence;
+    } else if (isIncorrect) {
+      totalScore +=
+        INCORRECT_PENALTY * totalScore * decay * adjustedConfidence;
+    }
+  }
+
+  if (count === 0) {
+    return null;
+  }
+
+  return Math.max(0, Math.min(1, totalScore));
+}
 ```
-Essentially tracking the average confidence. As we evolve the algorithm, we seek to punish incorrect claims exponentially and reward correct claims incrementally. We may choose to trigger this only when our confidence in a claim changes beyond a defined `ConfidenceDelta`, so as to not overburden practical implementations. At any given snapshot, that is our best confidence that something is true, and can be applied to an `Entity`, `Claim`, or `Post`. As entities' confidence score changes, so does our confidence in the claims they make.
+
+Separately, we calculate a `Claim` `Confidence` by:
+```
+/**
+ * Calculate the confidence of a statement based on its entities.
+ * @param {Statement} statement The statement id object.
+ * @param {Entity[]} entities The array of entity objects.
+ * @return {number} The nullable confidence of the statement.
+ */
+function calculateStatementConfidence(statement, entities) {
+  if (entities.length === 0) {
+    return null;
+  }
+
+  let weightedSum = 0;
+  let totalWeight = 0;
+
+  for (let i = 0; i < entities.length; i++) {
+    const entity = entities[i];
+
+    const pro =
+      statement.pro?.some((pid) => entity.pids.includes(pid)) ?? false;
+    const against =
+      statement.against?.some((pid) => entity.pids.includes(pid)) ?? false;
+
+    if (!pro && !against || !entity.confidence) {
+      continue;
+    }
+
+    let confidence = entity.confidence;
+
+    // Reverse confidence if the entity is "anti" the statement
+    if (against) {
+      confidence = 1 - confidence;
+    }
+
+    // Inverse Quadratic Weighting: weight = 1 - (1 - confidence)^2
+    // This is done to weight high/lows confidence more heavily
+    const weight = 1 - Math.pow(1 - confidence, 2);
+
+    // Add to weighted sum
+    weightedSum += weight * confidence;
+    totalWeight += weight;
+  }
+
+  // if no entities have confidence, don't update
+  if (totalWeight == 0) {
+    return null;
+  }
+
+  // Calculate new confidence
+  const newConfidence = weightedSum / totalWeight;
+
+  // Ensure confidence is within [0, 1]
+  return Math.max(0, Math.min(1, newConfidence));
+}
+```
+
+Put simply, an Entity's confidence is calculated like a credit score, while a Statement's confidence is an average. We choose to trigger this only when our confidence in a claim changes beyond a defined `ConfidenceDelta`, so as to not overburden practical implementations. At any given snapshot, that is our best confidence that something is true, and can be applied to an `Entity`, `Claim`, or `Post`. As entities' confidence score changes, so does our confidence in the claims they make.
 
 ## Bias
 
@@ -128,7 +242,63 @@ Consider a *Parliamentary* (roll credits) system of government, in which there a
 
 ### Algorithm
 
-*If I were to seat every member of Parliament at a round table, such that I wanted to maximize agreement and minimize the disagreement between a member and the two people sitting next to the member, how would I seat the people?* The reason this is chosen is more philosophical than mathematical, as it assumes there is a center, right, left, and anti-center, what we label the extreme. This is a mode of grouping that we find to be understandable by many people and is a manifestation of the _horseshoe theory_. If we accept this assumption, we mathematically represent bias as an angle between `0.0` and `360.0` degrees, and calculate angle updates by simple angular arithmetic.
+*If I were to seat every member of Parliament at a round table, such that I wanted to maximize agreement and minimize the disagreement between a member and the two people sitting next to the member, how would I seat the people?* The reason this is chosen is more philosophical than mathematical, as it assumes there is a center, right, left, and anti-center, what we label the extreme. This is a mode of grouping that we find to be understandable by many people and is a manifestation of the _horseshoe theory_. If we accept this assumption, we mathematically represent bias as an angle between `0.0` and `360.0` degrees, and calculate angle updates by simple angular arithmetic. The full algorithm [written in the code](functions/ai/confidence.js).
+
+```
+function calculateEntityConfidence(entity, statements) {
+  let totalScore = BASE_CONFIDENCE;
+  let count = 0;
+
+  // Loop through statements most recent first
+  for (let i = 0; i < statements.length; i++) {
+    const statement = statements[i];
+
+    if (statement.confidence == null) {
+      continue;
+    }
+
+    count++;
+
+    // more recent statements are penalized/rewarded more
+    const decay = Math.pow(DECAY_FACTOR, i);
+
+    const decidedPro = statement.confidence > DECIDED_THRESHOLD;
+    const decidedAgainst = statement.confidence < 1 - DECIDED_THRESHOLD;
+
+    if (!decidedPro && !decidedAgainst) {
+      continue;
+    }
+
+    let isCorrect = false;
+    let isIncorrect = false;
+
+    if (decidedPro) {
+      isCorrect = entity.pids.some((pid) => statement.pro.includes(pid));
+      isIncorrect = entity.pids.some((pid) => statement.against.includes(pid));
+    } else if (decidedAgainst) {
+      isCorrect = entity.pids.some((pid) => statement.against.includes(pid));
+      isIncorrect = entity.pids.some((pid) => statement.pro.includes(pid));
+    }
+
+    // this allows us to weight the confidence equally for distance to 0 or 1
+    const adjustedConfidence = Math.abs(statement.confidence - 0.5) * 2;
+
+    if (isCorrect) {
+      totalScore +=
+        CORRECT_REWARD * (1 - totalScore) * decay * adjustedConfidence;
+    } else if (isIncorrect) {
+      totalScore +=
+        INCORRECT_PENALTY * totalScore * decay * adjustedConfidence;
+    }
+  }
+
+  if (count === 0) {
+    return null;
+  }
+
+  return Math.max(0, Math.min(1, totalScore));
+}
+```
 
 ### Center
 <div align="start">
@@ -211,6 +381,9 @@ A Post is a social media post (text, image, video), news article, or any other n
 An Entity is an author, sometimes one person and sometimes a whole news outlet, depending on the level of granularity that can be obtained.
 - An Entity has a Bias and Confidence score tracking the Entity's history.
 - An Entity is associated with a list of Posts, Claims, Opinions, and Phrases.
+
+### Statement
+A Statement is either a `Claim`, `Opinion`, or `Phrase`.
 
 ### Claim
 

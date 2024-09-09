@@ -17,6 +17,7 @@ const STORY_CHANGED_VECTOR = "onStoryChangedVector";
 const POST_CHANGED_STORIES = "onPostChangedStories";
 const STATEMENT_CHANGED_STORIES = "onStatementChangedStories";
 const STORY_SHOULD_CHANGE_STATS = "onStoryShouldChangeStats";
+const POST_CHANGED_STATS = "onPostChangedStats";
 
 const STATEMENT_CHANGED_VECTOR = "onStatementChangedVector";
 const STATEMENT_CHANGED_CONTENT = "onStatementChangedContent";
@@ -61,6 +62,7 @@ module.exports = {
   POST_CHANGED_XID,
   POST_SHOULD_FIND_STORIES_AND_STATEMENTS,
   POST_CHANGED_ENTITY,
+  POST_CHANGED_STATS,
   STORY_CHANGED_POSTS,
   STORY_CHANGED_STATEMENTS,
   STORY_CHANGED_VECTOR,

@@ -15,6 +15,9 @@ const {
   POST_CHANGED_STATEMENTS,
   POST_CHANGED_ENTITY,
   ENTITY_CHANGED_POSTS,
+  POST_CHANGED_STATS,
+  ENTITY_SHOULD_CHANGE_STATS,
+  STORY_SHOULD_CHANGE_STATS,
 } = require("../common/pubsub");
 const {
   getPost,
@@ -24,6 +27,7 @@ const {
   updatePost,
   getEntity,
   canFindStories,
+  getAllStoriesForPost,
 } = require("../common/database");
 const {retryAsyncFunction, handleChangedRelations} = require("../common/utils");
 const _ = require("lodash");
@@ -35,9 +39,6 @@ const {queueTask,
 const {onTaskDispatched} = require("firebase-functions/v2/tasks");
 
 
-//
-// Firestore
-//
 exports.onPostUpdate = onDocumentWritten(
     {
       document: "posts/{pid}",
@@ -72,7 +73,6 @@ exports.onPostUpdate = onDocumentWritten(
             {pid: after?.pid || before?.pid});
       }
 
-      // post changed entity
       if (
         _create && after.eid ||
         _update && before.eid != after.eid ||
@@ -80,18 +80,6 @@ exports.onPostUpdate = onDocumentWritten(
       ) {
         await publishMessage(POST_CHANGED_ENTITY,
             {before: before, after: after});
-      }
-
-      if (
-        _create && (after.title || after.body ||
-          after.description || after.photo) ||
-        _delete && (before.title || before.body ||
-          before.description || before.photo) ||
-        _update && (before.description != after.description ||
-          before.title != after.title ||
-          before.body != after.body || !_.isEqual(before.photo, after.photo))
-      ) {
-        await postChangedContent(before, after);
       }
 
       if (
@@ -113,13 +101,38 @@ exports.onPostUpdate = onDocumentWritten(
             {before: before, after: after});
       }
 
+      if (
+        _create && (after.replies || after.reposts ||
+          after.likes || after.bookmarks || after.views) ||
+        _update && (before.replies != after.replies ||
+          before.reposts != after.reposts || before.likes != after.likes ||
+          before.bookmarks != after.bookmarks || before.views != after.views) ||
+        _delete && (before.replies || before.reposts ||
+          before.likes || before.bookmarks || before.views)
+      ) {
+        await publishMessage(POST_CHANGED_STATS,
+            {before: before, after: after});
+      }
+
+      if (
+        _create && (after.title || after.body ||
+          after.description || after.photo) ||
+        _delete && (before.title || before.body ||
+          before.description || before.photo) ||
+        _update && (before.description != after.description ||
+          before.title != after.title ||
+          before.body != after.body || !_.isEqual(before.photo, after.photo))
+      ) {
+        await postChangedContent(before, after);
+      }
+
       return Promise.resolve();
     },
 );
 
-//
+// ////////////////////////////////////////////////////////////////////////////
 // PubSub
-//
+// ////////////////////////////////////////////////////////////////////////////
 
 /**
  * optionally calls findStoriesAndStatements if the post is published beforehand
@@ -216,6 +229,49 @@ exports.onPostChangedXid = onMessagePublished(
 );
 
 /**
+ * triggers Entity and Stories to update their stats
+ * @param {Message} message
+ * @return {Promise<void>}
+ * */
+exports.onPostChangedStats = onMessagePublished(
+    {
+      topic: POST_CHANGED_STATS,
+      ...defaultConfig,
+    },
+    async (event) => {
+      logger.info("onPostChangedStats");
+      const before = event.data.message.json.before;
+      const after = event.data.message.json.after;
+      const post = after || before;
+
+      if (!post) {
+        logger.error("No post found for onPostChangedStats");
+        return Promise.resolve();
+      }
+
+      const entity = await getEntity(post.eid);
+      if (!entity) {
+        logger.warn("No entity found for onPostChangedStats");
+        return Promise.resolve();
+      }
+
+      await publishMessage(ENTITY_SHOULD_CHANGE_STATS, {eid: entity.eid});
+
+      const stories = await getAllStoriesForPost(post.pid);
+      if (!stories) {
+        logger.warn("No stories found for onPostChangedStats");
+        return Promise.resolve();
+      }
+
+      for (const story of stories) {
+        await publishMessage(STORY_SHOULD_CHANGE_STATS, {sid: story.sid});
+      }
+
+      return Promise.resolve();
+    },
+);
+
+/**
  * TXN
  * Transactional update to store vector
  * Not done as pubsub because we need access to the before and after
@@ -255,9 +311,9 @@ const postChangedContent = async function(before, after) {
   }
 };
 
-//
+// ////////////////////////////////////////////////////////////////////////////
 // FIND STORIES AND STATEMENTS
-//
+// ////////////////////////////////////////////////////////////////////////////
 
 exports.onPostShouldFindStoriesAndStatementsTask = onTaskDispatched(
     {
@@ -307,9 +363,9 @@ const _shouldFindStoriesAndStatements = async function(pid) {
 };
 exports.shouldFindStoriesAndStatements = _shouldFindStoriesAndStatements;
 
-//
-// Story/Statement sync
-//
+// ////////////////////////////////////////////////////////////////////////////
+// Sync
+// ////////////////////////////////////////////////////////////////////////////
 
 /**
  * 'TXN' - called from story.js
