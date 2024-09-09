@@ -14,10 +14,9 @@ const {resetStoryVector} = require("../ai/story_ai");
 const {updateStory, getAllPostsForStory} = require("../common/database");
 const {handleChangedRelations,
   calculateAverageStats} = require("../common/utils");
+const {logger} = require("firebase-functions/v2");
 
-//
-// Firestore
-//
+
 exports.onStoryUpdate = onDocumentWritten(
     {
       document: "stories/{sid}",
@@ -67,9 +66,9 @@ exports.onStoryUpdate = onDocumentWritten(
     },
 );
 
-//
+// ////////////////////////////////////////////////////////////////////////////
 // PubSub
-//
+// ////////////////////////////////////////////////////////////////////////////
 
 /**
  * Called when a story changes its Posts
@@ -106,6 +105,7 @@ exports.onStoryShouldChangeStats = onMessagePublished(
       ...defaultConfig,
     },
     async (event) => {
+      logger.info("onStoryShouldChangeStats");
       const sid = event.data.message.json.sid;
       if (!sid) {
         return Promise.resolve();

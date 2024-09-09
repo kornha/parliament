@@ -168,8 +168,8 @@ exports.onEntityShouldChangeConfidence = onMessagePublished(
       ...defaultConfig,
     },
     async (event) => {
-      logger.info("onEntityShouldChangeConfidence");
       const eid = event.data.message.json.eid;
+      logger.info(`onEntityShouldChangeConfidence ${eid}`);
       if (!eid) {
         return Promise.resolve();
       }
@@ -186,10 +186,9 @@ exports.onEntityChangedConfidence = onMessagePublished(
       ...defaultConfig,
     },
     async (event) => {
-      logger.info("onEntityChangedConfidence");
       const before = event.data.message.json.before;
       const after = event.data.message.json.after;
-
+      logger.info(`onEntityChangedConfidence ${after?.eid || before?.eid}`);
       const eid = after?.eid || before?.eid;
       if (!eid) {
         return Promise.resolve();
@@ -222,8 +221,8 @@ exports.onEntityShouldChangeBias = onMessagePublished(
       ...defaultConfig,
     },
     async (event) => {
-      logger.info("onEntityShouldChangeBias");
       const eid = event.data.message.json.eid;
+      logger.info(`onEntityShouldChangeBias ${eid}`);
       if (!eid) {
         return Promise.resolve();
       }
@@ -240,10 +239,9 @@ exports.onEntityChangedBias = onMessagePublished(
       ...defaultConfig,
     },
     async (event) => {
-      logger.info("onEntityChangedBias");
       const before = event.data.message.json.before;
       const after = event.data.message.json.after;
-
+      logger.info(`onEntityChangedBias ${after?.eid || before?.eid}`);
       const eid = after?.eid || before?.eid;
       if (!eid) {
         return Promise.resolve();
@@ -256,8 +254,10 @@ exports.onEntityChangedBias = onMessagePublished(
       }
 
       for (const statement of statements) {
-        await publishMessage(STATEMENT_SHOULD_CHANGE_BIAS,
-            {stid: statement.stid});
+        if (statement.type == "opinion") {
+          await publishMessage(STATEMENT_SHOULD_CHANGE_BIAS,
+              {stid: statement.stid});
+        }
       }
 
       return Promise.resolve();
@@ -275,12 +275,14 @@ exports.onEntityShouldChangeStats = onMessagePublished(
     },
     async (event) => {
       const eid = event.data.message.json.eid;
+      logger.info(`onEntityShouldChangeStats ${eid}`);
       if (!eid) {
         return Promise.resolve();
       }
 
       const posts = await getAllPostsForEntity(eid);
       if (_.isEmpty(posts)) {
+        logger.warn(`No posts found for entity ${eid}`);
         return Promise.resolve();
       }
 
@@ -289,8 +291,8 @@ exports.onEntityShouldChangeStats = onMessagePublished(
         return Promise.resolve();
       }
 
-      await updateEntity(eid, stats);
-
+      logger.info(`Updating entity stats`);
+      await updateEntity(eid, stats, 5); // might not exist so skiperror
 
       return Promise.resolve();
     },

@@ -147,8 +147,9 @@ exports.onStatementShouldChangeConfidence = onMessagePublished(
       ...defaultConfig,
     },
     async (event) => {
-      logger.info("onStatementShouldChangeConfidence");
       const stid = event.data.message.json.stid;
+      logger.info("onStatementShouldChangeConfidence stid: ", stid);
+
       if (!stid) {
         return Promise.resolve();
       }
@@ -166,9 +167,10 @@ exports.onStatementChangedConfidence = onMessagePublished(
       ...defaultConfig,
     },
     async (event) => {
-      logger.info("onStatementChangedConfidence");
       const before = event.data.message.json.before;
       const after = event.data.message.json.after;
+      logger.info("onStatementChangedConfidence stid: ",
+          after?.stid || before?.stid);
 
       if (!confidenceDidCrossThreshold(before, after)) {
         return Promise.resolve();
@@ -195,8 +197,8 @@ exports.onStatementShouldChangeBias = onMessagePublished(
       ...defaultConfig,
     },
     async (event) => {
-      logger.info("onStatementShouldChangeBias");
       const stid = event.data.message.json.stid;
+      logger.info("onStatementShouldChangeBias stid: ", stid);
       if (!stid) {
         return Promise.resolve();
       }
@@ -214,10 +216,9 @@ exports.onStatementChangedBias = onMessagePublished(
       ...defaultConfig,
     },
     async (event) => {
-      logger.info("onStatementChangedBias");
       const before = event.data.message.json.before;
       const after = event.data.message.json.after;
-
+      logger.info("onStatementChangedBias stid: ", after?.stid || before?.stid);
       if (!biasDidCrossThreshold(before, after)) {
         return Promise.resolve();
       }

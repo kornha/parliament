@@ -7,3 +7,10 @@ service cloud.firestore {
     }
   }
 }
+
+// export instructions (run from functions folder)
+// gcloud projects list
+// gcloud config set project political-think
+// gcloud firestore export gs://political-think.appspot.com/exports
+// gsutil -m cp -r gs://political-think.appspot.com/exports ./emulator
+// ... firebase emulators:start ... --import ./emulator/exports
