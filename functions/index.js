@@ -82,8 +82,9 @@ const functions = require("firebase-functions/v2");
 const {updateAssetData} = require("./market/scripts");
 const {getMarkets, getMarket,
   getCondition, getEvents} = require("./market/polymarket");
-const {initBq} = require("./warehouse/bq");
+const {initBq, mergeToBigQuery, MARKET_TABLE} = require("./warehouse/bq");
 const {isoToMillis} = require("./common/utils");
+const {times, cond} = require("lodash");
 
 const test = functions.https.onCall(async (data, context) => {
   // uploadAssetData("
@@ -106,13 +107,36 @@ const test = functions.https.onCall(async (data, context) => {
     return;
   }
 
+  const rows = markets.map((market) => {
+    return {
+      marketId: market.id,
+      question: market.question,
+      questionId: market.questionID,
+      description: market.description,
+      outcomes: JSON.parse(market.outcomes),
+      photoURL: market.image,
+      slug: market.slug,
+      startedAt: market.startDate,
+      endedAt: market.endDate,
+      createdAt: market.createdAt,
+      updatedAt: market.updatedAt,
+      conditionId: market.conditionId,
+      clobTokenIds: JSON.parse(market.clobTokenIds),
+      active: market.active,
+      acceptingOrders: market.acceptingOrders,
+      acceptingOrdersTimestamp: market.acceptingOrdersTimestamp,
+    };
+  });
+
+  await mergeToBigQuery(MARKET_TABLE, rows);
+
   for (const market of markets) {
-    const assetIds = JSON.parse(market.clobTokenIds);
-    const startTime = isoToMillis(market.startDate);
-    const conditionId = market.conditionId;
-    for (const assetId of assetIds) {
-      await updateAssetData(assetId, conditionId, startTime);
-    }
+    // const assetIds = JSON.parse(market.clobTokenIds);
+    // const startTime = isoToMillis(market.startDate);
+    // const conditionId = market.conditionId;
+    // for (const assetId of assetIds) {
+    //   await updateAssetData(assetId, conditionId, startTime);
+    // }
   }
 });
 

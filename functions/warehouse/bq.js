@@ -44,29 +44,26 @@ async function mergeToBigQuery(tableId, rows) {
     return;
   }
 
-  try {
-    // Dynamically generate the field names and values from the rows
-    const fields = Object.keys(rows[0]);
-    const fieldNames = fields.join(", ");
-    const valueNames = fields.map((field) => {
-      if (field === "timestamp") {
-        return `TIMESTAMP(source.${field})`; // Convert string to TIMESTAMP
-      }
-      return `source.${field}`;
-    }).join(", ");
+  // chunk the rows if > 10k
+  // loop if rows > 10k due to bq limits
+  for (let i = 0; i < rows.length; i += 10000) {
+    const chunk = rows.slice(i, i + 10000);
+    try {
+    // Dynamically generate the field names and values from the chunk
+      const fields = Object.keys(chunk[0]);
+      const fieldNames = fields.join(", ");
+      const valueNames = fields.map((field) => {
+        return `source.${field}`;
+      }).join(", ");
 
-    const onConditions = fields.map((field) => {
-      if (field === "timestamp") {
-        return `target.${field} = TIMESTAMP(source.${field})`;
-      } else {
+      const onConditions = fields.map((field) => {
         return `target.${field} = source.${field}`;
-      }
-    }).join(" AND ");
+      }).join(" AND ");
 
-    const query = `
+      const query = `
         MERGE \`${DATASET_ID}.${tableId}\` AS target
         USING (
-          SELECT * FROM UNNEST(@rows) AS source
+          SELECT * FROM UNNEST(@chunk) AS source
         ) AS source
         ON ${onConditions}
         WHEN NOT MATCHED THEN
@@ -74,16 +71,18 @@ async function mergeToBigQuery(tableId, rows) {
           VALUES (${valueNames});
       `;
 
-    const options = {
-      query: query,
-      params: {rows},
-    };
+      const options = {
+        query: query,
+        params: {chunk},
+      };
 
-    const [job] = await bigquery.createQueryJob(options);
-    await job.getQueryResults();
-    logger.info(`Merged ${rows.length} rows into BigQuery`);
-  } catch (error) {
-    logger.error(`Error writing to BigQuery: ${error}`);
+      const [job] = await bigquery.createQueryJob(options);
+      await job.getQueryResults();
+      logger.info(`Merged ${chunk.length} rows into BigQuery`);
+    } catch (error) {
+      logger.error(`Error writing to BigQuery: ${error}`);
+      break;
+    }
   }
 }
 
@@ -107,30 +106,68 @@ async function initBq() {
   return true;
 }
 
+// /////////////////////////////////////////////////////////////////////////////
+// Market
+// /////////////////////////////////////////////////////////////////////////////
+
 const marketSchema = [
   {name: "marketId", type: "STRING", mode: "REQUIRED"},
-  {name: "timestamp", type: "TIMESTAMP", mode: "REQUIRED"},
+  {name: "question", type: "STRING", mode: "REQUIRED"},
+  {name: "questionId", type: "STRING", mode: "REQUIRED"},
+  {name: "description", type: "STRING", mode: "REQUIRED"},
+  {name: "outcomes", type: "STRING", mode: "REPEATED"}, // Array of strings
+  {name: "photoURL", type: "STRING", mode: "NULLABLE"},
+  {name: "slug", type: "STRING", mode: "REQUIRED"},
+  {name: "startedAt", type: "INT64", mode: "REQUIRED"},
+  {name: "endedAt", type: "INT64", mode: "REQUIRED"},
+  {name: "createdAt", type: "INT64", mode: "REQUIRED"},
+  {name: "updatedAt", type: "INT64", mode: "REQUIRED"},
+  {name: "conditionId", type: "STRING", mode: "REQUIRED"},
+  {name: "clobTokenIds", type: "STRING", mode: "REPEATED"}, // Array of strings
+  {name: "active", type: "BOOL", mode: "REQUIRED"},
+  {name: "acceptingOrders", type: "BOOL", mode: "REQUIRED"},
+  {name: "acceptingOrdersTimestamp", type: "INT64", mode: "REQUIRED"},
 ];
 
+const currentTimeMillis = Date.now();
+
+// Calculate 5 years ago (in milliseconds)
+const start = currentTimeMillis - (3 * 365 * 24 * 60 * 60 * 1000); // -3 yr
+
+// Calculate 10 years into the future (in milliseconds)
+const end = currentTimeMillis + (10 * 365 * 24 * 60 * 60 * 1000); // +10 yr
+
 const marketPartition = {
-  type: "DAY",
-  field: "timestamp",
+  field: "createdAt", // INT64 field storing milliseconds since epoch
+  range: {
+    start: start,
+    end: end,
+    interval: 86400000, // One day in milliseconds
+  },
 };
 
 const marketClustering = {
   fields: ["marketId"],
 };
 
-// ASSET TABLE SCHEMA //
+// /////////////////////////////////////////////////////////////////////////////
+// Asset
+// /////////////////////////////////////////////////////////////////////////////
+
 const assetSchema = [
   {name: "assetId", type: "STRING", mode: "REQUIRED"},
   {name: "price", type: "FLOAT", mode: "REQUIRED"},
   {name: "conditionId", type: "STRING", mode: "REQUIRED"},
-  {name: "timestamp", type: "TIMESTAMP", mode: "REQUIRED"},
+  {name: "timestamp", type: "INT64", mode: "REQUIRED"},
 ];
+
 const assetPartition = {
-  type: "HOUR",
   field: "timestamp",
+  range: {
+    start: start,
+    end: end,
+    interval: 86400000, // One day in milliseconds
+  },
 };
 const assetClustering = {
   fields: ["assetId"],
@@ -185,7 +222,8 @@ async function createTable(tableId, schema, partition, clustering) {
       .dataset(DATASET_ID)
       .createTable(tableId, {
         schema: schema,
-        timePartitioning: partition,
+        // timePartitioning: partition, use if we have time partition
+        rangePartitioning: partition,
         clustering: clustering,
       });
 
@@ -194,6 +232,7 @@ async function createTable(tableId, schema, partition, clustering) {
 
 module.exports = {
   ASSET_TABLE,
+  MARKET_TABLE,
   getClient,
   getDataset,
   mergeToBigQuery,

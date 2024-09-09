@@ -1,7 +1,6 @@
 /* eslint-disable max-len */
 const {getClient} = require("./polymarket");
 const {mergeToBigQuery, ASSET_TABLE} = require("../warehouse/bq");
-const {millisToIso} = require("../common/utils");
 const {logger} = require("firebase-functions/v2");
 
 // first
@@ -21,15 +20,15 @@ const {logger} = require("firebase-functions/v2");
  * and get all data
  * @param {string} assetId
  * @param {string} conditionId
- * @param {number} startTime - start timestamp in MILLIS
+ * @param {number} startedAt - start timestamp in MILLIS
  */
-async function updateAssetData(assetId, conditionId, startTime) {
+async function updateAssetData(assetId, conditionId, startedAt) {
   logger.info(`Updating asset data for ${assetId}`);
 
   const filterParams = {
     market: assetId,
     fidelity: 1, // The resolution of the data, in minutes. 1 is lowest
-    startTs: startTime / 1000, // Convert to seconds
+    startTs: startedAt / 1000, // Convert to seconds
   };
 
   const resp = await getClient(true).getPricesHistory(filterParams);
@@ -41,15 +40,11 @@ async function updateAssetData(assetId, conditionId, startTime) {
       assetId: assetId,
       price: element.p,
       conditionId: conditionId,
-      timestamp: millisToIso(element.t * 1000),
+      timestamp: element.t * 1000,
     };
   });
 
-  // loop if rows > 10k due to bq limits
-  for (let i = 0; i < rows.length; i += 10000) {
-    const chunk = rows.slice(i, i + 10000);
-    await mergeToBigQuery(ASSET_TABLE, chunk);
-  }
+  await mergeToBigQuery(ASSET_TABLE, rows);
 }
 
 module.exports = {
