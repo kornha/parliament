@@ -78,66 +78,11 @@ if (process.env.FUNCTIONS_EMULATOR === "true") {
 
 // Used as a dev-time helper to test functions
 const functions = require("firebase-functions/v2");
+const {testPolymarket} = require("./market/scripts");
 
-const {updateAssetData} = require("./market/scripts");
-const {getMarkets, getMarket,
-  getCondition, getEvents} = require("./market/polymarket");
-const {initBq, mergeToBigQuery, MARKET_TABLE} = require("./warehouse/bq");
-const {isoToMillis} = require("./common/utils");
-const {times, cond} = require("lodash");
 
 const test = functions.https.onCall(async (data, context) => {
-  // uploadAssetData("
-  // 21742633143463906290569050155826241533
-  // 067272736897614950488156847949938836455");
-  // const q = await getMarket("506171");
-  // const events = await getEvents();
-  // logger.info(events);
-
-  const avail = await initBq();
-  if (!avail) {
-    logger.warn("BigQuery tables not available.");
-    return Promise.resolve();
-  }
-
-  const markets = await getMarkets({totalLimit: 1});
-
-  if (!markets) {
-    logger.error("Unable to fetch markets!");
-    return;
-  }
-
-  const rows = markets.map((market) => {
-    return {
-      marketId: market.id,
-      question: market.question,
-      questionId: market.questionID,
-      description: market.description,
-      outcomes: JSON.parse(market.outcomes),
-      photoURL: market.image,
-      slug: market.slug,
-      startedAt: market.startDate,
-      endedAt: market.endDate,
-      createdAt: market.createdAt,
-      updatedAt: market.updatedAt,
-      conditionId: market.conditionId,
-      clobTokenIds: JSON.parse(market.clobTokenIds),
-      active: market.active,
-      acceptingOrders: market.acceptingOrders,
-      acceptingOrdersTimestamp: market.acceptingOrdersTimestamp,
-    };
-  });
-
-  await mergeToBigQuery(MARKET_TABLE, rows);
-
-  for (const market of markets) {
-    // const assetIds = JSON.parse(market.clobTokenIds);
-    // const startTime = isoToMillis(market.startDate);
-    // const conditionId = market.conditionId;
-    // for (const assetId of assetIds) {
-    //   await updateAssetData(assetId, conditionId, startTime);
-    // }
-  }
+  await testPolymarket();
 });
 
 

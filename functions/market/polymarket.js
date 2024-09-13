@@ -151,16 +151,16 @@ async function getMarkets({
 
   while (keepFetching) {
     const url =
-      `https://gamma-api.polymarket.com/markets?` +
-      `order=createdAt&` +
-      `ascending=false&` +
-      `archived=${archived}&` +
-      `active=${active}&` +
-      `closed=${closed}&` +
-      `${tagId != null ? `tag_id=${tagId}&` : ""}` +
-      `related_tags=${relatedTags}&` +
-      `limit=${apiLimit}&` +
-      `offset=${offset}`;
+    `https://gamma-api.polymarket.com/markets?` +
+    `order=createdAt&` +
+    `ascending=false&` +
+    `${archived != null ? `archived=${archived}&` : ""}` +
+    `${active != null ? `active=${active}&` : ""}` +
+    `${closed != null ? `closed=${closed}&` : ""}` +
+    `${tagId != null ? `tag_id=${tagId}&` : ""}` +
+    `related_tags=${relatedTags}&` +
+    `limit=${apiLimit}&` +
+    `offset=${offset}`;
 
     try {
       const response = await axios.get(url);

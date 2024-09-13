@@ -28,6 +28,40 @@ function getDataset() {
 }
 
 // /////////////////////////////////////////////////////////////////////////////
+// Query
+// /////////////////////////////////////////////////////////////////////////////
+/**
+ * Query a BigQuery table with a custom query
+ * @param {string} datasetId - The dataset ID to query (default is polymarket)
+ * @param {string} tableId - The BigQuery table to query
+ * @param {string} customQuery - A custom SQL query to execute (required)
+ * @param {number} limit - Limit the number of results (default is 1000)
+ * @return {Promise<Object[]>} - The query results
+ */
+async function queryBq({datasetId = DATASET_ID,
+  tableId, customQuery, limit = 1000}) {
+  // Construct the full query using the dataset, table, and custom query
+  let query = `SELECT * FROM \`${datasetId}.${tableId}\``;
+
+  // Append the custom query conditions if provided
+  if (customQuery) {
+    query += ` WHERE ${customQuery}`;
+  }
+
+  // Append the limit to the query
+  query += ` LIMIT ${limit}`;
+
+  const options = {
+    query,
+  };
+
+  // Run the query
+  const [rows] = await getClient().query(options);
+  return rows;
+}
+
+
+// /////////////////////////////////////////////////////////////////////////////
 // Merge
 // /////////////////////////////////////////////////////////////////////////////
 
@@ -44,21 +78,26 @@ async function mergeToBigQuery(tableId, rows) {
     return;
   }
 
-  // chunk the rows if > 10k
-  // loop if rows > 10k due to bq limits
+  const compositeKeyFields = compositeKeyMap[tableId];
+
   for (let i = 0; i < rows.length; i += 10000) {
     const chunk = rows.slice(i, i + 10000);
     try {
-    // Dynamically generate the field names and values from the chunk
+      // Dynamically generate the field names and values from the chunk
       const fields = Object.keys(chunk[0]);
       const fieldNames = fields.join(", ");
-      const valueNames = fields.map((field) => {
-        return `source.${field}`;
-      }).join(", ");
+      const valueNames = fields.map((field) => `source.${field}`).join(", ");
 
-      const onConditions = fields.map((field) => {
+      // Only compare the composite key fields in the ON condition
+      const onConditions = compositeKeyFields.map((field) => {
         return `target.${field} = source.${field}`;
       }).join(" AND ");
+
+      // Update non-key fields on match
+      const updateConditions =
+        fields.filter((field) => !compositeKeyFields.includes(field))
+            .map((field) => `target.${field} = source.${field}`)
+            .join(", ");
 
       const query = `
         MERGE \`${DATASET_ID}.${tableId}\` AS target
@@ -66,6 +105,8 @@ async function mergeToBigQuery(tableId, rows) {
           SELECT * FROM UNNEST(@chunk) AS source
         ) AS source
         ON ${onConditions}
+        WHEN MATCHED THEN
+          UPDATE SET ${updateConditions}
         WHEN NOT MATCHED THEN
           INSERT (${fieldNames})
           VALUES (${valueNames});
@@ -118,15 +159,15 @@ const marketSchema = [
   {name: "outcomes", type: "STRING", mode: "REPEATED"}, // Array of strings
   {name: "photoURL", type: "STRING", mode: "NULLABLE"},
   {name: "slug", type: "STRING", mode: "REQUIRED"},
-  {name: "startedAt", type: "INT64", mode: "REQUIRED"},
-  {name: "endedAt", type: "INT64", mode: "REQUIRED"},
+  {name: "startedAt", type: "INT64", mode: "NULLABLE"},
+  {name: "endedAt", type: "INT64", mode: "NULLABLE"},
   {name: "createdAt", type: "INT64", mode: "REQUIRED"},
   {name: "updatedAt", type: "INT64", mode: "REQUIRED"},
   {name: "conditionId", type: "STRING", mode: "REQUIRED"},
   {name: "clobTokenIds", type: "STRING", mode: "REPEATED"}, // Array of strings
   {name: "active", type: "BOOL", mode: "REQUIRED"},
-  {name: "acceptingOrders", type: "BOOL", mode: "REQUIRED"},
-  {name: "acceptingOrdersTimestamp", type: "INT64", mode: "REQUIRED"},
+  {name: "acceptingOrders", type: "BOOL", mode: "NULLABLE"},
+  {name: "acceptingOrdersTimestamp", type: "INT64", mode: "NULLABLE"},
 ];
 
 const currentTimeMillis = Date.now();
@@ -178,12 +219,20 @@ const tableIds = [ASSET_TABLE, MARKET_TABLE];
 const schemaMap = {
   [ASSET_TABLE]: assetSchema,
   [MARKET_TABLE]: marketSchema,
-
 };
+
+// bq doesn't have composite keys but we use them for updates
+const compositeKeyMap = {
+  [ASSET_TABLE]: ["assetId", "timestamp"],
+  [MARKET_TABLE]: ["marketId", "createdAt"],
+};
+
+
 const partitionMap = {
   [ASSET_TABLE]: assetPartition,
   [MARKET_TABLE]: marketPartition,
 };
+
 const clusteringMap = {
   [ASSET_TABLE]: assetClustering,
   [MARKET_TABLE]: marketClustering,
@@ -233,6 +282,7 @@ async function createTable(tableId, schema, partition, clustering) {
 module.exports = {
   ASSET_TABLE,
   MARKET_TABLE,
+  queryBq,
   getClient,
   getDataset,
   mergeToBigQuery,

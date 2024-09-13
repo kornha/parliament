@@ -1,7 +1,8 @@
 /* eslint-disable max-len */
-const {getClient} = require("./polymarket");
-const {mergeToBigQuery, ASSET_TABLE} = require("../warehouse/bq");
+const {getClient, getMarkets} = require("./polymarket");
+const {mergeToBigQuery, ASSET_TABLE, initBq, MARKET_TABLE, queryBq} = require("../warehouse/bq");
 const {logger} = require("firebase-functions/v2");
+const {isoToMillis} = require("../common/utils");
 
 // first
 // upload to bq
@@ -13,6 +14,74 @@ const {logger} = require("firebase-functions/v2");
 // save active market to firestore
 // upload market data to BQ
 //
+
+/**
+ * Runs a given script
+ * @return {Promise<void>}
+ * */
+async function testPolymarket() {
+  // await updateMarkets();
+  const customQuery = `
+    LOWER(question) LIKE '%will trump say%' OR LOWER(question) LIKE '%will donald trump say%'
+  `;
+
+  const results = await queryBq({tableId: MARKET_TABLE, customQuery: customQuery});
+  results.forEach((result) => {
+    console.log(result.question);
+  });
+}
+
+/**
+ * Upload market data to BQ from Polymarket
+ * @return {Promise<void>}
+ * */
+async function updateMarkets() {
+  const avail = await initBq();
+  if (!avail) {
+    logger.warn("BigQuery tables not available.");
+    return Promise.resolve();
+  }
+
+  const markets = await getMarkets({totalLimit: 5000,
+    active: null,
+    archived: null,
+    closed: null});
+
+  if (!markets) {
+    logger.error("Unable to fetch markets!");
+    return;
+  }
+
+  const rows = [];
+
+  for (const market of markets) {
+    if (!market.clobTokenIds) {
+      console.log("No clobTokenIds for market", market.question);
+      continue;
+    }
+
+    rows.push({
+      marketId: market.id,
+      question: market.question,
+      questionId: market.questionID,
+      description: market.description,
+      outcomes: JSON.parse(market.outcomes),
+      photoURL: market.image,
+      slug: market.slug,
+      startedAt: isoToMillis(market.startDate),
+      endedAt: isoToMillis(market.endDate),
+      createdAt: isoToMillis(market.createdAt),
+      updatedAt: isoToMillis(market.updatedAt),
+      conditionId: market.conditionId,
+      clobTokenIds: JSON.parse(market.clobTokenIds),
+      active: market.active,
+      acceptingOrders: market.acceptingOrders,
+      acceptingOrdersTimestamp: isoToMillis(market.acceptingOrdersTimestamp),
+    });
+  }
+
+  await mergeToBigQuery(MARKET_TABLE, rows);
+}
 
 /**
  * Upload asset data to BQ from Polymarket
@@ -48,5 +117,7 @@ async function updateAssetData(assetId, conditionId, startedAt) {
 }
 
 module.exports = {
+  testPolymarket,
   updateAssetData,
+  updateMarkets,
 };
