@@ -438,9 +438,7 @@ TheParliament.app (to be released shortly) is a commercial hosted and deployed i
 
 ## Socials
 - **Discord**: Parliament currently supports an official [Discord server](https://discord.gg/HhdBKsK9Pq).
-- **X**: [Alex K](https://x.com/parliament_alex) the creator of Parliament recently began using X in order to publicize and support Parliament. However this account is not officially recognized by Parliament as it may be used for personal purposes, or purposes that do not comply to Parliament's strictly apolitical stance.
-- **Reddit**: [Parliament](https://www.reddit.com/user/cry_more_loser/) is the Reddit account that is used to support and publicize Parliament. It however is not the official Reddit of Parliament and does not claim to be such.
-- **IG, Tiktok and Others**: No current accounts, but these will be created in the near future.
+- **X, Reddit, IG, Tiktok and Others**: No current accounts, but these will be created in the near future.
 
 # Development
 
