@@ -27,6 +27,12 @@ class Confidence {
     return Confidence(value: value / other.value);
   }
 
+  // >, <, >=, <= operators
+  bool operator >(Confidence other) => value > other.value;
+  bool operator <(Confidence other) => value < other.value;
+  bool operator >=(Confidence other) => value >= other.value;
+  bool operator <=(Confidence other) => value <= other.value;
+
   @override
   String toString() => value.toStringAsFixed(2);
 

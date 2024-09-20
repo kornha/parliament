@@ -1,7 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:political_think/common/models/confidence.dart';
 import 'package:political_think/common/models/location.dart';
 import 'package:political_think/common/models/photo.dart';
+import 'package:political_think/common/models/political_position.dart';
 import 'package:political_think/common/util/utils.dart';
 
 part 'story.g.dart';
@@ -9,33 +11,38 @@ part 'story.g.dart';
 @JsonSerializable(explicitToJson: true)
 class Story {
   final String sid;
+  final List<String> pids;
+  final List<String> stids;
+  final List<String> plids;
 
-  String? title; // 2-6 words category
-  String? description; // full description of information
+  final String? title; // 2-6 words category
+  final String? description; // full description of information
 
-  String? headline; // 2-8 words engaging headline
-  String? subHeadline; // short engaging description
+  final String? headline; // 2-8 words engaging headline
+  final String? subHeadline; // short engaging description
 
-  double? importance;
-  List<String> pids;
-  List<String> stids;
-  Location? location;
-  List<Photo> photos;
+  final List<Photo> photos;
+  final Location? location;
 
-  double? avgReplies;
-  double? avgReposts;
-  double? avgLikes;
-  double? avgBookmarks;
-  double? avgViews;
+  final double? avgReplies;
+  final double? avgReposts;
+  final double? avgLikes;
+  final double? avgBookmarks;
+  final double? avgViews;
+
+  final PoliticalPosition? bias;
+  final Confidence? confidence;
+
+  final Confidence? newsworthiness;
 
   @JsonKey(fromJson: Utils.timestampFromJson, toJson: Utils.timestampToJson)
-  Timestamp createdAt;
+  final Timestamp createdAt;
   @JsonKey(fromJson: Utils.timestampFromJson, toJson: Utils.timestampToJson)
-  Timestamp updatedAt;
+  final Timestamp updatedAt;
   @JsonKey(
       fromJson: Utils.timestampFromJsonNullable,
       toJson: Utils.timestampToJsonNullable)
-  Timestamp? happenedAt;
+  final Timestamp? happenedAt;
 
   Story({
     required this.sid,
@@ -47,14 +54,17 @@ class Story {
     this.description,
     this.headline,
     this.subHeadline,
-    this.importance,
     this.avgReplies,
     this.avgReposts,
     this.avgLikes,
     this.avgBookmarks,
     this.avgViews,
+    this.newsworthiness,
+    this.bias,
+    this.confidence,
     this.pids = const [],
     this.stids = const [],
+    this.plids = const [],
     this.photos = const [],
   });
 

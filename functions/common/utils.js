@@ -10,7 +10,7 @@ const isPerfectSquare = function(x) {
 };
 
 const isFibonacciNumber = function(n) {
-  if (!n) return false;
+  if (n == null) return false;
   return isPerfectSquare(5 * n * n + 4) || isPerfectSquare(5 * n * n - 4);
 };
 
@@ -45,22 +45,16 @@ function getElo(eloWinner, eloLoser, didWin, kFactor = 32) {
 
 /**
  * @param {string} url - the URL to parse
- * @return {string} the source type of the URL
- */
-function urlToSourceType(url) {
-  const domain = urlToDomain(url);
-  if (domain == "x.com" || domain == "twitter.com") {
-    return "x";
-  }
-  return null;
-}
-
-/**
- * @param {string} url - the URL to parse
  * @return {string} the domain of the URL
  */
 function urlToDomain(url) {
   if (!url) return;
+
+  // Add a default scheme if the URL doesn't contain one
+  if (!/^https?:\/\//i.test(url)) {
+    url = "https://" + url;
+  }
+
   const domain = (new URL(url)).hostname;
   return domain;
 }
@@ -135,62 +129,10 @@ const isoToMillis = function(iso) {
   return Timestamp.fromDate(new Date(iso)).toMillis();
 };
 
-/**
- * Calculate the average of the stats for a post
- * @param {Array<Object>} posts - the list of posts
- * @return {Array<Object>} the avg stats; UNDEFINED if the field is not present
- * */
-function calculateAverageStats(posts) {
-  if (_.isEmpty(posts)) return {};
 
-  const fields = ["replies", "reposts", "likes", "bookmarks", "views"];
-  const totals = {
-    replies: 0,
-    reposts: 0,
-    likes: 0,
-    bookmarks: 0,
-    views: 0,
-  };
-  const counts = {
-    replies: 0,
-    reposts: 0,
-    likes: 0,
-    bookmarks: 0,
-    views: 0,
-  };
-
-  posts.forEach((post) => {
-    fields.forEach((field) => {
-      if (post[field] !== null && post[field] !== undefined) {
-        totals[field] += post[field];
-        counts[field] += 1;
-      }
-    });
-  });
-
-  const averages = {};
-
-  if (counts.replies > 0) {
-    averages.avgReplies =
-      parseFloat((totals.replies / counts.replies).toFixed(2));
-  }
-  if (counts.reposts > 0) {
-    averages.avgReposts =
-      parseFloat((totals.reposts / counts.reposts).toFixed(2));
-  }
-  if (counts.likes > 0) {
-    averages.avgLikes = parseFloat((totals.likes / counts.likes).toFixed(2));
-  }
-  if (counts.bookmarks > 0) {
-    averages.avgBookmarks =
-      parseFloat((totals.bookmarks / counts.bookmarks).toFixed(2));
-  }
-  if (counts.views > 0) {
-    averages.avgViews = parseFloat((totals.views / counts.views).toFixed(2));
-  }
-
-  return averages;
-}
+// //////////////////////////////////////////////////////////////////
+// Sync
+// //////////////////////////////////////////////////////////////////
 
 /**
  * Handles changed relations between two objects
@@ -321,7 +263,6 @@ const handleChangedRelations = async (
 module.exports = {
   isLocal,
   urlToDomain,
-  urlToSourceType,
   isFibonacciNumber,
   isPerfectSquare,
   getElo,
@@ -329,6 +270,5 @@ module.exports = {
   calculateMeanVector,
   millisToIso,
   isoToMillis,
-  calculateAverageStats,
   handleChangedRelations,
 };

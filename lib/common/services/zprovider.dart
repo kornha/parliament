@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
+import 'package:political_think/common/models/platform.dart';
 import 'package:political_think/common/models/statement.dart';
 import 'package:political_think/common/models/entity.dart';
 import 'package:political_think/common/models/post.dart';
@@ -274,6 +275,21 @@ final entitiesFromPostsProvider =
       final data = doc.data() as Map<String, dynamic>;
       return Entity.fromJson(data);
     }).toList();
+  });
+});
+
+//////////////////////////////////////////////////////////////
+// Platforms
+//////////////////////////////////////////////////////////////
+final platformProvider = StreamProvider.family<Platform?, String>((ref, plid) {
+  final platformRef = Database.instance().platformCollection.doc(plid);
+  return platformRef.snapshots().map((snapshot) {
+    if (snapshot.exists) {
+      final data = snapshot.data() as Map<String, dynamic>;
+      return Platform.fromJson(data);
+    } else {
+      return null;
+    }
   });
 });
 

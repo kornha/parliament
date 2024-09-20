@@ -4,7 +4,11 @@ const {getStatement,
   updateStatement,
   getAllStatementsForEntity,
   updateEntity,
-  getEntity} = require("../common/database");
+  getEntity,
+  getAllStatementsForStory,
+  updateStory,
+  getAllStatementsForPost,
+  updatePost} = require("../common/database");
 const {retryAsyncFunction} = require("../common/utils");
 
 // Parameters
@@ -13,6 +17,49 @@ const INCORRECT_PENALTY = -0.15;
 const DECAY_FACTOR = 0.95; // Exp. decay (1 = slower decay, 0 = faster decay)
 const BASE_CONFIDENCE = 0.5;
 const DECIDED_THRESHOLD = 0.9;
+
+// ////////////////////////////////////////////////////////////////////////////
+// Post
+// ////////////////////////////////////////////////////////////////////////////
+
+/**
+ * E2E Logic onPost for setting confidence
+ * @param {String} pid
+ * @return {Promise<void>}
+ * */
+async function onPostShouldChangeConfidence(pid) {
+  const statements = await getAllStatementsForPost(pid);
+
+  const avgConfidence = calculateAverageConfidence(statements);
+
+  if (avgConfidence != null) {
+    logger.info(`Updating Post confidence: ${pid} ${avgConfidence}`);
+    await retryAsyncFunction(() =>
+      updatePost(pid, {confidence: avgConfidence}));
+  }
+}
+
+
+// ////////////////////////////////////////////////////////////////////////////
+// Story
+// ////////////////////////////////////////////////////////////////////////////
+
+/**
+ * E2E Logic onStory for setting confidence
+ * @param {String} sid
+ * @return {Promise<void>}
+ * */
+async function onStoryShouldChangeConfidence(sid) {
+  const statements = await getAllStatementsForStory(sid);
+
+  const avgConfidence = calculateAverageConfidence(statements);
+
+  if (avgConfidence != null) {
+    logger.info(`Updating Story confidence: ${sid} ${avgConfidence}`);
+    await retryAsyncFunction(() =>
+      updateStory(sid, {confidence: avgConfidence}));
+  }
+}
 
 // ////////////////////////////////////////////////////////////////////////////
 // ENTITY
@@ -34,7 +81,7 @@ async function onEntityShouldChangeConfidence(eid) {
 
   // If admin has set confidence, use that always
   if (entity.adminConfidence != null) {
-    logger.info(`Updating entity confidence: ${eid} ${entity.adminConfidence}`);
+    logger.info(`Updating Entity confidence: ${eid} ${entity.adminConfidence}`);
     await retryAsyncFunction(() =>
       updateEntity(eid, {confidence: entity.adminConfidence}));
     return;
@@ -243,9 +290,41 @@ function confidenceDidCrossThreshold(before, after) {
   );
 }
 
+// ////////////////////////////////////////////////////////////////////////////
+// Generic
+// ////////////////////////////////////////////////////////////////////////////
+/**
+ * Calculate the average confidence of an iterable
+ * @param {Object[]} iterable The array of objects
+ * @return {number|null} The average confidence
+ * */
+function calculateAverageConfidence(iterable) {
+  if (iterable.length === 0) {
+    return null;
+  }
+
+  let totalConfidence = 0;
+  let count = 0;
+
+  for (const item of iterable) {
+    if (item.confidence != null) {
+      totalConfidence += item.confidence;
+      count++;
+    }
+  }
+
+  if (count === 0) {
+    return null;
+  }
+
+  return totalConfidence / count;
+}
+
 
 module.exports = {
   confidenceDidCrossThreshold,
+  onPostShouldChangeConfidence,
+  onStoryShouldChangeConfidence,
   onEntityShouldChangeConfidence,
   calculateEntityConfidence,
   onStatementShouldChangeConfidence,

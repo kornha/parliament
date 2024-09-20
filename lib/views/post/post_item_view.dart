@@ -7,7 +7,7 @@ import 'package:political_think/common/components/profile_icon.dart';
 import 'package:political_think/common/components/zicon_text.dart';
 import 'package:political_think/common/extensions.dart';
 import 'package:political_think/common/models/entity.dart';
-import 'package:political_think/common/models/source_type.dart';
+import 'package:political_think/common/models/platform.dart';
 import 'package:political_think/common/models/story.dart';
 import 'package:political_think/common/util/utils.dart';
 import 'package:political_think/common/util/zimage.dart';
@@ -35,7 +35,7 @@ class PostItemView extends ConsumerStatefulWidget {
 class _PostViewState extends ConsumerState<PostItemView> {
   @override
   Widget build(BuildContext context) {
-    var storyImportance = widget.story?.importance ?? 0.5;
+    var storyNewsworthiness = widget.story?.newsworthiness?.value ?? 0.5;
     var postRef = ref.postWatch(widget.pid);
     var post = postRef.value;
 
@@ -44,6 +44,12 @@ class _PostViewState extends ConsumerState<PostItemView> {
       entityRef = ref.entityWatch(post!.eid!);
     }
     var entity = entityRef?.value;
+
+    AsyncValue<Platform?>? platformRef;
+    if (post?.plid != null) {
+      platformRef = ref.platformWatch(post!.plid!);
+    }
+    var platform = platformRef?.value;
 
     return postRef.isLoading
         ? Loading(
@@ -71,11 +77,8 @@ class _PostViewState extends ConsumerState<PostItemView> {
                                   visible: entity?.photoURL != null,
                                   child: ProfileIcon(eid: post?.eid),
                                 ),
-                                Icon(
-                                  post?.sourceType.icon,
-                                  size: context.iconSizeSmall,
-                                  color: context.secondaryColor,
-                                ),
+                                platform?.getIcon(context.iconSizeSmall) ??
+                                    const SizedBox.shrink(),
                               ],
                             ),
                           ],
@@ -83,22 +86,24 @@ class _PostViewState extends ConsumerState<PostItemView> {
                         context.sh,
                         Text(
                           post?.title ?? "",
-                          textAlign: storyImportance > 0.9
+                          textAlign: storyNewsworthiness > 0.9
                               ? TextAlign.center
                               : TextAlign.start,
-                          style: storyImportance > 0.9
+                          style: storyNewsworthiness > 0.9
                               ? context.h2
-                              : storyImportance > 0.7
+                              : storyNewsworthiness > 0.7
                                   ? context.h3
                                   : context.l,
                         ),
-                        storyImportance > 0.0
+                        storyNewsworthiness > 0.0
                             ? context.sf
                             : const SizedBox.shrink(),
-                        storyImportance > 0.0 && post?.photo?.photoURL != null
+                        storyNewsworthiness > 0.0 &&
+                                post?.photo?.photoURL != null
                             ? ZImage(photoURL: post?.photo?.photoURL ?? "")
                             : const SizedBox.shrink(),
-                        storyImportance > 0.0 && post?.photo?.photoURL != null
+                        storyNewsworthiness > 0.0 &&
+                                post?.photo?.photoURL != null
                             ? context.sf
                             : const SizedBox.shrink(),
                         Visibility(
@@ -176,11 +181,7 @@ class _PostViewState extends ConsumerState<PostItemView> {
                           child: Text(
                             // some posts dont have descriptions
                             post?.description ?? post?.title ?? "",
-                            style: (post?.importance ?? 5) > 9
-                                ? context.l
-                                : (post?.importance ?? 5) > 7
-                                    ? context.m
-                                    : context.s,
+                            style: context.m,
                             maxLines: 5,
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -196,11 +197,8 @@ class _PostViewState extends ConsumerState<PostItemView> {
                                 radius: context.iconSizeStandard / 2,
                               ),
                             ),
-                            Icon(
-                              post?.sourceType.icon,
-                              size: context.iconSizeSmall,
-                              color: context.secondaryColor,
-                            ),
+                            platform?.getIcon(context.iconSizeSmall) ??
+                                const SizedBox.shrink(),
                           ],
                         ),
                       ],

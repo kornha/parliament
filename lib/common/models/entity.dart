@@ -1,8 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:political_think/common/models/confidence.dart';
+import 'package:political_think/common/models/platform.dart';
 import 'package:political_think/common/models/political_position.dart';
-import 'package:political_think/common/models/source_type.dart';
 import 'package:political_think/common/util/utils.dart';
 
 part 'entity.g.dart';
@@ -11,10 +11,10 @@ part 'entity.g.dart';
 class Entity {
   final String eid;
   final String handle;
-  final SourceType sourceType;
-  String? photoURL;
+  final String? photoURL;
   final List<String> pids;
   final List<String> stids;
+  final String? plid;
   final Confidence? confidence;
   final Confidence? adminConfidence;
   final PoliticalPosition? bias;
@@ -34,7 +34,6 @@ class Entity {
   Entity({
     required this.eid,
     required this.handle,
-    required this.sourceType,
     required this.createdAt,
     required this.updatedAt,
     this.avgReplies,
@@ -45,6 +44,7 @@ class Entity {
     this.photoURL,
     this.pids = const [],
     this.stids = const [],
+    this.plid,
     this.confidence,
     this.adminConfidence,
     this.bias,

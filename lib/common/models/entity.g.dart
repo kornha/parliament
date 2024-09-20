@@ -9,7 +9,6 @@ part of 'entity.dart';
 Entity _$EntityFromJson(Map<String, dynamic> json) => Entity(
       eid: json['eid'] as String,
       handle: json['handle'] as String,
-      sourceType: $enumDecode(_$SourceTypeEnumMap, json['sourceType']),
       createdAt: Utils.timestampFromJson(json['createdAt'] as int),
       updatedAt: Utils.timestampFromJson(json['updatedAt'] as int),
       avgReplies: (json['avgReplies'] as num?)?.toDouble(),
@@ -24,6 +23,7 @@ Entity _$EntityFromJson(Map<String, dynamic> json) => Entity(
       stids:
           (json['stids'] as List<dynamic>?)?.map((e) => e as String).toList() ??
               const [],
+      plid: json['plid'] as String?,
       confidence: json['confidence'] == null
           ? null
           : Confidence.fromJson(json['confidence']),
@@ -41,10 +41,10 @@ Entity _$EntityFromJson(Map<String, dynamic> json) => Entity(
 Map<String, dynamic> _$EntityToJson(Entity instance) => <String, dynamic>{
       'eid': instance.eid,
       'handle': instance.handle,
-      'sourceType': _$SourceTypeEnumMap[instance.sourceType]!,
       'photoURL': instance.photoURL,
       'pids': instance.pids,
       'stids': instance.stids,
+      'plid': instance.plid,
       'confidence': instance.confidence?.toJson(),
       'adminConfidence': instance.adminConfidence?.toJson(),
       'bias': instance.bias?.toJson(),
@@ -57,8 +57,3 @@ Map<String, dynamic> _$EntityToJson(Entity instance) => <String, dynamic>{
       'createdAt': Utils.timestampToJson(instance.createdAt),
       'updatedAt': Utils.timestampToJson(instance.updatedAt),
     };
-
-const _$SourceTypeEnumMap = {
-  SourceType.article: 'article',
-  SourceType.x: 'x',
-};

@@ -58,6 +58,6 @@ class LogoText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text("Parliament", style: context.d3.copyWith(letterSpacing: 9));
+    return Text("Parliament", style: context.d3.copyWith(letterSpacing: 5));
   }
 }

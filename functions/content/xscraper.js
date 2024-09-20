@@ -7,6 +7,7 @@ const {getPostByXid,
   createPost,
   findCreateEntity,
   updatePost,
+  findCreatePlatform,
 } = require("../common/database");
 const {v5} = require("uuid");
 const {Timestamp} = require("firebase-admin/firestore");
@@ -14,13 +15,11 @@ const {isoToMillis} = require("../common/utils");
 const {defineSecret} = require("firebase-functions/params");
 const {publishMessage, SHOULD_SCRAPE_FEED} = require("../common/pubsub");
 const {HttpsError} = require("firebase-functions/v2/https");
+const {getPlatformType} = require("../models/platform");
 
 const _xHandleKey = defineSecret("X_HANDLE_KEY");
 const _xPasswordKey = defineSecret("X_PASSWORD_KEY");
 const _xEmailKey = defineSecret("X_EMAIL_KEY");
-
-// need a namespace for X for v5 that is a valid uuid
-const _xNamespace = "e962ad23-2f0a-411b-a118-a309d7ee4340";
 
 // User agent for X
 // eslint-disable-next-line max-len
@@ -334,11 +333,14 @@ const autoScrollX = async function* (page,
  * */
 const processXLinks = async function(xLinks, poster = null) {
   const pids = [];
+  // move into loop for multi-platforms
+  // took out to avoid db call for each link
+  const platform = await findCreatePlatform("x.com");
 
   for (const link of xLinks) {
     logger.info(`Processing X link: ${link}.`);
     const xid = link.split("/").pop();
-    const post = await getPostByXid(xid, "x");
+    const post = await getPostByXid(xid, platform.plid);
     if (post == null) {
       const handle = link.split("/")[3];
       if (handle == "i" || handle == "@i") {
@@ -346,19 +348,19 @@ const processXLinks = async function(xLinks, poster = null) {
         logger.warn("Skipping link: " + link);
         continue;
       }
-      const eid = await findCreateEntity(handle, "x");
-      if (eid == null) {
+      const entity = await findCreateEntity(handle, platform);
+      if (entity.eid == null) {
         logger.error("Could not find entity for handle: " + handle);
         continue; // Skip to the next iteration if no entity is found
       }
       const post = {
-        pid: v5(xid, _xNamespace),
-        eid: eid,
+        pid: v5(xid, platform.plid),
+        eid: entity.eid,
         xid: xid,
         url: link,
         poster: poster,
         status: "scraping",
-        sourceType: "x",
+        plid: platform.plid,
         createdAt: Timestamp.now().toMillis(),
         updatedAt: Timestamp.now().toMillis(),
       };
@@ -470,7 +472,7 @@ const xupdatePost = async function(post) {
     throw new HttpsError("invalid-argument", "No post provided.");
   }
 
-  logger.info(`Updating post: ${post.pid} with X metadata.`);
+  logger.info(`Updating Post: ${post.pid} with X metadata.`);
 
   const xMetaData = await getContentFromX(post.url);
   if (!xMetaData) {
@@ -523,11 +525,11 @@ const xupdatePost = async function(post) {
  * REQUIRES 1GB TO RUN!
  * Method from scraping webpage text content with headless browswer
  * @param {string} handle in the post in question.
- * @param {string} sourceType in the post in question.
+ * @param {Platform} platform in the post in question.
  * @return {string} with photoURL
  */
-const getEntityImage = async function(handle, sourceType) {
-  if (sourceType == "x") {
+const getEntityImage = async function(handle, platform) {
+  if (getPlatformType(platform) == "x") {
     return await getEntityImageFromX(handle);
   }
 

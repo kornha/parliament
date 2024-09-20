@@ -4,6 +4,7 @@ import 'package:political_think/common/components/loading.dart';
 import 'package:political_think/common/components/modal_container.dart';
 import 'package:political_think/common/components/zerror.dart';
 import 'package:political_think/common/extensions.dart';
+import 'package:political_think/common/models/confidence.dart';
 import 'package:political_think/common/models/zuser.dart';
 import 'package:political_think/common/services/database.dart';
 import 'package:syncfusion_flutter_sliders/sliders.dart';
@@ -21,7 +22,7 @@ class FeedSettings extends ConsumerStatefulWidget {
 }
 
 class _FeedSettingsState extends ConsumerState<FeedSettings> {
-  double? _value;
+  Confidence? _value;
 
   @override
   void initState() {
@@ -33,7 +34,7 @@ class _FeedSettingsState extends ConsumerState<FeedSettings> {
     final userRef = ref.selfUserWatch();
     ZUser? user = userRef.value;
 
-    if (_value == user?.settings.minImportance) {
+    if (_value == user?.settings.minNewsworthiness) {
       _value = null;
     }
 
@@ -48,23 +49,25 @@ class _FeedSettingsState extends ConsumerState<FeedSettings> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     context.sd,
-                    Text("Min. Importance", style: context.m),
+                    Text("Min. Newsworthiness", style: context.m),
                     SfSlider(
                       min: 0.0,
                       max: 1.0,
                       interval: 0.25,
                       showTicks: true,
                       showLabels: true,
-                      value: _value ?? user.settings.minImportance,
+                      value: _value?.value ??
+                          user.settings.minNewsworthiness?.value ??
+                          0.0,
                       onChanged: (newValue) {
                         setState(() {
-                          _value = newValue;
+                          _value = Confidence(value: newValue);
                         });
                       },
                       onChangeEnd: (value) async {
                         value = double.parse(value.toStringAsFixed(2));
                         await Database.instance().updateUser(
-                            user.uid, {"settings.minImportance": value});
+                            user.uid, {"settings.minNewsworthiness": value});
                         widget.onFilterChange?.call();
                       },
                       tooltipTextFormatterCallback:

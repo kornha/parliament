@@ -9,6 +9,7 @@ class PoliticalPositionWidget extends StatefulWidget {
   final String? eid;
   final String? stid;
   final double? radius;
+  final bool enabled;
 
   const PoliticalPositionWidget({
     super.key,
@@ -16,7 +17,8 @@ class PoliticalPositionWidget extends StatefulWidget {
     this.eid,
     this.stid,
     this.radius,
-  }) : assert((eid != null) != (stid != null)); // xor
+    this.enabled = true,
+  }) : assert((eid != null) != (stid != null) || !enabled); // xor
 
   @override
   State<PoliticalPositionWidget> createState() =>
@@ -29,15 +31,17 @@ class _PoliticalPositionWidgetState extends State<PoliticalPositionWidget> {
     return PoliticalPositionJoystick(
       selectedPosition: widget.position,
       radius: widget.radius ?? context.iconSizeLarge / 2.0,
-      onPositionSelected: (conf) {
-        if (widget.eid != null) {
-          Database.instance()
-              .updateEntity(widget.eid!, {"adminBias": conf.angle});
-        } else if (widget.stid != null) {
-          Database.instance()
-              .updateStatement(widget.stid!, {"adminBias": conf.angle});
-        }
-      },
+      onPositionSelected: !widget.enabled
+          ? null
+          : (conf) {
+              if (widget.eid != null) {
+                Database.instance()
+                    .updateEntity(widget.eid!, {"adminBias": conf.angle});
+              } else if (widget.stid != null) {
+                Database.instance()
+                    .updateStatement(widget.stid!, {"adminBias": conf.angle});
+              }
+            },
     );
   }
 }

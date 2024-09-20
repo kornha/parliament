@@ -12,6 +12,7 @@ import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:political_think/common/components/zapp_bar.dart';
 import 'package:political_think/common/components/zscaffold.dart';
 import 'package:political_think/common/constants.dart';
+import 'package:political_think/common/models/platform.dart';
 import 'package:political_think/common/models/statement.dart';
 import 'package:political_think/common/models/entity.dart';
 import 'package:political_think/common/models/post.dart';
@@ -67,6 +68,12 @@ extension ProviderExt on WidgetRef {
 
   AsyncValue<Entity?> entityWatch(String eid) => watch(entityProvider(eid));
   AsyncValue<Entity?> entityRead(String eid) => read(entityProvider(eid));
+
+  AsyncValue<Platform?> platformWatch(String plid) =>
+      watch(platformProvider(plid));
+  AsyncValue<Platform?> platformRead(String plid) =>
+      read(platformProvider(plid));
+
   AsyncValue<List<Entity>?> entitiesFromPostsWatch(List<String> pids) =>
       watch(entitiesFromPostsProvider(pids));
   AsyncValue<List<Entity>?> entitiesFromPostsRead(List<String> pids) =>

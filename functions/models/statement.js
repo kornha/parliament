@@ -18,7 +18,11 @@ const {publishMessage,
   ENTITY_SHOULD_CHANGE_CONFIDENCE,
   STATEMENT_CHANGED_BIAS,
   STATEMENT_SHOULD_CHANGE_BIAS,
-  ENTITY_SHOULD_CHANGE_BIAS} = require("../common/pubsub");
+  ENTITY_SHOULD_CHANGE_BIAS,
+  STORY_SHOULD_CHANGE_BIAS,
+  POST_SHOULD_CHANGE_BIAS,
+  POST_SHOULD_CHANGE_CONFIDENCE,
+  STORY_SHOULD_CHANGE_CONFIDENCE} = require("../common/pubsub");
 const {FieldValue} = require("firebase-admin/firestore");
 const {resetStatementVector} = require("../ai/statement_ai");
 const {confidenceDidCrossThreshold,
@@ -177,9 +181,18 @@ exports.onStatementChangedConfidence = onMessagePublished(
       }
 
       const eids = after?.eids ?? before?.eids;
-
       for (const eid of eids) {
         await publishMessage(ENTITY_SHOULD_CHANGE_CONFIDENCE, {eid: eid});
+      }
+
+      const pids = after?.pids ?? before?.pids;
+      for (const pid of pids) {
+        await publishMessage(POST_SHOULD_CHANGE_CONFIDENCE, {pid: pid});
+      }
+
+      const sids = after?.sids ?? before?.sids;
+      for (const sid of sids) {
+        await publishMessage(STORY_SHOULD_CHANGE_CONFIDENCE, {sid: sid});
       }
 
       // TODO: also inform the story to update its description
@@ -191,6 +204,7 @@ exports.onStatementChangedConfidence = onMessagePublished(
 // ////////////////////////////////////////////////////////////////////////////
 // Bias
 // ////////////////////////////////////////////////////////////////////////////
+
 exports.onStatementShouldChangeBias = onMessagePublished(
     {
       topic: STATEMENT_SHOULD_CHANGE_BIAS,
@@ -224,9 +238,18 @@ exports.onStatementChangedBias = onMessagePublished(
       }
 
       const eids = after?.eids ?? before?.eids;
-
       for (const eid of eids) {
         await publishMessage(ENTITY_SHOULD_CHANGE_BIAS, {eid: eid});
+      }
+
+      const pids = after?.pids ?? before?.pids;
+      for (const pid of pids) {
+        await publishMessage(POST_SHOULD_CHANGE_BIAS, {pid: pid});
+      }
+
+      const sids = after?.sids ?? before?.sids;
+      for (const sid of sids) {
+        await publishMessage(STORY_SHOULD_CHANGE_BIAS, {sid: sid});
       }
 
       // TODO: also inform the story to update its description
@@ -256,7 +279,7 @@ const statementChangedContent = async function(before, after) {
 };
 
 // ////////////////////////////////////////////////////////////////////////////
-// values sync
+// Sync
 // ////////////////////////////////////////////////////////////////////////////
 
 exports.onPostChangedStatements = onMessagePublished(

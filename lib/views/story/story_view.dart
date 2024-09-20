@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:political_think/common/components/loading.dart';
+import 'package:political_think/common/components/stats_table.dart';
 import 'package:political_think/common/components/zapp_bar.dart';
 import 'package:political_think/common/components/zdivider.dart';
 import 'package:political_think/common/components/zicon_text.dart';
@@ -10,6 +11,8 @@ import 'package:political_think/common/extensions.dart';
 import 'package:political_think/common/models/statement.dart';
 import 'package:political_think/common/services/zprovider.dart';
 import 'package:political_think/common/util/utils.dart';
+import 'package:political_think/views/Confidence/Confidence_widget.dart';
+import 'package:political_think/views/bias/political_position_widget.dart';
 import 'package:political_think/views/statement/statement_tab_view.dart';
 import 'package:political_think/views/statement/statement_view.dart';
 
@@ -74,48 +77,34 @@ class _StoryViewState extends ConsumerState<StoryView> {
                         ),
                       ),
                       const Spacer(),
-                      ZIconText(
-                          icon: FontAwesomeIcons.triangleExclamation,
-                          text: story?.importance?.toString() ?? ""),
                     ],
                   ),
                   context.sh,
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Visibility(
-                        visible: story?.avgReplies != null,
-                        child: ZIconText(
-                            icon: FontAwesomeIcons.comment,
-                            text: Utils.numToReadableString(story?.avgReplies)),
-                      ),
-                      Visibility(
-                        visible: story?.avgReposts != null,
-                        child: ZIconText(
-                            icon: FontAwesomeIcons.retweet,
-                            text: Utils.numToReadableString(story?.avgReposts)),
-                      ),
-                      Visibility(
-                        visible: story?.avgLikes != null,
-                        child: ZIconText(
-                            icon: FontAwesomeIcons.heart,
-                            text: Utils.numToReadableString(story?.avgLikes)),
-                      ),
-                      Visibility(
-                        visible: story?.avgBookmarks != null,
-                        child: ZIconText(
-                            icon: FontAwesomeIcons.bookmark,
-                            text:
-                                Utils.numToReadableString(story?.avgBookmarks)),
-                      ),
-                      Visibility(
-                        visible: story?.avgViews != null,
-                        child: ZIconText(
-                            icon: FontAwesomeIcons.eye,
-                            text: Utils.numToReadableString(story?.avgViews)),
-                      ),
-                    ],
-                  ),
+                  const ZDivider(type: DividerType.PRIMARY),
+                  context.sh,
+                  StatsTable(map: {
+                    "Newsworthiness": ConfidenceWidget(
+                        confidence: story?.newsworthiness,
+                        enabled: false,
+                        jagged: true),
+                    "Avg. Confidence": ConfidenceWidget(
+                        confidence: story?.confidence, enabled: false),
+                    "Avg. Bias": PoliticalPositionWidget(
+                        position: story?.bias, enabled: false),
+                    "Avg. Replies":
+                        Text(Utils.numToReadableString(story?.avgReplies)),
+                    "Avg. Reposts":
+                        Text(Utils.numToReadableString(story?.avgReposts)),
+                    "Avg. Likes":
+                        Text(Utils.numToReadableString(story?.avgLikes)),
+                    "Avg. Bookmarks":
+                        Text(Utils.numToReadableString(story?.avgBookmarks)),
+                    "Avg. Views":
+                        Text(Utils.numToReadableString(story?.avgViews)),
+                    "Sample Size":
+                        Text(Utils.numToReadableString(story?.pids.length)),
+                  }),
+                  context.sf,
                   const ZDivider(type: DividerType.PRIMARY),
                   StatementTabView(statements: statementsFromStory),
                 ],

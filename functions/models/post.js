@@ -18,6 +18,10 @@ const {
   POST_CHANGED_STATS,
   ENTITY_SHOULD_CHANGE_STATS,
   STORY_SHOULD_CHANGE_STATS,
+  PLATFORM_CHANGED_POSTS,
+  PLATFORM_SHOULD_CHANGE_STATS,
+  POST_SHOULD_CHANGE_CONFIDENCE,
+  POST_SHOULD_CHANGE_BIAS,
 } = require("../common/pubsub");
 const {
   getPost,
@@ -28,8 +32,11 @@ const {
   getEntity,
   canFindStories,
   getAllStoriesForPost,
+  getPlatform,
+  deleteAttribute,
 } = require("../common/database");
-const {retryAsyncFunction, handleChangedRelations} = require("../common/utils");
+const {retryAsyncFunction,
+  handleChangedRelations} = require("../common/utils");
 const _ = require("lodash");
 const {xupdatePost} = require("../content/xscraper");
 const {generateCompletions} = require("../common/llm");
@@ -37,6 +44,10 @@ const {generateImageDescriptionPrompt} = require("../ai/prompts");
 const {queueTask,
   POST_SHOULD_FIND_STORIES_AND_STATEMENTS_TASK} = require("../common/tasks");
 const {onTaskDispatched} = require("firebase-functions/v2/tasks");
+const {getPlatformType} = require("./platform");
+const {didChangeStats} = require("../ai/newsworthiness");
+const {onPostShouldChangeConfidence} = require("../ai/confidence");
+const {onPostShouldChangeBias} = require("../ai/bias");
 
 
 exports.onPostUpdate = onDocumentWritten(
@@ -99,17 +110,22 @@ exports.onPostUpdate = onDocumentWritten(
       ) {
         await publishMessage(POST_CHANGED_STATEMENTS,
             {before: before, after: after});
+        await publishMessage(POST_SHOULD_CHANGE_BIAS,
+            {pid: after?.pid || before?.pid});
+        await publishMessage(POST_SHOULD_CHANGE_CONFIDENCE,
+            {pid: after?.pid || before?.pid});
       }
 
       if (
-        _create && (after.replies || after.reposts ||
-          after.likes || after.bookmarks || after.views) ||
-        _update && (before.replies != after.replies ||
-          before.reposts != after.reposts || before.likes != after.likes ||
-          before.bookmarks != after.bookmarks || before.views != after.views) ||
-        _delete && (before.replies || before.reposts ||
-          before.likes || before.bookmarks || before.views)
+        _create && after.plid ||
+        _update && before.plid != after.plid ||
+        _delete && before.plid
       ) {
+        await publishMessage(PLATFORM_SHOULD_CHANGE_STATS,
+            {plid: after?.plid || before?.plid});
+      }
+
+      if (didChangeStats(_create, _update, _delete, before, after, false)) {
         await publishMessage(POST_CHANGED_STATS,
             {before: before, after: after});
       }
@@ -192,6 +208,54 @@ exports.onPostPublished = onMessagePublished(
     },
 );
 
+// ////////////////////////////////////////////////////////////////////////////
+// Confidence
+// ////////////////////////////////////////////////////////////////////////////
+
+exports.onPostShouldChangeConfidence = onMessagePublished(
+    {
+      topic: POST_SHOULD_CHANGE_CONFIDENCE,
+      ...defaultConfig,
+    },
+    async (event) => {
+      const pid = event.data.message.json.pid;
+      if (!pid) {
+        return Promise.resolve();
+      }
+      logger.info(`onPostShouldChangeConfidence: ${pid}`);
+
+      await onPostShouldChangeConfidence(pid);
+
+      return Promise.resolve();
+    },
+);
+
+// ////////////////////////////////////////////////////////////////////////////
+// Bias
+// ////////////////////////////////////////////////////////////////////////////
+
+exports.onPostShouldChangeBias = onMessagePublished(
+    {
+      topic: POST_SHOULD_CHANGE_BIAS,
+      ...defaultConfig,
+    },
+    async (event) => {
+      const pid = event.data.message.json.pid;
+      if (!pid) {
+        return Promise.resolve();
+      }
+      logger.info(`onPostShouldChangeBias: ${pid}`);
+
+      await onPostShouldChangeBias(pid);
+
+      return Promise.resolve();
+    },
+);
+
+// ////////////////////////////////////////////////////////////////////////////
+// Content
+// ////////////////////////////////////////////////////////////////////////////
+
 /**
  * triggers fetching the post
  * called when a post changed external id
@@ -209,7 +273,7 @@ exports.onPostChangedXid = onMessagePublished(
       const pid = event.data.message.json.pid;
       const post = await getPost(pid);
 
-      if (!post || !post.xid || !post.sourceType || !post.eid) {
+      if (!post || !post.xid || !post.plid || !post.eid) {
         return Promise.resolve();
       }
       const entity = await getEntity(post.eid);
@@ -217,16 +281,22 @@ exports.onPostChangedXid = onMessagePublished(
         return Promise.resolve();
       }
 
-      if (post.sourceType == "x") {
+      const platform = await getPlatform(post.plid);
+
+      if (getPlatformType(platform) == "x") {
         await xupdatePost(post);
       } else {
-        logger.error(`Unsupported source type: ${post.sourceType}`);
+        logger.error(`Unsupported source type: ${platform.url}`);
         return Promise.resolve();
       }
 
       return Promise.resolve();
     },
 );
+
+// ////////////////////////////////////////////////////////////////////////////
+// Stats
+// ////////////////////////////////////////////////////////////////////////////
 
 /**
  * triggers Entity and Stories to update their stats
@@ -249,13 +319,7 @@ exports.onPostChangedStats = onMessagePublished(
         return Promise.resolve();
       }
 
-      const entity = await getEntity(post.eid);
-      if (!entity) {
-        logger.warn("No entity found for onPostChangedStats");
-        return Promise.resolve();
-      }
-
-      await publishMessage(ENTITY_SHOULD_CHANGE_STATS, {eid: entity.eid});
+      await publishMessage(ENTITY_SHOULD_CHANGE_STATS, {eid: post.eid});
 
       const stories = await getAllStoriesForPost(post.pid);
       if (!stories) {
@@ -267,9 +331,15 @@ exports.onPostChangedStats = onMessagePublished(
         await publishMessage(STORY_SHOULD_CHANGE_STATS, {sid: story.sid});
       }
 
+      await publishMessage(PLATFORM_SHOULD_CHANGE_STATS, {plid: post.plid});
+
       return Promise.resolve();
     },
 );
+
+// ////////////////////////////////////////////////////////////////////////////
+// Content
+// ////////////////////////////////////////////////////////////////////////////
 
 /**
  * TXN
@@ -411,7 +481,7 @@ exports.onStatementChangedPosts = onMessagePublished(
 
 /**
  * 'TXN' - called from Entity.js
- * Updates the Entity that this Post is part of
+ * Updates the Post
  * @param {Entity} before
  * @param {Entity} after
  */
@@ -425,6 +495,29 @@ exports.onEntityChangedPosts = onMessagePublished(
       const after = event.data.message.json.after;
       await handleChangedRelations(before, after,
           "pids", updatePost, "eid", "eid", {}, "manyToOne");
+      return Promise.resolve();
+    },
+);
+
+/**
+ * 'TXN' - called from Platform.js
+ * Updates the Post
+ * @param {Platform} before
+ * @param {Platform} after
+ */
+exports.onPlatformChangedPosts = onMessagePublished(
+    {
+      topic: PLATFORM_CHANGED_POSTS, // Make sure to define this topic
+      ...defaultConfig,
+    },
+    async (event) => {
+      const before = event.data.message.json.before;
+      const after = event.data.message.json.after;
+
+      if (before && !after) {
+        await deleteAttribute("posts", "plid", "==", before.plid);
+      }
+
       return Promise.resolve();
     },
 );

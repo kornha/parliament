@@ -2,9 +2,8 @@ const admin = require("firebase-admin");
 const {Timestamp, FieldPath, FieldValue} = require("firebase-admin/firestore");
 const {v4} = require("uuid");
 const _ = require("lodash");
-const {retryAsyncFunction} = require("./utils");
+const {retryAsyncFunction, urlToDomain} = require("./utils");
 const {logger} = require("firebase-functions/v2");
-
 
 // /////////////////////////////////////////
 // User
@@ -163,16 +162,17 @@ const getPosts = async function(pids) {
 /**
  * fetches a post by xid
  * @param {*} xid
- * @param {*} sourceType
+ * @param {*} plid
  * @return {Post}
  * */
-const getPostByXid = async function(xid, sourceType) {
+const getPostByXid = async function(xid, plid) {
   if (!xid) {
     logger.error(`Could not get post by xid: ${xid}`);
     return;
   }
   const postsRef = admin.firestore().collection("posts")
-      .where("xid", "==", xid).where("sourceType", "==", sourceType).limit(1);
+      .where("xid", "==", xid)
+      .where("plid", "==", plid).limit(1);
   try {
     const posts = await postsRef.get();
     return posts.docs.map((post) => post.data())[0];
@@ -262,6 +262,29 @@ const getAllPostsForStatement = async function(stid) {
   }
 };
 
+/**
+ * fetches all posts for platform
+ * @param {*} plid
+ * @param {*} limit // INCLUDES LIMIT DUE TO POTENTIAL SIZE
+ * @return {Array} of posts
+ */
+const getAllPostsForPlatform = async function(plid, limit = 10000) {
+  if (!plid) {
+    logger.error(`Could not get posts for platform: ${plid}`);
+    return;
+  }
+  const postsRef = admin.firestore().collection("posts")
+      .where("plid", "==", plid)
+      .orderBy("updatedAt", "desc")
+      .limit(limit);
+  try {
+    const posts = await postsRef.get();
+    return posts.docs.map((post) => post.data());
+  } catch (e) {
+    return null;
+  }
+};
+
 const deletePost = async function(pid) {
   if (!pid) {
     logger.error(`Could not delete post: ${pid}`);
@@ -276,6 +299,10 @@ const deletePost = async function(pid) {
     return false;
   }
 };
+
+// /////////////////////////////////////////
+// Story
+// /////////////////////////////////////////
 
 /**
  * Determines if we can find stories or if it is already in progress
@@ -332,10 +359,6 @@ const bulkSetPosts = async function(posts) {
     return false;
   }
 };
-
-// /////////////////////////////////////////
-// Story
-// /////////////////////////////////////////
 
 const createStory = async function(story) {
   if (!story.sid || !story.createdAt) {
@@ -471,6 +494,29 @@ const getAllStoriesForPost = async function(pid) {
   }
 };
 
+/**
+ * fetches all stories for platform
+ * @param {*} plid
+ * @param {*} limit // INCLUDES LIMIT DUE TO POTENTIAL SIZE
+ * @return {Array} of stories
+ */
+const getAllStoriesForPlatform = async function(plid, limit = 10000) {
+  if (!plid) {
+    logger.error(`Could not get stories for platform: ${plid}`);
+    return;
+  }
+  const storiesRef = admin.firestore().collection("stories")
+      .where("plids", "array-contains", plid)
+      .orderBy("updatedAt", "desc")
+      .limit(limit);
+  try {
+    const stories = await storiesRef.get();
+    return stories.docs.map((story) => story.data());
+  } catch (e) {
+    return null;
+  }
+};
+
 // /////////////////////////////////////////
 // Entity
 // /////////////////////////////////////////
@@ -516,22 +562,24 @@ const updateEntity = async function(eid, values, skipError) {
 /**
  * Finds or creates an entity by handle.
  * @param {string} handle the entity handle.
- * @param {string} sourceType the source type.
- * @return {string} the entity id.
+ * @param {Platform} platform the source type.
+ * @return {entity} the entity id.
+ * @throws {Error} if the entity could not be created.
  */
-const findCreateEntity = async function(handle, sourceType) {
+const findCreateEntity = async function(handle, platform) {
   if (!handle) {
     logger.error("No handle provided.");
     return;
   }
 
-  if (!sourceType) {
-    logger.error("No sourceType provided.");
+  if (!platform) {
+    logger.error("No platform provided.");
     return;
   }
+
   // check if first char is @
-  // need to see if this is needed for other platforms
-  if (handle[0] == "@" && sourceType == "x") {
+  // might need to be tweaked for other platforms
+  if (handle[0] == "@") {
     handle = handle.slice(1);
   }
 
@@ -539,19 +587,22 @@ const findCreateEntity = async function(handle, sourceType) {
     getEntityByHandle(handle), 2, 1000, false);
 
   if (entity) {
-    return entity.eid;
+    return entity;
   }
 
   const eid = v4();
   const newEntity = {
     eid: eid,
     handle: handle,
-    sourceType: sourceType,
+    plid: platform.plid,
     createdAt: Timestamp.now().toMillis(),
     updatedAt: Timestamp.now().toMillis(),
   };
-  await retryAsyncFunction(() => createEntity(newEntity));
-  return eid;
+  if (await retryAsyncFunction(() => createEntity(newEntity))) {
+    return newEntity;
+  } else {
+    throw new Error("Could not create entity.");
+  }
 };
 
 const getEntity = async function(eid) {
@@ -591,7 +642,7 @@ const getEntityByHandle = async function(handle) {
 /**
  * fetches all entities for a statement
  * @param {*} stid
- * @return {Array<Statement>} of statements
+ * @return {Array<Entity>} of entities
  * */
 const getAllEntitiesForStatement = async function(stid) {
   if (!stid) {
@@ -603,6 +654,158 @@ const getAllEntitiesForStatement = async function(stid) {
   try {
     const entities = await entitiesRef.get();
     return entities.docs.map((entity) => entity.data());
+  } catch (e) {
+    return null;
+  }
+};
+
+/**
+ * fetches all entities for a platform
+ * @param {*} plid
+ * @param {*} limit // INCLUDES LIMIT DUE TO POTENTIAL SIZE
+ * @return {Array<Entity>} of entities
+ * */
+const getAllEntitiesForPlatform = async function(plid, limit = 10000) {
+  if (!plid) {
+    logger.error(`Could not get entities for platform: ${plid}`);
+    return;
+  }
+  const entitiesRef = admin.firestore().collection("entities")
+      .where("plid", "==", plid).limit(limit);
+  try {
+    const entities = await entitiesRef.get();
+    return entities.docs.map((entity) => entity.data());
+  } catch (e) {
+    return null;
+  }
+};
+
+// /////////////////////////////////////////
+// Platform
+// /////////////////////////////////////////
+
+const getPlatform = async function(plid) {
+  if (!plid) {
+    logger.error(`Could not get platform: ${plid}`);
+    return;
+  }
+  const platformRef = admin.firestore().collection("platforms").doc(plid);
+  try {
+    const platform = await platformRef.get();
+    return platform.data();
+  } catch (e) {
+    return null;
+  }
+};
+
+const createPlatform = async function(platform) {
+  if (!platform.plid || !platform.createdAt || !platform.url) {
+    logger.error(`Could not create platform: ${platform}`);
+    return;
+  }
+  const platformRef = admin
+      .firestore()
+      .collection("platforms")
+      .doc(platform.plid);
+  try {
+    await platformRef.create(platform);
+    return true;
+  } catch (e) {
+    logger.error(e);
+    return false;
+  }
+};
+
+const updatePlatform = async function(plid, values, skipError) {
+  if (!plid || !values) {
+    logger.error(`Could not update platform: ${plid}`);
+    return;
+  }
+  const platformRef = admin.firestore().collection("platforms").doc(plid);
+  try {
+    await platformRef.update(values);
+    return true;
+  } catch (e) {
+    if (e?.code && e?.code == skipError) {
+      return true;
+    }
+    logger.error(e);
+    return false;
+  }
+};
+
+/**
+ * fetches all platforms by ids
+ * @param {*} plids
+ * @return {Array<Platform>} of platforms
+ * */
+const getPlatforms = async function(plids) {
+  if (!plids) {
+    logger.error(`Could not get platforms: ${plids}`);
+    return;
+  }
+
+  if (plids.length > 10) {
+    logger.error(`Too many plids! ${plids}`);
+    return;
+  }
+
+  const platformsRef = admin.firestore().collection("platforms");
+  try {
+    const platforms = await platformsRef.where(FieldPath.documentId(),
+        "in", plids).get();
+    return platforms.docs.map((platform) => platform.data());
+  } catch (e) {
+    return null;
+  }
+};
+
+/**
+ * Finds or creates a platform by URL.
+ * @param {string} link the platform URL.
+ * @return {platform} the platform.
+ * @throws {Error} if the platform could not be created.
+ */
+const findCreatePlatform = async function(link) {
+  if (!link) {
+    logger.error("No link provided.");
+    return;
+  }
+
+  const url = urlToDomain(link);
+
+  const platform = await retryAsyncFunction(() =>
+    getPlatformByURL(url), 2, 1000, false);
+
+  if (platform) {
+    return platform;
+  }
+
+  const plid = v4();
+  const newPlatform = {
+    plid: plid,
+    url: url,
+    createdAt: Timestamp.now().toMillis(),
+    updatedAt: Timestamp.now().toMillis(),
+  };
+
+  if (await retryAsyncFunction(() => createPlatform(newPlatform))) {
+    return newPlatform;
+  } else {
+    throw new Error("Could not create platform.");
+  }
+};
+
+const getPlatformByURL = async function(url) {
+  if (!url) {
+    logger.error(`Could not get platform by url: ${url}`);
+    return;
+  }
+  const platformRef = admin.firestore().collection("platforms")
+      .where("url", "==", url).limit(1);
+  try {
+    const platforms = await platformRef.get();
+    return platforms.docs.map((platform) => platform.data())[0];
   } catch (e) {
     return null;
   }
@@ -905,6 +1108,40 @@ const getDBDocument = async function(id, collectionId) {
   }
 };
 
+/**
+ * Generic method for deleting a field from a document, matching a where clause
+ * @param {String} collection
+ * @param {String} fieldName
+ * @param {String} equality
+ * @param {String} fieldValue
+ * @param {Boolean} list deleting an item from a list or not
+ * @return {Promise<void>}
+ */
+async function deleteAttribute(collection,
+    fieldName, equality, fieldValue, list=false) {
+  const ref = admin.firestore().collection(collection);
+  const query = ref.where(fieldName, equality, fieldValue);
+
+  const snapshot = await query.get();
+
+  if (snapshot.empty) {
+    return;
+  }
+
+  const batch = admin.firestore().batch();
+
+  snapshot.forEach((doc) => {
+    const docRef = doc.ref;
+    if (list) {
+      batch.update(docRef, {[fieldName]: FieldValue.arrayRemove(fieldValue)});
+    } else {
+      batch.update(docRef, {[fieldName]: FieldValue.delete()});
+    }
+  });
+
+  await batch.commit();
+}
+
 // /////////////////////////////////////////
 // Vector
 // /////////////////////////////////////////
@@ -994,6 +1231,7 @@ module.exports = {
   getAllPostsForStory,
   getAllPostsForStatement,
   getAllPostsForEntity,
+  getAllPostsForPlatform,
   bulkSetPosts,
   canFindStories,
   //
@@ -1005,6 +1243,7 @@ module.exports = {
   getRecentStories,
   getStories,
   getAllStoriesForPost,
+  getAllStoriesForPlatform,
   //
   createEntity,
   getEntity,
@@ -1012,6 +1251,7 @@ module.exports = {
   updateEntity,
   findCreateEntity,
   getAllEntitiesForStatement,
+  getAllEntitiesForPlatform,
   //
   createNewRoom,
   getRoom,
@@ -1028,10 +1268,17 @@ module.exports = {
   getAllStatementsForStory,
   getAllStatementsForEntity,
   //
+  findCreatePlatform,
+  createPlatform,
+  updatePlatform,
+  getPlatform,
+  getPlatformByURL,
+  getPlatforms,
   //
   getMessages,
   //
   getDBDocument,
+  deleteAttribute,
   //
   setVector,
   searchVectors,
