@@ -35,7 +35,7 @@ class _StoryItemViewState extends ConsumerState<StoryItemView> {
 
     bool shouldShowSecondaryPosts = (allPosts?.length ?? 0) >= 1;
     bool shouldShowPhotos = (story?.photos.length ?? 0) >= 1;
-    double importance = story?.importance ?? 0.0;
+    double newsworthiness = story?.newsworthiness?.value ?? 0.0;
 
     return storyRef.isLoading || allPostsRef.isLoading
         ? const Loading(type: LoadingType.post)
@@ -57,11 +57,11 @@ class _StoryItemViewState extends ConsumerState<StoryItemView> {
                                       "${StoryView.location}/${story.sid}"),
                                   child: Text(
                                     story.headline!,
-                                    style: importance < 0.5
+                                    style: newsworthiness < 0.5
                                         ? context.h5b
-                                        : importance < 0.7
+                                        : newsworthiness < 0.7
                                             ? context.h4b
-                                            : importance < 0.9
+                                            : newsworthiness < 0.9
                                                 ? context.h3b
                                                 : context.h2b,
                                     textAlign: TextAlign.start,

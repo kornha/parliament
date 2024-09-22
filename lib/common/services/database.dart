@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:political_think/common/models/confidence.dart';
 import 'package:political_think/common/models/post.dart';
 import 'package:political_think/common/models/room.dart';
 import 'package:political_think/common/models/story.dart';
@@ -34,6 +35,9 @@ class Database {
 
   final CollectionReference statementCollection =
       FirebaseFirestore.instance.collection('statements');
+
+  final CollectionReference platformCollection =
+      FirebaseFirestore.instance.collection('platforms');
 
   Stream<ZUser?> getUser(uid) {
     return userCollection.doc(uid).snapshots().map((snapshot) {
@@ -114,8 +118,9 @@ class Database {
               // Cannot filter on server side since we are using a range query
               stories = stories
                   .where((story) =>
-                      story.importance != null &&
-                      story.importance! >= (settings?.minImportance ?? 0))
+                      story.newsworthiness != null &&
+                      story.newsworthiness! >=
+                          (settings?.minNewsworthiness ?? Confidence(value: 0)))
                   .toList();
 
               if (stories.isNotEmpty) {

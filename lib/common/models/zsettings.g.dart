@@ -7,9 +7,11 @@ part of 'zsettings.dart';
 // **************************************************************************
 
 ZSettings _$ZSettingsFromJson(Map<String, dynamic> json) => ZSettings(
-      minImportance: (json['minImportance'] as num?)?.toDouble() ?? 0.0,
+      minNewsworthiness: json['minNewsworthiness'] == null
+          ? null
+          : Confidence.fromJson(json['minNewsworthiness']),
     );
 
 Map<String, dynamic> _$ZSettingsToJson(ZSettings instance) => <String, dynamic>{
-      'minImportance': instance.minImportance,
+      'minNewsworthiness': instance.minNewsworthiness?.toJson(),
     };

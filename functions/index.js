@@ -18,6 +18,9 @@ const {
   onStatementChangedPosts,
   onEntityChangedPosts,
   onPostChangedStats,
+  onPlatformChangedPosts,
+  onPostShouldChangeBias,
+  onPostShouldChangeConfidence,
 } = require("./models/post");
 const {onVoteBiasChange, onVoteCredibilityChange} = require("./models/vote");
 const {generateBiasTraining} = require("./ai/scripts");
@@ -29,6 +32,11 @@ const {
   onStatementChangedStories,
   onPostChangedStories,
   onStoryShouldChangeStats,
+  onPlatformChangedStories,
+  onStoryShouldChangePlatforms,
+  onStoryShouldChangeNewsworthiness,
+  onStoryShouldChangeBias,
+  onStoryShouldChangeConfidence,
 } = require("./models/story");
 const {
   onStatementUpdate, onStatementChangedVector,
@@ -51,7 +59,12 @@ const {
   onEntityShouldChangeBias,
   onEntityChangedBias,
   onEntityShouldChangeStats,
+  onPlatformChangedEntities,
 } = require("./models/entity");
+const {onPlatformUpdate,
+  onPlatformShouldChangeImage,
+  onPlatformShouldChangeStats,
+  onPlatformChangedStats} = require("./models/platform");
 
 admin.initializeApp();
 
@@ -81,6 +94,7 @@ const functions = require("firebase-functions/v2");
 const {testPolymarket} = require("./market/scripts");
 
 
+
 const test = functions.https.onCall(async (data, context) => {
   await testPolymarket();
 });
@@ -104,6 +118,9 @@ module.exports = {
   onStatementChangedPosts,
   onEntityChangedPosts,
   onPostChangedStats,
+  onPlatformChangedPosts,
+  onPostShouldChangeBias,
+  onPostShouldChangeConfidence,
   // Story
   onStoryUpdate,
   onStoryPostsChanged,
@@ -112,6 +129,11 @@ module.exports = {
   onStatementChangedStories,
   onPostChangedStories,
   onStoryShouldChangeStats,
+  onPlatformChangedStories,
+  onStoryShouldChangePlatforms,
+  onStoryShouldChangeNewsworthiness,
+  onStoryShouldChangeBias,
+  onStoryShouldChangeConfidence,
   // Statement
   onStatementUpdate,
   onStatementChangedVector,
@@ -137,6 +159,12 @@ module.exports = {
   onEntityShouldChangeBias,
   onEntityChangedBias,
   onEntityShouldChangeStats,
+  onPlatformChangedEntities,
+  // Platform
+  onPlatformUpdate,
+  onPlatformShouldChangeImage,
+  onPlatformShouldChangeStats,
+  onPlatformChangedStats,
   // Content
   onLinkPaste,
   onScrapeX,

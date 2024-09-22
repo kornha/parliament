@@ -3,16 +3,17 @@ const {onMessagePublished} = require("firebase-functions/v2/pubsub");
 const {logger} = require("firebase-functions/v2");
 const {authenticate} = require("../common/auth");
 const {gbConfig, scrapeConfig} = require("../common/functions");
-const {urlToSourceType} = require("../common/utils");
 const {processXLinks, scrapeXTopNews, scrapeXFeed} = require("./xscraper");
 const {SHOULD_SCRAPE_FEED} = require("../common/pubsub");
+const {findCreatePlatform} = require("../common/database");
+const {getPlatformType} = require("../models/platform");
 
 // ////////////////////////////
 // API's
 // ////////////////////////////
 
 /**
- * Calls process Link for the given sourceType
+ * Calls process Link for the given platform
  * @param {string} data.link
  * */
 const onLinkPaste = onCall(
@@ -24,14 +25,11 @@ const onLinkPaste = onCall(
         throw new HttpsError("invalid-argument", "No link provided.");
       }
 
-      const sourceType = urlToSourceType(data.link);
-
-      if (!sourceType) {
-        throw new HttpsError("invalid-argument", "Platform not supported.");
-      }
-
       let pids = [];
-      if (sourceType == "x") {
+
+      const platform = await findCreatePlatform(data.link);
+
+      if (platform && getPlatformType(platform) == "x") {
         pids = await processXLinks([data.link], request.auth.uid);
       } else {
         throw new HttpsError("invalid-argument", "Platform not supported.");

@@ -28,8 +28,8 @@ class _LoginState extends ConsumerState<Login> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Spacer(),
-            Logo(size: context.iconSizeXXXL),
-            context.st,
+            Logo(size: context.iconSizeXXL),
+            context.sd,
             const LogoText(),
             const Spacer(flex: 20), // hack, change
             TextButton(

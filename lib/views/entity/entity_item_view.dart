@@ -6,7 +6,7 @@ import 'package:political_think/common/components/profile_icon.dart';
 import 'package:political_think/common/components/zdivider.dart';
 import 'package:political_think/common/components/zerror.dart';
 import 'package:political_think/common/extensions.dart';
-import 'package:political_think/common/models/source_type.dart';
+import 'package:political_think/common/models/platform.dart';
 import 'package:political_think/views/Confidence/Confidence_widget.dart';
 import 'package:political_think/views/bias/political_position_widget.dart';
 import 'package:political_think/views/entity/entity_view.dart';
@@ -28,6 +28,12 @@ class _EntityItemViewState extends ConsumerState<EntityItemView> {
   Widget build(BuildContext context) {
     final entityRef = ref.entityWatch(widget.eid);
     final entity = entityRef.value;
+
+    AsyncValue<Platform?>? platformRef;
+    if (entity?.plid != null) {
+      platformRef = ref.platformWatch(entity!.plid!);
+    }
+    var platform = platformRef?.value;
 
     return entityRef.isLoading
         ? const Loading()
@@ -59,12 +65,8 @@ class _EntityItemViewState extends ConsumerState<EntityItemView> {
                     },
                   ),
                   context.sl,
-                  Icon(
-                    entity.sourceType.icon,
-                    size: context.iconSizeSmall,
-                    color: context.secondaryColor,
-                    applyTextScaling: true,
-                  ),
+                  platform?.getIcon(context.iconSizeSmall) ??
+                      const SizedBox.shrink(),
                   const Spacer(),
                   PoliticalPositionWidget(
                     position: entity.bias,

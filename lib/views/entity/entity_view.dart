@@ -9,8 +9,8 @@ import 'package:political_think/common/components/zdivider.dart';
 import 'package:political_think/common/components/zerror.dart';
 import 'package:political_think/common/components/zicon_text.dart';
 import 'package:political_think/common/components/zscaffold.dart';
+import 'package:political_think/common/models/platform.dart';
 import 'package:political_think/common/models/post.dart';
-import 'package:political_think/common/models/source_type.dart';
 import 'package:political_think/common/extensions.dart';
 import 'package:political_think/common/util/utils.dart';
 import 'package:political_think/views/Confidence/Confidence_widget.dart';
@@ -45,6 +45,12 @@ class _EntityItemViewState extends ConsumerState<EntityView> {
       allPosts = allPostsRef.value;
     }
 
+    AsyncValue<Platform?>? platformRef;
+    if (entity?.plid != null) {
+      platformRef = ref.platformWatch(entity!.plid!);
+    }
+    var platform = platformRef?.value;
+
     return ZScaffold(
       appBar: ZAppBar(showBackButton: true),
       body: entityRef.isLoading
@@ -63,11 +69,8 @@ class _EntityItemViewState extends ConsumerState<EntityView> {
                       style: context.h2b,
                     ),
                     context.sf,
-                    Icon(
-                      entity.sourceType.icon,
-                      size: context.iconSizeStandard,
-                      color: context.secondaryColor,
-                    ),
+                    platform?.getIcon(context.iconSizeStandard) ??
+                        const SizedBox.shrink(),
                     context.sf,
                     const ZDivider(),
                     context.sh,

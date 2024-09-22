@@ -20,6 +20,7 @@ class ConfidenceSlider extends StatefulWidget {
   final bool showUnselected;
   final bool showText;
   final bool showNullBackround;
+  final bool jagged;
 
   ConfidenceSlider({
     super.key,
@@ -36,6 +37,7 @@ class ConfidenceSlider extends StatefulWidget {
     this.showText = true,
     this.showNull2AsLoading = false,
     this.showNull3AsLoading = false,
+    this.jagged = false,
   });
 
   @override
@@ -84,6 +86,7 @@ class _ConfidenceSliderState extends State<ConfidenceSlider> {
                 showUnselected: widget.showUnselected,
                 showText: widget.showText,
                 showNullBackround: widget.showNullBackround,
+                jagged: widget.jagged,
               ),
             ),
             Visibility(
@@ -96,6 +99,7 @@ class _ConfidenceSliderState extends State<ConfidenceSlider> {
                       rows: widget.rows,
                       columns: widget.columns,
                       showUnselected: widget.showUnselected,
+                      jagged: widget.jagged,
                     )
                   : ConfidenceComponent(
                       confidence: widget.confidence2,
@@ -105,6 +109,7 @@ class _ConfidenceSliderState extends State<ConfidenceSlider> {
                       columns: widget.columns,
                       showUnselected: widget.showUnselected,
                       showNullBackround: widget.showNullBackround,
+                      jagged: widget.jagged,
                     ),
             ),
             Visibility(
@@ -117,6 +122,7 @@ class _ConfidenceSliderState extends State<ConfidenceSlider> {
                       rows: widget.rows,
                       columns: widget.columns,
                       showUnselected: widget.showUnselected,
+                      jagged: widget.jagged,
                     )
                   : ConfidenceComponent(
                       confidence: widget.confidence3,
@@ -126,6 +132,7 @@ class _ConfidenceSliderState extends State<ConfidenceSlider> {
                       columns: widget.columns,
                       showUnselected: widget.showUnselected,
                       showNullBackround: widget.showNullBackround,
+                      jagged: widget.jagged,
                     ),
             ),
           ],
@@ -144,29 +151,35 @@ class _ConfidenceSliderState extends State<ConfidenceSlider> {
               max: 1.0,
               min: 0.0,
               value: widget.selectedConfidence?.value ?? 0.0,
-              onChanged: (dynamic newValue) {
-                setState(() {
-                  if (widget.selectedConfidence == null) {
-                    widget.selectedConfidence =
-                        Confidence(value: newValue as double);
-                  } else {
-                    widget.selectedConfidence =
-                        Confidence(value: newValue as double);
-                  }
-                });
-              },
-              onChangeStart: (value) {
-                setState(() {
-                  _isEditing = true;
-                });
-              },
-              onChangeEnd: (value) {
-                widget.onConfidenceSelected
-                    ?.call(Confidence(value: value as double));
-                setState(() {
-                  _isEditing = false;
-                });
-              },
+              onChanged: widget.onConfidenceSelected == null
+                  ? null
+                  : (dynamic newValue) {
+                      setState(() {
+                        if (widget.selectedConfidence == null) {
+                          widget.selectedConfidence =
+                              Confidence(value: newValue as double);
+                        } else {
+                          widget.selectedConfidence =
+                              Confidence(value: newValue as double);
+                        }
+                      });
+                    },
+              onChangeStart: widget.onConfidenceSelected == null
+                  ? null
+                  : (value) {
+                      setState(() {
+                        _isEditing = true;
+                      });
+                    },
+              onChangeEnd: widget.onConfidenceSelected == null
+                  ? null
+                  : (value) {
+                      widget.onConfidenceSelected
+                          ?.call(Confidence(value: value as double));
+                      setState(() {
+                        _isEditing = false;
+                      });
+                    },
             ),
           ),
         ),

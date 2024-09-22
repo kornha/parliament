@@ -245,58 +245,73 @@ Consider a *Parliamentary* (roll credits) system of government, in which there a
 *If I were to seat every member of Parliament at a round table, such that I wanted to maximize agreement and minimize the disagreement between a member and the two people sitting next to the member, how would I seat the people?* The reason this is chosen is more philosophical than mathematical, as it assumes there is a center, right, left, and anti-center, what we label the extreme. This is a mode of grouping that we find to be understandable by many people and is a manifestation of the _horseshoe theory_. If we accept this assumption, we mathematically represent bias as an angle between `0.0` and `360.0` degrees, and calculate angle updates by simple angular arithmetic. The full algorithm [written in the code](functions/ai/confidence.js).
 
 ```
-function calculateEntityConfidence(entity, statements) {
-  let totalScore = BASE_CONFIDENCE;
+/**
+ * Takes in a list of iterables (entities or statements) and returns avg.
+ * Accounts for whether the post is pro or against.
+ * @param {Object[]} iterable A list of entities or statements.
+ * @param {Object} target The target object, either an entity or statement.
+ * @param {boolean} isEntityTarget Whether the target is an entity
+ * @return {number} The bias (angle) of the entity or statement.
+ * */
+function calculateAverageBias(iterable, target, isEntityTarget) {
+  let x = 0;
+  let y = 0;
   let count = 0;
 
-  // Loop through statements most recent first
-  for (let i = 0; i < statements.length; i++) {
-    const statement = statements[i];
+  // Loop through iterable to calculate the average angle
+  for (let i = 0; i < iterable.length; i++) {
+    const biasObj = iterable[i];
 
-    if (statement.confidence == null) {
+    if (biasObj.bias == null) {
       continue;
     }
 
+    let pro = false;
+    let against = false;
+
+    if (isEntityTarget) {
+      // Target is entity: Check if posts are in the pro/against lists
+      pro = biasObj.pro?.some((pid) => target.pids.includes(pid)) ?? false;
+      against = biasObj.against?.
+          some((pid) => target.pids.includes(pid)) ?? false;
+    } else {
+      // Target is statement: does statement's lists contain the entity's posts
+      pro = target.pro?.some((pid) => biasObj.pids.includes(pid)) ?? false;
+      against = target.against?.
+          some((pid) => biasObj.pids.includes(pid)) ?? false;
+    }
+
+    let bias = biasObj.bias;
+
+    // Reverse the bias if it's in the against list
+    if (against) {
+      bias = (bias + 180) % 360;
+    } else if (pro) {
+      // do nothing
+    }
+
+    const angleInRadians = (bias * Math.PI) / 180;
+
+    // Convert the angle to a vector and accumulate
+    x += Math.cos(angleInRadians);
+    y += Math.sin(angleInRadians);
     count++;
-
-    // more recent statements are penalized/rewarded more
-    const decay = Math.pow(DECAY_FACTOR, i);
-
-    const decidedPro = statement.confidence > DECIDED_THRESHOLD;
-    const decidedAgainst = statement.confidence < 1 - DECIDED_THRESHOLD;
-
-    if (!decidedPro && !decidedAgainst) {
-      continue;
-    }
-
-    let isCorrect = false;
-    let isIncorrect = false;
-
-    if (decidedPro) {
-      isCorrect = entity.pids.some((pid) => statement.pro.includes(pid));
-      isIncorrect = entity.pids.some((pid) => statement.against.includes(pid));
-    } else if (decidedAgainst) {
-      isCorrect = entity.pids.some((pid) => statement.against.includes(pid));
-      isIncorrect = entity.pids.some((pid) => statement.pro.includes(pid));
-    }
-
-    // this allows us to weight the confidence equally for distance to 0 or 1
-    const adjustedConfidence = Math.abs(statement.confidence - 0.5) * 2;
-
-    if (isCorrect) {
-      totalScore +=
-        CORRECT_REWARD * (1 - totalScore) * decay * adjustedConfidence;
-    } else if (isIncorrect) {
-      totalScore +=
-        INCORRECT_PENALTY * totalScore * decay * adjustedConfidence;
-    }
   }
 
+  // If no valid biases, return null
   if (count === 0) {
     return null;
   }
 
-  return Math.max(0, Math.min(1, totalScore));
+  // Calculate the average vector direction
+  const averageX = x / count;
+  const averageY = y / count;
+
+  // Convert the average vector back to an angle
+  const averageBias = Math.atan2(averageY, averageX) * (180 / Math.PI);
+
+  // Ensure the angle is in the range [0, 360)
+  return (averageBias + 360) % 360;
 }
 ```
 
@@ -423,9 +438,7 @@ TheParliament.app (to be released shortly) is a commercial hosted and deployed i
 
 ## Socials
 - **Discord**: Parliament currently supports an official [Discord server](https://discord.gg/HhdBKsK9Pq).
-- **X**: [Alex K](https://x.com/parliament_alex) the creator of Parliament recently began using X in order to publicize and support Parliament. However this account is not officially recognized by Parliament as it may be used for personal purposes, or purposes that do not comply to Parliament's strictly apolitical stance.
-- **Reddit**: [Parliament](https://www.reddit.com/user/cry_more_loser/) is the Reddit account that is used to support and publicize Parliament. It however is not the official Reddit of Parliament and does not claim to be such.
-- **IG, Tiktok and Others**: No current accounts, but these will be created in the near future.
+- **X, Reddit, IG, Tiktok and Others**: No current accounts, but these will be created in the near future.
 
 # Development
 

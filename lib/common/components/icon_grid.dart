@@ -22,7 +22,7 @@ class IconGrid extends StatelessWidget {
                       url: url,
                       radius: IconSize.standard / 2,
                       watch: false,
-                      defaultToSelf: false,
+                      isSelf: false,
                     ))
                 .toList(),
         super(key: key);

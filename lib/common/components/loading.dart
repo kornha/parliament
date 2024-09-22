@@ -206,6 +206,7 @@ class LoadingConfidenceAnimation extends StatefulWidget {
   final int? columns;
   late final int _rows = rows ?? 28;
   late final int _columns = columns ?? width ~/ height * _rows;
+  final bool jagged;
 
   final bool showUnselected;
 
@@ -218,6 +219,7 @@ class LoadingConfidenceAnimation extends StatefulWidget {
     this.rows,
     this.columns,
     this.showUnselected = false,
+    this.jagged = false,
   }) : super(key: key);
 
   @override
@@ -269,8 +271,8 @@ class _LoadingConfidenceAnimationState extends State<LoadingConfidenceAnimation>
       width: widget.width,
       height: widget.height,
       confidence: Confidence(
-        value: topdown ? 1.0 - _animation.value : _animation.value,
-      ),
+          value: topdown ? 1.0 - _animation.value : _animation.value),
+      jagged: widget.jagged,
     );
   }
 }

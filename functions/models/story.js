@@ -8,13 +8,23 @@ const {
   STATEMENT_CHANGED_STORIES,
   POST_CHANGED_STORIES,
   STORY_SHOULD_CHANGE_STATS,
+  STORY_SHOULD_CHANGE_PLATFORMS,
+  PLATFORM_CHANGED_STORIES,
+  STORY_SHOULD_CHANGE_NEWSWORTHINESS,
+  STORY_SHOULD_CHANGE_BIAS,
+  STORY_SHOULD_CHANGE_CONFIDENCE,
 } = require("../common/pubsub");
 const _ = require("lodash");
 const {resetStoryVector} = require("../ai/story_ai");
-const {updateStory, getAllPostsForStory} = require("../common/database");
-const {handleChangedRelations,
-  calculateAverageStats} = require("../common/utils");
+const {updateStory, getAllPostsForStory,
+  deleteAttribute} = require("../common/database");
+const {handleChangedRelations} = require("../common/utils");
 const {logger} = require("firebase-functions/v2");
+const {didChangeStats,
+  calculateAverageStats,
+  onStoryShouldChangeNewsworthiness} = require("../ai/newsworthiness");
+const {onStoryShouldChangeBias} = require("../ai/bias");
+const {onStoryShouldChangeConfidence} = require("../ai/confidence");
 
 
 exports.onStoryUpdate = onDocumentWritten(
@@ -52,14 +62,39 @@ exports.onStoryUpdate = onDocumentWritten(
         await publishMessage(STORY_CHANGED_POSTS, {before, after});
         await publishMessage(STORY_SHOULD_CHANGE_STATS,
             {sid: after?.sid || before?.sid});
+
+        if (_create && _.isEmpty(after.plids) ||
+            _update && _.isEmpty(after.plids)
+        ) {
+          await publishMessage(STORY_SHOULD_CHANGE_PLATFORMS,
+              {sid: after?.sid || before?.sid});
+        }
       }
 
       if (
         (_create && !_.isEmpty(after.stids)) ||
-      (_update && !_.isEqual(before.stids, after.stids)) ||
-      (_delete && !_.isEmpty(before.stids))
+        (_update && !_.isEqual(before.stids, after.stids)) ||
+        (_delete && !_.isEmpty(before.stids))
       ) {
         await publishMessage(STORY_CHANGED_STATEMENTS, {before, after});
+        await publishMessage(STORY_SHOULD_CHANGE_BIAS,
+            {sid: after?.sid || before?.sid});
+        await publishMessage(STORY_SHOULD_CHANGE_CONFIDENCE,
+            {sid: after?.sid || before?.sid});
+      }
+
+      if (didChangeStats(_create, _update, _delete, before, after, true)) {
+        await publishMessage(STORY_SHOULD_CHANGE_NEWSWORTHINESS,
+            {sid: after?.sid || before?.sid});
+      }
+
+      if (
+        _create && after.bias ||
+        _update && before.bias != after.bias ||
+        _delete && before.bias
+      ) {
+        await publishMessage(STORY_SHOULD_CHANGE_NEWSWORTHINESS,
+            {sid: after?.sid || before?.sid});
       }
 
       return Promise.resolve();
@@ -96,6 +131,50 @@ exports.onStoryShouldChangeVector = onMessagePublished(
 );
 
 // ////////////////////////////////////////////////////////////////////////////
+// Confidence
+// ////////////////////////////////////////////////////////////////////////////
+
+exports.onStoryShouldChangeConfidence = onMessagePublished(
+    {
+      topic: STORY_SHOULD_CHANGE_CONFIDENCE,
+      ...defaultConfig,
+    },
+    async (event) => {
+      const sid = event.data.message.json.sid;
+      if (!sid) {
+        return Promise.resolve();
+      }
+      logger.info(`onStoryShouldChangeConfidence ${sid}`);
+
+      await onStoryShouldChangeConfidence(sid);
+
+      return Promise.resolve();
+    },
+);
+
+// ////////////////////////////////////////////////////////////////////////////
+// Bias
+// ////////////////////////////////////////////////////////////////////////////
+
+exports.onStoryShouldChangeBias = onMessagePublished(
+    {
+      topic: STORY_SHOULD_CHANGE_BIAS,
+      ...defaultConfig,
+    },
+    async (event) => {
+      const sid = event.data.message.json.sid;
+      if (!sid) {
+        return Promise.resolve();
+      }
+      logger.info(`onStoryShouldChangeBias ${sid}`);
+
+      await onStoryShouldChangeBias(sid);
+
+      return Promise.resolve();
+    },
+);
+
+// ////////////////////////////////////////////////////////////////////////////
 // Stats
 // ////////////////////////////////////////////////////////////////////////////
 
@@ -123,6 +202,62 @@ exports.onStoryShouldChangeStats = onMessagePublished(
 
       await updateStory(sid, stats);
 
+
+      return Promise.resolve();
+    },
+);
+
+// ////////////////////////////////////////////////////////////////////////////
+// Platform
+// ////////////////////////////////////////////////////////////////////////////
+
+exports.onStoryShouldChangePlatforms = onMessagePublished(
+    {
+      topic: STORY_SHOULD_CHANGE_PLATFORMS,
+      ...defaultConfig,
+    },
+    async (event) => {
+      const sid = event.data.message.json.sid;
+      logger.info(`onStoryShouldChangePlatforms ${sid}`);
+      if (!sid) {
+        return Promise.resolve();
+      }
+
+      const posts = await getAllPostsForStory(sid);
+      if (_.isEmpty(posts)) {
+        logger.warn(`No posts found for story ${sid}`);
+        return Promise.resolve();
+      }
+
+      const platforms = _.uniq(posts.map((post) => post.plid));
+      if (_.isEmpty(platforms)) {
+        logger.warn(`No platforms found for story ${sid}`);
+        return Promise.resolve();
+      }
+
+      await updateStory(sid, {plids: platforms}, 5);
+
+      return Promise.resolve();
+    },
+);
+
+// ////////////////////////////////////////////////////////////////////////////
+// Newsworthiness
+// ////////////////////////////////////////////////////////////////////////////
+
+exports.onStoryShouldChangeNewsworthiness = onMessagePublished(
+    {
+      topic: STORY_SHOULD_CHANGE_NEWSWORTHINESS,
+      ...defaultConfig,
+    },
+    async (event) => {
+      const sid = event.data.message.json.sid;
+      if (!sid) {
+        return Promise.resolve();
+      }
+      logger.info(`onStoryShouldChangeNewsworthiness ${sid}`);
+
+      await onStoryShouldChangeNewsworthiness(sid);
 
       return Promise.resolve();
     },
@@ -176,3 +311,26 @@ exports.onStatementChangedStories = onMessagePublished(
       return Promise.resolve();
     },
 );
+
+/**
+ * 'TXN' - from platform.js
+ * Updates the Entities that this Platform is part of
+ * @param {Platform} before
+ * @param {Platform} after
+ */
+exports.onPlatformChangedStories = onMessagePublished(
+    {
+      topic: PLATFORM_CHANGED_STORIES, // Make sure to define this topic
+      ...defaultConfig,
+    },
+    async (event) => {
+      const before = event.data.message.json.before;
+      const after = event.data.message.json.after;
+      if (before && !after) {
+        await deleteAttribute("stories",
+            "plids", "array-contains", before.plid, true);
+      }
+      return Promise.resolve();
+    },
+);
+

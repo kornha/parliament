@@ -60,9 +60,11 @@ class _ZScaffoldState extends ConsumerState<ZNavigationScaffold> {
       ),
       const ZBottomBarNavigationItem(
         icon: ProfileIcon(
+          isSelf: true,
           radius: IconSize.large / 2,
         ),
         activeIcon: ProfileIcon(
+          isSelf: true,
           radius: IconSize.large / 2,
         ),
         label: 'Profile',

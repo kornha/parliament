@@ -10,6 +10,8 @@ class ConfidenceWidget extends StatefulWidget {
   final String? stid;
   final double? height;
   final double? width;
+  final bool enabled;
+  final bool jagged; // used for newsworthiness
 
   const ConfidenceWidget({
     super.key,
@@ -18,7 +20,9 @@ class ConfidenceWidget extends StatefulWidget {
     this.stid,
     this.height,
     this.width,
-  }) : assert((eid != null) != (stid != null)); // xor
+    this.enabled = true,
+    this.jagged = false,
+  }) : assert((eid != null) != (stid != null) || true); // xor
 
   @override
   State<ConfidenceWidget> createState() => _ConfidenceWidgetState();
@@ -31,15 +35,18 @@ class _ConfidenceWidgetState extends State<ConfidenceWidget> {
       selectedConfidence: widget.confidence,
       width: widget.width ?? context.iconSizeLarge,
       height: widget.height ?? context.iconSizeLarge,
-      onConfidenceSelected: (conf) {
-        if (widget.eid != null) {
-          Database.instance()
-              .updateEntity(widget.eid!, {"adminConfidence": conf.value});
-        } else if (widget.stid != null) {
-          Database.instance()
-              .updateStatement(widget.stid!, {"adminConfidence": conf.value});
-        }
-      },
+      jagged: widget.jagged,
+      onConfidenceSelected: !widget.enabled
+          ? null
+          : (conf) {
+              if (widget.eid != null) {
+                Database.instance()
+                    .updateEntity(widget.eid!, {"adminConfidence": conf.value});
+              } else if (widget.stid != null) {
+                Database.instance().updateStatement(
+                    widget.stid!, {"adminConfidence": conf.value});
+              }
+            },
     );
   }
 }

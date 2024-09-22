@@ -14,17 +14,21 @@ const {publishMessage,
   ENTITY_CHANGED_BIAS,
   STATEMENT_SHOULD_CHANGE_BIAS,
   ENTITY_SHOULD_CHANGE_STATS,
+  ENTITY_SHOULD_CHANGE_PLATFORM,
+  PLATFORM_CHANGED_ENTITIES,
 } = require("../common/pubsub");
 const {logger} = require("firebase-functions/v2");
 const {getEntityImage} = require("../content/xscraper");
 const {updateEntity, getAllStatementsForEntity,
-  getAllPostsForEntity} = require("../common/database");
+  getAllPostsForEntity,
+  getPlatform,
+  deleteAttribute} = require("../common/database");
 const {Timestamp} = require("firebase-admin/firestore");
-const {handleChangedRelations,
-  calculateAverageStats} = require("../common/utils");
+const {handleChangedRelations} = require("../common/utils");
 const _ = require("lodash");
 const {onEntityShouldChangeConfidence} = require("../ai/confidence");
 const {onEntityShouldChangeBias} = require("../ai/bias");
+const {calculateAverageStats} = require("../ai/newsworthiness");
 
 //
 // Firestore
@@ -51,7 +55,7 @@ exports.onEntityUpdate = onDocumentWritten(
         _create && !after.photoURL && after.handle ||
         _update && before.handle !== after.handle
       ) {
-        publishMessage(ENTITY_SHOULD_CHANGE_IMAGE, after);
+        await publishMessage(ENTITY_SHOULD_CHANGE_IMAGE, after);
       }
 
       if (
@@ -62,6 +66,11 @@ exports.onEntityUpdate = onDocumentWritten(
         await publishMessage(ENTITY_CHANGED_POSTS, {before, after});
         await publishMessage(ENTITY_SHOULD_CHANGE_STATS,
             {eid: after?.eid || before?.eid});
+
+        if (_create && !after.plid || _update && !after.plid) {
+          await publishMessage(ENTITY_SHOULD_CHANGE_PLATFORM,
+              {eid: after?.eid || before?.eid});
+        }
       }
 
       if (
@@ -142,10 +151,16 @@ exports.onEntityShouldChangeImage = onMessagePublished(
         return;
       }
 
-      const image = await getEntityImage(entity.handle, entity.sourceType);
+      const platform = await getPlatform(entity.plid);
+      if (!platform) {
+        logger.error(`No platform found for entity ${entity.handle}`);
+        return;
+      }
+
+      const image = await getEntityImage(entity.handle, platform);
       if (!image) {
         logger.error(`No image found for entity ${entity.handle}, 
-          ${entity.sourceType}`);
+          ${platform.url}`);
         return;
       }
 
@@ -275,10 +290,10 @@ exports.onEntityShouldChangeStats = onMessagePublished(
     },
     async (event) => {
       const eid = event.data.message.json.eid;
-      logger.info(`onEntityShouldChangeStats ${eid}`);
       if (!eid) {
         return Promise.resolve();
       }
+      logger.info(`onEntityShouldChangeStats ${eid}`);
 
       const posts = await getAllPostsForEntity(eid);
       if (_.isEmpty(posts)) {
@@ -293,6 +308,46 @@ exports.onEntityShouldChangeStats = onMessagePublished(
 
       logger.info(`Updating entity stats`);
       await updateEntity(eid, stats, 5); // might not exist so skiperror
+
+      return Promise.resolve();
+    },
+);
+
+// ////////////////////////////////////////////////////////////////////////////
+// Platform
+// ////////////////////////////////////////////////////////////////////////////
+
+exports.onEntityShouldChangePlatform = onMessagePublished(
+    {
+      topic: ENTITY_SHOULD_CHANGE_PLATFORM,
+      ...defaultConfig,
+    },
+    async (event) => {
+      const eid = event.data.message.json.eid;
+      logger.info(`onEntityShouldChangePlatform ${eid}`);
+      if (!eid) {
+        return Promise.resolve();
+      }
+
+      const posts = await getAllPostsForEntity(eid);
+      if (_.isEmpty(posts)) {
+        logger.warn(`No posts found for entity ${eid}`);
+        return Promise.resolve();
+      }
+
+      const platforms = _.uniq(posts.map((post) => post.plid));
+      if (_.isEmpty(platforms)) {
+        logger.warn(`No platforms found for entity ${eid}`);
+        return Promise.resolve();
+      }
+
+      if (platforms.length > 1) {
+        logger.warn(`Multiple platforms found for entity ${eid}`);
+      }
+
+      const plid = platforms[0];
+
+      await updateEntity(eid, {plid: plid}, 5); // might not exist so skiperror
 
       return Promise.resolve();
     },
@@ -343,6 +398,27 @@ exports.onStatementChangedEntities = onMessagePublished(
       const after = event.data.message.json.after;
       await handleChangedRelations(before, after, "eids",
           updateEntity, "stid", "stids");
+      return Promise.resolve();
+    },
+);
+
+/**
+ * 'TXN' - from platform.js
+ * Updates the Entities that this Platform is part of
+ * @param {Platform} before
+ * @param {Platform} after
+ */
+exports.onPlatformChangedEntities = onMessagePublished(
+    {
+      topic: PLATFORM_CHANGED_ENTITIES, // Make sure to define this topic
+      ...defaultConfig,
+    },
+    async (event) => {
+      const before = event.data.message.json.before;
+      const after = event.data.message.json.after;
+      if (before && !after) {
+        await deleteAttribute("entities", "plid", "==", before.plid);
+      }
       return Promise.resolve();
     },
 );

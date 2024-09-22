@@ -6,8 +6,59 @@ const {getEntity, updateEntity,
   getAllStatementsForEntity,
   getAllEntitiesForStatement,
   updateStatement,
-  getStatement} = require("../common/database");
+  getStatement,
+  getStory,
+  updateStory,
+  getAllStatementsForStory,
+  getPost,
+  getAllStatementsForPost,
+  updatePost} = require("../common/database");
 const {retryAsyncFunction} = require("../common/utils");
+
+
+// ////////////////////////////////////////////////////////////////////////////
+// POST
+// ////////////////////////////////////////////////////////////////////////////
+
+/**
+ * E2E Logic on Post for setting bias
+ * @param {String} pid
+ * @return {Promise<void>}
+ */
+async function onPostShouldChangeBias(pid) {
+  const post = await getPost(pid);
+  const statements = await getAllStatementsForPost(pid);
+
+  const newBias = calculateAverageBias(statements);
+
+  if (newBias != null && post.bias !== newBias) {
+    logger.info(`Updating Post bias: ${pid} ${newBias}`);
+    await retryAsyncFunction(() =>
+      updatePost(pid, {bias: newBias}, 5));
+  }
+}
+
+// ////////////////////////////////////////////////////////////////////////////
+// STORY
+// ////////////////////////////////////////////////////////////////////////////
+
+/**
+ * E2E Logic on Story for setting bias
+ * @param {String} sid
+ * @return {Promise<void>}
+ */
+async function onStoryShouldChangeBias(sid) {
+  const story = await getStory(sid);
+  const statements = await getAllStatementsForStory(sid);
+
+  const newBias = calculateAverageBias(statements);
+
+  if (newBias != null && story.bias !== newBias) {
+    logger.info(`Updating story bias: ${sid} ${newBias}`);
+    await retryAsyncFunction(() =>
+      updateStory(sid, {bias: newBias}, 5));
+  }
+}
 
 // ////////////////////////////////////////////////////////////////////////////
 // ENTITY
@@ -89,11 +140,14 @@ async function onStatementShouldChangeBias(stid) {
  * Takes in a list of iterables (entities or statements) and returns avg.
  * Accounts for whether the post is pro or against.
  * @param {Object[]} iterable A list of entities or statements.
- * @param {Object} target The target object, either an entity or statement.
- * @param {boolean} isEntityTarget Whether the target is an entity
+ * @param {Object|null} target (entity or statement), or null if only avg
+ * @param {boolean|null} isEntityTarget entity/statement, or null if only avg
  * @return {number} The bias (angle) of the entity or statement.
  * */
-function calculateAverageBias(iterable, target, isEntityTarget) {
+function calculateAverageBias(
+    iterable,
+    target,
+    isEntityTarget) {
   let x = 0;
   let y = 0;
   let count = 0;
@@ -109,16 +163,18 @@ function calculateAverageBias(iterable, target, isEntityTarget) {
     let pro = false;
     let against = false;
 
-    if (isEntityTarget) {
+    if (target != null) {
+      if (isEntityTarget) {
       // Target is entity: Check if posts are in the pro/against lists
-      pro = biasObj.pro?.some((pid) => target.pids.includes(pid)) ?? false;
-      against = biasObj.against?.
-          some((pid) => target.pids.includes(pid)) ?? false;
-    } else {
+        pro = biasObj.pro?.some((pid) => target.pids.includes(pid)) ?? false;
+        against = biasObj.against?.
+            some((pid) => target.pids.includes(pid)) ?? false;
+      } else {
       // Target is statement: does statement's lists contain the entity's posts
-      pro = target.pro?.some((pid) => biasObj.pids.includes(pid)) ?? false;
-      against = target.against?.
-          some((pid) => biasObj.pids.includes(pid)) ?? false;
+        pro = target.pro?.some((pid) => biasObj.pids.includes(pid)) ?? false;
+        against = target.against?.
+            some((pid) => biasObj.pids.includes(pid)) ?? false;
+      }
     }
 
     let bias = biasObj.bias;
@@ -192,6 +248,11 @@ function getQuadrant(angle) {
   }
 }
 
+const getDistance = function(currAngle, newAngle) {
+  const delta = Math.abs(currAngle - newAngle);
+  return Math.min(delta, 360.0 - delta);
+};
+
 // ////////////////////////////////////////////////////////////////////////////
 // Deprecated
 // ////////////////////////////////////////////////////////////////////////////
@@ -230,10 +291,6 @@ const getDirection = function(currAngle, newAngle) {
   else return "counterclockwise";
 };
 
-const getDistance = function(currAngle, newAngle) {
-  const delta = Math.abs(currAngle - newAngle);
-  return Math.min(delta, 360.0 - delta);
-};
 
 const addPosition = function(currAngle, magnitude, direction) {
   if (direction != "clockwise" && direction != "counterclockwise") {
@@ -350,6 +407,8 @@ const applyDebateToBias = async function(pid, winningPosition, {add = true}) {
 };
 
 module.exports = {
+  onPostShouldChangeBias,
+  onStoryShouldChangeBias,
   onEntityShouldChangeBias,
   onStatementShouldChangeBias,
   applyVoteToBias,
@@ -358,4 +417,5 @@ module.exports = {
   getDistance,
   addPosition,
   biasDidCrossThreshold,
+  calculateAverageBias,
 };

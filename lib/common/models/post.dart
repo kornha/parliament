@@ -2,8 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:political_think/common/models/confidence.dart';
 import 'package:political_think/common/models/photo.dart';
+import 'package:political_think/common/models/platform.dart';
 import 'package:political_think/common/models/political_position.dart';
-import 'package:political_think/common/models/source_type.dart';
 import 'package:political_think/common/models/video.dart';
 import 'package:political_think/common/util/utils.dart';
 
@@ -25,59 +25,60 @@ class Post {
   final String? sid;
   final List<String> sids;
   final List<String> stids;
-
-  String? eid;
-  String? xid; // external id
+  final String? eid;
+  final String? xid; // external id
+  final String? plid;
 
   // user who posted the post, if any
-  String? poster;
+  final String? poster;
 
-  PostStatus status;
+  final PostStatus status;
 
-  String? title;
-  String? description;
-  String? body;
-  Photo? photo;
-  Video? video;
-  String? url;
-  SourceType sourceType;
-  List<String> locations;
+  final String? title;
+  final String? description;
+  final String? body;
+  final Photo? photo;
+  final Video? video;
+  final String? url;
+  final List<String> locations;
 
-  int? replies;
-  int? reposts;
-  int? likes;
-  int? bookmarks;
-  int? views;
+  final int? replies;
+  final int? reposts;
+  final int? likes;
+  final int? bookmarks;
+  final int? views;
+
+  final Confidence? confidence;
+  final PoliticalPosition? bias;
 
   // DEPRECATED!
 
-  PoliticalPosition? userBias;
-  PoliticalPosition? aiBias;
-  PoliticalPosition? debateBias;
+  final PoliticalPosition? userBias;
+  final PoliticalPosition? aiBias;
+  final PoliticalPosition? debateBias;
 
-  Confidence? userConfidence;
-  Confidence? aiConfidence;
+  final Confidence? userConfidence;
+  final Confidence? aiConfidence;
 
-  int voteCountBias;
-  int voteCountConfidence;
+  final int voteCountBias;
+  final int voteCountConfidence;
 
   // number of rooms reporting debate scores
   // needed to calculate debateBias
   // can be removed if we change course here
-  int debateCountBias;
+  final int debateCountBias;
 
-  double? importance;
-
-  int? messageCount; // not sure if we want to keep this record but we do now
+  final int?
+      messageCount; // not sure if we want to keep this record but we do now
 
   @JsonKey(fromJson: Utils.timestampFromJson, toJson: Utils.timestampToJson)
-  Timestamp createdAt;
+  final Timestamp createdAt;
   @JsonKey(fromJson: Utils.timestampFromJson, toJson: Utils.timestampToJson)
-  Timestamp updatedAt;
+  final Timestamp updatedAt;
   @JsonKey(
       fromJson: Utils.timestampFromJsonNullable,
       toJson: Utils.timestampToJsonNullable)
-  Timestamp? sourceCreatedAt;
+  final Timestamp? sourceCreatedAt;
 
   Post({
     required this.pid,
@@ -85,11 +86,11 @@ class Post {
     required this.createdAt,
     required this.updatedAt,
     // time the original post was created
-    required this.sourceType,
     this.sourceCreatedAt,
     this.eid,
     this.sid,
     this.xid,
+    this.plid,
     this.title,
     this.description,
     this.body,
@@ -100,7 +101,14 @@ class Post {
     this.photo,
     this.video,
     this.locations = const [],
-    this.importance,
+    this.replies,
+    this.reposts,
+    this.likes,
+    this.bookmarks,
+    this.views,
+    this.bias,
+    this.confidence,
+    this.messageCount,
     this.userBias,
     this.aiBias,
     this.debateBias,
