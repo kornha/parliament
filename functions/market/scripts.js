@@ -1,6 +1,9 @@
-/* eslint-disable max-len */
+
 const {getClient, getMarkets} = require("./polymarket");
-const {mergeToBigQuery, ASSET_TABLE, initBq, MARKET_TABLE, queryBq} = require("../warehouse/bq");
+const {mergeToBigQuery,
+  MARKET_TABLE,
+  ASSET_TABLE, initBq,
+  queryBq} = require("../warehouse/bq");
 const {logger} = require("firebase-functions/v2");
 const {isoToMillis} = require("../common/utils");
 
@@ -20,15 +23,22 @@ const {isoToMillis} = require("../common/utils");
  * @return {Promise<void>}
  * */
 async function testPolymarket() {
-  // await updateMarkets();
-  const customQuery = `
-    LOWER(question) LIKE '%will trump say%' OR LOWER(question) LIKE '%will donald trump say%'
-  `;
+  await updateMarkets();
+  // const customQuery = `
+  //   (LOWER(question) LIKE '%trump say%')
+  //   AND
+  //   (LOWER(question) LIKE '%speech%' OR
+  //    LOWER(question) LIKE '%rally%' OR LOWER(question) LIKE '%town hall%')
+  //   ORDER BY createdAt DESC
+  // `;
 
-  const results = await queryBq({tableId: MARKET_TABLE, customQuery: customQuery});
-  results.forEach((result) => {
-    console.log(result.question);
-  });
+  // const results = await queryBq({tableId: MARKET_TABLE,
+  //    customQuery: customQuery});
+  // for (const result of results) {
+  //   for (const tokenId of result.clobTokenIds) {
+  //     await updateAssetData(tokenId, result.conditionId, result.createdAt);
+  //   }
+  // }
 }
 
 /**
@@ -42,7 +52,7 @@ async function updateMarkets() {
     return Promise.resolve();
   }
 
-  const markets = await getMarkets({totalLimit: 5000,
+  const markets = await getMarkets({totalLimit: 50,
     active: null,
     archived: null,
     closed: null});
@@ -60,12 +70,25 @@ async function updateMarkets() {
       continue;
     }
 
-    rows.push({
+    const tokens = JSON.parse(market.clobTokenIds);
+
+    let winner = null;
+    const outcomePrices = JSON.parse(market.outcomePrices).map(parseFloat);
+    const TOLERANCE = 0.009;
+    const index = outcomePrices.findIndex((price) =>
+      Math.abs(price - 1.0) < TOLERANCE);
+
+    if (index !== -1) {
+      winner = tokens[index];
+    }
+
+    const row = {
       marketId: market.id,
       question: market.question,
       questionId: market.questionID,
       description: market.description,
       outcomes: JSON.parse(market.outcomes),
+      outcomePrices: outcomePrices,
       photoURL: market.image,
       slug: market.slug,
       startedAt: isoToMillis(market.startDate),
@@ -73,11 +96,17 @@ async function updateMarkets() {
       createdAt: isoToMillis(market.createdAt),
       updatedAt: isoToMillis(market.updatedAt),
       conditionId: market.conditionId,
-      clobTokenIds: JSON.parse(market.clobTokenIds),
+      clobTokenIds: tokens,
       active: market.active,
       acceptingOrders: market.acceptingOrders,
       acceptingOrdersTimestamp: isoToMillis(market.acceptingOrdersTimestamp),
-    });
+    };
+
+    if (winner != null) {
+      row.winner = winner;
+    }
+
+    rows.push(row);
   }
 
   await mergeToBigQuery(MARKET_TABLE, rows);
@@ -100,7 +129,7 @@ async function updateAssetData(assetId, conditionId, startedAt) {
     startTs: startedAt / 1000, // Convert to seconds
   };
 
-  const resp = await getClient(true).getPricesHistory(filterParams);
+  const resp = await getClient().getPricesHistory(filterParams);
 
   logger.info(`Got ${resp.history.length} rows for ${assetId}`);
 

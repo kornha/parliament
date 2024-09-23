@@ -93,8 +93,6 @@ if (process.env.FUNCTIONS_EMULATOR === "true") {
 const functions = require("firebase-functions/v2");
 const {testPolymarket} = require("./market/scripts");
 
-
-
 const test = functions.https.onCall(async (data, context) => {
   await testPolymarket();
 });

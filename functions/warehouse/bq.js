@@ -157,6 +157,8 @@ const marketSchema = [
   {name: "questionId", type: "STRING", mode: "REQUIRED"},
   {name: "description", type: "STRING", mode: "REQUIRED"},
   {name: "outcomes", type: "STRING", mode: "REPEATED"}, // Array of strings
+  // float instead of NUMBERIC since js makes it hard to get numberic
+  {name: "outcomePrices", type: "FLOAT64", mode: "REPEATED"},
   {name: "photoURL", type: "STRING", mode: "NULLABLE"},
   {name: "slug", type: "STRING", mode: "REQUIRED"},
   {name: "startedAt", type: "INT64", mode: "NULLABLE"},
@@ -168,6 +170,7 @@ const marketSchema = [
   {name: "active", type: "BOOL", mode: "REQUIRED"},
   {name: "acceptingOrders", type: "BOOL", mode: "NULLABLE"},
   {name: "acceptingOrdersTimestamp", type: "INT64", mode: "NULLABLE"},
+  {name: "winner", type: "STRING", mode: "NULLABLE"},
 ];
 
 const currentTimeMillis = Date.now();
