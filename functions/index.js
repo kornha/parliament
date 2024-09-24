@@ -93,6 +93,7 @@ if (process.env.FUNCTIONS_EMULATOR === "true") {
 // Used as a dev-time helper to test functions
 const functions = require("firebase-functions/v2");
 
+
 const test = functions.https.onCall(async (data, context) => {
   // Your logic here
 });
@@ -129,9 +130,9 @@ module.exports = {
   onPlatformChangedStories,
   onStoryShouldChangePlatforms,
   onStoryShouldChangeNewsworthiness,
+  onStoryShouldChangeScaledHappenedAt,
   onStoryShouldChangeBias,
   onStoryShouldChangeConfidence,
-  onStoryShouldChangeScaledHappenedAt,
   // Statement
   onStatementUpdate,
   onStatementChangedVector,

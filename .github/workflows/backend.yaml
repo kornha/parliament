@@ -23,15 +23,6 @@ jobs:
           npm install
         working-directory: ./functions # Specify again if it's not a global setting
 
-      - name: List project root contents
-        run: ls -la
-
-      - name: List functions directory contents
-        run: ls -la ./functions
-
-      - name: List functions/lib directory contents (if applicable)
-        run: ls -la ./functions/lib
-
       - name: Deploy to Firebase
         run: firebase deploy
         env:
