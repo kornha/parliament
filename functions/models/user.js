@@ -1,6 +1,6 @@
 // NOTE! We use v1 here since v2 does not support auth triggers
 // https://github.com/firebase/firebase-functions/issues/1383
-const functions = require("firebase-functions");
+const functions = require("firebase-functions/v1");
 //
 const {createUser, updateUser, deleteUser} = require("../common/database");
 const {FieldValue} = require("firebase-admin/firestore");

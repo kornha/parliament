@@ -7,5 +7,6 @@
     "political-think": {
       "extensionInstances": {}
     }
-  }
+  },
+  "dataconnectEmulatorConfig": {}
 }
