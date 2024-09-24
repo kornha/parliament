@@ -37,6 +37,7 @@ const {
   onStoryShouldChangeNewsworthiness,
   onStoryShouldChangeBias,
   onStoryShouldChangeConfidence,
+  onStoryShouldChangeScaledHappenedAt,
 } = require("./models/story");
 const {
   onStatementUpdate, onStatementChangedVector,
@@ -91,11 +92,9 @@ if (process.env.FUNCTIONS_EMULATOR === "true") {
 
 // Used as a dev-time helper to test functions
 const functions = require("firebase-functions/v2");
-const {testPolymarket} = require("./market/scripts");
 
 
 const test = functions.https.onCall(async (data, context) => {
-  await testPolymarket();
 });
 
 
@@ -133,6 +132,7 @@ module.exports = {
   onStoryShouldChangeNewsworthiness,
   onStoryShouldChangeBias,
   onStoryShouldChangeConfidence,
+  onStoryShouldChangeScaledHappenedAt,
   // Statement
   onStatementUpdate,
   onStatementChangedVector,
