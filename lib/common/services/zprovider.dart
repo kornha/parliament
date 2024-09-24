@@ -81,7 +81,7 @@ class StoryNotifier extends PagedNotifier<int, Story> {
                 .getStoriesFiltered(page, limit, settings);
           },
           nextPageKeyBuilder: (List<Story>? lastItems, int page, int limit) =>
-              lastItems?.last.happenedAt?.millisecondsSinceEpoch,
+              lastItems?.last.scaledHappenedAt?.millisecondsSinceEpoch,
         );
 }
 
@@ -105,6 +105,7 @@ final postProvider = StreamProvider.family<Post?, String>((ref, pid) {
   });
 });
 
+// Deprecated; not used
 final postsProvider =
     StateNotifierProvider<PostNotifier, PagedState<int, Post>>(
   (_) => PostNotifier(),

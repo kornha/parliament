@@ -37,6 +37,7 @@ const {
   onStoryShouldChangeNewsworthiness,
   onStoryShouldChangeBias,
   onStoryShouldChangeConfidence,
+  onStoryShouldChangeScaledHappenedAt,
 } = require("./models/story");
 const {
   onStatementUpdate, onStatementChangedVector,
@@ -131,6 +132,7 @@ module.exports = {
   onStoryShouldChangeNewsworthiness,
   onStoryShouldChangeBias,
   onStoryShouldChangeConfidence,
+  onStoryShouldChangeScaledHappenedAt,
   // Statement
   onStatementUpdate,
   onStatementChangedVector,

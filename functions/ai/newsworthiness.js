@@ -82,7 +82,7 @@ function calculateNewsworthiness(story, platforms) {
   const engagementScore = adjustedScore / (adjustedScore + 1);
 
   const angleDiff = story.bias != null ? getDistance(story.bias, 90) : 90;
-  const biasMultiple = 1 - angleDiff / 180;
+  const biasMultiple = 1 - angleDiff / 360; // 75% if right/left, 50% if extreme
 
   const newsworthiness = engagementScore * biasMultiple;
 
@@ -182,9 +182,31 @@ function didChangeStats(_create, _update, _delete, before, after, avg) {
   }
 }
 
+/**
+ * Calculate the scaled happenedAt for a story
+ * @param {Story} story - the story to calculate the scaled happenedAt for
+ * @return {number|null} the scaled happenedAt or null if not possible
+ */
+function calculateScaledHappenedAt(story) {
+  if (!story || story.happenedAt == null || story.newsworthiness == null) {
+    return null;
+  }
+
+  // Define the scaling factor (e.g., 1 day in milliseconds)
+  const newsworthinessScale = 43200000; // 1/2 day in milliseconds
+
+
+  // Calculate the adjusted timestamp
+  const scaledHappenedAt =
+    story.happenedAt + Math.round(story.newsworthiness * newsworthinessScale);
+
+  return scaledHappenedAt;
+}
+
 module.exports = {
   onStoryShouldChangeNewsworthiness,
   calculateAverageStats,
   didChangeStats,
   calculateNewsworthiness,
+  calculateScaledHappenedAt,
 };

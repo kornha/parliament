@@ -28,6 +28,8 @@ const STORY_SHOULD_CHANGE_CONFIDENCE = "onStoryShouldChangeConfidence";
 const STORY_SHOULD_CHANGE_BIAS = "onStoryShouldChangeBias";
 const STORY_CHANGED_CONFIDENCE = "onStoryChangedConfidence";
 const STORY_CHANGED_BIAS = "onStoryChangedBias";
+const STORY_SHOULD_CHANGED_SCALED_HAPPENED_AT =
+ "onStoryShouldChangeScaledHappenedAt";
 
 const STATEMENT_CHANGED_VECTOR = "onStatementChangedVector";
 const STATEMENT_CHANGED_CONTENT = "onStatementChangedContent";
@@ -91,6 +93,7 @@ module.exports = {
   STORY_SHOULD_CHANGE_BIAS,
   STORY_CHANGED_CONFIDENCE,
   STORY_CHANGED_BIAS,
+  STORY_SHOULD_CHANGED_SCALED_HAPPENED_AT,
   STATEMENT_CHANGED_POSTS,
   STATEMENT_CHANGED_STORIES,
   STATEMENT_CHANGED_VECTOR,

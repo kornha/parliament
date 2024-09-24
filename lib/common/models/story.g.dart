@@ -11,6 +11,8 @@ Story _$StoryFromJson(Map<String, dynamic> json) => Story(
       createdAt: Utils.timestampFromJson(json['createdAt'] as int),
       updatedAt: Utils.timestampFromJson(json['updatedAt'] as int),
       happenedAt: Utils.timestampFromJsonNullable(json['happenedAt'] as int?),
+      scaledHappenedAt:
+          Utils.timestampFromJsonNullable(json['scaledHappenedAt'] as int?),
       location: json['location'] == null
           ? null
           : Location.fromJson(json['location'] as Map<String, dynamic>),
@@ -69,4 +71,6 @@ Map<String, dynamic> _$StoryToJson(Story instance) => <String, dynamic>{
       'createdAt': Utils.timestampToJson(instance.createdAt),
       'updatedAt': Utils.timestampToJson(instance.updatedAt),
       'happenedAt': Utils.timestampToJsonNullable(instance.happenedAt),
+      'scaledHappenedAt':
+          Utils.timestampToJsonNullable(instance.scaledHappenedAt),
     };

@@ -13,6 +13,7 @@ const {
   STORY_SHOULD_CHANGE_NEWSWORTHINESS,
   STORY_SHOULD_CHANGE_BIAS,
   STORY_SHOULD_CHANGE_CONFIDENCE,
+  STORY_SHOULD_CHANGED_SCALED_HAPPENED_AT,
 } = require("../common/pubsub");
 const _ = require("lodash");
 const {resetStoryVector} = require("../ai/story_ai");
@@ -22,7 +23,8 @@ const {handleChangedRelations} = require("../common/utils");
 const {logger} = require("firebase-functions/v2");
 const {didChangeStats,
   calculateAverageStats,
-  onStoryShouldChangeNewsworthiness} = require("../ai/newsworthiness");
+  onStoryShouldChangeNewsworthiness,
+  calculateScaledHappenedAt} = require("../ai/newsworthiness");
 const {onStoryShouldChangeBias} = require("../ai/bias");
 const {onStoryShouldChangeConfidence} = require("../ai/confidence");
 
@@ -95,6 +97,16 @@ exports.onStoryUpdate = onDocumentWritten(
       ) {
         await publishMessage(STORY_SHOULD_CHANGE_NEWSWORTHINESS,
             {sid: after?.sid || before?.sid});
+      }
+
+      if (
+        _create && after.happenedAt || _create && after.newsworthiness ||
+        _update && before.happenedAt != after.happenedAt ||
+          _update && before.newsworthiness != after.newsworthiness ||
+        _delete && before.happenedAt || _delete && before.newsworthiness
+      ) {
+        await publishMessage(STORY_SHOULD_CHANGED_SCALED_HAPPENED_AT,
+            {before: before, after: after});
       }
 
       return Promise.resolve();
@@ -202,6 +214,31 @@ exports.onStoryShouldChangeStats = onMessagePublished(
 
       await updateStory(sid, stats);
 
+
+      return Promise.resolve();
+    },
+);
+
+exports.onStoryShouldChangeScaledHappenedAt = onMessagePublished(
+    {
+      topic: STORY_SHOULD_CHANGED_SCALED_HAPPENED_AT,
+      ...defaultConfig,
+    },
+    async (event) => {
+      const before = event.data.message.json.before;
+      const after = event.data.message.json.after;
+
+      const story = after || before;
+      const scaledHappenedAt = calculateScaledHappenedAt(story);
+
+      if (scaledHappenedAt == null) {
+        return Promise.resolve();
+      }
+
+
+      await updateStory(story.sid, {
+        scaledHappenedAt: scaledHappenedAt,
+      }, 5);
 
       return Promise.resolve();
     },

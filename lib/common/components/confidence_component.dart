@@ -149,7 +149,7 @@ class ConfidencePainter extends CustomPainter {
           if (jagged) {
             // Calculate the jagged offset using a sine wave
             var amplitude = (rows * 0.15).toInt(); // Adjust amplitude as needed
-            var frequency = 0.574; // Adjust frequency as needed
+            var frequency = 0.845; // Adjust frequency as needed
             var wave = (sin(i * frequency) * amplitude).toInt();
             credibleRow = baseRow + wave;
           } else {

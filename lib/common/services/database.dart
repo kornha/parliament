@@ -103,7 +103,7 @@ class Database {
       int page, int limit, ZSettings? settings) {
     return Database.instance()
         .storyCollection
-        .orderBy('happenedAt', descending: true)
+        .orderBy('scaledHappenedAt', descending: true)
         .startAfter([page == 0 ? double.maxFinite : page])
         .limit(limit)
         .get()

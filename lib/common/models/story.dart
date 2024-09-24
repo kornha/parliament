@@ -44,11 +44,17 @@ class Story {
       toJson: Utils.timestampToJsonNullable)
   final Timestamp? happenedAt;
 
+  @JsonKey(
+      fromJson: Utils.timestampFromJsonNullable,
+      toJson: Utils.timestampToJsonNullable)
+  final Timestamp? scaledHappenedAt; // happened at scaled by newsworthiness
+
   Story({
     required this.sid,
     required this.createdAt,
     required this.updatedAt,
     this.happenedAt,
+    this.scaledHappenedAt,
     this.location,
     this.title,
     this.description,
