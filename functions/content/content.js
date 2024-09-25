@@ -53,7 +53,6 @@ const onScrapeX = onCall(
     async (request) => {
       authenticate(request);
 
-      // await scrapeXFeed("...");
       await scrapeXTopNews();
       return;
     },

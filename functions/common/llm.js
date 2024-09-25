@@ -39,27 +39,28 @@ const generateCompletions = async function(messages,
 
   logger.info(`Generating completions for ` + loggingText ?
     loggingText : `${messages.length} messages`);
-
-  const completion = await llm().chat.completions.create({
-    messages: [
-      {
-        role: "system",
-        content: `You are a machine that only returns and replies with valid,
+  try {
+    const completion = await llm().chat.completions.create({
+      messages: [
+        {
+          role: "system",
+          content: `You are a machine that only returns and replies with valid,
               iterable RFC8259 compliant JSON in your responses 
               with no leading or trailing characters`,
-      },
-      {
-        "role": "user",
-        "content": messages,
-      },
+        },
+        {
+          "role": "user",
+          "content": messages,
+        },
 
-    ],
-    // max_tokens: 300,
-    temperature: 0.00,
-    model: imageModel ? "gpt-4o" : "ft:gpt-3.5-turbo-1106:parliament::9VmmK9Vp",
-    response_format: {"type": "json_object"},
-  });
-  try {
+      ],
+      // max_tokens: 300,
+      temperature: 0.00,
+      model: imageModel ? "gpt-4o" :
+        "ft:gpt-3.5-turbo-1106:parliament::9VmmK9Vp",
+      response_format: {"type": "json_object"},
+    });
+
     const generation = JSON.parse(completion.choices[0].message.content);
     if (generation == null) {
       logger.error(`Invalid generation: ${generation}`);
@@ -71,7 +72,6 @@ const generateCompletions = async function(messages,
     return generation;
   } catch (e) {
     logger.error(`Invalid decision: ${e}`);
-    logger.error(completion);
     return null;
   }
 };
