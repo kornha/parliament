@@ -27,5 +27,9 @@ jobs:
     - name: 'Move GCS file'
       run: |
         DATE=$(date +%Y-%m-%d-%H-%M-%S)
-        gsutil mv gs://political-think.appspot.com/training/fine_tune.jsonl gs://political-think.appspot.com/training/fine_tune-$DATE.jsonl
-
+        if gsutil -q stat gs://political-think.appspot.com/training/fine_tune.jsonl; then
+          gsutil mv gs://political-think.appspot.com/training/fine_tune.jsonl gs://political-think.appspot.com/training/fine_tune-$DATE.jsonl
+          echo "File moved successfully."
+        else
+          echo "File not found. No action taken."
+        fi
