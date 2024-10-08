@@ -9,6 +9,11 @@ import 'package:political_think/common/util/utils.dart';
 
 part 'platform.g.dart';
 
+enum PlatformType {
+  x,
+  news,
+}
+
 @JsonSerializable(explicitToJson: true)
 class Platform {
   final String plid;
@@ -46,7 +51,7 @@ class Platform {
 
   // Used for special icons instead of the default photo
   Widget getIcon(double size) {
-    if (url == "x.com") {
+    if (type == PlatformType.x) {
       return Icon(
         FontAwesomeIcons.xTwitter,
         size: size,
@@ -55,8 +60,15 @@ class Platform {
     }
     return ProfileIcon(
       url: photoURL,
-      radius: size / 2,
+      radius: size,
       showIfNull: false,
     );
+  }
+
+  PlatformType get type {
+    if (url == "x.com") {
+      return PlatformType.x;
+    }
+    return PlatformType.news;
   }
 }

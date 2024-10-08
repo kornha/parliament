@@ -35,7 +35,6 @@ class Post {
   final PostStatus status;
 
   final String? title;
-  final String? description;
   final String? body;
   final Photo? photo;
   final Video? video;
@@ -92,7 +91,6 @@ class Post {
     this.xid,
     this.plid,
     this.title,
-    this.description,
     this.body,
     this.poster, // uid who posted the post
     this.sids = const [],

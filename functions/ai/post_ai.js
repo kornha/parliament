@@ -300,9 +300,6 @@ const getPostEmbeddingStrings = function(post) {
   if (post.title) {
     ret.push(post.title);
   }
-  if (post.description) {
-    ret.push(post.description);
-  }
   if (post.body) {
     ret.push(post.body);
   }

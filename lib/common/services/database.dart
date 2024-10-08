@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:political_think/common/models/confidence.dart';
+import 'package:political_think/common/models/platform.dart';
 import 'package:political_think/common/models/post.dart';
 import 'package:political_think/common/models/room.dart';
 import 'package:political_think/common/models/story.dart';
@@ -282,6 +283,25 @@ class Database {
   //////////////////////////////////////////////////////////////
   Future updateEntity(String eid, Map<Object, Object?> value) async {
     return entityCollection.doc(eid).update(value);
+  }
+
+  //////////////////////////////////////////////////////////////
+  /// Platforms
+  //////////////////////////////////////////////////////////////
+
+  Future<List<Platform>> getPlatforms(List<String> plids) async {
+    return platformCollection
+        .where(FieldPath.documentId, whereIn: plids)
+        .get()
+        .then((querySnapshot) {
+      if (querySnapshot.docs.isNotEmpty) {
+        return querySnapshot.docs
+            .map((doc) => Platform.fromJson(doc.data() as Map<String, dynamic>))
+            .toList();
+      } else {
+        return [];
+      }
+    });
   }
 
   //////////////////////////////////////////////////////////////

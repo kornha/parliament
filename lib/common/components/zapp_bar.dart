@@ -8,19 +8,24 @@ import 'package:political_think/common/extensions.dart';
 class ZAppBar extends ConsumerStatefulWidget implements PreferredSizeWidget {
   ZAppBar({
     super.key,
-    this.actions,
-    this.leading,
+    this.leading = const [],
+    this.actions = const [],
     this.center,
     this.showBackButton = false,
     this.showLogo = false,
     this.showAppName = false,
-  });
+  }) : assert(
+            !showBackButton && !showAppName && leading.isEmpty ||
+                !showBackButton && showAppName && leading.isEmpty ||
+                !showBackButton && leading.isNotEmpty && !showAppName ||
+                showBackButton && !showAppName && leading.isEmpty,
+            "Can only have one or none of backbutton, appname, leading");
   final bool showBackButton;
   final bool showLogo;
   final bool showAppName;
-  final Widget? leading;
+  final List<Widget> actions;
+  final List<Widget> leading;
   final Widget? center;
-  final List<Widget>? actions;
 
   @override
   ConsumerState<ConsumerStatefulWidget> createState() => _ZAppBarState();
@@ -49,13 +54,10 @@ class _ZAppBarState extends ConsumerState<ZAppBar> {
                         child: LogoName(),
                       )
                     // TODO: Padding because IconButton in ZBackButton is padded
-                    : Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: Margins.half),
-                        child: widget.leading ?? const SizedBox.shrink(),
-                      ),
+                    : const SizedBox.shrink(),
+            ...widget.leading,
             const Spacer(),
-            ...widget.actions ?? [],
+            ...widget.actions,
           ],
         ),
         Row(

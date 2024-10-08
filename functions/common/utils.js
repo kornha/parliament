@@ -55,9 +55,16 @@ function urlToDomain(url) {
     url = "https://" + url;
   }
 
-  const domain = (new URL(url)).hostname;
+  let domain = (new URL(url)).hostname;
+
+  // Remove 'www.' if it exists
+  if (domain.startsWith("www.")) {
+    domain = domain.substring(4);
+  }
+
   return domain;
 }
+
 
 /**
  *
@@ -129,6 +136,43 @@ const isoToMillis = function(iso) {
   return Timestamp.fromDate(new Date(iso)).toMillis();
 };
 
+// //////////////////////////////////////////////////////////////////
+// Platform
+// //////////////////////////////////////////////////////////////////
+/**
+ * returns platformType grouping
+ * @param {Platform} platform
+ * @return {string} type of platform
+ */
+const getPlatformType = function(platform) {
+  if (platform.url == "x.com") {
+    return "x";
+  } else {
+    return "news";
+  }
+};
+
+// //////////////////////////////////////////////////////////////////
+// Content
+// //////////////////////////////////////////////////////////////////
+/**
+   * Gets the status of a post based on its current status and poster.
+   * @param {Object} post - The post to get the status for.
+   * @param {string} existingStatus - The existing status of the post.
+   * @return {string} - The status of the post.
+   */
+function getStatus(post, existingStatus) {
+  if (post.video && post.video.videoURL) {
+    return "unsupported";
+  } else if (post.status != "scraping" && post.status != "draft" &&
+    existingStatus != null) {
+    return existingStatus;
+  } else if (post.poster) {
+    return "draft";
+  } else {
+    return "published";
+  }
+}
 
 // //////////////////////////////////////////////////////////////////
 // Sync
@@ -262,6 +306,7 @@ const handleChangedRelations = async (
 
 module.exports = {
   isLocal,
+  getStatus,
   urlToDomain,
   isFibonacciNumber,
   isPerfectSquare,
@@ -270,5 +315,6 @@ module.exports = {
   calculateMeanVector,
   millisToIso,
   isoToMillis,
+  getPlatformType,
   handleChangedRelations,
 };

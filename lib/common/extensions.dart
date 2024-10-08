@@ -254,12 +254,14 @@ extension ModalExt on BuildContext {
         return ZScaffold(
           defaultSafeArea: false,
           appBar: ZAppBar(
-            leading: IconButton(
-              icon: Icon(FontAwesomeIcons.xmark, color: context.primaryColor),
-              onPressed: () {
-                context.pop();
-              },
-            ),
+            leading: [
+              IconButton(
+                icon: Icon(FontAwesomeIcons.xmark, color: context.primaryColor),
+                onPressed: () {
+                  context.pop();
+                },
+              ),
+            ],
           ),
           body: useScrollView ? SingleChildScrollView(child: child) : child,
         );

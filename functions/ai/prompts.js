@@ -25,7 +25,7 @@ const findStoriesPrompt = function({post, stories, training = false, includePhot
 
   messages.push({type: "text", text: `Here is the Post: ${postToJSON(post, !includePhotos)}`});
 
-  if (post.photo?.photoURL && includePhotos) {
+  if (post.photo?.photoURL && post.photo?.description && includePhotos) {
     messages.push({type: "image_url", image_url: {url: post.photo?.photoURL}});
   }
 
@@ -38,7 +38,11 @@ const findStoriesPrompt = function({post, stories, training = false, includePhot
       messages.push({type: "text", text: storyToJSON(story, !includePhotos)});
       if (!_.isEmpty(story.photos) && includePhotos) {
         story.photos.forEach((photo) => {
-          messages.push({type: "image_url", image_url: {url: photo.photoURL}});
+          // we add this here to skip if the photo could not be processed earlier
+          // thus the completions will work and not error
+          if (photo.description) {
+            messages.push({type: "image_url", image_url: {url: photo.photoURL}});
+          }
         });
       }
     });
@@ -64,7 +68,7 @@ const findStatementsPrompt = function({
 
   messages.push({type: "text", text: `Here is the Post: ${postToJSON(post, !includePhotos)}`});
 
-  if (post.photo?.photoURL && includePhotos) {
+  if (post.photo?.photoURL && post.photo?.description && includePhotos) {
     messages.push({type: "image_url", image_url: {url: post.photo?.photoURL}});
   }
 
@@ -76,7 +80,9 @@ const findStatementsPrompt = function({
       messages.push({type: "text", text: `${storyToJSON(story, !includePhotos)}`});
       if (!_.isEmpty(story.photos) && includePhotos) {
         story.photos.forEach((photo) => {
-          messages.push({type: "image_url", image_url: {url: photo.photoURL}});
+          if (photo.description) { // we add this here to skip if the photo could not be processed earlier
+            messages.push({type: "image_url", image_url: {url: photo.photoURL}});
+          }
         });
       }
     });
@@ -234,7 +240,7 @@ const storyJSONOutput = function(statements = false) {
 const postDescriptionPrompt = function() {
   return `A Post is a social media posting or an article. It can come from X (Twitter), Instagram, or other social sources.
         It may also be a news article published to an online platform.
-        A Post can have a title, a description, and a body, the latter two of which are optional.
+        A Post can have a title and a body, the latter of which is optional.
         A Post may have images, videos or other media. You may only be given a description of the image, which you will consider in place of an actual image. Otherwise you will be given a URL to the image after the post.
         A Post has an author, which we call an Entity.
         A Post has a "sourceCreatedAt" time which represents when the Post was originally created on the social/news platform.

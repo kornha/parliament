@@ -36,7 +36,8 @@ const {
   deleteAttribute,
 } = require("../common/database");
 const {retryAsyncFunction,
-  handleChangedRelations} = require("../common/utils");
+  handleChangedRelations,
+  getPlatformType} = require("../common/utils");
 const _ = require("lodash");
 const {xupdatePost} = require("../content/xscraper");
 const {generateCompletions} = require("../common/llm");
@@ -44,7 +45,6 @@ const {generateImageDescriptionPrompt} = require("../ai/prompts");
 const {queueTask,
   POST_SHOULD_FIND_STORIES_AND_STATEMENTS_TASK} = require("../common/tasks");
 const {onTaskDispatched} = require("firebase-functions/v2/tasks");
-const {getPlatformType} = require("./platform");
 const {didChangeStats} = require("../ai/newsworthiness");
 const {onPostShouldChangeConfidence} = require("../ai/confidence");
 const {onPostShouldChangeBias} = require("../ai/bias");
@@ -131,11 +131,9 @@ exports.onPostUpdate = onDocumentWritten(
       }
 
       if (
-        _create && (after.title || after.body ||
-          after.description || after.photo) ||
-        _delete && (before.title || before.body ||
-          before.description || before.photo) ||
-        _update && (before.description != after.description ||
+        _create && (after.title || after.body || after.photo) ||
+        _delete && (before.title || before.body || before.photo) ||
+        _update && (
           before.title != after.title ||
           before.body != after.body || !_.isEqual(before.photo, after.photo))
       ) {
@@ -286,7 +284,6 @@ exports.onPostChangedXid = onMessagePublished(
       if (getPlatformType(platform) == "x") {
         await xupdatePost(post);
       } else {
-        logger.error(`Unsupported source type: ${platform.url}`);
         return Promise.resolve();
       }
 

@@ -23,6 +23,7 @@ const {
   isFibonacciNumber} = require("../common/utils");
 const {FieldValue} = require("firebase-admin/firestore");
 const {calculateAverageStats, didChangeStats} = require("../ai/newsworthiness");
+const _ = require("lodash");
 
 //
 exports.onPlatformUpdate = onDocumentWritten(
@@ -99,8 +100,14 @@ exports.onPlatformShouldChangeStats = onMessagePublished(
       if (isFibonacciNumber(platform.statsCount)) {
         logger.info(`Updating stats  ${plid} count: ${platform.statsCount}`);
         const posts = await getAllPostsForPlatform(plid);
+        if (_.isEmpty(posts)) {
+          return Promise.resolve();
+        }
         const stats = calculateAverageStats(posts);
-        await updatePlatform(plid, stats);
+        // can be {} if no stats in child posts
+        if (!_.isEmpty(stats)) {
+          await updatePlatform(plid, stats);
+        }
       }
 
       // increment doesn't work on null. Stats count is technically 1 higher
@@ -156,20 +163,4 @@ exports.onPlatformShouldChangeImage = onMessagePublished(
       return Promise.resolve();
     });
 
-// /////////////////////////////////////////////////////////////////
-// Other
-// /////////////////////////////////////////////////////////////////
-
-/**
- * returns platformType grouping
- * @param {Platform} platform
- * @return {string} type of platform
- */
-exports.getPlatformType = function(platform) {
-  if (platform.url == "x.com") {
-    return "x";
-  } else {
-    return "article";
-  }
-};
 

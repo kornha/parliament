@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:political_think/common/components/icon_grid.dart';
-import 'package:political_think/common/components/interactive/confidence_slider.dart';
-import 'package:political_think/common/components/interactive/political_position_joystick.dart';
 import 'package:political_think/common/components/loading.dart';
 import 'package:political_think/common/components/zerror.dart';
 import 'package:political_think/common/extensions.dart';
+import 'package:political_think/common/models/platform.dart';
 import 'package:political_think/common/models/statement.dart';
 import 'package:political_think/common/services/database.dart';
 import 'package:political_think/common/services/zprovider.dart';
@@ -26,6 +25,8 @@ class StatementView extends ConsumerStatefulWidget {
 }
 
 class _StatementViewState extends ConsumerState<StatementView> {
+  List<Platform>? platforms;
+
   @override
   Widget build(BuildContext context) {
     var statementRef = ref.watch(statementProvider(widget.stid));
@@ -35,8 +36,27 @@ class _StatementViewState extends ConsumerState<StatementView> {
     var againstListRef =
         ref.watch(entitiesFromPostsProvider(statement?.against ?? []));
 
-    var proList = proListRef.value;
-    var againstList = againstListRef.value;
+    var proList = proListRef.value ?? [];
+    var againstList = againstListRef.value ?? [];
+
+    List<String> plids = proList
+        .where((e) => e.plid != null && e.photoURL == null)
+        .map((e) => e.plid!)
+        .toList();
+    plids.addAll(againstList
+        .where((e) => e.plid != null && e.photoURL == null)
+        .map((e) => e.plid!)
+        .toList());
+
+    // TODO: hack to get the platform URL
+    // note that using a provider here causes a loop
+    if (plids.isNotEmpty && platforms == null) {
+      Database.instance().getPlatforms(plids).then((value) {
+        setState(() {
+          platforms = value;
+        });
+      });
+    }
 
     return statementRef.isLoading
         ? const Loading(type: LoadingType.standard)
@@ -76,9 +96,15 @@ class _StatementViewState extends ConsumerState<StatementView> {
                   context.sh,
                   Row(
                     children: [
-                      proList != null && proList.isNotEmpty
+                      proList.isNotEmpty
                           ? IconGrid(
-                              urls: proList.map((e) => e.photoURL).toList(),
+                              urls: proList
+                                  .map((e) =>
+                                      e.photoURL ??
+                                      platforms
+                                          ?.firstWhere((p) => p.plid == e.plid)
+                                          .photoURL)
+                                  .toList(),
                               onPressed: () {
                                 context.showModal(EntityListView(
                                     eids: proList.map((e) => e.eid).toList()));
@@ -90,9 +116,15 @@ class _StatementViewState extends ConsumerState<StatementView> {
                                   .copyWith(color: context.secondaryColor),
                             ),
                       const Spacer(),
-                      againstList != null && againstList.isNotEmpty
+                      againstList.isNotEmpty
                           ? IconGrid(
-                              urls: againstList.map((e) => e.photoURL).toList(),
+                              urls: againstList
+                                  .map((e) =>
+                                      e.photoURL ??
+                                      platforms
+                                          ?.firstWhere((p) => p.plid == e.plid)
+                                          .photoURL)
+                                  .toList(),
                               onPressed: () {
                                 context.showModal(EntityListView(
                                     eids: againstList

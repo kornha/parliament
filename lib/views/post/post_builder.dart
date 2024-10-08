@@ -72,7 +72,8 @@ class _PostBuilderState extends ConsumerState<PostBuilder> {
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 Visibility(
-                  visible: post?.status == PostStatus.draft,
+                  visible: post?.status == PostStatus.draft ||
+                      post?.status == PostStatus.unsupported,
                   child: ZTextButton(
                     onPressed: () {
                       Database.instance().deletePost(postRef!.value!);
@@ -88,7 +89,8 @@ class _PostBuilderState extends ConsumerState<PostBuilder> {
                 ),
                 context.sf,
                 Visibility(
-                  visible: post?.status == PostStatus.draft,
+                  visible: post?.status == PostStatus.draft ||
+                      post?.status == PostStatus.unsupported,
                   child: ZTextButton(
                     onPressed: post?.status == PostStatus.unsupported
                         ? null // disable button

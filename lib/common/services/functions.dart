@@ -1,4 +1,5 @@
 import 'package:cloud_functions/cloud_functions.dart';
+import 'package:political_think/common/models/platform.dart';
 
 class Functions {
   Functions.instance();
@@ -69,13 +70,14 @@ class Functions {
   }
 
 // Used as a dev-time helper to test functions
-  Future<String?> scrapeX() async {
+  Future<String?> fetchNews(PlatformType platformType) async {
     final HttpsCallable callable =
-        FirebaseFunctions.instance.httpsCallable('onScrapeX');
+        FirebaseFunctions.instance.httpsCallable('fetchNews');
 
     try {
-      final HttpsCallableResult result = await callable.call({});
-      print(result.data);
+      final HttpsCallableResult _ = await callable.call({
+        'platformType': platformType.name,
+      });
     } catch (e) {
       print(e);
     }

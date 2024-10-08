@@ -157,17 +157,15 @@ exports.onEntityShouldChangeImage = onMessagePublished(
         return;
       }
 
+      // Not all entities have images
       const image = await getEntityImage(entity.handle, platform);
-      if (!image) {
-        logger.error(`No image found for entity ${entity.handle}, 
-          ${platform.url}`);
-        return;
-      }
 
-      await updateEntity(entity.eid, {
-        photoURL: image,
-        updatedAt: Timestamp.now().toMillis(),
-      });
+      if (image) {
+        await updateEntity(entity.eid, {
+          photoURL: image,
+          updatedAt: Timestamp.now().toMillis(),
+        });
+      }
 
       return Promise.resolve();
     },

@@ -11,6 +11,7 @@ import 'package:political_think/common/components/zback_button.dart';
 import 'package:political_think/common/components/zdivider.dart';
 import 'package:political_think/common/components/zscaffold.dart';
 import 'package:political_think/common/extensions.dart';
+import 'package:political_think/common/models/platform.dart';
 import 'package:political_think/common/models/post.dart';
 import 'package:political_think/common/models/story.dart';
 import 'package:political_think/common/models/zuser.dart';
@@ -42,13 +43,21 @@ class _FeedState extends ConsumerState<Feed> {
     return ZScaffold(
       appBar: ZAppBar(
         showLogo: true,
-        actions: [
+        leading: [
           IconButton(
-            icon: const Icon(Icons.sync),
+            icon: const Icon(FontAwesomeIcons.newspaper),
             onPressed: () {
-              Functions.instance().scrapeX();
+              Functions.instance().fetchNews(PlatformType.news);
             },
           ),
+          IconButton(
+            icon: const Icon(FontAwesomeIcons.xTwitter),
+            onPressed: () {
+              Functions.instance().fetchNews(PlatformType.x);
+            },
+          ),
+        ],
+        actions: [
           IconButton(
             icon: const Icon(Icons.settings),
             onPressed: () {

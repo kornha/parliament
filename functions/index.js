@@ -24,7 +24,8 @@ const {
 } = require("./models/post");
 const {onVoteBiasChange, onVoteCredibilityChange} = require("./models/vote");
 const {generateBiasTraining} = require("./ai/scripts");
-const {onLinkPaste, onScrapeX, onScrapeFeed} = require("./content/content");
+const {onLinkPaste, fetchNews,
+  onScrapeFeed, onShouldProcessLink} = require("./content/content");
 const {debateDidTimeOut, debateDidTimeOutTask} = require("./messages/clock");
 const {
   onStoryUpdate, onStoryPostsChanged,
@@ -166,8 +167,9 @@ module.exports = {
   onPlatformChangedStats,
   // Content
   onLinkPaste,
-  onScrapeX,
+  fetchNews,
   onScrapeFeed,
+  onShouldProcessLink,
   // Scripts
   generateBiasTraining,
   // Dev helper

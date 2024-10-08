@@ -188,17 +188,18 @@ function didChangeStats(_create, _update, _delete, before, after, avg) {
  * @return {number|null} the scaled happenedAt or null if not possible
  */
 function calculateScaledHappenedAt(story) {
-  if (!story || story.happenedAt == null || story.newsworthiness == null) {
+  if (!story || story.happenedAt == null) {
     return null;
   }
 
   // Define the scaling factor (e.g., 1 day in milliseconds)
   const newsworthinessScale = 43200000; // 1/2 day in milliseconds
-
+  const newsworthiness = story.newsworthiness != null ?
+    story.newsworthiness : 0.1; // magic number
 
   // Calculate the adjusted timestamp
   const scaledHappenedAt =
-    story.happenedAt + Math.round(story.newsworthiness * newsworthinessScale);
+    story.happenedAt + Math.round(newsworthiness * newsworthinessScale);
 
   return scaledHappenedAt;
 }

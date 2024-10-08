@@ -2,11 +2,14 @@ const {onCall, HttpsError} = require("firebase-functions/v2/https");
 const {onMessagePublished} = require("firebase-functions/v2/pubsub");
 const {logger} = require("firebase-functions/v2");
 const {authenticate} = require("../common/auth");
-const {gbConfig, scrapeConfig} = require("../common/functions");
-const {processXLinks, scrapeXTopNews, scrapeXFeed} = require("./xscraper");
+const {scrapeConfig} = require("../common/functions");
 const {SHOULD_SCRAPE_FEED} = require("../common/pubsub");
 const {findCreatePlatform} = require("../common/database");
-const {getPlatformType} = require("../models/platform");
+const {scrapeFeed} = require("./scraper");
+const {getPlatformType} = require("../common/utils");
+const {processLinks, processItems} = require("./contentProcessor");
+const {scrapeXTopNews} = require("./xscraper");
+const {getTopNewsPosts} = require("./news");
 
 // ////////////////////////////
 // API's
@@ -17,7 +20,9 @@ const {getPlatformType} = require("../models/platform");
  * @param {string} data.link
  * */
 const onLinkPaste = onCall(
-    {...gbConfig},
+    {
+      ...scrapeConfig,
+    },
     async (request) => {
       authenticate(request);
       const data = request.data;
@@ -25,15 +30,12 @@ const onLinkPaste = onCall(
         throw new HttpsError("invalid-argument", "No link provided.");
       }
 
-      let pids = [];
-
       const platform = await findCreatePlatform(data.link);
 
-      if (platform && getPlatformType(platform) == "x") {
-        pids = await processXLinks([data.link], request.auth.uid);
-      } else {
-        throw new HttpsError("invalid-argument", "Platform not supported.");
-      }
+      const platformType = getPlatformType(platform);
+
+      const pids = await processLinks([data.link],
+          platformType, request.auth.uid);
 
       if (!pids.length) {
         throw new HttpsError("invalid-argument", "No post created.");
@@ -46,14 +48,51 @@ const onLinkPaste = onCall(
 /**
  * Scrapes X feed
  * */
-const onScrapeX = onCall(
+const fetchNews = onCall(
     {
       ...scrapeConfig,
     },
     async (request) => {
       authenticate(request);
+      const platformType = request.data.platformType;
+      if (platformType === "x") {
+        await scrapeXTopNews();
+        return {message: "Top news scraping initiated for X platform."};
+      } else if (platformType === "news") {
+        // For News, fetch articles and process them
+        const topPosts = await getTopNewsPosts(5);
+        const pids = await processItems(topPosts, platformType);
+        return pids;
+      } else {
+        throw new Error(`Unsupported platform type: ${platformType}`);
+      }
+    },
+);
 
-      await scrapeXTopNews();
+/**
+ * Pubsub to process a link
+ * called typically from scraping environments
+ */
+const onShouldProcessLink = onMessagePublished(
+    {
+      ...scrapeConfig,
+      topic: "onShouldProcessLink",
+    },
+    async (event) => {
+      const message = event.data.message;
+
+      if (!message.json.link) {
+        logger.error("No link provided.");
+        return;
+      }
+
+      const platform = await findCreatePlatform(message.json.link);
+
+      const platformType = getPlatformType(platform);
+
+      await processLinks([message.json.link],
+          platformType, message.json.poster);
+
       return;
     },
 );
@@ -74,7 +113,7 @@ const onScrapeFeed = onMessagePublished(
         return;
       }
 
-      await scrapeXFeed(message.json.link);
+      await scrapeFeed(message.json.link);
 
       return;
     },
@@ -86,6 +125,7 @@ const onScrapeFeed = onMessagePublished(
 
 module.exports = {
   onLinkPaste,
-  onScrapeX,
+  fetchNews,
   onScrapeFeed,
+  onShouldProcessLink,
 };

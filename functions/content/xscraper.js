@@ -11,11 +11,12 @@ const {getPostByXid,
 } = require("../common/database");
 const {v5} = require("uuid");
 const {Timestamp} = require("firebase-admin/firestore");
-const {isoToMillis} = require("../common/utils");
+const {isoToMillis, getPlatformType} = require("../common/utils");
 const {defineSecret} = require("firebase-functions/params");
-const {publishMessage, SHOULD_SCRAPE_FEED} = require("../common/pubsub");
+const {publishMessage,
+  SHOULD_SCRAPE_FEED,
+  SHOULD_PROCESS_LINK} = require("../common/pubsub");
 const {HttpsError} = require("firebase-functions/v2/https");
-const {getPlatformType} = require("../models/platform");
 
 const _xHandleKey = defineSecret("X_HANDLE_KEY");
 const _xPasswordKey = defineSecret("X_PASSWORD_KEY");
@@ -55,7 +56,7 @@ const scrapeXFeed = async function(feedUrl) {
   // Uses async generator to get links
   for await (const link of autoScrollX(page, false, 10000)) {
     // console.log("Link: ", link);
-    await processXLinks([link], null);
+    await publishMessage(SHOULD_PROCESS_LINK, {link: link});
   }
 
   logger.info("Finished scraping X feed.");
@@ -76,7 +77,6 @@ const scrapeXFeed = async function(feedUrl) {
  * */
 const scrapeXTopNews = async function(limit = 1) {
   logger.info("Started scraping top X news.");
-
 
   const browser = await puppeteer.launch({headless: "new"});
   const page = await browser.newPage();
@@ -529,11 +529,14 @@ const xupdatePost = async function(post) {
  * @return {string} with photoURL
  */
 const getEntityImage = async function(handle, platform) {
-  if (getPlatformType(platform) == "x") {
+  const platformType = getPlatformType(platform);
+  if (platformType == "x") {
     return await getEntityImageFromX(handle);
   }
 
-  return Error("Source type not supported.");
+  logger.info(`Entity image unsupported for: ${platformType}`);
+
+  return null;
 };
 
 /**
@@ -563,6 +566,15 @@ const getEntityImageFromX = async function(handle) {
   return photoURL;
 };
 
+/**
+ * Checks if the URL is from X
+ * @param {string} url
+ * @return {bool} if the URL is from X
+ * */
+const isXURL = function(url) {
+  return url && (url.includes("x.com") || url.includes("twitter.com"));
+};
+
 module.exports = {
   xupdatePost,
   scrapeXFeed,
@@ -573,4 +585,6 @@ module.exports = {
   //
   getEntityImageFromX,
   getEntityImage,
+  //
+  isXURL,
 };

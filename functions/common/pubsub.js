@@ -57,6 +57,7 @@ const PLATFORM_SHOULD_CHANGE_STATS = "onPlatformShouldChangeStats";
 const PLATFORM_CHANGED_STATS = "onPlatformChangedStats";
 
 const SHOULD_SCRAPE_FEED = "onShouldScrapeFeed";
+const SHOULD_PROCESS_LINK = "onShouldProcessLink";
 
 /**
  * Publishes a message to a Cloud Pub/Sub Topic.
@@ -119,4 +120,5 @@ module.exports = {
   PLATFORM_CHANGED_STATS,
   PLATFORM_CHANGED_STORIES,
   SHOULD_SCRAPE_FEED,
+  SHOULD_PROCESS_LINK,
 };

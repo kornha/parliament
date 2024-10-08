@@ -18,7 +18,6 @@ Post _$PostFromJson(Map<String, dynamic> json) => Post(
       xid: json['xid'] as String?,
       plid: json['plid'] as String?,
       title: json['title'] as String?,
-      description: json['description'] as String?,
       body: json['body'] as String?,
       poster: json['poster'] as String?,
       sids:
@@ -81,7 +80,6 @@ Map<String, dynamic> _$PostToJson(Post instance) => <String, dynamic>{
       'poster': instance.poster,
       'status': _$PostStatusEnumMap[instance.status]!,
       'title': instance.title,
-      'description': instance.description,
       'body': instance.body,
       'photo': instance.photo?.toJson(),
       'video': instance.video?.toJson(),

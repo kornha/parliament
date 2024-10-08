@@ -62,14 +62,18 @@ class _EntityItemViewState extends ConsumerState<EntityView> {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     // use url not eid to avoid default routing
-                    ProfileIcon(url: entity!.photoURL!),
-                    context.sh,
+                    Visibility(
+                      visible: entity?.photoURL != null,
+                      child: ProfileIcon(url: entity!.photoURL),
+                    ),
+                    Visibility(
+                        visible: entity.photoURL != null, child: context.sh),
                     Text(
                       entity.handle,
                       style: context.h2b,
                     ),
                     context.sf,
-                    platform?.getIcon(context.iconSizeStandard) ??
+                    platform?.getIcon(context.iconSizeLarge / 2) ??
                         const SizedBox.shrink(),
                     context.sf,
                     const ZDivider(),
@@ -103,27 +107,31 @@ class _EntityItemViewState extends ConsumerState<EntityView> {
                     Visibility(
                         visible: allPosts != null && allPosts.isNotEmpty,
                         child: context.sh),
-                    StatsTable(map: {
-                      "Confidence": ConfidenceWidget(
-                          confidence: entity.confidence, eid: entity.eid),
-                      "Bias": PoliticalPositionWidget(
-                        position: entity.bias,
-                        eid: entity.eid,
-                      ),
-                      // other stats here
-                      "Avg. Replies":
-                          Text(Utils.numToReadableString(entity.avgReplies)),
-                      "Avg. Reposts":
-                          Text(Utils.numToReadableString(entity.avgReposts)),
-                      "Avg. Likes":
-                          Text(Utils.numToReadableString(entity.avgLikes)),
-                      "Avg. Bookmarks":
-                          Text(Utils.numToReadableString(entity.avgBookmarks)),
-                      "Avg. Views":
-                          Text(Utils.numToReadableString(entity.avgViews)),
-                      "Sample Size":
-                          Text(Utils.numToReadableString(entity.pids.length)),
-                    }),
+                    StatsTable(
+                      map: {
+                        "Confidence": ConfidenceWidget(
+                            confidence: entity.confidence, eid: entity.eid),
+                        "Bias": PoliticalPositionWidget(
+                            position: entity.bias, eid: entity.eid),
+                        if (entity.avgReplies != null)
+                          "Avg. Replies": Text(
+                              Utils.numToReadableString(entity.avgReplies)),
+                        if (entity.avgReposts != null)
+                          "Avg. Reposts": Text(
+                              Utils.numToReadableString(entity.avgReposts)),
+                        if (entity.avgLikes != null)
+                          "Avg. Likes":
+                              Text(Utils.numToReadableString(entity.avgLikes)),
+                        if (entity.avgBookmarks != null)
+                          "Avg. Bookmarks": Text(
+                              Utils.numToReadableString(entity.avgBookmarks)),
+                        if (entity.avgViews != null)
+                          "Avg. Views":
+                              Text(Utils.numToReadableString(entity.avgViews)),
+                        "Sample Size":
+                            Text(Utils.numToReadableString(entity.pids.length)),
+                      },
+                    )
                   ],
                 ),
     );

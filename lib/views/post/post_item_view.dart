@@ -70,16 +70,9 @@ class _PostViewState extends ConsumerState<PostItemView> {
                       children: [
                         Row(
                           children: [
-                            Stack(
-                              alignment: Alignment.bottomRight,
-                              children: [
-                                Visibility(
-                                  visible: entity?.photoURL != null,
-                                  child: ProfileIcon(eid: post?.eid),
-                                ),
-                                platform?.getIcon(context.iconSizeSmall) ??
-                                    const SizedBox.shrink(),
-                              ],
+                            ProfileIcon(
+                              eid: entity?.eid,
+                              plid: platform?.plid,
                             ),
                           ],
                         ),
@@ -107,13 +100,12 @@ class _PostViewState extends ConsumerState<PostItemView> {
                             ? context.sf
                             : const SizedBox.shrink(),
                         Visibility(
-                            visible: post?.description != null &&
-                                (post!.description?.isNotEmpty ?? false),
-                            child: Text(post?.description ?? "",
-                                style: context.m)),
+                            visible: post?.body != null &&
+                                (post!.body?.isNotEmpty ?? false),
+                            child: Text(post?.body ?? "", style: context.m)),
                         Visibility(
-                            visible: post?.description != null &&
-                                (post!.description?.isNotEmpty ?? false),
+                            visible: post?.body != null &&
+                                (post!.body?.isNotEmpty ?? false),
                             child: context.sf),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -180,26 +172,17 @@ class _PostViewState extends ConsumerState<PostItemView> {
                               (post?.photo?.photoURL != null ? 0.7 : 0.55),
                           child: Text(
                             // some posts dont have descriptions
-                            post?.description ?? post?.title ?? "",
+                            post?.title ?? "",
                             style: context.m,
                             maxLines: 5,
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
                         // TODO: move this to ProfileIcon widget
-                        Stack(
-                          alignment: Alignment.bottomRight,
-                          children: [
-                            Visibility(
-                              visible: entity?.photoURL != null,
-                              child: ProfileIcon(
-                                eid: entity?.eid,
-                                radius: context.iconSizeStandard / 2,
-                              ),
-                            ),
-                            platform?.getIcon(context.iconSizeSmall) ??
-                                const SizedBox.shrink(),
-                          ],
+                        ProfileIcon(
+                          eid: entity?.eid,
+                          plid: platform?.plid,
+                          radius: context.iconSizeStandard / 2,
                         ),
                       ],
                     ),
