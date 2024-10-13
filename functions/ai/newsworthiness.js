@@ -62,15 +62,21 @@ function calculateNewsworthiness(story, platforms) {
     platforms.length;
 
   const adjustLikes =
-    avgOfAvgLikes > 0 ? story.avgLikes / avgOfAvgLikes : 0;
+    avgOfAvgLikes > 0 && story.avgLikes != null ?
+      story.avgLikes / avgOfAvgLikes : 0;
   const adjustReplies =
-    avgOfAvgReplies > 0 ? story.avgReplies / avgOfAvgReplies : 0;
+    avgOfAvgReplies > 0 && story.avgReplies != null ?
+      story.avgReplies / avgOfAvgReplies : 0;
   const adjustReposts =
-    avgOfAvgReposts > 0 ? story.avgReposts / avgOfAvgReposts : 0;
+    avgOfAvgReposts > 0 && story.avgReposts != null ?
+      story.avgReposts / avgOfAvgReposts : 0;
   const adjustBookmarks =
-    avgOfAvgBookmarks > 0 ? story.avgBookmarks / avgOfAvgBookmarks : 0;
+    avgOfAvgBookmarks > 0 && story.avgBookmarks != null ?
+      story.avgBookmarks / avgOfAvgBookmarks : 0;
   const adjustViews =
-    avgOfAvgViews > 0 ? story.avgViews / avgOfAvgViews : 0;
+    avgOfAvgViews > 0 && story.avgViews != null ?
+       story.avgViews / avgOfAvgViews : 0;
+
 
   const adjustedScore =
     adjustLikes +
@@ -82,11 +88,12 @@ function calculateNewsworthiness(story, platforms) {
   const engagementScore = adjustedScore / (adjustedScore + 1);
 
   const angleDiff = story.bias != null ? getDistance(story.bias, 90) : 90;
+
   const biasMultiple = 1 - angleDiff / 360; // 75% if right/left, 50% if extreme
 
   const newsworthiness = engagementScore * biasMultiple;
 
-  return Math.max(0, Math.min(1, newsworthiness));
+  return _.round(Math.max(0, Math.min(1, newsworthiness)), 2);
 }
 
 // //////////////////////////////////////////////////////////////////
@@ -129,22 +136,19 @@ function calculateAverageStats(posts) {
   const averages = {};
 
   if (counts.replies > 0) {
-    averages.avgReplies =
-        parseFloat((totals.replies / counts.replies).toFixed(2));
+    averages.avgReplies = _.round(totals.replies / counts.replies, 2);
   }
   if (counts.reposts > 0) {
-    averages.avgReposts =
-        parseFloat((totals.reposts / counts.reposts).toFixed(2));
+    averages.avgReposts = _.round(totals.reposts / counts.reposts, 2);
   }
   if (counts.likes > 0) {
-    averages.avgLikes = parseFloat((totals.likes / counts.likes).toFixed(2));
+    averages.avgLikes = _.round(totals.likes / counts.likes, 2);
   }
   if (counts.bookmarks > 0) {
-    averages.avgBookmarks =
-        parseFloat((totals.bookmarks / counts.bookmarks).toFixed(2));
+    averages.avgBookmarks = _.round(totals.bookmarks / counts.bookmarks, 2);
   }
   if (counts.views > 0) {
-    averages.avgViews = parseFloat((totals.views / counts.views).toFixed(2));
+    averages.avgViews = _.round(totals.views / counts.views, 2);
   }
 
   return averages;

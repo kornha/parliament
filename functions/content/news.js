@@ -249,9 +249,10 @@ const getPostFromArticle = function(article, defaultStatus = "draft") {
 
 /**
  * Returns recent articles from top news sources
+ * @param {number} minutesAgo
  * @return {Promise<Array>} articles
  * */
-const getRecentArticles = async function() {
+const getRecentArticles = async function(minutesAgo = 360) {
   const query = new QueryArticles({
     // eslint-disable-next-line new-cap
     categoryUri: QueryItems.OR(newsCategories),
@@ -262,13 +263,12 @@ const getRecentArticles = async function() {
   query.setRequestedResult(
       new RequestArticlesRecentActivity({
         maxArticleCount: 100,
-        updatesAfterMinsAgo: 720,
+        updatesAfterMinsAgo: minutesAgo,
         returnInfo: returnInfo,
       }),
   );
   const response = await newsApi().execQuery(query);
-  logger.info(response);
-  logger.info(_newsApiKey.value());
+  // if there is an error here the API request is likely blocked
   const articles = response.recentActivityArticles["activity"];
   return articles;
 };
