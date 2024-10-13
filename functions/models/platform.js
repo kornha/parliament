@@ -98,11 +98,13 @@ exports.onPlatformShouldChangeStats = onMessagePublished(
       }
 
       if (isFibonacciNumber(platform.statsCount)) {
-        logger.info(`Updating stats  ${plid} count: ${platform.statsCount}`);
+        logger.info(
+            `Updating platform stats ${plid} count: ${platform.statsCount}`);
         const posts = await getAllPostsForPlatform(plid);
         if (_.isEmpty(posts)) {
-          return Promise.resolve();
+          logger.warn(`No posts for platform ${plid}`);
         }
+
         const stats = calculateAverageStats(posts);
         // can be {} if no stats in child posts
         if (!_.isEmpty(stats)) {

@@ -267,6 +267,8 @@ const getRecentArticles = async function() {
       }),
   );
   const response = await newsApi().execQuery(query);
+  logger.info(response);
+  logger.info(_newsApiKey.value());
   const articles = response.recentActivityArticles["activity"];
   return articles;
 };

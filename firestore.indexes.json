@@ -4,6 +4,19 @@
       "collectionId": "posts",
       "fields": [
         {
+          "fieldPath": "plid",
+          "mode": "ASCENDING"
+        },
+        {
+          "fieldPath": "updatedAt",
+          "mode": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionId": "posts",
+      "fields": [
+        {
           "fieldPath": "sid",
           "mode": "ASCENDING"
         },

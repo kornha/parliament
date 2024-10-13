@@ -16,7 +16,7 @@ const {retryAsyncFunction} = require("../common/utils");
  * */
 async function onStoryShouldChangeNewsworthiness(sid) {
   const story = await getStory(sid);
-  if (!story) {
+  if (!story || _.isEmpty(story.plids)) {
     return Promise.resolve();
   }
 

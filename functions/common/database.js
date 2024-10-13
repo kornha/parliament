@@ -1,6 +1,6 @@
 const admin = require("firebase-admin");
 const {Timestamp, FieldPath, FieldValue} = require("firebase-admin/firestore");
-const {v4} = require("uuid");
+const {v4, v5} = require("uuid");
 const _ = require("lodash");
 const {retryAsyncFunction, urlToDomain} = require("./utils");
 const {logger} = require("firebase-functions/v2");
@@ -238,6 +238,7 @@ const getAllPostsForStory = async function(sid) {
     const posts = await postsRef.get();
     return posts.docs.map((post) => post.data());
   } catch (e) {
+    logger.error(`Error getting posts for story ${sid}: ${e}`);
     return null;
   }
 };
@@ -273,6 +274,7 @@ const getAllPostsForPlatform = async function(plid, limit = 10000) {
     logger.error(`Could not get posts for platform: ${plid}`);
     return;
   }
+
   const postsRef = admin.firestore().collection("posts")
       .where("plid", "==", plid)
       .orderBy("updatedAt", "desc")
@@ -281,6 +283,7 @@ const getAllPostsForPlatform = async function(plid, limit = 10000) {
     const posts = await postsRef.get();
     return posts.docs.map((post) => post.data());
   } catch (e) {
+    logger.error(`Error getting posts for platform ${plid}: ${e}`);
     return null;
   }
 };
@@ -559,6 +562,21 @@ const updateEntity = async function(eid, values, skipError) {
   }
 };
 
+const setEntity = async function(eid, values) {
+  if (!eid || !values) {
+    logger.error(`Could not set entity: ${eid}`);
+    return;
+  }
+  const entityRef = admin.firestore().collection("entities").doc(eid);
+  try {
+    await entityRef.set(values, {merge: true});
+    return true;
+  } catch (e) {
+    logger.error(e);
+    return false;
+  }
+};
+
 /**
  * Finds or creates an entity by handle.
  * @param {string} handle the entity handle.
@@ -590,7 +608,7 @@ const findCreateEntity = async function(handle, platform) {
     return entity;
   }
 
-  const eid = v4();
+  const eid = v5(handle, platform.plid);
   const newEntity = {
     eid: eid,
     handle: handle,
@@ -598,7 +616,7 @@ const findCreateEntity = async function(handle, platform) {
     createdAt: Timestamp.now().toMillis(),
     updatedAt: Timestamp.now().toMillis(),
   };
-  if (await retryAsyncFunction(() => createEntity(newEntity))) {
+  if (await retryAsyncFunction(() => setEntity(eid, newEntity))) {
     return newEntity;
   } else {
     throw new Error("Could not create entity.");
@@ -734,6 +752,21 @@ const updatePlatform = async function(plid, values, skipError) {
   }
 };
 
+const setPlatform = async function(plid, values) {
+  if (!plid || !values) {
+    logger.error(`Could not set platform: ${plid}`);
+    return;
+  }
+  const platformRef = admin.firestore().collection("platforms").doc(plid);
+  try {
+    await platformRef.set(values, {merge: true});
+    return true;
+  } catch (e) {
+    logger.error(e);
+    return false;
+  }
+};
+
 /**
  * fetches all platforms by ids
  * @param {*} plids
@@ -756,6 +789,7 @@ const getPlatforms = async function(plids) {
         "in", plids).get();
     return platforms.docs.map((platform) => platform.data());
   } catch (e) {
+    logger.error("Error getting platforms: ", e);
     return null;
   }
 };
@@ -773,6 +807,7 @@ const findCreatePlatform = async function(link) {
   }
 
   const url = urlToDomain(link);
+  const PLATFORM_SEED = "efb713e8-022f-46ca-b745-4040d19a4f9a";
 
   const platform = await retryAsyncFunction(() =>
     getPlatformByURL(url), 2, 1000, false);
@@ -781,7 +816,7 @@ const findCreatePlatform = async function(link) {
     return platform;
   }
 
-  const plid = v4();
+  const plid = v5(url, PLATFORM_SEED);
   const newPlatform = {
     plid: plid,
     url: url,
@@ -789,7 +824,7 @@ const findCreatePlatform = async function(link) {
     updatedAt: Timestamp.now().toMillis(),
   };
 
-  if (await retryAsyncFunction(() => createPlatform(newPlatform))) {
+  if (await retryAsyncFunction(() => setPlatform(plid, newPlatform))) {
     return newPlatform;
   } else {
     throw new Error("Could not create platform.");
@@ -998,6 +1033,7 @@ const getStatements = async function(stids) {
   }
 };
 
+// todo: change to stid, values
 const setStatement = async function(statement) {
   if (!statement.stid || !statement.createdAt || !statement.updatedAt) {
     logger.error(`Could not create statement: ${statement}`);
@@ -1252,6 +1288,7 @@ module.exports = {
   findCreateEntity,
   getAllEntitiesForStatement,
   getAllEntitiesForPlatform,
+  setEntity,
   //
   createNewRoom,
   getRoom,
@@ -1274,6 +1311,7 @@ module.exports = {
   getPlatform,
   getPlatformByURL,
   getPlatforms,
+  setPlatform,
   //
   getMessages,
   //

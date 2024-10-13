@@ -18,7 +18,8 @@ const {
 const _ = require("lodash");
 const {resetStoryVector} = require("../ai/story_ai");
 const {updateStory, getAllPostsForStory,
-  deleteAttribute} = require("../common/database");
+  deleteAttribute,
+  getPosts} = require("../common/database");
 const {handleChangedRelations} = require("../common/utils");
 const {logger} = require("firebase-functions/v2");
 const {didChangeStats,
@@ -69,7 +70,7 @@ exports.onStoryUpdate = onDocumentWritten(
             _update && _.isEmpty(after.plids)
         ) {
           await publishMessage(STORY_SHOULD_CHANGE_PLATFORMS,
-              {sid: after?.sid || before?.sid});
+              {story: after});
         }
       }
 
@@ -82,6 +83,15 @@ exports.onStoryUpdate = onDocumentWritten(
         await publishMessage(STORY_SHOULD_CHANGE_BIAS,
             {sid: after?.sid || before?.sid});
         await publishMessage(STORY_SHOULD_CHANGE_CONFIDENCE,
+            {sid: after?.sid || before?.sid});
+      }
+
+      if (
+        _create && !_.isEmpty(after.plids) ||
+        _update && !_.isEqual(before.plids, after.plids) ||
+        _delete && !_.isEmpty(before.plids)
+      ) {
+        await publishMessage(STORY_SHOULD_CHANGE_NEWSWORTHINESS,
             {sid: after?.sid || before?.sid});
       }
 
@@ -254,25 +264,35 @@ exports.onStoryShouldChangePlatforms = onMessagePublished(
       ...defaultConfig,
     },
     async (event) => {
-      const sid = event.data.message.json.sid;
-      logger.info(`onStoryShouldChangePlatforms ${sid}`);
-      if (!sid) {
+      const story = event.data.message.json.story;
+      if (!story || !story.sid) {
+        logger.error(`Invalid story, cannot change platform`);
         return Promise.resolve();
       }
 
-      const posts = await getAllPostsForStory(sid);
+      logger.info(`onStoryShouldChangePlatforms ${story.sid}`);
+
+      if (_.isEmpty(story.pids)) {
+        logger.error(`Story ${story.sid} has no pids! Cannot change platform`);
+        return Promise.resolve();
+      }
+
+      // we do getPosts instead of getAllPostsForStory due to
+      // this only being called from story.js and not also post.js
+      // hence the posts might not have their sids set
+      const posts = await getPosts(story.pids);
       if (_.isEmpty(posts)) {
-        logger.warn(`No posts found for story ${sid}`);
+        logger.warn(`No posts found for story ${story.sid}`);
         return Promise.resolve();
       }
 
       const platforms = _.uniq(posts.map((post) => post.plid));
       if (_.isEmpty(platforms)) {
-        logger.warn(`No platforms found for story ${sid}`);
+        logger.warn(`No platforms found for story ${story.sid}`);
         return Promise.resolve();
       }
 
-      await updateStory(sid, {plids: platforms}, 5);
+      await updateStory(story.sid, {plids: platforms}, 5);
 
       return Promise.resolve();
     },
