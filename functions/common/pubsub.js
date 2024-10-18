@@ -7,8 +7,7 @@ const {logger} = require("firebase-functions/v2");
 const POST_CHANGED_VECTOR = "onPostChangedVector";
 const POST_PUBLISHED = "onPostPublished";
 const POST_CHANGED_XID = "onPostChangedXid";
-const POST_SHOULD_FIND_STORIES_AND_STATEMENTS =
-  "onPostShouldFindStoriesAndStatements";
+const POST_SHOULD_FIND_STORIES ="onPostShouldFindStories";
 const STATEMENT_CHANGED_POSTS = "onStatementChangedPosts";
 const STORY_CHANGED_POSTS = "onStoryChangedPosts";
 const ENTITY_CHANGED_POSTS = "onEntityChangedPosts";
@@ -79,7 +78,7 @@ module.exports = {
   POST_PUBLISHED,
   POST_CHANGED_VECTOR,
   POST_CHANGED_XID,
-  POST_SHOULD_FIND_STORIES_AND_STATEMENTS,
+  POST_SHOULD_FIND_STORIES,
   POST_CHANGED_ENTITY,
   POST_CHANGED_STATS,
   POST_SHOULD_CHANGE_BIAS,

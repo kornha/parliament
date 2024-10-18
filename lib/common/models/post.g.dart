@@ -111,7 +111,10 @@ const _$PostStatusEnumMap = {
   PostStatus.scraping: 'scraping',
   PostStatus.draft: 'draft',
   PostStatus.published: 'published',
-  PostStatus.finding: 'finding',
+  PostStatus.findingStories: 'findingStories',
+  PostStatus.foundStories: 'foundStories',
+  PostStatus.findingStatements: 'findingStatements',
+  PostStatus.foundStatements: 'foundStatements',
   PostStatus.found: 'found',
   PostStatus.unsupported: 'unsupported',
 };

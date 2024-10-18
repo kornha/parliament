@@ -1,6 +1,6 @@
 /* eslint-disable max-len */
 const {setContent, getContent} = require("../common/storage");
-const {findStoriesPrompt, findStatementsPrompt} = require("./prompts");
+const {findStoriesPrompt, findStatementsPrompt, findContextPrompt} = require("./prompts");
 const {logger} = require("firebase-functions/v2");
 
 const filePath = "training/fine_tune.jsonl";
@@ -39,6 +39,16 @@ async function(promptName, post, stories, statements, output) {
       content: findStatementsPrompt({
         post: post,
         stories: stories,
+        statements: statements,
+        training: false,
+        includePhotos: false,
+      }),
+    });
+  } else if (promptName === "findContext") {
+    messages.push({
+      role: "user",
+      content: findContextPrompt({
+        story: stories[0], // accepts single story
         statements: statements,
         training: false,
         includePhotos: false,

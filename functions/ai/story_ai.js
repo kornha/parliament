@@ -2,12 +2,59 @@ const {logger} = require("firebase-functions/v2");
 const {getPostsForStory,
   setVector,
   searchVectors,
-  getStory} = require("../common/database");
+  getStory,
+  updateStory,
+  getAllStatementsForStory} = require("../common/database");
 const {generateEmbeddings, generateCompletions} = require("../common/llm");
-const {calculateMeanVector} = require("../common/utils");
+const {calculateMeanVector, retryAsyncFunction} = require("../common/utils");
 const _ = require("lodash");
 const {writeTrainingData} = require("./trainer");
-const {findStoriesPrompt} = require("./prompts");
+const {findStoriesPrompt, findContextPrompt} = require("./prompts");
+
+/** FLAGSHIP FUNCTION
+ * ***************************************************************
+ * Finds context (headline, subheadline, lead) for stories
+ * similar to concepts in post_ai.js
+ * @param {Story} story
+ * @return {Promise<void>}
+ * ***************************************************************
+ * */
+const onStoryShouldFindContext = async function(story) {
+  if (!story) {
+    logger.warn("Story is null, not finding context");
+    return;
+  }
+
+  logger.info(`onStoryShouldFindContext for story ${story.sid}`);
+
+  // sets status, but this cannot be relied on for anything other
+  // than single update as it can be overridden by other steps
+  if (story.status != "findingContext") {
+    await retryAsyncFunction(() => updateStory(story.sid, {
+      status: "findingContext",
+    }));
+  }
+
+  const statements = await getAllStatementsForStory(story.sid);
+  if (!statements || statements.length === 0) {
+    logger.warn(`Story ${story.sid} does not have statements`);
+  }
+
+  const resp = await findContext(story, statements);
+  const gstory = resp;
+
+  await retryAsyncFunction(() => updateStory(story.sid, {
+    headline: gstory.headline,
+    subHeadline: gstory.subHeadline,
+    lede: gstory.lede,
+    aticle: gstory.article,
+    status: "foundContext",
+  }));
+
+  logger.info(`Done onPostShouldFindStories for post ${story.sid}`);
+
+  return Promise.resolve();
+};
 
 /**
  * ***************************************************************
@@ -66,6 +113,45 @@ const findStories = async function(post) {
 
   return resp;
 };
+
+/**
+ * ***************************************************************
+ * Finds context (headline, subheadline, lead) for stories based on
+ * the statements
+ * @param {Story} story
+ * @param {Array<Statement>} statements
+ * @return {Promise<Gstories,Removed>}
+ * ***************************************************************
+ */
+const findContext = async function(story, statements) {
+  if (!story) {
+    logger.error("Story is null");
+    return;
+  }
+
+  const _prompt = findContextPrompt({
+    story: story,
+    statements: statements,
+    training: true,
+    includePhotos: true,
+  });
+
+  const resp = await generateCompletions(
+      _prompt,
+      "findContext " + story.sid,
+      true,
+  );
+
+  writeTrainingData("findContext", null, [story], statements, resp);
+
+  if (!resp || !resp.sid) {
+    logger.info(`Story does not have contextualization! ${story.sid}`);
+    return;
+  }
+
+  return resp;
+};
+
 
 /**
  * K MEANS STREAMING ALGORITHM
@@ -128,12 +214,6 @@ const getStoryEmbeddingStrings = function(story) {
   if (story.title) {
     ret.push(story.title);
   }
-  if (story.headline) {
-    ret.push(story.headline);
-  }
-  if (story.subHeadline) {
-    ret.push(story.subHeadline);
-  }
   if (story.description) {
     ret.push(story.description);
   }
@@ -142,6 +222,7 @@ const getStoryEmbeddingStrings = function(story) {
 
 module.exports = {
   findStories,
+  onStoryShouldFindContext,
   resetStoryVector,
 };
 

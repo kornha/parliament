@@ -63,7 +63,7 @@ const generateCompletions = async function(messages,
 
     const generation = JSON.parse(completion.choices[0].message.content);
     if (generation == null) {
-      logger.error(`Invalid generation: ${generation}`);
+      logger.error(`Invalid generation: ${completion}`);
       return null;
     }
 

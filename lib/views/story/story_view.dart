@@ -62,7 +62,7 @@ class _StoryViewState extends ConsumerState<StoryView> {
                   ),
                   context.sf,
                   Text(
-                    story?.description ?? "",
+                    story?.lede ?? "",
                     style: context.l,
                   ),
                   context.sf,

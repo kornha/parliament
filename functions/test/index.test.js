@@ -34,7 +34,7 @@ describe("AI Tests", () => {
           description: "A news article screenshot from Politico with a headline stating '8 Israeli soldiers killed in southern Gaza in deadliest attack on troops in months.' The image shows a barren landscape with a security fence and a road running through it. There are some construction vehicles and equipment near the fence. The top of the screenshot features a red header with the Politico logo and navigation links to sections like Latest News, Magazine, California, Florida, and New Jersey.",
         },
         updatedAt: 1719179543731,
-        status: "finding",
+        status: "findingStories",
         vector: {
           _values: [0.0],
         },
@@ -55,9 +55,6 @@ describe("AI Tests", () => {
       expect(stories[0]).to.have.property("sid", null);
       expect(stories[0]).to.have.property("title").that.is.not.null;
       expect(stories[0]).to.have.property("description").that.is.not.null;
-      expect(stories[0]).to.have.property("headline").that.is.not.null;
-      expect(stories[0]).to.have.property("subHeadline").that.is.not.null;
-      expect(stories[0]).to.have.property("importance").that.is.within(0.4, 0.5);
       expect(new Date(stories[0].happenedAt).getTime()).to.be.closeTo(expectedDate, deltaTime);
       expect(stories[0].lat).to.be.closeTo(31.5, deltaLatLong);
       expect(stories[0].long).to.be.closeTo(34.47, deltaLatLong);
@@ -73,10 +70,7 @@ describe("AI Tests", () => {
         {
           sid: "ad18d688-d656-4f4f-aac9-2ab6a9adf3ae",
           title: "Eight Israeli Soldiers Killed in Gaza Attack",
-          headline: "Eight Israeli Soldiers Killed in Deadliest Attack in Months",
-          subHeadline: "Eight Israeli soldiers were killed in an attack in Gaza, the deadliest in months.",
           description: "Eight Israeli soldiers were killed in an attack in Gaza, the deadliest in months. The attack occurred in southern Gaza and has been reported as the deadliest attack on troops in months.",
-          importance: 0.45,
           photos: [
             {
               photoURL: "https://pbs.twimg.com/media/GQJM_1ZWkAECNcx?format=jpg&name=small",
@@ -109,12 +103,9 @@ describe("AI Tests", () => {
         {
           sid: "c455fa6a-4ba4-47bd-a287-d023cee4b265",
           title: "Palestinian Peace Activists Against Hamas",
-          headline: "Palestinian Peace Activists Speak Out Against Hamas",
-          subHeadline: "Palestinian peace activists face imprisonment and death for criticizing Hamas.",
           description: "The Post discusses the plight of Palestinian peace activists who argue against Hamas' ideology and face imprisonment and death for their criticism.",
           updatedAt: 1719327389983,
           createdAt: 1719327389983,
-          importance: 0.05,
           pids: [
             "813416b8-b25f-5bbe-8aad-7f49496efd42",
           ],
@@ -162,7 +153,7 @@ describe("AI Tests", () => {
           _values: [0.045847878],
         },
         updatedAt: 1719327502023,
-        status: "finding",
+        status: "findingStories",
       };
 
       const resp = await storyFunctions.findStories(post);
@@ -179,9 +170,6 @@ describe("AI Tests", () => {
       expect(stories[0]).to.have.property("sid").that.is.equal(candidateStories[0].sid);
       expect(stories[0]).to.have.property("title").that.is.not.null;
       expect(stories[0]).to.have.property("description").that.is.not.equal(candidateStories[0].description);
-      expect(stories[0]).to.have.property("headline").that.is.not.null;
-      expect(stories[0]).to.have.property("subHeadline").that.is.not.equal(candidateStories[0].headline);
-      expect(stories[0]).to.have.property("importance").that.is.within(0.4, 0.5);
       expect(new Date(stories[0].happenedAt).getTime()).to.be.closeTo(expectedDate, deltaTime);
       expect(stories[0].lat).to.be.closeTo(31.5, deltaLatLong);
       expect(stories[0].long).to.be.closeTo(34.47, deltaLatLong);
@@ -198,12 +186,9 @@ describe("AI Tests", () => {
         {
           sid: "eba41008-d365-4628-a084-d2cfdb7f230d",
           title: "Dior Bag Production Costs",
-          headline: "Dior Bags: $57 to Make, $2,780 to Buy",
-          subHeadline: "Italian prosecutors reveal Dior's production costs for luxury bags.",
           description: "Italian prosecutors have uncovered that Dior pays only $57 to produce bags that retail for $2,780. This revelation raises questions about the pricing strategies of luxury brands and the value they offer to consumers.",
           updatedAt: 1720208264001,
           createdAt: 1720208264001,
-          importance: 0.4,
           pids: [
             "8ecd0a3a-ba3d-5ec4-b57e-2ebd56660d81",
           ],
@@ -254,7 +239,7 @@ describe("AI Tests", () => {
           _values: [0.012712782],
         },
         updatedAt: 1720208328097,
-        status: "finding",
+        status: "findingStories",
       };
 
       const resp = await storyFunctions.findStories(post);
@@ -267,9 +252,6 @@ describe("AI Tests", () => {
       expect(stories[0]).to.have.property("sid").that.is.equal(candidateStories[0].sid);
       expect(stories[0]).to.have.property("title").that.is.not.null;
       expect(stories[0]).to.have.property("description").that.is.not.equal(candidateStories[0].description);
-      expect(stories[0]).to.have.property("headline").that.is.not.null;
-      expect(stories[0]).to.have.property("subHeadline").that.is.not.equal(candidateStories[0].headline);
-      expect(stories[0]).to.have.property("importance").that.is.within(0.4, 0.5);
     });
 
     it("should 1 or 2 Stories with 1 candidate", async function() {
@@ -278,12 +260,9 @@ describe("AI Tests", () => {
       const candidateStories = [{
         sid: "16681a80-caaa-40f7-a36b-95ba91cd2777",
         title: "Eight Israeli Soldiers Killed in Gaza Attack",
-        headline: "Eight Israeli Soldiers Killed in Deadliest Attack in Months",
-        subHeadline: "Eight Israeli soldiers were killed in an attack in Gaza, the deadliest in months.",
         description: "Eight Israeli soldiers were killed in an attack in Gaza, the deadliest in months. The loss of life, whether military or civilian, is a tragedy. The attack occurred in southern Gaza, and it is considered the deadliest attack on troops in months.",
         updatedAt: 1719239417826,
         createdAt: 1719239417826,
-        importance: 0.45,
         pids: [
           "fd6d6598-fb5a-5aba-9798-d3aa640047f4",
         ],
@@ -328,7 +307,7 @@ describe("AI Tests", () => {
         title: "To say that all Palestinians are guilty for the crimes of Hamas is a terrible insult to the Palestinian peace activists who argue against Hamas' ideology every day and many who Hamas imprisoned and killed just for criticising their ideas.",
         photo: null,
         updatedAt: 1719239589591,
-        status: "finding",
+        status: "findingStories",
         vector: {
           _values: [0.0],
         },
@@ -351,10 +330,7 @@ describe("AI Tests", () => {
         {
           sid: "920d0f63-906d-4f30-ba1e-547d6a9a06b4",
           title: "Eight Israeli Soldiers Killed in Gaza Attack",
-          headline: "Eight Israeli Soldiers Killed in Deadliest Attack in Months",
-          subHeadline: "Eight Israeli soldiers were killed in an attack in Gaza, the deadliest in months.",
           description: "Eight Israeli soldiers were killed in an attack in Gaza, the deadliest in months. The loss of life, whether military or civilian, is a tragedy. Thoughts are with the families who lost their brave children.",
-          importance: 0.45,
           photos: [
             {
               photoURL: "https://pbs.twimg.com/media/GQJM_1ZWkAECNcx?format=jpg&name=small",
@@ -388,12 +364,9 @@ describe("AI Tests", () => {
         {
           sid: "4f4e6b9c-2c47-4d7d-908e-ee1ea9dc65b6",
           title: "Palestinian Peace Activists Against Hamas",
-          headline: "Palestinian Peace Activists Speak Out Against Hamas",
-          subHeadline: "Peace activists in Palestine face imprisonment and death for opposing Hamas.",
           description: "Palestinian peace activists argue against Hamas' ideology every day, and many have been imprisoned and killed by Hamas for criticizing their ideas.",
           updatedAt: 1719244000347,
           createdAt: 1719244000347,
-          importance: 0.05,
           pids: [
             "813416b8-b25f-5bbe-8aad-7f49496efd42",
           ],
@@ -440,7 +413,7 @@ describe("AI Tests", () => {
           _values: [0.03093496],
         },
         updatedAt: 1719241354503,
-        status: "finding",
+        status: "findingStories",
       };
 
       const resp = await storyFunctions.findStories(post);
@@ -457,9 +430,6 @@ describe("AI Tests", () => {
       expect(stories[0]).to.have.property("sid", null);
       expect(stories[0]).to.have.property("title").that.is.not.null;
       expect(stories[0]).to.have.property("description").that.is.not.null;
-      expect(stories[0]).to.have.property("headline").that.is.not.null;
-      expect(stories[0]).to.have.property("subHeadline").that.is.not.null;
-      expect(stories[0]).to.have.property("importance").that.is.within(0.19, 0.41);
       expect(new Date(stories[0].happenedAt).getTime()).to.be.closeTo(expectedDate, deltaTime);
       expect(stories[0].lat).to.be.closeTo(31.5, deltaLatLong);
       expect(stories[0].long).to.be.closeTo(34.47, deltaLatLong);
@@ -473,10 +443,7 @@ describe("AI Tests", () => {
         {
           sid: "920d0f63-906d-4f30-ba1e-547d6a9a06b4",
           title: "Eight Israeli Soldiers Killed in Gaza Attack",
-          headline: "Eight Israeli Soldiers Killed in Deadliest Attack in Months",
-          subHeadline: "Eight Israeli soldiers were killed in an attack in Gaza, the deadliest in months.",
           description: "Eight Israeli soldiers were killed in an attack in Gaza, the deadliest in months. The loss of life, whether military or civilian, is a tragedy. Thoughts are with the families who lost their brave children.",
-          importance: 0.45,
           photos: [
             {
               photoURL: "https://pbs.twimg.com/media/GQJM_1ZWkAECNcx?format=jpg&name=small",
@@ -510,12 +477,9 @@ describe("AI Tests", () => {
         {
           sid: "4f4e6b9c-2c47-4d7d-908e-ee1ea9dc65b6",
           title: "Palestinian Peace Activists Against Hamas",
-          headline: "Palestinian Peace Activists Speak Out Against Hamas",
-          subHeadline: "Peace activists in Palestine face imprisonment and death for opposing Hamas.",
           description: "Palestinian peace activists argue against Hamas' ideology every day, and many have been imprisoned and killed by Hamas for criticizing their ideas.",
           updatedAt: 1719244000347,
           createdAt: 1719244000347,
-          importance: 0.05,
           pids: [
             "813416b8-b25f-5bbe-8aad-7f49496efd42",
           ],
@@ -562,7 +526,7 @@ describe("AI Tests", () => {
           _values: [0.0141365705],
         },
         updatedAt: 1720117578055,
-        status: "finding",
+        status: "findingStories",
       };
 
       const resp = await storyFunctions.findStories(post);
@@ -575,9 +539,6 @@ describe("AI Tests", () => {
       expect(stories[0]).to.have.property("sid", null);
       expect(stories[0]).to.have.property("title").that.is.not.null;
       expect(stories[0]).to.have.property("description").that.is.not.null;
-      expect(stories[0]).to.have.property("headline").that.is.not.null;
-      expect(stories[0]).to.have.property("subHeadline").that.is.not.null;
-      expect(stories[0]).to.have.property("importance").that.is.within(0.0, 0.11);
       expect(stories[0].photos).to.be.an("array").that.has.lengthOf(0);
     });
 
@@ -588,12 +549,9 @@ describe("AI Tests", () => {
         {
           sid: "be8c44bd-6f25-40c3-85c2-f023c1a73cfa",
           title: "IDF Hannibal Directive on October 7",
-          headline: "IDF Used Hannibal Directive to Prevent Hamas Capturing Soldiers",
-          subHeadline: "IDF's Hannibal directive on October 7 aimed to prevent Hamas from taking soldiers captive, potentially endangering civilians.",
           description: "Documents and testimonies obtained by Haaretz reveal that the IDF employed the Hannibal operational order on October 7 to prevent soldiers from being taken captive by Hamas. This directive, which directs the use of force to prevent soldiers from being taken into captivity, was employed at three army facilities infiltrated by Hamas, potentially endangering civilians as well.",
           updatedAt: 1720364209180,
           createdAt: 1720364209180,
-          importance: 0.5,
           pids: [
             "2530edc8-d2c1-53c0-a03e-0e9ec2f5bba7",
           ],
@@ -621,12 +579,9 @@ describe("AI Tests", () => {
         {
           sid: "9f033986-e120-48c5-b0a6-83773cec65ec",
           title: "Hannibal Directive Used on October 7",
-          headline: "Israel Used Hannibal Directive on October 7",
-          subHeadline: "Haaretz confirms Israel's use of the Hannibal directive on October 7, targeting vehicles and areas near Gaza.",
           description: "Haaretz confirms that Israel used the Hannibal directive on October 7, which included orders to attack any vehicle driving towards Gaza, indiscriminately bomb the area with mortar shells and artillery, and make it a 'kill zone'. Drones were also dispatched to attack the Re’im outpost close to the Nova festival. The directive was employed at three army facilities infiltrated by Hamas, potentially endangering civilians.",
           updatedAt: 1720364195307,
           createdAt: 1720364195307,
-          importance: 0.6,
           pids: [
             "a9d63e0d-b7f1-5efd-ad49-e0b2a93c855a",
           ],
@@ -656,12 +611,9 @@ describe("AI Tests", () => {
         {
           sid: "1fc6cc47-8074-455d-8362-b9b72ba5edc4",
           title: "Hannibal Directive on October 7",
-          headline: "IDF Applied Hannibal Directive on October 7",
-          subHeadline: "IDF forces ordered to create a death zone between Israel and Gaza on October 7.",
           description: "On October 7, the IDF applied the Hannibal Directive, ordering forces to make the area between Israel and Gaza a death zone for everyone and anything. This directive, which allows the military to eliminate its own soldiers and civilians if there is a suspicion they are being kidnapped, was extensively used on this day. The directive raises questions about the psychology of Israeli soldiers and the broader implications of such a policy.",
           updatedAt: 1720364222957,
           createdAt: 1720364222957,
-          importance: 0.5,
           pids: [
             "df539597-c301-51fb-9d34-36598ad43546",
           ],
@@ -689,12 +641,9 @@ describe("AI Tests", () => {
         {
           sid: "972a8676-70b8-4586-ba4a-2ac6d28556dd",
           title: "IOF Officer Disappeared",
-          headline: "IOF Officer Disappears After Bold Statement",
-          subHeadline: "IOF officer who statemented Hamas fighters fear them has disappeared.",
           description: "An IOF officer, who once statemented that Hamas fighters do not dare to appear before them due to their strength, has reportedly disappeared. The incident highlights the ongoing conflict and tensions in the region.",
           updatedAt: 1720364233970,
           createdAt: 1720364233970,
-          importance: 0.4,
           pids: [
             "dc6926a9-ecf9-5723-8fe2-ec98d5552440",
           ],
@@ -745,24 +694,22 @@ describe("AI Tests", () => {
           _values: [0.027299045],
         },
         updatedAt: 1720372509650,
-        status: "finding",
+        status: "findingStories",
       };
 
       const resp = await storyFunctions.findStories(post);
       const stories = resp.stories;
-      const removed = resp.removed;
+      const removedStories = resp.removedStories;
 
       expect(searchVectorsStub.calledOnce).to.be.true;
       expect(writeTrainingDataStub.calledOnce).to.be.true;
       //
-      expect(removed).to.be.an("array").that.has.lengthOf(3);
+      expect(removedStories).to.be.an("array").that.has.lengthOf(3);
       expect(stories).to.be.an("array").that.has.lengthOf(1);
       expect(stories[0]).to.have.property("sid", null);
       expect(stories[0]).to.have.property("title").that.is.not.null;
       //
       expect(stories[0]).to.have.property("description").that.is.not.null;
-      expect(stories[0]).to.have.property("headline").that.is.not.null;
-      expect(stories[0]).to.have.property("subHeadline").that.is.not.null;
     });
 
     it("should merge candidate Stories into 1 Story II", async function() {
@@ -771,10 +718,7 @@ describe("AI Tests", () => {
       const candidateStories = [
         {
           sid: "209caf95-38c0-4681-9551-7de295005076",
-          title: "Trump VP Selection Speculation",
-          headline: "Trump's VP Pick: White Man or Marco Rubio?",
-          subHeadline: "Speculation arises about Trump's potential VP pick being a white man or Marco Rubio.",
-          importance: 0.2,
+          title: "Trump VP Selection Announcement",
           photos: [
           ],
           happenedAt: 1720437495000,
@@ -800,10 +744,7 @@ describe("AI Tests", () => {
         {
           sid: "965ec75d-5fbe-400a-940b-b1ae55595e63",
           title: "Trump Vice President Appointment",
-          headline: "Who Will Trump Appoint as Vice President?",
-          subHeadline: "Public asked for opinions on Trump's Vice President appointment.",
           description: "A social media post is asking the public who they want to see President Trump appoint as his Vice President. The post does not provide any further details or context about the appointment.",
-          importance: 0.1,
           happenedAt: 1720439040000,
           createdAt: 1720453358361,
           photos: [
@@ -825,9 +766,6 @@ describe("AI Tests", () => {
         {
           sid: "5afa98c0-de3f-4c1d-b72b-a62366c6528f",
           title: "Trump VP Selection Announcement",
-          headline: "Trump to Announce VP Selection This Week",
-          subHeadline: "Donald Trump is expected to reveal his Vice Presidential pick this week.",
-          importance: 0.4,
           photos: [
           ],
           happenedAt: 1720445104000,
@@ -879,24 +817,22 @@ describe("AI Tests", () => {
           _values: [-0.027064322],
         },
         updatedAt: 1720480648256,
-        status: "finding",
+        status: "findingStories",
       };
 
       const resp = await storyFunctions.findStories(post);
       const stories = resp.stories;
-      const removed = resp.removed;
+      const removedStories = resp.removedStories;
 
       expect(searchVectorsStub.calledOnce).to.be.true;
       expect(writeTrainingDataStub.calledOnce).to.be.true;
       //
-      expect(removed).to.be.an("array").that.has.lengthOf(3);
+      expect(removedStories).to.be.an("array").that.has.lengthOf(3);
       expect(stories).to.be.an("array").that.has.lengthOf(1);
       expect(stories[0]).to.have.property("sid", null);
       expect(stories[0]).to.have.property("title").that.is.not.null;
       //
       expect(stories[0]).to.have.property("description").that.is.not.null;
-      expect(stories[0]).to.have.property("headline").that.is.not.null;
-      expect(stories[0]).to.have.property("subHeadline").that.is.not.null;
     });
   });
 

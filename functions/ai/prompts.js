@@ -2,6 +2,10 @@
 const _ = require("lodash");
 const {millisToIso} = require("../common/utils");
 
+// ////////////////////////////////////////////////////////////////////////////
+// Image
+// ////////////////////////////////////////////////////////////////////////////
+
 const generateImageDescriptionPrompt = function(photoURL) {
   const messages = [];
   messages.push({
@@ -16,6 +20,10 @@ const generateImageDescriptionPrompt = function(photoURL) {
   `});
   return messages;
 };
+
+// ////////////////////////////////////////////////////////////////////////////
+// Flagship Prompts
+// ////////////////////////////////////////////////////////////////////////////
 
 const findStoriesPrompt = function({post, stories, training = false, includePhotos = true}) {
   // Prepare the initial set of messages with description texts
@@ -35,7 +43,7 @@ const findStoriesPrompt = function({post, stories, training = false, includePhot
   } else {
     messages.push({type: "text", text: "Here are the Stories (if any): "});
     stories.forEach((story) => {
-      messages.push({type: "text", text: storyToJSON(story, !includePhotos)});
+      messages.push({type: "text", text: storyToJSON(story, !includePhotos, false)});
       if (!_.isEmpty(story.photos) && includePhotos) {
         story.photos.forEach((photo) => {
           // we add this here to skip if the photo could not be processed earlier
@@ -49,11 +57,10 @@ const findStoriesPrompt = function({post, stories, training = false, includePhot
   }
 
   messages.push({type: "text", text: "Only output Stories that you are certain Post belongs to. The Post must either directly mention the content in the Story, or make a Statement about the Story. For any Stories that you output, order them by most to least relevant."});
-  messages.push({type: "text", text: `{"stories":[${storyJSONOutput()}, ...], "removedStories":["sid1", "sid2", ...]}`});
+  messages.push({type: "text", text: `{"stories":[${storyJSONOutput({metadata: true})}, ...], "removedStories":["sid1", "sid2", ...]}`});
 
   return messages;
 };
-
 
 const findStatementsPrompt = function({
   post,
@@ -77,7 +84,7 @@ const findStatementsPrompt = function({
   } else {
     messages.push({type: "text", text: `Here are the Stories:`});
     stories.forEach((story) => {
-      messages.push({type: "text", text: `${storyToJSON(story, !includePhotos)}`});
+      messages.push({type: "text", text: `${storyToJSON(story, !includePhotos, false)}`});
       if (!_.isEmpty(story.photos) && includePhotos) {
         story.photos.forEach((photo) => {
           if (photo.description) { // we add this here to skip if the photo could not be processed earlier
@@ -97,18 +104,44 @@ const findStatementsPrompt = function({
     });
   }
 
-  messages.push({type: "text", text: "Output the stories in the same order as they were passed in, but with the new Statements added to the Stories, as follows:"});
-  messages.push({type: "text", text: `{"stories":[${storyJSONOutput(true)}, ...]}`});
+  messages.push({type: "text", text: "Output the stories in the same order as they were passed in, but with the new Statements added to the Stories (and omitting some fields), as follows:"});
+  messages.push({type: "text", text: `{"stories":[${storyJSONOutput({statements: true})}, ...]}`});
 
   return messages;
 };
 
-// ///////////////////////////////////
-// PROMPT TEXTUAL DESCRIPTIONS
-// ///////////////////////////////////
+const findContextPrompt = function({
+  story,
+  statements,
+  training = false,
+  includePhotos = true}) {
+  const messages = training ? [
+    {type: "text", text: findContextForTrainingText()},
+  ] : [];
+
+  messages.push({type: "text", text: `Here is the Story: ${storyToJSON(story, !includePhotos, true)}`});
+
+  if (!_.isEmpty(statements)) {
+    messages.push({type: "text", text: `Here are the Statements:`});
+    statements.forEach((statement) => {
+      messages.push({type: "text", text: `${statementToJSON(statement)}`});
+    });
+  } else {
+    messages.push({type: "text", text: "There are no statements associated with this story."});
+  }
+
+  messages.push({type: "text", text: "Output the Story with the updated context/article fields, as follows:"});
+  messages.push({type: "text", text: storyJSONOutput({context: true})});
+
+  return messages;
+};
+
+// ////////////////////////////////////////////////////////////////////////////
+// Prompt Descriptions
+// ////////////////////////////////////////////////////////////////////////////
 
 //
-// Story
+// Find Story
 //
 
 const findStoriesForTrainingText = function() {
@@ -143,7 +176,7 @@ const findStoriesForTrainingText = function() {
 };
 
 //
-// Statement
+// Find Statement
 //
 
 const findStatementsForTrainingText = function() {
@@ -177,41 +210,57 @@ const findStatementsForTrainingText = function() {
 
   Here's a high level example:
   ${findStatementsExample()}
-`;
+  `;
 };
+
+//
+// Find Contextualization
+//
+
+const findContextForTrainingText = function() {
+  return `
+  Description of a Story:
+  ${storyDescriptionPrompt()}
+
+  Description of a Statement:
+  ${statementsDescriptionPrompt()}
+
+  Description of Bias: ${biasDescriptionPrompt()}
+  Description of Confidence: ${confidenceDescriptionPrompt()}
+
+  Your goal is to output the Story's sid, with a headline, subHeadline, lede, and optionally an article that are as engaging as humanly possible, and should be written in active tense. 
+  You will be given a few pieces of information that will help you write the headline, subHeadline, lede, and article.
+
+  1 - Newsworthiness; the Story's Newsworthiness score (if available) reflects how important the Story is. A high score, such as 0.9, should be met with extreme urgency when drafting the story; eg., NIXON RESIGNS. A low score, such as 0.1, should be met with less urgency; a null/missing score should be treated neutrally.
+  2 - Statements with Confidence scores (aka Claims); your understanding of what is true and false comes from these Claims. If a Claim has a high confidence score, you should treat it as true, and reflect so in the output. If a Claim has a low confidence score, you should treat it as false. If a Claim has a null confidence score, you should treat it as neutral.
+  3 - Statements with Bias scores (aka Opinions); your understanding of the political bias of the Story comes from these Opinions. If an Opinion has a high bias score, you should treat it as extremely biased, and reflect so in the output. If an Opinion has a low bias score, you should treat it as neutral. If an Opinion has a null bias score, you should treat it as neutral. You should favor opinions of with Center bias, but you may say things like "right wing" or "left wing" people say X, for opinions of those biases.
+
+  Your output:
+  headline: The headline should be a short 2-6 word, engaging, and active description of the Story, and should be focused around the event (abiding by the 3 rules above).
+  subHeadline: The subHeadline should be a 1-3 sentence, engaging, and active description of the Story, and should be focused around the event, and provide all known details and call out opinions (abiding by the rules above).
+  lede: The lead is a further 3-6 sentence, engaging, and active description of the Story, and should be focused around the event, and provide all known details and call out opinions (abiding by the rules above). It should be used to say things like; "here's what we know" (based on statements/claims), and "here's what people are saying" (based on opinions).
+  article: The article is an optional, and only outputted if there is more information that can be included in the lede. It should be a 1-3 paragraph, engaging, and active description of the Story, and should be focused around the event, and provide all known details and call out opinions (abiding by the rules above). It should be written as if you are an NY Times journalist.
+  `;
+};
+// //////////////////////////////////////////////////////////////////////
+// Helpers
+// //////////////////////////////////////////////////////////////////////
 
 const newStoryPrompt = function() {
   return `
   SID:
   SID should be null for new Stories, and copied if outputting an existing Story.
 
-  Title, Description, Headline, Subheadline:
+  Title, Description:
   All of these fields need to use maximally neutral language. Posts often will used biased language, so steer clear of that.
   The Title should be 2-6 words categorical description of the Story.
   Description should be 1-many sentences, and completely describes every detail we know about the Story. It should be focused around the event, and provide all known details and call out opinions.
-  The Headline should be as ENGAGING as possible, and should be written in active tense. Eg., if a Title might be "Khameini addresses US students in a tweet", the Headline might be "Khameini: US students are on the right side of history".
-  The Subheadline should be equally as engaging, and a far shorter description of the Story, 1-3 sentences. Eg, "Khameini's tweet to US students is a unusual bridge between the fundementalist Iranian regime and progressive students".
 
   HappenedAt:
   'happenedAt' is the time the event happened in the REAL WORLD, not the timestamp of the Posts. Determine when the Story "happenedAt" based on the time the Post(s) were created, as well as context in the Post(s). Eg., if a Post says "today Trump had a rally in the Bronx", and the Post 'sourceCreatedAt' is at 9PM Eastern, the "happenedAt" is the time of the rally, since 'day' is mentioned, our best guess would be 2PM ET (but outputted in ISO 8601 format).
 
   Lat/Long:
   the 'lat' and 'long' are the location of the event, or our best guess. If the Story is about a Trump rally in the Bronx, the lat and long should be in the Bronx. If the Story is about Rutgers U, the lat and long should be of their campus in NJ, at the closest location that can be determined. If the Post only mentions a person, the lat and long might be the country they are from. The lat and long should almost NEVER be null unless absolutely no location is mentioned or inferred.
-
-  Importance:
-  'importance' is a value between 0.0 and 1.0, where 1.0 would represent the most possible newsworthy news, like the breakout of WW3 or the dropping of an atomic bomb, and 0.0 represents complete non-news, like some non-famous person's opinion, or a cat video. 
-  0.0-0.2 is non-news. This includes opinions, personal stories and anecdotes, emotional ploys, lamenting something, and any *non-newsworthy* events.
-  0.2-0.4 is interesting news to those who follow a subject.
-  0.4-0.6 is interesting news to even those who infrequently follow the topic. 
-  0.6-0.8 is interesting news to everyone globally. 
-  0.8-1.0 is extremely urgent news. 
-  When deciding importance, consider the tone of the Post, the number of Posts in the Story, and the subject matter. Note that using a tone like "Breaking" does not mean the Story is important. When the Story is new, start it at the lower end of it's importance range, and increase it as more Posts come in. 
-  Eg., random opinion -> 0.1, 
-  Trump rally -> 0.3, 
-  Trump rally with violence -> 0.5, 
-  Trump rally with violence and many Posts -> 0.7, 
-  China declares war on Taiwan -> 0.7, 
-  China declares war on Taiwan with many Posts -> 0.95.
 
   Photos:
   'photos' (sometimes described photoURL and photoDescription) are, optionally, the photos that are associated with the Story. They should be ordered by most interesting, and deduped, removing not only identical but even very similar photos. Iff the Post has a photoURL that is relevant to the Story and is not a dupe, it should be included in the Story's photos. Do not include the Post URL in the photoURL.`;
@@ -220,17 +269,45 @@ const newStoryPrompt = function() {
 const storyDescriptionPrompt = function() {
   return `A Story is an something that happened. Some specific time, place, and subject.
   The information is formed from collection of Posts that are 'talking about the same specific event.'
-  A Story has a title, a description, a headline, a subheadline, which are textual descriptions of the Story.
+  A Story has a title, and a description, which are textual representations of the Story. A title is a short, 2-6 word categorical description of the Story. A description is a longer, maximally detailed description of the Story. Both are neutral as possible.
+  A Story can also have a headline, subHeadline, lede, and article, which are used for presenting the Story in a more engaging way.
   A Story has a "happenedAt" timestamp, which represents when the event happened in the real world.
-  A Story has an "importance" value, which is a number between 0.0 and 1.0, where 1.0 is the most possibly newsworthy event.
   A Story has a lat and long, which are the best estimates of the location of the Story.
+  A Story has a 'Newsworthiness' score, which is a number between 0-1 that represents how newsworthy the Story is, with 1 being something like World War 3 and 0 being the least interesting thing possible.
   A Story may have photos, which are images that are associated with the Story.
   A Story may have Statements, which are either Claims, or Opinions that are either supported or refuted by the Posts.
   `;
 };
 
-const storyJSONOutput = function(statements = false) {
-  return `{"sid":ID of the Story or null if Story is new, "title": "title of the story", "description": "the full description of the story is a useful vector searchable description", "headline" "short, active, engaging title shown to users", "subHeadline":"active, engaging, short description shown to users", "importance": 0.0-1.0 relative importance of the story, "happenedAt": ISO 8601 time format that the event happened at, or null if it cannot be determined, "lat": lattitude best estimate of the location of the Story, "long": longitude best estimate, "photos:[{"photoURL":photoURL field in the Post if any, "description": photoDescription field in the Post, if any}, ...list of UNIQUE photos taken from the Posts ordered by most interesting]${statements ? `, "statements":[${statementJSONOutput()}, ...], "removedStatements":["stid1", ...]` : ""}}`;
+const storyJSONOutput = function({statements = false, metadata = false, context = false}) {
+  if (statements) {
+    return `{
+        "sid": ID of the Story or null if Story is new,
+        "statements": [${statementJSONOutput()}, ...],
+        "removedStatements": ["stid1", ...]
+      }`;
+  } else if (metadata) {
+    return `{
+      "sid": ID of the Story or null if Story is new,
+      "title": "title of the story",
+      "description": "the full description of the story; literally everything we possibly know, in a useful vector searchable description",
+      "happenedAt": ISO 8601 time format that the event happened at, or null if it cannot be determined,
+      "lat": latitude best estimate of the location of the Story,
+      "long": longitude best estimate,
+      "photos": [{
+        "photoURL": photoURL field in the Post if any,
+        "description": photoDescription field in the Post, if any
+      }, ...list of UNIQUE photos taken from the Posts ordered by most interesting]
+    }`;
+  } else if (context) {
+    return `{
+      "sid": ID of the Story,
+      "headline": "headline of the story",
+      "subHeadline": "subHeadline of the story",
+      "lede": "lede of the story"
+      "article": "article of the story, can be omitted if there is no more information than the lede"
+    }`;
+  }
 };
 
 //
@@ -297,22 +374,18 @@ const statementJSONOutput = function() {
 // Credibility and Bias
 //
 
-const credibilityDescriptionPrompt = function() {
+const confidenceDescriptionPrompt = function() {
   return `
-            Creditability Score ranges from 0.0 - 1.0 and assesses how likely we think something is to be true.
-            A score of 0.5 indicates total uncertainty, about the subject (which could be a Claim, Entity, Post, or other object with a Credibility Score).
+            Confidence Score ranges from 0.0 - 1.0 and assesses how likely we think something is to be true.
+            A score of 0.5 indicates total uncertainty, about the subject (which could be a Claim, Entity, Post, or other object with a Confidence Score).
             0.0 indicates complete certainty that the subject is wrong/false, while 1.0 indicates complete certainty that the subject is correct/true.
             Hence, 0.0 and 1.0 are near impossible to achieve.
-            For example, a Credibility Score on 0.8 on a Post (social media posting or a news article) would indicate that the Post is reliable.
-            In the case of an Entity (author of Post), a Credibility Score of 0.8 would indicate that the Entity is very reliable. 
+            For example, a Confidence Score on 0.8 on a Post (social media posting or a news article) would indicate that the Post is reliable.
+            In the case of an Entity (author of Post), a Confidence Score of 0.8 would indicate that the Entity is very reliable. 
             The score is typically mathematically computed, but can generated in some instances.
             Practically, the scores are designed to have over 0.75 as strong confidence, and under 0.25 as strong disbelief.
-            Credibility Scores can also optionally be assigned a reason why the score was given in certain contexts.
+            Confidence Scores can also optionally be assigned a reason why the score was given in certain contexts.
         `;
-};
-
-const credibilityJSONOutput = function() {
-  return `Output this JSON: {"credibility": 0.0-1.0, "reason": "why"}`;
 };
 
 const biasDescriptionPrompt = function() {
@@ -328,10 +401,6 @@ const biasDescriptionPrompt = function() {
             Trains of extremeism include: offensiveness, decontextualization, appearance of bot-like or propaganda-like behavior, unreasonable political onesidedness, and more.
             Bias Scores can also optionally be assigned a reason why the score was given in certain contexts.
         `;
-};
-
-const biasJSONOutput = function() {
-  return `Output this JSON: {"angle": 0.0-360.0, "reason": "why"}`;
 };
 
 //
@@ -360,10 +429,7 @@ const findStoryExample = function() {
     You can infer that the Story here is that 8 Israeli soldiers were killed in an attack in Gaza. This Story is about the attack. Not about the wider war, or other comments about Gaza today.
 
     Hence, a Title for the Story could be: "Eight Israeli Soldiers Killed in Gaza Attack".
-    Since this is the first post in the Stories, it is hard to say how important each is. We generally judge the importance by the tone, subject matter, and urgency of the Posts, but if there's only 1 Post we mute our response. The importance of the Story could be 0.45, since it appears to be a significant event, but we only have 1 Post so far.
-    The Description (of the first story could be) could be: "Eight Israeli soldiers were killed in an attack in Gaza, the deadliest in months." This is all we know so far.
-    The Headline (of the first Story) could be: "Eight Israeli Soldiers Killed in Deadliest Attack in Months".
-    The SubHeadline (of the first Story) could be: "Eight Israeli soldiers were killed in an attack in Gaza, the deadliest in months."
+    The Description (of the first story could be) could be: "Eight Israeli soldiers were killed in an attack in Gaza, the deadliest in months." This is all we know so far. The description is literally everything we possibly know about the Story.
     The happenedAt can be inferred from the sourceCreatedAt of the Post. The Post was made at 5:15PM Z, so the attack likely happened around 12:15PM Z, ~5 hours before the Post was made. Given that the time is not mentioned in the Post, this is our best guess. If we can infer any time, from the photo, timezone, or anything else, we use this in our estimate.
     The "lat"/"long" for the first Story should be the location of Gaza.
     Since the Post has a photoURL, and we are making a new Story (so there are no duplicate photos), we should include the photoURL (and if present photoDescription) in the Story.
@@ -384,7 +450,7 @@ const findStoryExample = function() {
     4. The Post contains a photo that is relevant or duplicated from the Story. NOT FULLFILLED.
     Since this Post does not meet the criteria for belonging to the existing Story, we will output only a new Story.
  
-    The output is only the *new* Story, which is titled: "Palestinian Peace Activists Against Hamas". It is an Opinion with only 1 Post, so it has ultra low importance, 0.05. Its happenedAt is vague and should be set to the time of the sourceCreatedAt. The lat/long should be the best guess of the location of the Post, which is likely Gaza. The other fields can be inferred, and are omitted in this instruction.
+    The output is only the *new* Story, which is titled: "Palestinian Peace Activists Against Hamas". It is an Opinion with only 1 Post. Its happenedAt is vague and should be set to the time of the sourceCreatedAt. The lat/long should be the best guess of the location of the Post, which is likely Gaza. The other fields can be inferred, and are omitted in this instruction.
 
     POST 3, 2 CANDIDATE STORIES: 
     "EIGHT ISRAELI SOLDIERS KILLED IN DEADLIEST GAZA INCIDENT SINCE JANUARY
@@ -396,9 +462,9 @@ const findStoryExample = function() {
     POST 3 OUTPUT:
     This Post clearly "belongs to" the Eight Soldier Story, as it *directly mentions* the death of Eight Israeli soldiers, and makes a Statement about the Story.
     
-    When there is more information, update the existing Story. For example, the Title of the Story might remain the same, but the Description should be updated to include the new information, such as the name of the soldier that was killed, how the attack happened, and the total death toll thus far. The subheadline should also change to include this new information, for example "A Namer CEV vehicle was hit, killing eight Israeli soldiers and bringing the IDF death toll to 307".
+    When there is more information, update the existing Story. For example, the Title of the Story might remain the same, but the Description should be updated to include the new information, such as the name of the soldier that was killed, how the attack happened, and the total death toll thus far. The subHeadline should also change to include this new information, for example "A Namer CEV vehicle was hit, killing eight Israeli soldiers and bringing the IDF death toll to 307".
 
-    The importance could be updated to 0.5 as there are 2 Posts now. The happenedAt will still refer to the initial threat, and our best guess of 3 hours before the first Post is still the most reasonable. The lat/long should also remain the same.
+    The happenedAt will still refer to the initial threat, and our best guess of 3 hours before the first Post is still the most reasonable. The lat/long should also remain the same.
 
     POST 4, 1 CANIDATE STORY:
     Post:
@@ -424,7 +490,6 @@ const findStoryExample = function() {
     
     POST 5 OUTPUT:
     This Post does not belong to either of the Stories. It *does not directly mention* the death of the soldiers, nor does it make a Statement (Claim or Opinion) about the Story. It does not mention the Palestinian peace activists, nor does it make a Statement about them either. It is its own Story. 
-    It should have an importance of 0.2, since it's a personal anecdote, and not providing newsworthy information.
 
     POST 6, 2 CANDIDATE STORIES:
     "BREAKING: Israeli Haaretz: IDF Ordered Hannibal Directive on October 7 to Prevent Hamas Taking Soldiers Captive Documents and testimonies obtained by Haaretz reveal the Hannibal operational order, which directs the use of force to prevent soldiers being taken into captivity, was employed at three army facilities infiltrated by Hamas, potentially endangering civilians as well. Haaretz proves once again that Israel allowed October 7th to happen, and is responsible for the largest number of Israeli civilian casualties on that day."
@@ -582,16 +647,15 @@ const statementsToJSON = function(statements) {
  * USING JSON.stringify() will convert tons of data like vector
  * @param {Story} story
  * @param {boolean} includePhotoDescription
+ * @param {boolean} includeContext
  * @return {string} JSON string
  * */
-const storyToJSON = function(story, includePhotoDescription = true) {
+const storyToJSON = function(story, includePhotoDescription = true, includeContext = false) {
   const formatted = {
     sid: story.sid,
     title: story.title,
     description: story.description,
-    headline: story.headline,
-    subHeadline: story.subHeadline,
-    importance: story.importance,
+    newsworthiness: story.newsworthiness,
     happenedAt: millisToIso(story.happenedAt),
     lat: story.lat,
     long: story.long,
@@ -608,6 +672,13 @@ const storyToJSON = function(story, includePhotoDescription = true) {
     }),
   };
 
+  if (includeContext) {
+    formatted.headline = story.headline;
+    formatted.subHeadline = story.subHeadline;
+    formatted.lede = story.lede;
+    formatted.article = story.article;
+  }
+
   return JSON.stringify(formatted);
 };
 
@@ -615,15 +686,17 @@ const storyToJSON = function(story, includePhotoDescription = true) {
  * Converts an array of Story objects to a prompt JSON string
  * @param {Array<Story>} stories
  * @param {boolean} includePhotosDescription
+ * @param {boolean} includeContext
  * @return {string} JSON string
  * */
-const storiesToJSON = function(stories, includePhotosDescription = true) {
-  return "[" + stories.map((story) => storyToJSON(story, includePhotosDescription)) + "]";
+const storiesToJSON = function(stories, includePhotosDescription = true, includeContext = false) {
+  return "[" + stories.map((story) => storyToJSON(story, includePhotosDescription, includeContext)) + "]";
 };
 
 module.exports = {
   findStoriesPrompt,
   findStatementsPrompt,
+  findContextPrompt,
   findStoriesForTrainingText,
   findStatementsForTrainingText,
   //
@@ -632,10 +705,8 @@ module.exports = {
   //
   storyDescriptionPrompt,
   storyJSONOutput,
-  credibilityDescriptionPrompt,
-  credibilityJSONOutput,
+  confidenceDescriptionPrompt,
   biasDescriptionPrompt,
-  biasJSONOutput,
   //
   postToJSON,
   storiesToJSON,

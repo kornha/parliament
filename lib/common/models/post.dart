@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:political_think/common/models/confidence.dart';
 import 'package:political_think/common/models/photo.dart';
-import 'package:political_think/common/models/platform.dart';
 import 'package:political_think/common/models/political_position.dart';
 import 'package:political_think/common/models/video.dart';
 import 'package:political_think/common/util/utils.dart';
@@ -13,8 +12,11 @@ enum PostStatus {
   scraping,
   draft,
   published,
-  finding, // finding stories and claims
-  found, // found stories and claims
+  findingStories,
+  foundStories,
+  findingStatements,
+  foundStatements,
+  found, // found stories, statements
   //
   unsupported
 }

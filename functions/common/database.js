@@ -5,6 +5,11 @@ const _ = require("lodash");
 const {retryAsyncFunction, urlToDomain} = require("./utils");
 const {logger} = require("firebase-functions/v2");
 
+
+const database = function() {
+  return admin.firestore();
+};
+
 // /////////////////////////////////////////
 // User
 // /////////////////////////////////////////
@@ -306,42 +311,6 @@ const deletePost = async function(pid) {
 // /////////////////////////////////////////
 // Story
 // /////////////////////////////////////////
-
-/**
- * Determines if we can find stories or if it is already in progress
- * Sets the post status to "finding" if we can proceed
- * Requires Post to be in "published" or "found" status with a vector
- * @param {String} pid
- * @return {Boolean} shouldProceed
- * */
-const canFindStories = async function(pid) {
-  if (!pid) {
-    logger.error(`Could not update post: ${pid}`);
-    return;
-  }
-
-  const postRef = admin.firestore().collection("posts").doc(pid);
-
-  let shouldProceed = false;
-  // Start a transaction to check and set the post status
-  await admin.firestore().runTransaction(async (transaction) => {
-    const postDoc = await transaction.get(postRef);
-    const post = postDoc.data();
-
-    if (!post || !post.vector ||
-      (post.status != "published" && post.status != "found")
-    ) {
-      return;
-    }
-
-    if (post.status == "published" || post.status == "found") {
-      transaction.update(postRef, {status: "finding"});
-      shouldProceed = true;
-    }
-  });
-
-  return shouldProceed;
-};
 
 // Deprecated
 const bulkSetPosts = async function(posts) {
@@ -1251,6 +1220,8 @@ const searchVectors = async function(vector, collectionId, topK = 7) {
 };
 
 module.exports = {
+  database,
+  //
   createUser,
   getUsers,
   updateUser,
@@ -1269,7 +1240,6 @@ module.exports = {
   getAllPostsForEntity,
   getAllPostsForPlatform,
   bulkSetPosts,
-  canFindStories,
   //
   createStory,
   setStory,

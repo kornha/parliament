@@ -8,6 +8,13 @@ import 'package:political_think/common/util/utils.dart';
 
 part 'story.g.dart';
 
+enum StoryStatus {
+  draft,
+  findingContext,
+  foundContext,
+  found, // found context
+}
+
 @JsonSerializable(explicitToJson: true)
 class Story {
   final String sid;
@@ -20,6 +27,8 @@ class Story {
 
   final String? headline; // 2-8 words engaging headline
   final String? subHeadline; // short engaging description
+  final String? lede; // short engaging synopsis synopsis
+  final String? article; // full article
 
   final List<Photo> photos;
   final Location? location;
@@ -29,6 +38,8 @@ class Story {
   final double? avgLikes;
   final double? avgBookmarks;
   final double? avgViews;
+
+  final StoryStatus status;
 
   final PoliticalPosition? bias;
   final Confidence? confidence;
@@ -60,6 +71,8 @@ class Story {
     this.description,
     this.headline,
     this.subHeadline,
+    this.lede,
+    this.article,
     this.avgReplies,
     this.avgReposts,
     this.avgLikes,
@@ -68,6 +81,7 @@ class Story {
     this.newsworthiness,
     this.bias,
     this.confidence,
+    required this.status,
     this.pids = const [],
     this.stids = const [],
     this.plids = const [],

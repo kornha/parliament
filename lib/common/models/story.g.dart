@@ -20,6 +20,8 @@ Story _$StoryFromJson(Map<String, dynamic> json) => Story(
       description: json['description'] as String?,
       headline: json['headline'] as String?,
       subHeadline: json['subHeadline'] as String?,
+      lede: json['lede'] as String?,
+      article: json['article'] as String?,
       avgReplies: (json['avgReplies'] as num?)?.toDouble(),
       avgReposts: (json['avgReposts'] as num?)?.toDouble(),
       avgLikes: (json['avgLikes'] as num?)?.toDouble(),
@@ -34,6 +36,7 @@ Story _$StoryFromJson(Map<String, dynamic> json) => Story(
       confidence: json['confidence'] == null
           ? null
           : Confidence.fromJson(json['confidence']),
+      status: $enumDecode(_$StoryStatusEnumMap, json['status']),
       pids:
           (json['pids'] as List<dynamic>?)?.map((e) => e as String).toList() ??
               const [],
@@ -58,6 +61,8 @@ Map<String, dynamic> _$StoryToJson(Story instance) => <String, dynamic>{
       'description': instance.description,
       'headline': instance.headline,
       'subHeadline': instance.subHeadline,
+      'lede': instance.lede,
+      'article': instance.article,
       'photos': instance.photos.map((e) => e.toJson()).toList(),
       'location': instance.location?.toJson(),
       'avgReplies': instance.avgReplies,
@@ -65,6 +70,7 @@ Map<String, dynamic> _$StoryToJson(Story instance) => <String, dynamic>{
       'avgLikes': instance.avgLikes,
       'avgBookmarks': instance.avgBookmarks,
       'avgViews': instance.avgViews,
+      'status': _$StoryStatusEnumMap[instance.status]!,
       'bias': instance.bias?.toJson(),
       'confidence': instance.confidence?.toJson(),
       'newsworthiness': instance.newsworthiness?.toJson(),
@@ -74,3 +80,10 @@ Map<String, dynamic> _$StoryToJson(Story instance) => <String, dynamic>{
       'scaledHappenedAt':
           Utils.timestampToJsonNullable(instance.scaledHappenedAt),
     };
+
+const _$StoryStatusEnumMap = {
+  StoryStatus.draft: 'draft',
+  StoryStatus.findingContext: 'findingContext',
+  StoryStatus.foundContext: 'foundContext',
+  StoryStatus.found: 'found',
+};

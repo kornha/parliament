@@ -1,6 +1,6 @@
 const {onDocumentWritten} = require("firebase-functions/v2/firestore");
 const {onMessagePublished} = require("firebase-functions/v2/pubsub");
-const {defaultConfig} = require("../common/functions");
+const {defaultConfig, gbConfig} = require("../common/functions");
 const {
   publishMessage,
   STORY_CHANGED_POSTS,
@@ -16,10 +16,11 @@ const {
   STORY_SHOULD_CHANGED_SCALED_HAPPENED_AT,
 } = require("../common/pubsub");
 const _ = require("lodash");
-const {resetStoryVector} = require("../ai/story_ai");
+const {resetStoryVector, onStoryShouldFindContext} = require("../ai/story_ai");
 const {updateStory, getAllPostsForStory,
   deleteAttribute,
-  getPosts} = require("../common/database");
+  getPosts,
+  getStory} = require("../common/database");
 const {handleChangedRelations} = require("../common/utils");
 const {logger} = require("firebase-functions/v2");
 const {didChangeStats,
@@ -28,6 +29,9 @@ const {didChangeStats,
   calculateScaledHappenedAt} = require("../ai/newsworthiness");
 const {onStoryShouldChangeBias} = require("../ai/bias");
 const {onStoryShouldChangeConfidence} = require("../ai/confidence");
+const {tryQueueTask,
+  STORY_SHOULD_FIND_CONTEXT_TASK} = require("../common/tasks");
+const {onTaskDispatched} = require("firebase-functions/tasks");
 
 
 exports.onStoryUpdate = onDocumentWritten(
@@ -84,6 +88,17 @@ exports.onStoryUpdate = onDocumentWritten(
             {sid: after?.sid || before?.sid});
         await publishMessage(STORY_SHOULD_CHANGE_CONFIDENCE,
             {sid: after?.sid || before?.sid});
+        await tryQueueTask(
+            "stories",
+            after?.sid || before?.sid,
+            (story) =>
+              // unlike posts can find in draft
+              story && (story.status === "draft" || story.status === "found"),
+            {status: "findingContext"},
+            STORY_SHOULD_FIND_CONTEXT_TASK,
+            {sid: after?.sid || before?.sid},
+            3, // delay 3s to give time for more statement changes
+        );
       }
 
       if (
@@ -107,6 +122,12 @@ exports.onStoryUpdate = onDocumentWritten(
       ) {
         await publishMessage(STORY_SHOULD_CHANGE_NEWSWORTHINESS,
             {sid: after?.sid || before?.sid});
+      }
+
+      if (_create && after.status || _update && before.status != after.status) {
+        if (after.status == "foundContext") {
+          await updateStory(after.sid, {status: "found"});
+        }
       }
 
       if (
@@ -151,6 +172,37 @@ exports.onStoryShouldChangeVector = onMessagePublished(
       return Promise.resolve();
     },
 );
+
+// ////////////////////////////////////////////////////////////////////////////
+// Find Contextualization
+// ////////////////////////////////////////////////////////////////////////////
+
+exports.onStoryShouldFindContextTask = onTaskDispatched(
+    {
+      retryConfig: {
+        maxAttempts: 2,
+      },
+      rateLimits: {
+        maxConcurrentDispatches: 1,
+      },
+      ...gbConfig,
+    },
+    async (event) => {
+      logger.info(
+          `onStoryShouldFindContext: ${event.data.sid}`);
+      const sid = event.data.sid;
+      await _shouldFindContext(sid);
+      return Promise.resolve();
+    },
+);
+
+const _shouldFindContext = async function(sid) {
+  const story = await getStory(sid);
+  await onStoryShouldFindContext(story);
+
+  return Promise.resolve();
+};
+exports.shouldFindContext = _shouldFindContext;
 
 // ////////////////////////////////////////////////////////////////////////////
 // Confidence

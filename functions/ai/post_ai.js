@@ -15,6 +15,7 @@ const {
   getPost,
   getAllPostsForStatement,
   deleteStatement,
+  getAllStoriesForPost,
 } = require("../common/database");
 const {generateEmbeddings} = require("../common/llm");
 
@@ -25,27 +26,35 @@ const geo = require("geofire-common");
 const {findStories, resetStoryVector} = require("./story_ai");
 const {findStatements, resetStatementVector} = require("./statement_ai");
 // eslint-disable-next-line no-unused-vars
-const {publishMessage, POST_SHOULD_FIND_STORIES_AND_STATEMENTS} =
+const {publishMessage, POST_SHOULD_FIND_STORIES} =
 require("../common/pubsub");
-const {POST_SHOULD_FIND_STORIES_AND_STATEMENTS_TASK, queueTask} =
+const {queueTask, POST_SHOULD_FIND_STORIES_TASK} =
 require("../common/tasks");
 
 /** FLAGSHIP FUNCTION
  * ***************************************************************
- * Finds/creates stories, find/creates statements, find/creates opinions
- * sets statements to stories, statements to posts, and posts to stories
+ * Finds/creates stories
+ * sets posts to stories
  *
  * @param {Post} post
  * @return {Promise<void>}
  * ***************************************************************
  * */
-const findStoriesAndStatements = async function(post) {
+const onPostShouldFindStories = async function(post) {
   if (!post) {
     logger.error("Post is null");
     return;
   }
 
-  logger.info(`findStoriesAndStatements for post ${post.pid}`);
+  logger.info(`onPostShouldFindStories for post ${post.pid}`);
+
+  // sets status, but this cannot be relied on for anything other
+  // than single update as it can be overridden by other steps
+  if (post.status != "findingStories") {
+    await retryAsyncFunction(() => updatePost(post.pid, {
+      status: "findingStories",
+    }));
+  }
 
   // Finds stories based on 2 leg K-mean/Neural search
   const resp = await findStories(post);
@@ -60,44 +69,12 @@ const findStoriesAndStatements = async function(post) {
   logger.info("Found " +
     gstories.length + " stories for post " + post.pid);
 
-  // find vector statements
-  //
-
-  /**
-   * get all neighbor statements P-[2]-C
-   * this is a GRAPH search and potentially won't scale with our current db
-   */
-
-  const sstatements = (await Promise.all(gstories.map(async (gstory) =>
-    gstory.sid ? (await getAllStatementsForStory(gstory.sid)) : [],
-  ))).flat();
-
-  // Revearse search all posts from the stories
-  const posts = (await Promise.all(gstories.map((gstory) =>
-    gstory.sid ? getAllPostsForStory(gstory.sid) : [],
-  ))).flat();
-
-  // get all neighbor statements to these posts
-  const pstatements = (await Promise.all(posts.map(async (post) =>
-  post.pid ? await getAllStatementsForPost(post.pid) : [],
-  ))).flat();
-
-  // merge the statements and dedupe
-  const statements = _.uniqBy([...sstatements, ...pstatements], "stid");
-
-  const g2stories = await findStatements(post, gstories, statements);
-
-  if (_.isEmpty(g2stories)) {
-    logger.warn(`Could not generate stories or statements for post. 
-      Orphaned! ${post.pid}`);
-    return;
-  }
-
-  await Promise.all(g2stories.map(async (gstoryStatement, index) => {
-    const sid = gstoryStatement.sid ? gstoryStatement.sid : v4();
+  await Promise.all(gstories.map(async (gstory, index) => {
+    const sid = gstory.sid ? gstory.sid : v4();
 
     logger.info(`Processing story ${sid} for post ${post.pid}`);
 
+    // sets the primary SID (deprecated)
     if (index === 0 && post.sid !== sid) {
       await retryAsyncFunction(() => updatePost(post.pid, {
         sid: sid,
@@ -107,100 +84,190 @@ const findStoriesAndStatements = async function(post) {
       }));
     }
 
-    const location = gstoryStatement.lat && gstoryStatement.long ? {
-      geoPoint: new GeoPoint(gstoryStatement.lat, gstoryStatement.long),
-      geoHash: geo.geohashForLocation([gstoryStatement.lat,
-        gstoryStatement.long]),
+    const location = gstory.lat && gstory.long ? {
+      geoPoint: new GeoPoint(gstory.lat, gstory.long),
+      geoHash: geo.geohashForLocation([gstory.lat,
+        gstory.long]),
     } : null;
 
-    if (gstoryStatement.sid) {
-      await retryAsyncFunction(() => updateStory(sid, {
-        title: gstoryStatement.title,
-        description: gstoryStatement.description,
-        headline: gstoryStatement.headline,
-        subHeadline: gstoryStatement.subHeadline,
-        updatedAt: Timestamp.now().toMillis(),
-        createdAt: Timestamp.now().toMillis(),
-        pids: FieldValue.arrayUnion(post.pid),
-        importance: gstoryStatement.importance ?? 0.0,
-        photos: gstoryStatement.photos ?? [],
-        ...(location && {location: location}),
-        ...(gstoryStatement.happenedAt &&
-          {happenedAt: isoToMillis(gstoryStatement.happenedAt)}),
-        // updated via callback since the statement may not exist yet
-        // stids: FieldValue.arrayUnion(
-        //     ...gstoryStatement.statements
-        // .map((gstatement) => gstatement.stid)),
-      }));
+    const storyData = {
+      title: gstory.title,
+      description: gstory.description,
+      updatedAt: Timestamp.now().toMillis(),
+      createdAt: Timestamp.now().toMillis(),
+      photos: gstory.photos ?? [],
+      ...(location && {location: location}),
+      ...(gstory.happenedAt && {happenedAt: isoToMillis(gstory.happenedAt)}),
+    };
+
+    if (gstory.sid) {
+      await retryAsyncFunction(() =>
+        updateStory(sid, {
+          ...storyData,
+          pids: FieldValue.arrayUnion(post.pid),
+        }),
+      );
     } else {
-      await retryAsyncFunction(() => createStory({
-        sid: sid,
-        title: gstoryStatement.title,
-        headline: gstoryStatement.headline,
-        subHeadline: gstoryStatement.subHeadline,
-        description: gstoryStatement.description,
-        updatedAt: Timestamp.now().toMillis(),
-        createdAt: Timestamp.now().toMillis(),
-        importance: gstoryStatement.importance ?? 0.0,
-        pids: [post.pid],
-        photos: gstoryStatement.photos ?? [],
-        ...(location && {location: location}),
-        ...(gstoryStatement.happenedAt &&
-          {happenedAt: isoToMillis(gstoryStatement.happenedAt)}),
-        // updated via callback since the statement may not exist
-        // stids: gstoryStatement.statements
-        // .map((gstatement) => gstatement.stid),
-      }));
+      await retryAsyncFunction(() =>
+        createStory({
+          sid: sid,
+          ...storyData,
+          status: "draft",
+          pids: [post.pid],
+        }),
+      );
     }
 
     // NOTE!: Duplicate logic as in story.js but done here so that later
     // posts find the stories without waiting for a separate update
     await resetStoryVector(sid);
+  }));
+
+  if (!_.isEmpty(removedSids)) {
+    logger.info(`removing sids ${removedSids}`);
+
+    // Revearse search all posts from the stories
+    const changedPosts = (await Promise.all(removedSids.map((sid) =>
+      getAllPostsForStory(sid),
+    ))).flat();
+
+    if (_.isEmpty(changedPosts)) {
+      logger.error(`No posts found, 
+      not deleting Stories ${removedSids}`);
+    } else {
+      // delete stories
+      await Promise.all(removedSids.map(async (sid) => {
+        await retryAsyncFunction(() => deleteStory(sid));
+      }));
+
+      logger.info(`Deleted stories ${removedSids}`);
+
+      changedPosts.forEach(async (post) => {
+        // publishMessage(POST_SHOULD_FIND_STORIES,
+        // {pid: post.pid});
+        queueTask(POST_SHOULD_FIND_STORIES_TASK,
+            {pid: post.pid});
+      });
+    }
+  }
+
+  await retryAsyncFunction(() => updatePost(post.pid, {
+    status: "foundStories",
+  }));
+
+  logger.info(`Done onPostShouldFindStories for post ${post.pid}`);
+
+  return Promise.resolve();
+};
+
+/** FLAGSHIP FUNCTION
+ * ***************************************************************
+ * Find/creates statements
+ * sets statements to stories
+ *
+ * @param {Post} post
+ * @return {Promise<void>}
+ * ***************************************************************
+ * */
+const onPostShouldFindStatements = async function(post) {
+  if (!post) {
+    logger.error("Post is null");
+    return;
+  }
+
+  logger.info(`onPostShouldFindStatements for post ${post.pid}`);
+
+  // sets status, but this cannot be relied on for anything other
+  // than single update as it can be overridden by other steps
+  if (post.status != "findingStatements") {
+    await retryAsyncFunction(() => updatePost(post.pid, {
+      status: "findingStatements",
+    }));
+  }
+
+  const stories = await getAllStoriesForPost(post.pid);
+
+  if (!stories || stories.length === 0) {
+    logger.warn(`Post ${post.pid} has no story, cannot find statements`);
+    return;
+  }
+
+  // find vector statements
+
+  /**
+   * get all neighbor statements P-[2]-C
+   * this is a GRAPH search and potentially won't scale with our current db
+   */
+
+  const sstatements = (await Promise.all(stories.map(async (story) =>
+    story.sid ? (await getAllStatementsForStory(story.sid)) : [],
+  ))).flat();
+
+  // Revearse search all posts from the stories
+  const posts = (await Promise.all(stories.map((story) =>
+    story.sid ? getAllPostsForStory(story.sid) : [],
+  ))).flat();
+
+  // get all neighbor statements to these posts
+  const pstatements = (await Promise.all(posts.map(async (post) =>
+    post.pid ? await getAllStatementsForPost(post.pid) : [],
+  ))).flat();
+
+  // merge the statements and dedupe
+  const statements = _.uniqBy([...sstatements, ...pstatements], "stid");
+
+  const g2stories = await findStatements(post, stories, statements);
+
+  if (_.isEmpty(g2stories)) {
+    logger.warn(`Could not generate statements for post. 
+      Orphaned! ${post.pid}`);
+    return;
+  }
+
+  await Promise.all(g2stories.map(async (gstoryStatement, index) => {
+    const sid = gstoryStatement.sid ? gstoryStatement.sid : v4();
+
+    logger.info(`Processing g2story ${sid} for post ${post.pid}`);
 
     if (!_.isEmpty(gstoryStatement.statements)) {
       await Promise.all(gstoryStatement.statements.map(async (gstatement) => {
         const stid = gstatement.stid ? gstatement.stid : v4();
+        const statementData = {
+          value: gstatement.value,
+          context: gstatement.context,
+          type: gstatement.type,
+          updatedAt: Timestamp.now().toMillis(),
+          statedAt: isoToMillis(gstatement.statedAt),
+          sids: FieldValue.arrayUnion(sid),
+          pids: FieldValue.arrayUnion(post.pid),
+          eids: FieldValue.arrayUnion(post.eid),
+          ...(gstatement.side === "pro" &&
+              {pro: FieldValue.arrayUnion(post.pid)}),
+          ...(gstatement.side === "against" &&
+              {against: FieldValue.arrayUnion(post.pid)}),
+        };
+
         if (gstatement.stid) {
           logger.info("Processing statement " +
-             gstatement.stid + " for story " + sid + ", for post " + post.pid);
+            gstatement.stid + " for story " + sid + ", for post " + post.pid);
 
-          await retryAsyncFunction(() => updateStatement(stid, {
-            sids: FieldValue.arrayUnion(sid),
-            pids: FieldValue.arrayUnion(post.pid), // cause error if deleted?
-            eids: FieldValue.arrayUnion(post.eid),
-            value: gstatement.value,
-            context: gstatement.context,
-            type: gstatement.type,
-            updatedAt: Timestamp.now().toMillis(),
-            statedAt: isoToMillis(gstatement.statedAt),
-            // some grade a level horse shit to get around
-            // arrayUnion unioning an empty array
-            ...(gstatement.side == "pro" &&
-              {pro: FieldValue.arrayUnion(post.pid)}),
-            ...(gstatement.side == "against" &&
-              {against: FieldValue.arrayUnion(post.pid)}),
-          }));
+          await retryAsyncFunction(() => updateStatement(stid, statementData));
         } else {
           logger.info("Creating statement " +
             stid + " for story " + sid + ", from post " + post.pid);
 
-          await retryAsyncFunction(() => createStatement({
-            stid: stid,
-            value: gstatement.value,
-            pro: gstatement.side == "pro" ? [post.pid] : [],
-            against: gstatement.side == "against" ? [post.pid] : [],
-            context: gstatement.context,
-            type: gstatement.type,
-            sids: [sid],
-            pids: [post.pid],
-            eids: [post.eid],
-            statedAt: isoToMillis(gstatement.statedAt),
-            updatedAt: Timestamp.now().toMillis(),
-            createdAt: Timestamp.now().toMillis(),
-          }));
+          await retryAsyncFunction(() =>
+            createStatement({
+              stid: stid,
+              ...statementData,
+              createdAt: Timestamp.now().toMillis(),
+              pro: gstatement.side === "pro" ? [post.pid] : [],
+              against: gstatement.side === "against" ? [post.pid] : [],
+            }),
+          );
         }
 
-        // save embedding here to avoid race condition
+        // Update statement vector for search indexing
         await resetStatementVector(stid);
       }));
     }
@@ -225,45 +292,20 @@ const findStoriesAndStatements = async function(post) {
         logger.info(`Deleted statements ${gstoryStatement.removedStatements}`);
 
         changedPosts.forEach(async (post) => {
-        // publishMessage(POST_SHOULD_FIND_STORIES_AND_STATEMENTS,
+        // publishMessage(POST_SHOULD_FIND_STORIES,
         // {pid: post.pid});
-          queueTask(POST_SHOULD_FIND_STORIES_AND_STATEMENTS_TASK,
+          queueTask(POST_SHOULD_FIND_STORIES_TASK,
               {pid: post.pid});
         });
       }
     }
   }));
 
-  if (!_.isEmpty(removedSids)) {
-    logger.info(`removing sids ${removedSids}`);
+  await retryAsyncFunction(() => updatePost(post.pid, {
+    status: "foundStatements",
+  }));
 
-    // Revearse search all posts from the stories
-    const changedPosts = (await Promise.all(removedSids.map((sid) =>
-      getAllPostsForStory(sid),
-    ))).flat();
-
-    if (_.isEmpty(changedPosts)) {
-      logger.error(`No posts found, 
-      not deleting Stories ${removedSids}`);
-    } else {
-      // delete stories
-      await Promise.all(removedSids.map(async (sid) => {
-        await retryAsyncFunction(() => deleteStory(sid));
-      }));
-
-      logger.info(`Deleted stories ${removedSids}`);
-
-      changedPosts.forEach(async (post) => {
-        // publishMessage(POST_SHOULD_FIND_STORIES_AND_STATEMENTS,
-        // {pid: post.pid});
-        queueTask(POST_SHOULD_FIND_STORIES_AND_STATEMENTS_TASK,
-            {pid: post.pid});
-      });
-    }
-  }
-
-
-  logger.info(`Done findStoriesAndStatements for post ${post.pid}`);
+  logger.info(`Done onPostShouldFindStatements for post ${post.pid}`);
 
   return Promise.resolve();
 };
@@ -310,7 +352,8 @@ const getPostEmbeddingStrings = function(post) {
 };
 
 module.exports = {
-  findStoriesAndStatements,
+  onPostShouldFindStories,
+  onPostShouldFindStatements,
   resetPostVector,
   getPostEmbeddingStrings,
 };

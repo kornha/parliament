@@ -7,13 +7,15 @@ const {onAuthUserCreate,
   onAuthUserDelete,
   setUsername} = require("./models/user");
 const {TaskQueue} = require("firebase-admin/functions");
+const {POST_SHOULD_FIND_STORIES_TASK,
+  POST_SHOULD_FIND_STATEMENTS_TASK,
+  STORY_SHOULD_FIND_CONTEXT_TASK} = require("./common/tasks");
 const {
   onPostUpdate, onPostPublished,
-  onPostShouldFindStoriesAndStatements,
+  onPostShouldFindStories,
   onPostChangedXid,
   onPostChangedVector,
-  shouldFindStoriesAndStatements,
-  onPostShouldFindStoriesAndStatementsTask,
+  onPostShouldFindStoriesTask,
   onStoryChangedPosts,
   onStatementChangedPosts,
   onEntityChangedPosts,
@@ -21,12 +23,10 @@ const {
   onPlatformChangedPosts,
   onPostShouldChangeBias,
   onPostShouldChangeConfidence,
+  onPostShouldFindStatementsTask,
+  shouldFindStories,
+  shouldFindStatements,
 } = require("./models/post");
-const {onVoteBiasChange, onVoteCredibilityChange} = require("./models/vote");
-const {generateBiasTraining} = require("./ai/scripts");
-const {onLinkPaste, fetchNews,
-  onScrapeFeed, onShouldProcessLink} = require("./content/content");
-const {debateDidTimeOut, debateDidTimeOutTask} = require("./messages/clock");
 const {
   onStoryUpdate, onStoryPostsChanged,
   onStoryShouldChangeVector, onStoryShouldChangeStatements,
@@ -39,7 +39,14 @@ const {
   onStoryShouldChangeBias,
   onStoryShouldChangeConfidence,
   onStoryShouldChangeScaledHappenedAt,
+  shouldFindContext,
+  onStoryShouldFindContextTask,
 } = require("./models/story");
+const {onVoteBiasChange, onVoteCredibilityChange} = require("./models/vote");
+const {generateBiasTraining} = require("./ai/scripts");
+const {onLinkPaste, fetchNews,
+  onScrapeFeed, onShouldProcessLink} = require("./content/content");
+const {debateDidTimeOut, debateDidTimeOutTask} = require("./messages/clock");
 const {
   onStatementUpdate, onStatementChangedVector,
   onStatementShouldChangeContext,
@@ -75,10 +82,19 @@ admin.initializeApp();
 if (process.env.FUNCTIONS_EMULATOR === "true") {
   Object.assign(TaskQueue.prototype, {
     enqueue: async (message, params) => {
-      if (message.pid) {
+      if (message.task == POST_SHOULD_FIND_STORIES_TASK) {
         logger.info(
-            `local onPostShouldFindStoriesAndStatementsTask: ${message.pid}`);
-        await shouldFindStoriesAndStatements(message.pid);
+            `local onPostShouldFindStoriesTask: ${message.pid}`);
+        await shouldFindStories(message.pid);
+      } else if (message.task == POST_SHOULD_FIND_STATEMENTS_TASK) {
+        logger.info(
+            `local onPostShouldFindStatementsTask: ${message.pid}`);
+        await shouldFindStatements(message.pid);
+      } else if (message.task == STORY_SHOULD_FIND_CONTEXT_TASK) {
+        logger.info(
+            `local onStoryShouldFindContextTask: ${message.sid}`);
+        await shouldFindContext(message.sid);
+        //
       } else {
         const end = new Date(params.scheduleTime);
         const now = Date.now();
@@ -94,7 +110,6 @@ if (process.env.FUNCTIONS_EMULATOR === "true") {
 // Used as a dev-time helper to test functions
 const functions = require("firebase-functions/v2");
 
-
 const test = functions.https.onCall(async (data, context) => {
 });
 
@@ -109,8 +124,9 @@ module.exports = {
   onPostUpdate,
   onMessageChange,
   onPostPublished,
-  onPostShouldFindStoriesAndStatements,
-  onPostShouldFindStoriesAndStatementsTask,
+  onPostShouldFindStories,
+  onPostShouldFindStoriesTask,
+  onPostShouldFindStatementsTask,
   onPostChangedVector,
   onPostChangedXid,
   onStoryChangedPosts,
@@ -134,6 +150,7 @@ module.exports = {
   onStoryShouldChangeBias,
   onStoryShouldChangeConfidence,
   onStoryShouldChangeScaledHappenedAt,
+  onStoryShouldFindContextTask,
   // Statement
   onStatementUpdate,
   onStatementChangedVector,

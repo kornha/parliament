@@ -1,14 +1,15 @@
 const {onDocumentWritten} = require("firebase-functions/v2/firestore");
 const {onMessagePublished} = require("firebase-functions/v2/pubsub");
 const {defaultConfig, gbConfig, scrapeConfig} = require("../common/functions");
-const {findStoriesAndStatements, resetPostVector} = require("../ai/post_ai");
+const {onPostShouldFindStories, onPostShouldFindStatements,
+  resetPostVector} = require("../ai/post_ai");
 const {logger} = require("firebase-functions/v2");
 const {
   publishMessage,
   POST_PUBLISHED,
   POST_CHANGED_VECTOR,
   POST_CHANGED_XID,
-  POST_SHOULD_FIND_STORIES_AND_STATEMENTS,
+  POST_SHOULD_FIND_STORIES,
   STORY_CHANGED_POSTS,
   STATEMENT_CHANGED_POSTS,
   POST_CHANGED_STORIES,
@@ -30,7 +31,6 @@ const {
   createNewRoom,
   updatePost,
   getEntity,
-  canFindStories,
   getAllStoriesForPost,
   getPlatform,
   deleteAttribute,
@@ -42,8 +42,10 @@ const _ = require("lodash");
 const {xupdatePost} = require("../content/xscraper");
 const {generateCompletions} = require("../common/llm");
 const {generateImageDescriptionPrompt} = require("../ai/prompts");
-const {queueTask,
-  POST_SHOULD_FIND_STORIES_AND_STATEMENTS_TASK} = require("../common/tasks");
+const {tryQueueTask,
+  POST_SHOULD_FIND_STORIES_TASK,
+  queueTask,
+  POST_SHOULD_FIND_STATEMENTS_TASK} = require("../common/tasks");
 const {onTaskDispatched} = require("firebase-functions/v2/tasks");
 const {didChangeStats} = require("../ai/newsworthiness");
 const {onPostShouldChangeConfidence} = require("../ai/confidence");
@@ -130,6 +132,16 @@ exports.onPostUpdate = onDocumentWritten(
             {before: before, after: after});
       }
 
+      if (_create && after.status || _update && before.status != after.status) {
+        // task for findStories is sent on tryQueueTask
+        //
+        if (after.status == "foundStories") {
+          await queueTask(POST_SHOULD_FIND_STATEMENTS_TASK, {pid: after.pid});
+        } else if (after.status == "foundStatements") {
+          await updatePost(after.pid, {status: "found"});
+        }
+      }
+
       if (
         _create && (after.title || after.body || after.photo) ||
         _delete && (before.title || before.body || before.photo) ||
@@ -149,7 +161,7 @@ exports.onPostUpdate = onDocumentWritten(
 // ////////////////////////////////////////////////////////////////////////////
 
 /**
- * optionally calls findStoriesAndStatements if the post is published beforehand
+ * optionally calls onPostShouldFindStories if the post is published beforehand
  * @param {Message} message
  * @return {Promise<void>}
  * */
@@ -166,11 +178,15 @@ exports.onPostChangedVector = onMessagePublished(
       }
 
       if (post.status == "published" && post.sid == null) {
-        const canFind = await canFindStories(pid);
-        if (canFind) {
-          await queueTask(POST_SHOULD_FIND_STORIES_AND_STATEMENTS_TASK,
-              {pid: pid});
-        }
+        await tryQueueTask(
+            "posts",
+            pid,
+            (post) => post && post.vector &&
+            (post.status === "published" || post.status === "found"),
+            {status: "findingStories"},
+            POST_SHOULD_FIND_STORIES_TASK,
+            {pid: pid},
+        );
       }
 
       return Promise.resolve();
@@ -193,11 +209,15 @@ exports.onPostPublished = onMessagePublished(
       const post = await getPost(pid);
 
       if (post && post.vector) {
-        const canFind = await canFindStories(pid);
-        if (canFind) {
-          await queueTask(POST_SHOULD_FIND_STORIES_AND_STATEMENTS_TASK,
-              {pid: pid});
-        }
+        await tryQueueTask(
+            "posts",
+            pid,
+            (post) => post && post.vector &&
+              (post.status === "published" || post.status === "found"),
+            {status: "findingStories"},
+            POST_SHOULD_FIND_STORIES_TASK,
+            {pid: pid},
+        );
       }
 
       await createNewRoom(pid, "posts");
@@ -382,7 +402,7 @@ const postChangedContent = async function(before, after) {
 // FIND STORIES AND STATEMENTS
 // ////////////////////////////////////////////////////////////////////////////
 
-exports.onPostShouldFindStoriesAndStatementsTask = onTaskDispatched(
+exports.onPostShouldFindStoriesTask = onTaskDispatched(
     {
       retryConfig: {
         maxAttempts: 2,
@@ -394,9 +414,9 @@ exports.onPostShouldFindStoriesAndStatementsTask = onTaskDispatched(
     },
     async (event) => {
       logger.info(
-          `onPostShouldFindStoriesAndStatementsTask: ${event.data.pid}`);
+          `onPostShouldFindStoriesTask: ${event.data.pid}`);
       const pid = event.data.pid;
-      await _shouldFindStoriesAndStatements(pid);
+      await _shouldFindStories(pid);
       return Promise.resolve();
     },
 );
@@ -406,29 +426,55 @@ exports.onPostShouldFindStoriesAndStatementsTask = onTaskDispatched(
  * @param {Message} message
  * @return {Promise<void>}
  * */
-exports.onPostShouldFindStoriesAndStatements = onMessagePublished(
+exports.onPostShouldFindStories = onMessagePublished(
     {
-      topic: POST_SHOULD_FIND_STORIES_AND_STATEMENTS,
+      topic: POST_SHOULD_FIND_STORIES,
       ...gbConfig,
     },
     async (event) => {
-      logger.info(`onPostShouldFindStoriesAndStatementsPubsub: 
+      logger.info(`onPostShouldFindStoriesPubsub: 
         ${event.data.message.json.pid}`);
       const pid = event.data.message.json.pid;
-      await _shouldFindStoriesAndStatements(pid);
+      await _shouldFindStories(pid);
       return Promise.resolve();
     },
 );
 
-const _shouldFindStoriesAndStatements = async function(pid) {
+const _shouldFindStories = async function(pid) {
   const post = await getPost(pid);
-  await findStoriesAndStatements(post);
-
-  await updatePost(pid, {status: "found"});
+  await onPostShouldFindStories(post);
 
   return Promise.resolve();
 };
-exports.shouldFindStoriesAndStatements = _shouldFindStoriesAndStatements;
+exports.shouldFindStories = _shouldFindStories;
+
+exports.onPostShouldFindStatementsTask = onTaskDispatched(
+    {
+      retryConfig: {
+        maxAttempts: 2,
+      },
+      rateLimits: {
+        maxConcurrentDispatches: 1,
+      },
+      ...gbConfig,
+    },
+    async (event) => {
+      logger.info(
+          `onPostShouldFindStatementsTask: ${event.data.pid}`);
+      const pid = event.data.pid;
+      await _shouldFindStatements(pid);
+      return Promise.resolve();
+    },
+);
+
+const _shouldFindStatements = async function(pid) {
+  const post = await getPost(pid);
+  await onPostShouldFindStatements(post);
+
+  return Promise.resolve();
+};
+exports.shouldFindStatements = _shouldFindStatements;
+
 
 // ////////////////////////////////////////////////////////////////////////////
 // Sync
