@@ -47,7 +47,7 @@ class _StoryItemViewState extends ConsumerState<StoryItemView> {
                 children: [
                   Row(
                     children: [
-                      story.headline != null
+                      story.headline != null || story.title != null
                           ? Expanded(
                               flex: 5,
                               child: MouseRegion(
@@ -56,7 +56,7 @@ class _StoryItemViewState extends ConsumerState<StoryItemView> {
                                   onTap: () => context.push(
                                       "${StoryView.location}/${story.sid}"),
                                   child: Text(
-                                    story.headline!,
+                                    story.headline ?? story.title!,
                                     style: newsworthiness < 0.5
                                         ? context.h5b
                                         : newsworthiness < 0.7

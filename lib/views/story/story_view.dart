@@ -1,20 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:political_think/common/components/loading.dart';
 import 'package:political_think/common/components/stats_table.dart';
 import 'package:political_think/common/components/zapp_bar.dart';
 import 'package:political_think/common/components/zdivider.dart';
-import 'package:political_think/common/components/zicon_text.dart';
+import 'package:political_think/common/components/zexpansion_tile.dart';
 import 'package:political_think/common/components/zscaffold.dart';
 import 'package:political_think/common/extensions.dart';
-import 'package:political_think/common/models/statement.dart';
 import 'package:political_think/common/services/zprovider.dart';
 import 'package:political_think/common/util/utils.dart';
 import 'package:political_think/views/Confidence/Confidence_widget.dart';
 import 'package:political_think/views/bias/political_position_widget.dart';
 import 'package:political_think/views/statement/statement_tab_view.dart';
-import 'package:political_think/views/statement/statement_view.dart';
 
 class StoryView extends ConsumerStatefulWidget {
   final String sid;
@@ -79,34 +76,67 @@ class _StoryViewState extends ConsumerState<StoryView> {
                       const Spacer(),
                     ],
                   ),
-                  context.sh,
-                  const ZDivider(type: DividerType.PRIMARY),
-                  context.sh,
-                  StatsTable(map: {
-                    "Newsworthiness": ConfidenceWidget(
-                        confidence: story?.newsworthiness,
-                        enabled: false,
-                        jagged: true),
-                    "Avg. Confidence": ConfidenceWidget(
-                        confidence: story?.confidence, enabled: false),
-                    "Avg. Bias": PoliticalPositionWidget(
-                        position: story?.bias, enabled: false),
-                    "Avg. Replies":
-                        Text(Utils.numToReadableString(story?.avgReplies)),
-                    "Avg. Reposts":
-                        Text(Utils.numToReadableString(story?.avgReposts)),
-                    "Avg. Likes":
-                        Text(Utils.numToReadableString(story?.avgLikes)),
-                    "Avg. Bookmarks":
-                        Text(Utils.numToReadableString(story?.avgBookmarks)),
-                    "Avg. Views":
-                        Text(Utils.numToReadableString(story?.avgViews)),
-                    "Sample Size":
-                        Text(Utils.numToReadableString(story?.pids.length)),
-                  }),
-                  context.sf,
                   const ZDivider(type: DividerType.PRIMARY),
                   StatementTabView(statements: statementsFromStory),
+                  context.sh, // just for visual improvement
+                  const ZDivider(type: DividerType.SECONDARY),
+                  if (story?.article != null)
+                    ZExpansionTile(
+                      initiallyExpanded: true,
+                      title: Text(story!.headline!, style: context.h4),
+                      subtitle: Text(
+                        "article",
+                        style: context.m,
+                      ),
+                      children: [
+                        Text(
+                          story.article!,
+                          style: context.l,
+                        ),
+                      ],
+                    ),
+                  ZExpansionTile(
+                    initiallyExpanded: true,
+                    title: Text("Stats", style: context.h4),
+                    children: [
+                      StatsTable(map: {
+                        "Newsworthiness": ConfidenceWidget(
+                            confidence: story!.newsworthiness,
+                            enabled: false,
+                            jagged: true),
+                        "Avg. Confidence": ConfidenceWidget(
+                            confidence: story.confidence, enabled: false),
+                        "Avg. Bias": PoliticalPositionWidget(
+                            position: story.bias, enabled: false),
+                        "Avg. Replies":
+                            Text(Utils.numToReadableString(story.avgReplies)),
+                        "Avg. Reposts":
+                            Text(Utils.numToReadableString(story.avgReposts)),
+                        "Avg. Likes":
+                            Text(Utils.numToReadableString(story.avgLikes)),
+                        "Avg. Bookmarks":
+                            Text(Utils.numToReadableString(story.avgBookmarks)),
+                        "Avg. Views":
+                            Text(Utils.numToReadableString(story.avgViews)),
+                        "Sample Size":
+                            Text(Utils.numToReadableString(story.pids.length)),
+                      }),
+                    ],
+                  ),
+                  if (story.description != null)
+                    ZExpansionTile(
+                        initiallyExpanded: false,
+                        title: Text("Description", style: context.h4),
+                        subtitle: Text(
+                          "aggregated from posts",
+                          style: context.m,
+                        ),
+                        children: [
+                          Text(
+                            story.description ?? "",
+                            style: context.l,
+                          ),
+                        ]),
                 ],
               ),
             ),

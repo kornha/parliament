@@ -43,13 +43,20 @@ const onStoryShouldFindContext = async function(story) {
   const resp = await findContext(story, statements);
   const gstory = resp;
 
-  await retryAsyncFunction(() => updateStory(story.sid, {
-    headline: gstory.headline,
-    subHeadline: gstory.subHeadline,
-    lede: gstory.lede,
-    aticle: gstory.article,
-    status: "foundContext",
-  }));
+  if (!gstory || !gstory.sid || !story.sid) {
+    logger.error(`Could not find context for story ${story.sid}`);
+    return;
+  }
+
+  await retryAsyncFunction(() =>
+    updateStory(story.sid, {
+      ...(gstory.headline && {headline: gstory.headline}),
+      ...(gstory.subHeadline && {subHeadline: gstory.subHeadline}),
+      ...(gstory.lede && {lede: gstory.lede}),
+      ...(gstory.article && {article: gstory.article}),
+      status: "foundContext",
+    }),
+  );
 
   logger.info(`Done onPostShouldFindStories for post ${story.sid}`);
 

@@ -70,7 +70,7 @@ const tryQueueTask = async function(
     const docData = docSnapshot.data();
 
     if (!docData) {
-      logger.error(`Document not found: ${collectionName}/${id}`);
+      logger.warn(`Document not found: ${collectionName}/${id}`);
       return;
     }
 

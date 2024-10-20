@@ -27,9 +27,16 @@ class StatsTable extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     SizedBox(
-                      width: context.ssp.width,
-                      child: Text(entry.key,
-                          style: context.h6, textAlign: TextAlign.start),
+                      width: context.soc.width,
+                      height: context.sd.height,
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          entry.key,
+                          style: context.mb,
+                          textAlign: TextAlign.start,
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -40,9 +47,11 @@ class StatsTable extends StatelessWidget {
                   children: [
                     // Check if entry.value is a Text widget, and apply style
                     entry.value is Text
-                        ? Text(
-                            (entry.value as Text).data ?? '',
-                            style: context.as,
+                        ? Center(
+                            child: Text(
+                              (entry.value as Text).data ?? '',
+                              style: context.as,
+                            ),
                           )
                         : entry.value,
                   ],

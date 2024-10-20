@@ -132,7 +132,7 @@ const onPostShouldFindStories = async function(post) {
     ))).flat();
 
     if (_.isEmpty(changedPosts)) {
-      logger.error(`No posts found, 
+      logger.warn(`No posts found, 
       not deleting Stories ${removedSids}`);
     } else {
       // delete stories
