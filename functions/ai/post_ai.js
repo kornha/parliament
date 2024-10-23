@@ -58,13 +58,16 @@ const onPostShouldFindStories = async function(post) {
 
   // Finds stories based on 2 leg K-mean/Neural search
   const resp = await findStories(post);
-  const gstories = resp.stories;
-  const removedSids = resp.removedStories;
 
-  if (!gstories || gstories.length === 0) {
-    logger.warn(`Post does not have a gstory! ${post.pid}`);
+  if (resp == null) {
+    await retryAsyncFunction(() => updatePost(post.pid, {
+      status: "unsupported",
+    }));
     return;
   }
+
+  const gstories = resp.stories;
+  const removedSids = resp.removedStories;
 
   logger.info("Found " +
     gstories.length + " stories for post " + post.pid);
@@ -216,13 +219,16 @@ const onPostShouldFindStatements = async function(post) {
   // merge the statements and dedupe
   const statements = _.uniqBy([...sstatements, ...pstatements], "stid");
 
-  const g2stories = await findStatements(post, stories, statements);
+  const resp = await findStatements(post, stories, statements);
 
-  if (_.isEmpty(g2stories)) {
-    logger.warn(`Could not generate statements for post. 
-      Orphaned! ${post.pid}`);
+  if (resp == null) {
+    await retryAsyncFunction(() => updatePost(post.pid, {
+      status: "unsupported",
+    }));
     return;
   }
+
+  const g2stories = resp.stories;
 
   await Promise.all(g2stories.map(async (gstoryStatement, index) => {
     const sid = gstoryStatement.sid ? gstoryStatement.sid : v4();

@@ -41,12 +41,14 @@ const onStoryShouldFindContext = async function(story) {
   }
 
   const resp = await findContext(story, statements);
-  const gstory = resp;
 
-  if (!gstory || !gstory.sid || !story.sid) {
-    logger.error(`Could not find context for story ${story.sid}`);
+  if (resp == null) {
+    // we don't change the status here since other posts
+    // can yield a contextualization
     return;
   }
+
+  const gstory = resp;
 
   await retryAsyncFunction(() =>
     updateStory(story.sid, {
@@ -93,7 +95,6 @@ const findStories = async function(post) {
   logger.info("Found " +
      candidateStories.length + " candidate stories for post " + post.pid);
 
-
   candidateStories.forEach((story, index) => {
     logger.info(`Candidate story ${index + 1}: ${story.sid}`);
   });
@@ -105,18 +106,17 @@ const findStories = async function(post) {
     includePhotos: true,
   });
 
-  const resp = await generateCompletions(
-      _prompt,
-      "findStories " + post.pid,
-      true,
-  );
-
-  writeTrainingData("findStories", post, candidateStories, null, resp);
+  const resp = await generateCompletions({
+    messages: _prompt,
+    loggingText: "findStories " + post.pid,
+  });
 
   if (!resp || !resp.stories || resp.stories.length === 0) {
-    logger.info(`Post does not have a story! ${post.pid}`);
-    return;
+    logger.warn(`Cannot find Story for post! ${post.pid}`);
+    return null;
   }
+
+  writeTrainingData("findStories", post, candidateStories, null, resp);
 
   return resp;
 };
@@ -143,18 +143,17 @@ const findContext = async function(story, statements) {
     includePhotos: true,
   });
 
-  const resp = await generateCompletions(
-      _prompt,
-      "findContext " + story.sid,
-      true,
-  );
-
-  writeTrainingData("findContext", null, [story], statements, resp);
+  const resp = await generateCompletions({
+    messages: _prompt,
+    loggingText: "findContext " + story.sid,
+  });
 
   if (!resp || !resp.sid) {
-    logger.info(`Story does not have contextualization! ${story.sid}`);
-    return;
+    logger.warn(`Story does not have contextualization! ${story.sid}`);
+    return null;
   }
+
+  writeTrainingData("findContext", null, [story], statements, resp);
 
   return resp;
 };

@@ -398,6 +398,7 @@ const getContentFromX = async function(url) {
   let tweetVideoURL = null; // Initialize the video URL variable
   let tweetPhotoURL = null; // Initialize the photo URL variable
   page.on("request", (request) => {
+    // show me data for debugging requests
     if ((request.resourceType() === "media" ||
       request.url().includes(".mp4")) && !tweetVideoURL) {
       tweetVideoURL = request.url();
@@ -423,7 +424,25 @@ const getContentFromX = async function(url) {
     if (url.includes("graphql") && url.includes("TweetResultByRestId")) {
       try {
         const responseBody = await response.json();
-        const tweetData = responseBody.data.tweetResult.result;
+        const tweetResult = responseBody?.data?.tweetResult?.result;
+
+        if (!tweetResult) {
+          console.error("No tweet result found in the response.");
+          return;
+        }
+
+        let tweetData;
+        // handles this case https://x.com/JamesOKeefeIII/status/1848810014497993151
+        if (tweetResult.__typename === "Tweet") {
+          tweetData = tweetResult;
+        } else if (tweetResult.__typename === "TweetWithVisibilityResults") {
+          tweetData = tweetResult.tweet;
+        } else {
+          logger.error(`Unhandled tweet result type: 
+            ${tweetResult.__typename}`);
+          return;
+        }
+
         // Extract the tweet details
         tweetText = tweetData.legacy.full_text;
         tweetAuthor = tweetData.core.user_results.result.legacy.name;
@@ -432,7 +451,7 @@ const getContentFromX = async function(url) {
         tweetReposts = tweetData.legacy.retweet_count;
         tweetLikes = tweetData.legacy.favorite_count;
         tweetBookmarks = tweetData.legacy.bookmark_count;
-        tweetViews = parseInt(tweetData.views.count, 10); // X views are string
+        tweetViews = parseInt(tweetData.views?.count || "0", 10);
       } catch (error) {
         // do nothing, as there's an errant request that enters here
         // cannot filter at the if statement level

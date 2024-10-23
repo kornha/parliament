@@ -9,10 +9,13 @@ part 'photo.g.dart';
 class Photo {
   final String photoURL;
   final String? description;
+  // does the photo work with the LLM?
+  final bool? llmCompatible;
 
   Photo({
     required this.photoURL,
     this.description,
+    this.llmCompatible,
   });
 
   factory Photo.fromJson(Map<String, dynamic> json) => _$PhotoFromJson(json);

@@ -33,7 +33,9 @@ const findStoriesPrompt = function({post, stories, training = false, includePhot
 
   messages.push({type: "text", text: `Here is the Post: ${postToJSON(post, !includePhotos)}`});
 
-  if (post.photo?.photoURL && post.photo?.description && includePhotos) {
+  messages.push({type: "text", text: "Note about photos; if you cannot process the image_url DO NOT throw an error, handle the case with the information you have."});
+
+  if (post.photo?.photoURL && post.photo?.llmCompatible != false && includePhotos) {
     messages.push({type: "image_url", image_url: {url: post.photo?.photoURL}});
   }
 
@@ -48,7 +50,7 @@ const findStoriesPrompt = function({post, stories, training = false, includePhot
         story.photos.forEach((photo) => {
           // we add this here to skip if the photo could not be processed earlier
           // thus the completions will work and not error
-          if (photo.description) {
+          if (photo?.llmCompatible != false) {
             messages.push({type: "image_url", image_url: {url: photo.photoURL}});
           }
         });
@@ -75,7 +77,9 @@ const findStatementsPrompt = function({
 
   messages.push({type: "text", text: `Here is the Post: ${postToJSON(post, !includePhotos)}`});
 
-  if (post.photo?.photoURL && post.photo?.description && includePhotos) {
+  messages.push({type: "text", text: "Note about photos; if you cannot process the image_url DO NOT throw an error, handle the case with the information you have."});
+
+  if (post.photo?.photoURL && post.photo?.llmCompatible != false && includePhotos) {
     messages.push({type: "image_url", image_url: {url: post.photo?.photoURL}});
   }
 
@@ -87,7 +91,7 @@ const findStatementsPrompt = function({
       messages.push({type: "text", text: `${storyToJSON(story, !includePhotos, false)}`});
       if (!_.isEmpty(story.photos) && includePhotos) {
         story.photos.forEach((photo) => {
-          if (photo.description) { // we add this here to skip if the photo could not be processed earlier
+          if (photo?.llmCompatible != false) {
             messages.push({type: "image_url", image_url: {url: photo.photoURL}});
           }
         });
@@ -181,34 +185,30 @@ const findStoriesForTrainingText = function() {
 
 const findStatementsForTrainingText = function() {
   return `
-  Description of a Post:
+  **Post Description:**
   ${postDescriptionPrompt()}
 
-  Description of a Story:
+  **Story Description:**
   ${storyDescriptionPrompt()}
 
-  Description of a Statement:
+  **Statement Description:**
   ${statementsDescriptionPrompt()}
 
-  The Stories represent all Stories the Post is *currently* associated with.
-  The Statements (aka Candidate Statements), are either Statements that are already associated with all these Stories, are close in a graph search (2 degrees) to the Stories, or a vector search to the Stories.
+  You'll receive a Post, a list of Stories (may be empty), and Candidate Statements (may be empty).
 
-  You will be given a Post, a list of Stories (can be empty), and a list of Candidate Statements (can be empty).
+  **Your Task:**
 
-  Your goal is to output the Stories EXACTLY as they are BUT with the following change. You will also include the Statements (both Claims and Opinions) that the Post makes about the Stories (but not other Candidate Statements), as follows.
-  
-  1) If the Post makes a Statement that is in the list of Candidate Statements, this Statement should be included in the Story output, and the Post should be added to the "pro" or "against" list of the Statement.
-  1a) DO NOT OUTPUT A STATEMENT THAT THE POST DOES NOT MAKE EVEN IF IT IS PART OF THE STORY ALREADY.
-  1b) DO NOT OUTPUT OTHER PIDS THAT ARE ALREADY PART OF THE PRO OR AGAINST LIST OF THE STATEMENT.
-  1c) Only output the statement if the Post is either in the 'pro' or 'against' list of the Statement. If not, do not output the Statement.
-  1d) For any Statement that you output, you should update the fields in Statement if new information is provided by the Post. The value should not be changed, but the context and statedAt may be updated.
-  2) If the Post makes a Statement that is inherently new (there is no matching Statement in the list), this new Statement should be created (and it will be added to the Story), and the Post should be added to the "pro" or "against" list of the Statement. 
-  3) You may see two or more Candidate Statements are essentially the same; that is they make the same claim or opinion about the same subject (because of concurrency issues or other), at a similar statedAt time with roughly the same context, and if (and only if) the Post belongs to these Statements, output a new Statement and include the old Statements in the 'removedStatements' output.
+  - Output the Stories with updated Statements that the Post makes about the Stories.
+  - Include Statements from Candidate Statements if the Post supports or refutes them.
+  - Do not include Statements the Post doesn't make.
+  - Update Statement fields if new information is provided by the Post.
+  - Create new Statements if the Post makes a new Claim or Opinion.
+  - Merge similar Candidate Statements if necessary, and include old Statement IDs in 'removedStatements'.
 
-  Here is how to output a new Statement:
+  **How to Output a New Statement:**
   ${newStatementPrompt()}
 
-  Here's a high level example:
+  **Example:**
   ${findStatementsExample()}
   `;
 };
@@ -219,32 +219,38 @@ const findStatementsForTrainingText = function() {
 
 const findContextForTrainingText = function() {
   return `
-  Description of a Story:
-  ${storyDescriptionPrompt()}
+    **Story Description:**
+    ${storyDescriptionPrompt()}
 
-  Description of a Statement:
-  ${statementsDescriptionPrompt()}
+    **Statement Description:**
+    ${statementsDescriptionPrompt()}
 
-  Description of Bias: ${biasDescriptionPrompt()}
-  Description of Confidence: ${confidenceDescriptionPrompt()}
+    **Bias and Confidence Descriptions:**
+    ${biasDescriptionPrompt()}
+    ${confidenceDescriptionPrompt()}
 
-  Your goal is to output the Story's sid, with a headline, subHeadline, lede, and an article that are as engaging as humanly possible, and should be written in active tense. Collectively these 4 fields we call "Contextualizaiton", and all are optional outputs as described below.
+    **Your Task:**
 
-  You will be given the Story as it is currently with the Contextualizaiton fields (if they exist) and a list of Statements that the Post makes about the Story. If you feel that one or multiple of the Contextualizaiton fields do not need to be updated, simply omit the field(s) from the output. However, if you are creating a new headline, subHeadline, lede, or article, or you are updating the existing ones due to new information, you should include them in the output.
-  
-  Here is included information, and how they MUST be used to draft the Contextualizaiton fields:
-  1 - Newsworthiness; the Story's Newsworthiness score (if available) reflects how important the Story is. A high score, such as 0.9, should be met with extreme urgency when drafting the Contextualizaiton fields; eg., NIXON RESIGNS. A low score, such as 0.1, should be met with dull urgency; a null/missing score should be treated neutrally. This should be used in all Contextualizaiton fields, but especially the headline. It is your one and only source of how important the Story is.
-  2 - Statements with Confidence scores (aka Claims); your understanding of what is true and false comes from these Claims. If a Claim has a high confidence score, you should treat it as true, and reflect so in the output. If a Claim has a low confidence score, you should treat it as false. If a Claim has a null confidence score, you should treat it as neutral.
-  3 - Statements with Bias scores (aka Opinions); your understanding of the political bias of the Story comes from these Opinions. If an Opinion has a high bias score, you should treat it as extremely biased, and reflect so in the output. If an Opinion has a low bias score, you should treat it as neutral. If an Opinion has a null bias score, you should treat it as neutral. You should favor opinions of with Center bias, but you may say things like "right wing" or "left wing" people say X, for opinions of those biases.
-  4 - Title and Description; the Story's title and description represents everything we currently know about the Story. They should be used as the information source, but their phrasing of content does not include the Newsworthiness, Confidence, or Bias scores, and hence should not be mimicked in the output.
+    - Output the Story's 'sid' with updated 'headline', 'subHeadline', 'lede', and optionally 'article'.
+    - Write in an engaging, active voice.
+    - Use the provided information to draft the Contextualization fields.
 
-  Your output:
-  headline: The headline should be a short 2-6 word, ultra engaging, and active description of the Story, and should be focused around the event (abiding by the 4 rules above).
-  subHeadline: The subHeadline should be a 1-3 sentence, ultra engaging, and active description of the Story, and should be focused around the event, and provide important details (abiding by the rules above). It is published below the headline, and should provide a quick synopsis of the Story.
-  lede: The lead is an expanded 3-6 sentence, engaging, and active description of the Story, and should be focused around the event, and provide all important details and call out some opinions and claims (abiding by the rules above). It should be used to say things like; "here's what we know" (based on statements/claims), and "here's what people are saying" (based on opinions).
-  article: The article is optional, and only outputted if there is more information that can be included in the lede. It should be a 1-8 paragraph, engaging, and active description of the Story, and should be focused around the event, and provide all known details and call out all opinions and claims (abiding by the rules above). It should be written as if you are an NY Times journalist.
+    **Guidelines for Contextualization Fields:**
+
+    1. **Newsworthiness:** Adjust urgency based on the score (0.0 - 1.0).
+    2. **Statements with Confidence Scores:** Treat high scores as true, low scores as false, neutral if null.
+    3. **Statements with Bias Scores:** Reflect political bias appropriately; favor centrist views.
+    4. **Title and Description:** Use as information sources but do not mimic their phrasing.
+
+    **Field Specifications:**
+
+    - **Headline:** 2-6 words, engaging, active, reflects Newsworthiness.
+    - **SubHeadline:** 1-3 sentences, provides key details.
+    - **Lede:** 3-6 sentences, expands on details, mentions Claims and Opinions.
+    - **Article:** Optional, 1-8 paragraphs, comprehensive, journalistic tone.
   `;
 };
+
 // //////////////////////////////////////////////////////////////////////
 // Helpers
 // //////////////////////////////////////////////////////////////////////
@@ -284,32 +290,11 @@ const storyDescriptionPrompt = function() {
 
 const storyJSONOutput = function({statements = false, metadata = false, context = false}) {
   if (statements) {
-    return `{
-        "sid": ID of the Story or null if Story is new,
-        "statements": [${statementJSONOutput()}, ...],
-        "removedStatements": ["stid1", ...]
-      }`;
+    return `{"sid": ID of the Story, "statements": [${statementJSONOutput()}, ...], "removedStatements": ["stid1", ...]}`;
   } else if (metadata) {
-    return `{
-      "sid": ID of the Story or null if Story is new,
-      "title": "title of the story",
-      "description": "the full description of the story; literally everything we possibly know, in a useful vector searchable description",
-      "happenedAt": ISO 8601 time format that the event happened at, or null if it cannot be determined,
-      "lat": latitude best estimate of the location of the Story,
-      "long": longitude best estimate,
-      "photos": [{
-        "photoURL": photoURL field in the Post if any,
-        "description": photoDescription field in the Post, if any
-      }, ...list of UNIQUE photos taken from the Posts ordered by most interesting]
-    }`;
+    return `{"sid": ID of the Story or null if Story is new, "title": "title of the story", "description": "the full description of the story; literally everything we possibly know, in a useful vector searchable description", "happenedAt": ISO 8601 time format that the event happened at, or null if it cannot be determined, "lat": latitude best estimate of the location of the Story, "long": longitude best estimate, "photos": [{"photoURL": photoURL field in the Post if any, "description": photoDescription field in the Post, if any}, ...list of UNIQUE photos taken from the Posts ordered by most interesting]}`;
   } else if (context) {
-    return `{
-      "sid": ID of the Story,
-      "headline": "headline of the story",
-      "subHeadline": "subHeadline of the story",
-      "lede": "lede of the story"
-      "article": "article of the story, can be omitted if there is no more information than the lede"
-    }`;
+    return `{"sid": ID of the Story, "headline": "headline of the story", "subHeadline": "subHeadline of the story", "lede": "lede of the story", "article": "article of the story, can be omitted if there is no more information than the lede"}`;
   }
 };
 

@@ -25,13 +25,12 @@ const llm = function() {
  * Generates completions for the given prompt
  * @param {List<Message>} messages since images needs to be separated
  * @param {string} loggingText optional loggingText
- * @param {string} imageModel whether we need a model that supports images
  * @return {Promise<string>} completion response
  */
-const generateCompletions = async function(messages,
-    loggingText = null,
-    imageModel = true,
-) {
+const generateCompletions = async function({
+  messages,
+  loggingText = null,
+}) {
   if (messages.length === 0) {
     logger.error("No messages provided");
     return null;
@@ -39,6 +38,7 @@ const generateCompletions = async function(messages,
 
   logger.info(`Generating completions for ` + loggingText ?
     loggingText : `${messages.length} messages`);
+
   try {
     const completion = await llm().chat.completions.create({
       messages: [
@@ -56,16 +56,17 @@ const generateCompletions = async function(messages,
       ],
       // max_tokens: 300,
       temperature: 0.00,
-      model: imageModel ? "gpt-4o" :
-        "ft:gpt-3.5-turbo-1106:parliament::9VmmK9Vp",
+      model: "gpt-4o",
       response_format: {"type": "json_object"},
     });
 
-    const generation = JSON.parse(completion.choices[0].message.content);
-    if (generation == null) {
-      logger.error(`Invalid generation: ${completion}`);
+    if (!completion.choices[0].message.content) {
+      // we warn not error to keep things tidy
+      // TODO: when o1-mini handles images we will add it as a retry option
+      logger.warn(`Invalid generation for ${loggingText}!`);
       return null;
     }
+    const generation = JSON.parse(completion.choices[0].message.content);
 
     logger.info(`Tokens used: ${completion.usage.total_tokens}`);
 

@@ -9,10 +9,12 @@ part 'video.g.dart';
 class Video {
   final String videoURL;
   final String? description;
+  final bool? llmCompatible;
 
   Video({
     required this.videoURL,
     this.description,
+    this.llmCompatible,
   });
 
   factory Video.fromJson(Map<String, dynamic> json) => _$VideoFromJson(json);

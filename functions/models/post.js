@@ -372,16 +372,20 @@ const postChangedContent = async function(before, after) {
 
   if (before?.photo?.photoURL != after?.photo?.photoURL &&
      after.photo?.photoURL && !after.photo?.description) {
-    const resp = await generateCompletions(
-        generateImageDescriptionPrompt(after.photo.photoURL),
-        after.pid + " photoURL",
-        true,
-    );
+    const resp = await generateCompletions({
+      messages: generateImageDescriptionPrompt(after.photo.photoURL),
+      loggingText: after.pid + " photoURL",
+    });
     if (!resp?.description) {
       logger.error("Error generating image description");
+      await retryAsyncFunction(() => updatePost(after.pid, {
+        "photo.llmCompatible": false,
+      }));
+      return;
     } else {
       await retryAsyncFunction(() => updatePost(after.pid, {
         "photo.description": resp.description,
+        "photo.llmCompatible": true,
       }));
       return;
     }

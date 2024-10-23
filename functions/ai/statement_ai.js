@@ -4,6 +4,7 @@ const {generateEmbeddings, generateCompletions} = require("../common/llm");
 const {writeTrainingData} = require("./trainer");
 const _ = require("lodash");
 const {findStatementsPrompt} = require("./prompts");
+const {logger} = require("firebase-functions/v2");
 
 const findStatements = async function(post, stories, statements) {
   if (!post || _.isEmpty(stories)) {
@@ -12,23 +13,28 @@ const findStatements = async function(post, stories, statements) {
   }
 
   // Note we need not remove the statements already from the post
+  const prompt = findStatementsPrompt({
+    post: post,
+    stories: stories,
+    statements: statements,
+    training: true,
+    includePhotos: true,
+  });
 
   const resp =
-    await generateCompletions(
-        findStatementsPrompt({
-          post: post,
-          stories: stories,
-          statements: statements,
-          training: true,
-          includePhotos: true,
-        }),
-        "findStatements " + post.pid,
-        true,
-    );
+    await generateCompletions({
+      messages: prompt,
+      loggingText: "findStatements " + post.pid,
+    });
+
+  if (!resp || !resp.stories || resp.stories.length === 0) {
+    logger.warn(`Cannot find Statements for post! ${post.pid}`);
+    return null;
+  }
 
   writeTrainingData("findStatements", post, stories, statements, resp);
 
-  return resp.stories;
+  return resp;
 };
 
 

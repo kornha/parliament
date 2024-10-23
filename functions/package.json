@@ -31,7 +31,7 @@
     "install": "^0.13.0",
     "lodash": "^4.17.21",
     "npm": "^10.8.3",
-    "openai": "^4.54.0",
+    "openai": "^4.68.1",
     "puppeteer": "^19.11.1",
     "rss-parser": "^3.13.0",
     "uninstall": "^0.0.0",
