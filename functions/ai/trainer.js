@@ -38,7 +38,6 @@ async function(promptName, post, stories, statements, output) {
       role: "user",
       content: findStatementsPrompt({
         post: post,
-        stories: stories,
         statements: statements,
         training: false,
         includePhotos: false,

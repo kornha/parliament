@@ -48,14 +48,14 @@ const onStoryShouldFindContext = async function(story) {
     return;
   }
 
-  const gstory = resp;
+  const gcontext = resp;
 
   await retryAsyncFunction(() =>
     updateStory(story.sid, {
-      ...(gstory.headline && {headline: gstory.headline}),
-      ...(gstory.subHeadline && {subHeadline: gstory.subHeadline}),
-      ...(gstory.lede && {lede: gstory.lede}),
-      ...(gstory.article && {article: gstory.article}),
+      ...(gcontext.headline && {headline: gcontext.headline}),
+      ...(gcontext.subHeadline && {subHeadline: gcontext.subHeadline}),
+      ...(gcontext.lede && {lede: gcontext.lede}),
+      ...(gcontext.article && {article: gcontext.article}),
       status: "foundContext",
     }),
   );

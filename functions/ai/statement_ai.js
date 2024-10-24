@@ -2,20 +2,18 @@ const functions = require("firebase-functions");
 const {setVector, getStatement} = require("../common/database");
 const {generateEmbeddings, generateCompletions} = require("../common/llm");
 const {writeTrainingData} = require("./trainer");
-const _ = require("lodash");
 const {findStatementsPrompt} = require("./prompts");
 const {logger} = require("firebase-functions/v2");
 
-const findStatements = async function(post, stories, statements) {
-  if (!post || _.isEmpty(stories)) {
-    functions.logger.error("Post/Stories are missing. Cannot find statements");
+const findStatements = async function(post, statements) {
+  if (!post) {
+    functions.logger.error("Post is missing. Cannot find statements");
     return;
   }
 
   // Note we need not remove the statements already from the post
   const prompt = findStatementsPrompt({
     post: post,
-    stories: stories,
     statements: statements,
     training: true,
     includePhotos: true,
@@ -27,12 +25,13 @@ const findStatements = async function(post, stories, statements) {
       loggingText: "findStatements " + post.pid,
     });
 
-  if (!resp || !resp.stories || resp.stories.length === 0) {
+  // might be OK as not all posts have statements
+  if (!resp || !resp.statements || resp.statements.length === 0) {
     logger.warn(`Cannot find Statements for post! ${post.pid}`);
     return null;
   }
 
-  writeTrainingData("findStatements", post, stories, statements, resp);
+  writeTrainingData("findStatements", post, null, statements, resp);
 
   return resp;
 };

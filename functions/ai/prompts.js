@@ -59,14 +59,13 @@ const findStoriesPrompt = function({post, stories, training = false, includePhot
   }
 
   messages.push({type: "text", text: "Only output Stories that you are certain Post belongs to. The Post must either directly mention the content in the Story, or make a Statement about the Story. For any Stories that you output, order them by most to least relevant."});
-  messages.push({type: "text", text: `{"stories":[${storyJSONOutput({metadata: true})}, ...], "removedStories":["sid1", "sid2", ...]}`});
+  messages.push({type: "text", text: storyJSONOutput()});
 
   return messages;
 };
 
 const findStatementsPrompt = function({
   post,
-  stories,
   statements,
   training = false,
   includePhotos = true}) {
@@ -83,33 +82,17 @@ const findStatementsPrompt = function({
     messages.push({type: "image_url", image_url: {url: post.photo?.photoURL}});
   }
 
-  if (_.isEmpty(stories)) {
-    messages.push({type: "text", text: "There are no stories associated with this post."});
-  } else {
-    messages.push({type: "text", text: `Here are the Stories:`});
-    stories.forEach((story) => {
-      messages.push({type: "text", text: `${storyToJSON(story, !includePhotos, false)}`});
-      if (!_.isEmpty(story.photos) && includePhotos) {
-        story.photos.forEach((photo) => {
-          if (photo?.llmCompatible != false) {
-            messages.push({type: "image_url", image_url: {url: photo.photoURL}});
-          }
-        });
-      }
-    });
-  }
-
   if (_.isEmpty(statements)) {
     messages.push({type: "text", text: "There are no statements associated with the stories/posts."});
   } else {
-    messages.push({type: "text", text: `Here are the statements:`});
+    messages.push({type: "text", text: `Here are the Candidate Statements:`});
     statements.forEach((statement) => {
       messages.push({type: "text", text: `${statementToJSON(statement)}`});
     });
   }
 
-  messages.push({type: "text", text: "Output the stories in the same order as they were passed in, but with the new Statements added to the Stories (and omitting some fields), as follows:"});
-  messages.push({type: "text", text: `{"stories":[${storyJSONOutput({statements: true})}, ...]}`});
+  messages.push({type: "text", text: "Output all Statements that a Post makes (new and/or candidate)."});
+  messages.push({type: "text", text: statementJSONOutput()});
 
   return messages;
 };
@@ -134,8 +117,8 @@ const findContextPrompt = function({
     messages.push({type: "text", text: "There are no statements associated with this story."});
   }
 
-  messages.push({type: "text", text: "Output the Story with the updated context/article fields, as follows:"});
-  messages.push({type: "text", text: storyJSONOutput({context: true})});
+  messages.push({type: "text", text: "Output the updated context/article fields, as follows:"});
+  messages.push({type: "text", text: contextJSONOutput()});
 
   return messages;
 };
@@ -188,22 +171,18 @@ const findStatementsForTrainingText = function() {
   **Post Description:**
   ${postDescriptionPrompt()}
 
-  **Story Description:**
-  ${storyDescriptionPrompt()}
-
   **Statement Description:**
   ${statementsDescriptionPrompt()}
 
-  You'll receive a Post, a list of Stories (may be empty), and Candidate Statements (may be empty).
+  You'll receive a Post, and a list of Candidate Statements (may be empty).
 
   **Your Task:**
 
-  - Output the Stories with updated Statements that the Post makes about the Stories.
-  - Include Statements from Candidate Statements if the Post supports or refutes them.
-  - Do not include Statements the Post doesn't make.
-  - Update Statement fields if new information is provided by the Post.
-  - Create new Statements if the Post makes a new Claim or Opinion.
-  - Merge similar Candidate Statements if necessary, and include old Statement IDs in 'removedStatements'.
+  - Return only Statements that the Post makes (supports or refutes).
+  - Create new Statements if the Post makes a new Claim or Opinion that is not included in the Candidate Statements.
+  - Do not include Candidate Statements the Post does not make.
+  - Update Statement fields (such as the Context field) if new information is provided by the Post that does not alter the statement.
+  - If multiple Candidate Statements are making the same Claim or Opinion, or in contrast if a Candidate Statement is overloaded and includes multiple Statements, you may choose to Merge or Split the Statement(s). In this case, Simply output the new merged/split Statement(s) as a new Statement(s), and include the old Statement(s) in the 'removedStatements' output.
 
   **How to Output a New Statement:**
   ${newStatementPrompt()}
@@ -231,13 +210,15 @@ const findContextForTrainingText = function() {
 
     **Your Task:**
 
-    - Output the Story's 'sid' with updated 'headline', 'subHeadline', 'lede', and optionally 'article'.
-    - Write in an engaging, active voice.
-    - Use the provided information to draft the Contextualization fields.
+    - Output the Story's updated 'headline', 'subHeadline', 'lede', and 'article'.
+    - All fields are optional and only included if you wish to create/update from the provided information.
+    - If there is no existing 'headline', 'subHeadline', 'lede' you must create them, however an article is optional and only included if there is more information than fits in the 'lede'.
+    - Write in an engaging, active voice, as if you are an NY Times author.
+    - You must use the provided information to draft the Contextualization fields.
 
     **Guidelines for Contextualization Fields:**
 
-    1. **Newsworthiness:** Adjust urgency based on the score (0.0 - 1.0).
+    1. **Newsworthiness:** Adjust urgency of the outputted text based on the score (0.0 - 1.0).
     2. **Statements with Confidence Scores:** Treat high scores as true, low scores as false, neutral if null.
     3. **Statements with Bias Scores:** Reflect political bias appropriately; favor centrist views.
     4. **Title and Description:** Use as information sources but do not mimic their phrasing.
@@ -288,14 +269,8 @@ const storyDescriptionPrompt = function() {
   `;
 };
 
-const storyJSONOutput = function({statements = false, metadata = false, context = false}) {
-  if (statements) {
-    return `{"sid": ID of the Story, "statements": [${statementJSONOutput()}, ...], "removedStatements": ["stid1", ...]}`;
-  } else if (metadata) {
-    return `{"sid": ID of the Story or null if Story is new, "title": "title of the story", "description": "the full description of the story; literally everything we possibly know, in a useful vector searchable description", "happenedAt": ISO 8601 time format that the event happened at, or null if it cannot be determined, "lat": latitude best estimate of the location of the Story, "long": longitude best estimate, "photos": [{"photoURL": photoURL field in the Post if any, "description": photoDescription field in the Post, if any}, ...list of UNIQUE photos taken from the Posts ordered by most interesting]}`;
-  } else if (context) {
-    return `{"sid": ID of the Story, "headline": "headline of the story", "subHeadline": "subHeadline of the story", "lede": "lede of the story", "article": "article of the story, can be omitted if there is no more information than the lede"}`;
-  }
+const storyJSONOutput = function() {
+  return `"stories":[{"sid": ID of the Story or null if Story is new, "title": "title of the story", "description": "the full description of the story; literally everything we possibly know, in a useful vector searchable description", "happenedAt": ISO 8601 time format that the event happened at, or null if it cannot be determined, "lat": latitude best estimate of the location of the Story, "long": longitude best estimate, "photos": [{"photoURL": photoURL field in the Post if any, "description": photoDescription field in the Post, if any}, ...list of UNIQUE photos taken from the Posts ordered by most interesting]}, ...], "removedStories":["sid1", "sid2", ...]`;
 };
 
 //
@@ -355,12 +330,16 @@ const newStatementPrompt = function() {
 };
 
 const statementJSONOutput = function() {
-  return `{"stid":ID of the Statement or null if the Statement is new, "value": "text of the statement", "side": "pro" or "against", "context": "contextual information that is used for vector search, and also for describing all details about the statement", "statedAt": "ISO 8601 time format that informs us what the Statement is valid for", "type": "claim" or "opinion"}`;
+  return `{"statements":[{"stid":ID of the Statement or null if the Statement is new, "value": "text of the statement", "side": "pro" or "against", "context": "contextual information that is used for vector search, and also for describing all details about the statement", "statedAt": "ISO 8601 time format that informs us what the Statement is valid for", "type": "claim" or "opinion"}, ...], "removedStatements":["stid1", "stid2", ...]}`;
 };
 
 //
-// Credibility and Bias
+// Contextualization
 //
+
+const contextJSONOutput = function() {
+  return `{"sid": ID of the Story, "headline": "headline of the story", "subHeadline": "subHeadline of the story", "lede": "lede of the story", "article": "article of the story, can be omitted if there is no more information than the lede"}`;
+};
 
 const confidenceDescriptionPrompt = function() {
   return `
