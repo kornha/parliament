@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:json_annotation/json_annotation.dart';
 import 'package:political_think/common/constants.dart';
 
 // Json serialization not used here
 class Confidence {
   final double value;
 
-  Confidence({
+  const Confidence({
     required this.value,
   });
 
@@ -60,6 +59,18 @@ class Confidence {
       );
 
   Color get onColor => Palette.black;
+
+  factory Confidence.base() {
+    return const Confidence(value: 0.5);
+  }
+
+  factory Confidence.min() {
+    return const Confidence(value: 0.0);
+  }
+
+  factory Confidence.max() {
+    return const Confidence(value: 1.0);
+  }
 
   // Custom JSON serialization/deserialization
   factory Confidence.fromJson(dynamic json) {

@@ -119,9 +119,9 @@ class Database {
               // Cannot filter on server side since we are using a range query
               stories = stories
                   .where((story) =>
-                      story.newsworthiness != null &&
-                      story.newsworthiness! >=
-                          (settings?.minNewsworthiness ?? Confidence(value: 0)))
+                      (story.newsworthiness ?? Confidence.min()) >=
+                          settings!.minNewsworthiness &&
+                      story.pids.length >= settings.minPosts)
                   .toList();
 
               if (stories.isNotEmpty) {

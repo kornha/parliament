@@ -22,7 +22,8 @@ class FeedSettings extends ConsumerStatefulWidget {
 }
 
 class _FeedSettingsState extends ConsumerState<FeedSettings> {
-  Confidence? _value;
+  Confidence? _confidence;
+  int? _minPosts;
 
   @override
   void initState() {
@@ -34,8 +35,8 @@ class _FeedSettingsState extends ConsumerState<FeedSettings> {
     final userRef = ref.selfUserWatch();
     ZUser? user = userRef.value;
 
-    if (_value == user?.settings.minNewsworthiness) {
-      _value = null;
+    if (_confidence == user?.settings.minNewsworthiness) {
+      _confidence = null;
     }
 
     return ModalContainer(
@@ -56,12 +57,11 @@ class _FeedSettingsState extends ConsumerState<FeedSettings> {
                       interval: 0.25,
                       showTicks: true,
                       showLabels: true,
-                      value: _value?.value ??
-                          user.settings.minNewsworthiness?.value ??
-                          0.0,
+                      value: _confidence?.value ??
+                          user.settings.minNewsworthiness.value,
                       onChanged: (newValue) {
                         setState(() {
-                          _value = Confidence(value: newValue);
+                          _confidence = Confidence(value: newValue);
                         });
                       },
                       onChangeEnd: (value) async {
@@ -74,6 +74,35 @@ class _FeedSettingsState extends ConsumerState<FeedSettings> {
                           (actualValue, formattedText) {
                         return actualValue
                             .toStringAsFixed(2); // Adjusts tooltip precision
+                      },
+                    ),
+                    context.sf,
+                    Text("Min. Posts", style: context.m),
+                    SfSlider(
+                      min: 0,
+                      max: 10,
+                      interval: 2,
+                      showTicks: true,
+                      showLabels: true,
+                      value: (_minPosts ?? user.settings.minPosts).toDouble(),
+                      onChanged: (newValue) {
+                        setState(() {
+                          _minPosts = newValue.toInt();
+                        });
+                      },
+                      onChangeEnd: (value) async {
+                        value = value.toInt();
+                        await Database.instance().updateUser(
+                          user.uid,
+                          {"settings.minPosts": value},
+                        );
+                        widget.onFilterChange?.call();
+                      },
+                      tooltipTextFormatterCallback:
+                          (actualValue, formattedText) {
+                        return actualValue
+                            .toInt()
+                            .toString(); // Integer precision for tooltip
                       },
                     ),
                     context.sd,
