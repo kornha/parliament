@@ -476,13 +476,14 @@ Learn Flutter, backend, and AI/ML.
 2. Install our frontend framework [Flutter](https://docs.flutter.dev/get-started/install).
 3. (Optional for iOS) [Install XCode](https://apps.apple.com/us/app/xcode/id497799835?mt=12) on your machine. If you are not on a Mac, you can develop on Chrome and skip this step. Note that at this time Chrome UI will look strange, as we have concerted our efforts on iOS.
 4. Setup a [Firebase](https://firebase.google.com/) project, which comes with free credits.
-5. (Strongly recommended) We recommend using [Flutterfire CLI](https://firebase.google.com/docs/flutter/setup?platform=ios) to assist your setup. Be sure to run through this end to end to connect your Flutter project to Firebase.
-6. You will need to ensure Firestore, Firebase Auth, Google Sign in, Firebase Storage are enabled. Google each of these if there is any issue. Google sign in will not be handled by Flutterfire CLI, but enabling it is trivial.
-7. You will need [NodeJS](https://nodejs.org/en/download/package-manager) on your machine. We are on version 20, but 22 should also work.
-8. Setup an an [OpenAI account](https://platform.openai.com/), which comes with free credits.
-9. (Optional for advanced X scraping) Setup an X account that is Premium, (paid, can skip for simpler development). 
-10. (Optional for advanced news API) Setup an account with [Newsapi.ai](https://newsapi.ai/). This comes with free credits.
-11. (Optional for maps support) Enable [Static Maps API](https://console.cloud.google.com/google/maps-apis/) in your new [Google Cloud](cloud.google.com) Project, which got created when you created a Firebase project.
+5. Add an iOS and/or web project. Copy your variables and create a `.env` file under the project root folder
+6. (Strongly recommended) We recommend using [Flutterfire CLI](https://firebase.google.com/docs/flutter/setup?platform=ios) to assist your setup. Be sure to run through this end to end to connect your Flutter project to Firebase.
+7. You will need to ensure Firestore, Firebase Auth, Google Sign in, Firebase Storage are enabled. Google each of these if there is any issue. Google sign in will not be handled by Flutterfire CLI, but enabling it is trivial.
+8. You will need [NodeJS](https://nodejs.org/en/download/package-manager) on your machine. We are on version 20, but 22 should also work.
+9. Setup an an [OpenAI account](https://platform.openai.com/), which comes with free credits.
+10. (Optional for advanced X scraping) Setup an X account that is Premium, (paid, can skip for simpler development). 
+11. (Optional for advanced news API) Setup an account with [Newsapi.ai](https://newsapi.ai/). This comes with free credits.
+12. (Optional for maps support) Enable [Static Maps API](https://console.cloud.google.com/google/maps-apis/) in your new [Google Cloud](cloud.google.com) Project, which got created when you created a Firebase project. From there, you will need to setup your Maps API. Setup `dark_mode Static – Raster` and `light_mode Static – Raster` maps. For each map, add a style that matches the colors in Parliament's [palette](/lib/common/constants.dart#L9), by making the water equal the background color, and the surface equal the `primaryColor` from the [theme](/lib/common/ztheme.dart#L8). All borders are set to the onPrimaryColor.
 
 Try running the backend and frontend in different windows.
 
@@ -495,30 +496,4 @@ In the top right, click the 'Plus' button, and copy this link https://x.com/Eagl
 The page should spin and load for a few moments. Afterwards press "generate". From here, navigate back to the home screen, pull to refresh, and if you see a Story you are set up!
 
 For any questions connect in our [Discord](https://discord.gg/HhdBKsK9Pq).
-
-### Flutter
-
-All changes must be compatible for Flutter web, iOS, and Android.
-In general we ask that you do not try and change many patterns unless there is discussion beforehand and approved by repo owner.
-Spend some time studying the repo's use of Riverpod, BuildContext extensions, and other Flutter development patterns.
-Note that we use declarative programming almost entirely in the fullstack application.
-
-### Firebase
-
-We are running Node.js functions on Firebase Functions. We use several additional Firebase services, including Firestore, Pubsub, Storage, and Auth. 
-Feel free to study the repo's patterns and suggest changes. 
-
-To Setup, go to [firebase](https://firebase.google.com/) and create a new project. 
-Add an iOS and web project. Copy your variables and create a `.env` file under the parliament/ folder.
-
-### GCP
-
-- After you setup firebase, go to [GCP](https://console.cloud.google.com/).
-- From there, you will need to setup your Maps API. Setup `dark_mode Static – Raster` and `light_mode Static – Raster` maps. 
-- (Optional if you want to match Parliament's look) For each map, add a style that matches the colors in Parliament's [palette](/lib/common/constants.dart#L9), by making the water equal the background color, and the surface equal the `primaryColor` from the [theme](/lib/common/ztheme.dart#L8). All borders are set to the onPrimaryColor.
-
-### AI/ML
-
-We have complex AI strategies to solve our news problem. We strongly recommend deeply examining the logic before contributing to this portion.
-We have chosen not to use a wrapper framework for now purely out of dev simplicity in directly using OpenAI APIs. 
 
