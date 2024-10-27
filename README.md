@@ -472,15 +472,29 @@ Learn Flutter, backend, and AI/ML.
 
 ### Instructions
 
-Install Flutter, Firebase, node, XCode on your machine.
-Set up your own OpenAI and Firebase account. 
-Set up the Firebase emulator locally.
+1. Clone Parliament to your machine.
+2. Install our frontend framework [Flutter](https://docs.flutter.dev/get-started/install).
+3. (Optional for iOS) [Install XCode](https://apps.apple.com/us/app/xcode/id497799835?mt=12) on your machine. If you are not on a Mac, you can develop on Chrome and skip this step. Note that at this time Chrome UI will look strange, as we have concerted our efforts on iOS.
+4. Setup a [Firebase](https://firebase.google.com/) project, which comes with free credits.
+5. (Strongly recommended) We recommend using [Flutterfire CLI](https://firebase.google.com/docs/flutter/setup?platform=ios) to assist your setup. Be sure to run through this end to end to connect your Flutter project to Firebase.
+6. You will need to ensure Firestore, Firebase Auth, Google Sign in, Firebase Storage are enabled. Google each of these if there is any issue. Google sign in will not be handled by Flutterfire CLI, but enabling it is trivial.
+7. You will need [NodeJS](https://nodejs.org/en/download/package-manager) on your machine. We are on version 20, but 22 should also work.
+8. Setup an an [OpenAI account](https://platform.openai.com/), which comes with free credits.
+9. (Optional for advanced X scraping) Setup an X account that is Premium, (paid, can skip for simpler development). 
+10. (Optional for advanced news API) Setup an account with [Newsapi.ai](https://newsapi.ai/). This comes with free credits.
+11. (Optional for maps support) Enable [Static Maps API](https://console.cloud.google.com/google/maps-apis/) in your new [Google Cloud](cloud.google.com) Project, which got created when you created a Firebase project.
+
+Try running the backend and frontend in different windows.
 
 Firebase may prompt you to add env vars, but if it doesn't, or if you run into billing or other account setup issues, Googling them should be straightforward to solve.
 Feel free to add helpful info to this readme.
 
-Once you run the project correctly, the frontend will appear in either iOS or web. You may sign in with Google and click the sync button in the top right.
-When you click sync, after some moments, it will generate a list of Stories and Posts, resembling our news feed. From here you're set up!
+How do I know if I am set up?
+Once you run the project correctly, the frontend will appear in either iOS or web. You must be able to sign in with Google.
+In the top right, click the 'Plus' button, and copy this link https://x.com/Eagles/status/1835413000569704460 and click the paste area.
+The page should spin and load for a few moments. Afterwards press "generate". From here, navigate back to the home screen, pull to refresh, and if you see a Story you are set up!
+
+For any questions connect in our [Discord](https://discord.gg/HhdBKsK9Pq).
 
 ### Flutter
 
