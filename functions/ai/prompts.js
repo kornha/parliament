@@ -37,6 +37,8 @@ const findStoriesPrompt = function({post, stories, training = false, includePhot
 
   if (post.photo?.photoURL && post.photo?.llmCompatible != false && includePhotos) {
     messages.push({type: "image_url", image_url: {url: post.photo?.photoURL}});
+  } else if (post.photo?.description) {
+    messages.push({type: "text", text: `Photo Description: ${post.photo.description}`});
   }
 
   // Add messages for stories
@@ -52,6 +54,8 @@ const findStoriesPrompt = function({post, stories, training = false, includePhot
           // thus the completions will work and not error
           if (photo?.llmCompatible != false) {
             messages.push({type: "image_url", image_url: {url: photo.photoURL}});
+          } else if (photo?.description) {
+            messages.push({type: "text", text: `Photo Description: ${photo.description}`});
           }
         });
       }
@@ -80,6 +84,8 @@ const findStatementsPrompt = function({
 
   if (post.photo?.photoURL && post.photo?.llmCompatible != false && includePhotos) {
     messages.push({type: "image_url", image_url: {url: post.photo?.photoURL}});
+  } else if (post.photo?.description) {
+    messages.push({type: "text", text: `Photo Description: ${post.photo.description}`});
   }
 
   if (_.isEmpty(statements)) {
@@ -270,7 +276,7 @@ const storyDescriptionPrompt = function() {
 };
 
 const storyJSONOutput = function() {
-  return `"stories":[{"sid": ID of the Story or null if Story is new, "title": "title of the story", "description": "the full description of the story; literally everything we possibly know, in a useful vector searchable description", "happenedAt": ISO 8601 time format that the event happened at, or null if it cannot be determined, "lat": latitude best estimate of the location of the Story, "long": longitude best estimate, "photos": [{"photoURL": photoURL field in the Post if any, "description": photoDescription field in the Post, if any}, ...list of UNIQUE photos taken from the Posts ordered by most interesting]}, ...], "removedStories":["sid1", "sid2", ...]`;
+  return `"stories":[{"sid": ID of the Story or null if Story is new, "title": "title of the story", "description": "the full description of the story; literally everything we possibly know, in a useful vector searchable description", "happenedAt": ISO 8601 time format that the event happened at, or null if it cannot be determined, "lat": latitude best estimate of the location of the Story, "long": longitude best estimate, "photos": [{"photoURL": photoURL field in the Post if any, "description": description of the photo}, ...list of UNIQUE photos taken from the Posts ordered by most interesting], "removedStories":["sid1", "sid2", ...]`;
 };
 
 //

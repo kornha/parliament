@@ -4,6 +4,10 @@ const {logger} = require("firebase-functions/v2");
 
 const isLocal = process.env.FUNCTIONS_EMULATOR === "true";
 
+// //////////////////////////////////////////////////////////////////
+// Math
+// //////////////////////////////////////////////////////////////////
+
 const isPerfectSquare = function(x) {
   const s = Math.sqrt(x);
   return s * s === x;
@@ -44,6 +48,51 @@ function getElo(eloWinner, eloLoser, didWin, kFactor = 32) {
 }
 
 /**
+ *
+ * Calculates the mean vector of a list of vectors
+ * @param {Array<number[]> | VectorValue} vectors - the list of vectors
+ * @return {number[]} the mean vector
+ */
+function calculateMeanVector(vectors) {
+  if (_.isEmpty(vectors)) return null;
+  if (!_.isArray(vectors[0])) {
+    vectors = vectors.map((vector) => vector.toArray());
+  }
+  const meanVector = vectors.reduce((acc, vector) => {
+    return acc.map((value, i) => value + vector[i]);
+  }, Array(vectors[0].length).fill(0));
+  return meanVector.map((value) => value / vectors.length);
+}
+
+// //////////////////////////////////////////////////////////////////
+// Time
+// //////////////////////////////////////////////////////////////////
+
+/**
+ * Converts milliseconds to an ISO string
+ * @param {number} millis - the milliseconds
+ * @return {string} the ISO string
+ */
+const millisToIso = function(millis) {
+  if (!millis) return;
+  return new Date(millis).toISOString();
+};
+
+/**
+ * Converts an ISO string to milliseconds
+ * @param {string} iso - the ISO string
+ * @return {number} the milliseconds
+ */
+const isoToMillis = function(iso) {
+  if (!iso) return;
+  return Timestamp.fromDate(new Date(iso)).toMillis();
+};
+
+// //////////////////////////////////////////////////////////////////
+// URL
+// //////////////////////////////////////////////////////////////////
+
+/**
  * @param {string} url - the URL to parse
  * @return {string} the domain of the URL
  */
@@ -65,6 +114,9 @@ function urlToDomain(url) {
   return domain;
 }
 
+// //////////////////////////////////////////////////////////////////
+// Retry
+// //////////////////////////////////////////////////////////////////
 
 /**
  *
@@ -99,46 +151,50 @@ async function retryAsyncFunction(
   return false;
 }
 
+// //////////////////////////////////////////////////////////////////
+// Error
+// //////////////////////////////////////////////////////////////////
+
 /**
- *
- * Calculates the mean vector of a list of vectors
- * @param {Array<number[]> | VectorValue} vectors - the list of vectors
- * @return {number[]} the mean vector
+ * Checks if an error is due to an invalid image in the prompt.
+ * the error messages are hard coded in as per what openai throws
+ * @param {Error} e - The error object.
+ * @return {boolean} - True if it's an invalid image error, false otherwise.
  */
-function calculateMeanVector(vectors) {
-  if (_.isEmpty(vectors)) return null;
-  if (!_.isArray(vectors[0])) {
-    vectors = vectors.map((vector) => vector.toArray());
-  }
-  const meanVector = vectors.reduce((acc, vector) => {
-    return acc.map((value, i) => value + vector[i]);
-  }, Array(vectors[0].length).fill(0));
-  return meanVector.map((value) => value / vectors.length);
+function isInvalidImageError(e) {
+  return e && e.status == 400 && e.code == "invalid_image_url";
 }
 
 /**
- * Converts milliseconds to an ISO string
- * @param {number} millis - the milliseconds
- * @return {string} the ISO string
- */
-const millisToIso = function(millis) {
-  if (!millis) return;
-  return new Date(millis).toISOString();
-};
+ * Extracts the invalid image URL from an error message.
+ * @param {Error} e - The error object.
+ * @return {string} - The URL of the invalid image.
+ * */
+function extractInvalidImageUrl(e) {
+  let errorMessage = "";
+  if (e.response && e.response.data && e.response.data.error) {
+    errorMessage = e.response.data.error.message || "";
+  } else {
+    errorMessage = e.message || "";
+  }
 
-/**
- * Converts an ISO string to milliseconds
- * @param {string} iso - the ISO string
- * @return {number} the milliseconds
- */
-const isoToMillis = function(iso) {
-  if (!iso) return;
-  return Timestamp.fromDate(new Date(iso)).toMillis();
-};
+  // Adjust the regex or parsing logic based on actual error message format
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  const urls = errorMessage.match(urlRegex);
+  if (urls && urls.length > 0) {
+    let url = urls[0];
+    // Remove trailing punctuation
+    // eslint-disable-next-line no-useless-escape
+    url = url.replace(/[.,!?\"'`]+$/, "");
+    return url;
+  }
+  return null;
+}
 
 // //////////////////////////////////////////////////////////////////
 // Platform
 // //////////////////////////////////////////////////////////////////
+
 /**
  * returns platformType grouping
  * @param {Platform} platform
@@ -315,6 +371,8 @@ module.exports = {
   calculateMeanVector,
   millisToIso,
   isoToMillis,
+  isInvalidImageError,
+  extractInvalidImageUrl,
   getPlatformType,
   handleChangedRelations,
 };

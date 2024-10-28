@@ -1148,6 +1148,60 @@ async function deleteAttribute(collection,
 }
 
 // /////////////////////////////////////////
+// Photo
+// /////////////////////////////////////////
+
+/**
+ * HACKY!
+ * Mark a photo as incompatible with the LLM model.
+ * This method assumes we don't know where exactly the errant photo is located
+ * @param {String} url The URL of the photo to mark as incompatible
+ * @param {Array} posts The candidate posts collection
+ * @param {Array} stories The candidate stories collection
+ * @return {Boolean} True if the database was updated, false otherwise
+ * */
+const markPhotoAsIncompatible = async function(url, posts, stories) {
+  try {
+    let updated = false;
+
+    // Process the posts
+    for (const post of posts) {
+      if (post.photo && post.photo.photoURL === url) {
+        // Update the llmCompatible flag
+        await updatePost(post.pid, {"photo.llmCompatible": false});
+        updated = true;
+      }
+    }
+
+    // NON TRANSACTIONAL!
+    for (const story of stories) {
+      if (Array.isArray(story.photos)) {
+        let modified = false;
+        const updatedPhotos = story.photos.map((photo) => {
+          if (photo.photoURL === url) {
+            modified = true;
+            // Update the llmCompatible flag in the photo object
+            return {...photo, llmCompatible: false};
+          }
+          return photo;
+        });
+        if (modified) {
+          // Update the story with the new photos array
+          await updateStory(story.sid, {photos: updatedPhotos});
+          updated = true;
+        }
+      }
+    }
+
+    return updated; // True if any updates were made
+  } catch (error) {
+    console.error("Error updating photos:", error);
+    return false; // Return false if an error occurred
+  }
+};
+
+
+// /////////////////////////////////////////
 // Vector
 // /////////////////////////////////////////
 
@@ -1282,6 +1336,8 @@ module.exports = {
   getPlatformByURL,
   getPlatforms,
   setPlatform,
+  //
+  markPhotoAsIncompatible,
   //
   getMessages,
   //

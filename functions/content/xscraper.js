@@ -1,9 +1,11 @@
 const {logger} = require("firebase-functions/v2");
 const {
   setContent,
-  getContent} = require("../common/storage");
+  getContent,
+} = require("../common/storage");
 const puppeteer = require("puppeteer");
-const {getPostByXid,
+const {
+  getPostByXid,
   createPost,
   findCreateEntity,
   updatePost,
@@ -13,9 +15,11 @@ const {v5} = require("uuid");
 const {Timestamp} = require("firebase-admin/firestore");
 const {isoToMillis, getPlatformType} = require("../common/utils");
 const {defineSecret} = require("firebase-functions/params");
-const {publishMessage,
+const {
+  publishMessage,
   SHOULD_SCRAPE_FEED,
-  SHOULD_PROCESS_LINK} = require("../common/pubsub");
+  SHOULD_PROCESS_LINK,
+} = require("../common/pubsub");
 const {HttpsError} = require("firebase-functions/v2/https");
 
 const _xHandleKey = defineSecret("X_HANDLE_KEY");
@@ -37,35 +41,30 @@ const scrapeXFeed = async function(feedUrl) {
   logger.info(`Started scraping X feed. ${feedUrl}`);
 
   const browser = await puppeteer.launch({headless: "new"});
-  const page = await browser.newPage();
+  try {
+    const page = await browser.newPage();
 
-  await connectToX(page);
+    await connectToX(page);
 
-  // const takeScreenshots = setInterval(async () => {
-  //   const screenshotBuffer = await page.screenshot();
-  //   const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-  //   const fileName = `screenshots/screenshot-${timestamp}.png`;
-  //   await setContent(fileName, screenshotBuffer, "image/png");
-  // }, 2000);
+    if (feedUrl) {
+      await page.goto(feedUrl);
+      await page.waitForNetworkIdle({idleTime: 4000});
+    }
 
-  if (feedUrl) {
-    await page.goto(feedUrl);
-    await page.waitForNetworkIdle({idleTime: 4000});
+    // Uses async generator to get links
+    for await (const link of autoScrollX(page, false, 10000)) {
+      await publishMessage(SHOULD_PROCESS_LINK, {link: link});
+    }
+
+    logger.info("Finished scraping X feed.");
+
+    return Promise.resolve();
+  } catch (error) {
+    logger.error("Error in scrapeXFeed:", error);
+    throw error;
+  } finally {
+    await browser.close();
   }
-
-  // Uses async generator to get links
-  for await (const link of autoScrollX(page, false, 10000)) {
-    // console.log("Link: ", link);
-    await publishMessage(SHOULD_PROCESS_LINK, {link: link});
-  }
-
-  logger.info("Finished scraping X feed.");
-
-  // clearInterval(takeScreenshots);
-
-  await browser.close();
-
-  return Promise.resolve();
 };
 
 /**
@@ -79,53 +78,60 @@ const scrapeXTopNews = async function(limit = 1) {
   logger.info("Started scraping top X news.");
 
   const browser = await puppeteer.launch({headless: "new"});
-  const page = await browser.newPage();
+  try {
+    const page = await browser.newPage();
 
-  await connectToX(page);
+    await connectToX(page);
 
-  await page.goto("https://x.com/explore/tabs/news", {waitUntil: "networkidle2"});
+    await page.goto("https://x.com/explore/tabs/news");
+    await page.waitForNetworkIdle({idleTime: 2500});
 
-  // go to top news url https://x.com/explore/tabs/news
-  const uniqueEntries = new Set();
-  for await (const response of autoScrollX(page, true, 6000)) {
-    if (response?.data?.timeline?.timeline?.instructions?.length) {
-      const entries = response.data.timeline.timeline.instructions
-          .find((item) => item.entries)?.entries ?? [];
-      // sort by sortIndex from X
-      entries.sort((a, b) => b.sortIndex - a.sortIndex);
-      let index = 0;
-      const rand = Math.floor(Math.random() * 10);
-      for (const entry of entries) {
-        if (index++ != rand) {
-          continue;
-        }
-        if (entry.entryId) {
-          if (entry?.entryId == "cursor-bottom") {
+    // go to top news url https://x.com/explore/tabs/news
+    const uniqueEntries = new Set();
+    for await (const response of autoScrollX(page, true, 6000)) {
+      if (response?.data?.timeline?.timeline?.instructions?.length) {
+        const entries =
+          response.data.timeline.timeline.instructions.find(
+              (item) => item.entries,
+          )?.entries ?? [];
+        // sort by sortIndex from X
+        entries.sort((a, b) => b.sortIndex - a.sortIndex);
+        let index = 0;
+        const rand = Math.floor(Math.random() * 10);
+        for (const entry of entries) {
+          if (index++ != rand) {
             continue;
           }
-          if (uniqueEntries.has(entry.entryId)) {
-            continue;
+          if (entry.entryId) {
+            if (entry?.entryId == "cursor-bottom") {
+              continue;
+            }
+            if (uniqueEntries.has(entry.entryId)) {
+              continue;
+            }
+            if (limit-- <= 0) {
+              break;
+            }
+            // TODO: we dedup here and not in autoScrollX. Change?
+            uniqueEntries.add(entry.entryId);
+            const link = `https://x.com/i/trending/${entry.entryId}`;
+            logger.info(`Queueing feed: ${link}.`);
+            await publishMessage(SHOULD_SCRAPE_FEED, {link: link});
           }
-          if (limit-- <= 0) {
-            break;
-          }
-          // TODO: we dedup here and not in autoScrollX. Change?
-          uniqueEntries.add(entry.entryId);
-          const link = `https://x.com/i/trending/${entry.entryId}`;
-          logger.info(`Queueing feed: ${link}.`);
-          await publishMessage(SHOULD_SCRAPE_FEED, {link: link});
         }
       }
     }
+
+    logger.info("Finished scraping top X news.");
+
+    return Promise.resolve();
+  } catch (error) {
+    logger.error("Error in scrapeXTopNews:", error);
+    throw error;
+  } finally {
+    await browser.close();
   }
-
-  logger.info("Finished scraping top X news.");
-
-  await browser.close();
-
-  return Promise.resolve();
 };
-
 
 /**
  * REQUIRES 1GB TO RUN!
@@ -181,9 +187,9 @@ const connectToX = async function(page) {
   await page.evaluate(() => {
     // eslint-disable-next-line no-undef
     const buttons = Array.from(document.querySelectorAll("button"));
-    const nextButton =
-      buttons.find((button) =>
-        button.innerText.trim().toLowerCase() === "next");
+    const nextButton = buttons.find(
+        (button) => button.innerText.trim().toLowerCase() === "next",
+    );
     if (nextButton) {
       nextButton.click();
     } else {
@@ -201,9 +207,9 @@ const connectToX = async function(page) {
     await page.evaluate(() => {
       // eslint-disable-next-line no-undef
       const buttons = Array.from(document.querySelectorAll("button"));
-      const nextButton =
-        buttons.find((button) =>
-          button.innerText.trim().toLowerCase() === "next");
+      const nextButton = buttons.find(
+          (button) => button.innerText.trim().toLowerCase() === "next",
+      );
       if (nextButton) {
         nextButton.click();
       } else {
@@ -222,9 +228,9 @@ const connectToX = async function(page) {
   await page.evaluate(() => {
     // eslint-disable-next-line no-undef
     const buttons = Array.from(document.querySelectorAll("button"));
-    const nextButton =
-      buttons.find((button) =>
-        button.innerText.trim().toLowerCase() === "log in");
+    const nextButton = buttons.find(
+        (button) => button.innerText.trim().toLowerCase() === "log in",
+    );
     if (nextButton) {
       nextButton.click();
     } else {
@@ -252,7 +258,8 @@ const connectToX = async function(page) {
  * @param {number} maxDuration the maximum duration to scroll
  * @return {AsyncGenerator<string>} with response json or link urls
  */
-const autoScrollX = async function* (page,
+const autoScrollX = async function* (
+    page,
     yieldResponses = false,
     maxDuration = 10000,
 ) {
@@ -292,14 +299,15 @@ const autoScrollX = async function* (page,
       lastHeight = newHeight;
 
       if (!yieldResponses) {
-      // Fetch links and ensure they are fully
-      // loaded by checking the absence of placeholders
+        // Fetch links and ensure they are fully
+        // loaded by checking the absence of placeholders
         const links = await page.evaluate(() => {
-        // eslint-disable-next-line no-undef
+          // eslint-disable-next-line no-undef
           const items = document.querySelectorAll("article [role='link']");
           const xRegex = /^https:\/\/x\.com\/\w+\/status\/\d+$/;
-          return Array.from(items).map((item) =>
-            item.href).filter((href) => xRegex.test(href));
+          return Array.from(items)
+              .map((item) => item.href)
+              .filter((href) => xRegex.test(href));
         });
 
         // Filter out any duplicates seen in this session
@@ -381,7 +389,6 @@ const processXLinks = async function(xLinks, poster = null) {
   return pids;
 };
 
-
 /**
  * REQUIRES 1GB TO RUN (currently)!
  * Method from scraping webpage text content with headless browswer
@@ -392,93 +399,105 @@ const processXLinks = async function(xLinks, poster = null) {
  */
 const getContentFromX = async function(url) {
   const browser = await puppeteer.launch({headless: "new"});
-  const page = await browser.newPage();
+  try {
+    const page = await browser.newPage();
 
-  // for video we do it by fetch since scraping directly is hard
-  let tweetVideoURL = null; // Initialize the video URL variable
-  let tweetPhotoURL = null; // Initialize the photo URL variable
-  page.on("request", (request) => {
-    // show me data for debugging requests
-    if ((request.resourceType() === "media" ||
-      request.url().includes(".mp4")) && !tweetVideoURL) {
-      tweetVideoURL = request.url();
-    }
-    if (request.resourceType() === "image" &&
-      request.url().includes("media")) {
-      tweetPhotoURL = request.url();
-    }
-  });
-
-  // Extract the tweet details
-  let tweetText = null;
-  let tweetAuthor = null;
-  let tweetTime = null;
-  let tweetLikes = null;
-  let tweetReposts = null;
-  let tweetBookmarks = null;
-  let tweetViews = null;
-  let tweetReplies = null;
-
-  page.on("response", async (response) => {
-    const url = response.url();
-    if (url.includes("graphql") && url.includes("TweetResultByRestId")) {
-      try {
-        const responseBody = await response.json();
-        const tweetResult = responseBody?.data?.tweetResult?.result;
-
-        if (!tweetResult) {
-          console.error("No tweet result found in the response.");
-          return;
-        }
-
-        let tweetData;
-        // handles this case https://x.com/JamesOKeefeIII/status/1848810014497993151
-        if (tweetResult.__typename === "Tweet") {
-          tweetData = tweetResult;
-        } else if (tweetResult.__typename === "TweetWithVisibilityResults") {
-          tweetData = tweetResult.tweet;
-        } else {
-          logger.error(`Unhandled tweet result type: 
-            ${tweetResult.__typename}`);
-          return;
-        }
-
-        // Extract the tweet details
-        tweetText = tweetData.legacy.full_text;
-        tweetAuthor = tweetData.core.user_results.result.legacy.name;
-        tweetTime = tweetData.legacy.created_at;
-        tweetReplies = tweetData.legacy.reply_count;
-        tweetReposts = tweetData.legacy.retweet_count;
-        tweetLikes = tweetData.legacy.favorite_count;
-        tweetBookmarks = tweetData.legacy.bookmark_count;
-        tweetViews = parseInt(tweetData.views?.count || "0", 10);
-      } catch (error) {
-        // do nothing, as there's an errant request that enters here
-        // cannot filter at the if statement level
+    // for video we do it by fetch since scraping directly is hard
+    let tweetVideoURL = null; // Initialize the video URL variable
+    let tweetPhotoURL = null; // Initialize the photo URL variable
+    page.on("request", (request) => {
+      // show me data for debugging requests
+      if (
+        (request.resourceType() === "media" ||
+          request.url().includes(".mp4")) &&
+        !tweetVideoURL
+      ) {
+        tweetVideoURL = request.url();
       }
-    }
-  });
+      if (
+        request.resourceType() === "image" &&
+        request.url().includes("media")
+      ) {
+        tweetPhotoURL = request.url();
+      }
+    });
 
-  // Use the provided sample X URL
-  // networkidle0 waits for the page to load entirely
-  // eg networkidle2 waits for 2 remaining active items
-  await page.goto(url, {waitUntil: "networkidle0"});
+    // Extract the tweet details
+    let tweetText = null;
+    let tweetAuthor = null;
+    let tweetTime = null;
+    let tweetLikes = null;
+    let tweetReposts = null;
+    let tweetBookmarks = null;
+    let tweetViews = null;
+    let tweetReplies = null;
 
-  // do we need to await here
-  await browser.close();
+    page.on("response", async (response) => {
+      const url = response.url();
+      if (url.includes("graphql") && url.includes("TweetResultByRestId")) {
+        try {
+          const responseBody = await response.json();
+          const tweetResult = responseBody?.data?.tweetResult?.result;
 
-  return {
-    title: tweetText,
-    creatorEntity: tweetAuthor,
-    photoURL: tweetPhotoURL,
-    videoURL: tweetVideoURL,
-    isoTime: tweetTime,
-    replies: tweetReplies,
-    reposts: tweetReposts,
-    likes: tweetLikes,
-    bookmarks: tweetBookmarks,
-    views: tweetViews,
-  };
+          if (!tweetResult) {
+            console.error("No tweet result found in the response.");
+            return;
+          }
+
+          let tweetData;
+          // handles this case https://x.com/JamesOKeefeIII/status/1848810014497993151
+          if (tweetResult.__typename === "Tweet") {
+            tweetData = tweetResult;
+          } else if (
+            tweetResult.__typename === "TweetWithVisibilityResults"
+          ) {
+            tweetData = tweetResult.tweet;
+          } else {
+            logger.error(
+                `Unhandled tweet result type: ${tweetResult.__typename}`,
+            );
+            return;
+          }
+
+          // Extract the tweet details
+          tweetText = tweetData.legacy.full_text;
+          tweetAuthor = tweetData.core.user_results.result.legacy.name;
+          tweetTime = tweetData.legacy.created_at;
+          tweetReplies = tweetData.legacy.reply_count;
+          tweetReposts = tweetData.legacy.retweet_count;
+          tweetLikes = tweetData.legacy.favorite_count;
+          tweetBookmarks = tweetData.legacy.bookmark_count;
+          tweetViews = parseInt(tweetData.views?.count || "0", 10);
+        } catch (error) {
+          // do nothing, as there's an errant request that enters here
+          // cannot filter at the if statement level
+        }
+      }
+    });
+
+    // Use the provided sample X URL
+    // networkidle0 waits for the page to load entirely
+    // eg networkidle2 waits for 2 remaining active items
+    await page.goto(url, {waitUntil: "networkidle0"});
+
+    return {
+      title: tweetText,
+      creatorEntity: tweetAuthor,
+      photoURL: tweetPhotoURL,
+      videoURL: tweetVideoURL,
+      isoTime: tweetTime,
+      replies: tweetReplies,
+      reposts: tweetReposts,
+      likes: tweetLikes,
+      bookmarks: tweetBookmarks,
+      views: tweetViews,
+    };
+  } catch (error) {
+    logger.error("Error in getContentFromX:", error);
+    throw error;
+  } finally {
+    await browser.close();
+  }
 };
 
 /**
@@ -495,8 +514,10 @@ const xupdatePost = async function(post) {
 
   const xMetaData = await getContentFromX(post.url);
   if (!xMetaData) {
-    throw new HttpsError("invalid-argument",
-        "Could not fetch content from " + post.url);
+    throw new HttpsError(
+        "invalid-argument",
+        "Could not fetch content from " + post.url,
+    );
   }
 
   const time = isoToMillis(xMetaData.isoTime);
@@ -511,10 +532,14 @@ const xupdatePost = async function(post) {
   // if the post already exists (eg., not scraping, draft, and not null), keep
   // if the post has a poster, set to draft
   // otherwise, if created from backend, set to published
-  const status = (post.status != "scraping" &&
-    post.status != "draft" &&
-    post.status != null) ? post.status :
-    !supported ? "unsupported" : post.poster ? "draft" : "published";
+  const status =
+    post.status != "scraping" && post.status != "draft" && post.status != null ?
+      post.status :
+      !supported ?
+      "unsupported" :
+      post.poster ?
+      "draft" :
+      "published";
 
   const _post = {
     // we set to published unless status is in draft
@@ -542,7 +567,7 @@ const xupdatePost = async function(post) {
 
 /**
  * REQUIRES 1GB TO RUN!
- * Method from scraping webpage text content with headless browswer
+ * Method from scraping webpage text content with headless browser
  * @param {string} handle in the post in question.
  * @param {Platform} platform in the post in question.
  * @return {string} with photoURL
@@ -566,23 +591,31 @@ const getEntityImage = async function(handle, platform) {
  * */
 const getEntityImageFromX = async function(handle) {
   const browser = await puppeteer.launch({headless: "new"});
-  const page = await browser.newPage();
+  try {
+    const page = await browser.newPage();
 
-  let photoURL = null;
-  page.on("request", (request) => {
-    const url = request.url();
-    if (request.resourceType() === "image" &&
-      url.includes("profile_images")) {
-      photoURL = url;
-    }
-  });
+    let photoURL = null;
+    page.on("request", (request) => {
+      const url = request.url();
+      if (
+        request.resourceType() === "image" &&
+        url.includes("profile_images")
+      ) {
+        photoURL = url;
+      }
+    });
 
-  await page.goto(`https://x.com/${handle}/photo`, {waitUntil: "networkidle0"});
+    await page.goto(`https://x.com/${handle}/photo`, {
+      waitUntil: "networkidle0",
+    });
 
-  // do we need to await here
-  await browser.close();
-
-  return photoURL;
+    return photoURL;
+  } catch (error) {
+    logger.error("Error in getEntityImageFromX:", error);
+    throw error;
+  } finally {
+    await browser.close();
+  }
 };
 
 /**

@@ -33,7 +33,8 @@ const generateCompletions = async function({
 }) {
   if (messages.length === 0) {
     logger.error("No messages provided");
-    return null;
+    // we throw errors to be consistent with the rest of the code
+    throw new Error("No messages provided");
   }
 
   logger.info(`Generating completions for ` + loggingText ?
@@ -73,7 +74,9 @@ const generateCompletions = async function({
     return generation;
   } catch (e) {
     logger.error(`Invalid decision: ${e}`);
-    return null;
+
+    // Re-throw the error to be handled by the calling function
+    throw e;
   }
 };
 

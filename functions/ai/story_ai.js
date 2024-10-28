@@ -4,9 +4,12 @@ const {getPostsForStory,
   searchVectors,
   getStory,
   updateStory,
-  getAllStatementsForStory} = require("../common/database");
+  getAllStatementsForStory,
+  markPhotoAsIncompatible} = require("../common/database");
 const {generateEmbeddings, generateCompletions} = require("../common/llm");
-const {calculateMeanVector, retryAsyncFunction} = require("../common/utils");
+const {calculateMeanVector,
+  retryAsyncFunction,
+  isInvalidImageError, extractInvalidImageUrl} = require("../common/utils");
 const _ = require("lodash");
 const {writeTrainingData} = require("./trainer");
 const {findStoriesPrompt, findContextPrompt} = require("./prompts");
@@ -106,10 +109,25 @@ const findStories = async function(post) {
     includePhotos: true,
   });
 
-  const resp = await generateCompletions({
-    messages: _prompt,
-    loggingText: "findStories " + post.pid,
-  });
+  let resp = null;
+
+  try {
+    resp = await generateCompletions({
+      messages: _prompt,
+      loggingText: "findStories " + post.pid,
+    });
+  } catch (e) {
+    // some grade A level BS to unmark invalid images
+    if (isInvalidImageError(e)) {
+      const url = extractInvalidImageUrl(e);
+      const removedPhoto = await markPhotoAsIncompatible(url, [post],
+          candidateStories);
+      if (removedPhoto) {
+        // can retry this method, finite loop
+        return await findStories(post);
+      }
+    }
+  }
 
   if (!resp || !resp.stories || resp.stories.length === 0) {
     logger.warn(`Cannot find Story for post! ${post.pid}`);
