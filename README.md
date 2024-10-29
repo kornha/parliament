@@ -81,7 +81,7 @@ News, when told, also includes a varying contextualization around the event that
 Each human consumes news differently due to their unique experiences and circumstances. This is partly why the same event can be perceived so differently by different individuals. 
 Parliament's mission is to tell maximally truthful news in a clear and measurable way.
 
-Let's dive further.
+Let's dive into how the system works.
 
 ## Confidence
 
