@@ -100,10 +100,36 @@ class Database {
     });
   }
 
+  Stream<List<Story>?> streamStoriesFiltered(ZSettings? settings) {
+    return storyCollection
+        .orderBy('scaledHappenedAt', descending: true)
+        .limit(5)
+        .snapshots()
+        .map((querySnapshot) {
+      if (querySnapshot.docs.isNotEmpty) {
+        var stories = querySnapshot.docs
+            .map((doc) => Story.fromJson(doc.data() as Map<String, dynamic>))
+            .toList();
+        // CLIENT SIDE FILTERING. HACKY NEED TO RECONSIDER
+        // Cannot filter on server side since we are using a range query
+        stories = stories
+            .where((story) =>
+                (story.newsworthiness ?? Confidence.min()) >=
+                    settings!.minNewsworthiness &&
+                story.pids.length >= settings.minPosts)
+            .toList();
+
+        if (stories.isNotEmpty) {
+          return stories;
+        }
+      }
+      return null;
+    });
+  }
+
   Future<List<Story>?> getStoriesFiltered(
       int page, int limit, ZSettings? settings) {
-    return Database.instance()
-        .storyCollection
+    return storyCollection
         .orderBy('scaledHappenedAt', descending: true)
         .startAfter([page == 0 ? double.maxFinite : page])
         .limit(limit)
@@ -127,8 +153,6 @@ class Database {
               if (stories.isNotEmpty) {
                 return stories;
               }
-            } else {
-              return null;
             }
             return null;
           },

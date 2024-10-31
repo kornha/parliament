@@ -1,5 +1,7 @@
 // ignore_for_file: unused_import
 
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -10,6 +12,7 @@ import 'package:political_think/common/components/zapp_bar.dart';
 import 'package:political_think/common/components/zback_button.dart';
 import 'package:political_think/common/components/zdivider.dart';
 import 'package:political_think/common/components/zscaffold.dart';
+import 'package:political_think/common/components/ztext_button.dart';
 import 'package:political_think/common/extensions.dart';
 import 'package:political_think/common/models/platform.dart';
 import 'package:political_think/common/models/post.dart';
@@ -88,6 +91,7 @@ class _FeedState extends ConsumerState<Feed> {
                 pullToRefresh: true,
                 firstPageKey: 0,
                 provider: storiesProvider(user?.settings),
+                newDataProvider: storiesStreamProvider(user?.settings),
                 itemBuilder: (context, item, index) {
                   return Column(
                     children: [
@@ -111,6 +115,20 @@ class _FeedState extends ConsumerState<Feed> {
                 },
                 firstPageProgressIndicatorBuilder: (context, controller) {
                   return const Loading(type: LoadingType.large);
+                },
+                hasNewData: (currentData, latestData) {
+                  if (currentData == null || latestData == null) {
+                    return false;
+                  }
+                  if (latestData.length > currentData.length) {
+                    return true;
+                  }
+                  for (var i = 0; i < latestData.length; i++) {
+                    if (currentData[i].sid != latestData[i].sid) {
+                      return true;
+                    }
+                  }
+                  return false;
                 },
                 pagedBuilder: (controller, builder) {
                   // TODO: sets the page so it can be refreshed elsewhere

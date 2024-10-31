@@ -4,16 +4,18 @@ import 'package:political_think/common/extensions.dart';
 
 class Logo extends StatelessWidget {
   final double? size;
+  final bool? isDarkMode;
 
   const Logo({
     super.key,
     this.size,
+    this.isDarkMode,
   });
 
   @override
   Widget build(BuildContext context) {
     // TODO: Need to add sizing
-    String path = context.isDarkMode
+    String path = isDarkMode ?? context.isDarkMode
         ? 'assets/images/logo_white.png'
         : 'assets/images/logo_black.png';
     return Image.asset(

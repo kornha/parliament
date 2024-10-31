@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
+import 'package:political_think/common/components/logo.dart';
+import 'package:political_think/common/extensions.dart';
 import 'package:political_think/common/riverpod_infinite_scroll/riverpod_infinite_scroll.dart';
 
 typedef PagedBuilder<PageKeyType, ItemType> = Widget Function(
@@ -55,6 +57,17 @@ class RiverPagedBuilder<PageKeyType, ItemType> extends ConsumerStatefulWidget {
   final Widget Function(BuildContext context, PagingController controller)?
       noMoreItemsIndicatorBuilder;
 
+  /// Enables the "New Content Available" button.
+  final StreamProvider<List<ItemType>?>? newDataProvider;
+
+  /// Custom builder for the "New Content Available" button.
+  final Widget Function(BuildContext context, VoidCallback onPressed)?
+      newDataIndicatorBuilder;
+
+  /// Function to compare current data with new data.
+  final bool Function(List<ItemType>? currentData, List<ItemType>? latestData)?
+      hasNewData;
+
   const RiverPagedBuilder(
       {required InfiniteScrollProvider<PageKeyType, ItemType> provider,
       required this.pagedBuilder,
@@ -70,6 +83,9 @@ class RiverPagedBuilder<PageKeyType, ItemType> extends ConsumerStatefulWidget {
       this.newPageProgressIndicatorBuilder,
       this.noMoreItemsIndicatorBuilder,
       this.invisibleItemsThreshold,
+      this.newDataProvider,
+      this.newDataIndicatorBuilder,
+      this.hasNewData,
       Key? key})
       : _provider = provider,
         _autoDisposeProvider = null,
@@ -91,6 +107,9 @@ class RiverPagedBuilder<PageKeyType, ItemType> extends ConsumerStatefulWidget {
       this.newPageProgressIndicatorBuilder,
       this.noMoreItemsIndicatorBuilder,
       this.invisibleItemsThreshold,
+      this.newDataProvider,
+      this.newDataIndicatorBuilder,
+      this.hasNewData,
       Key? key})
       : _provider = null,
         _autoDisposeProvider = provider,
@@ -106,6 +125,7 @@ class _RiverPagedBuilderState<PageKeyType, ItemType>
   late final PagingController<PageKeyType, ItemType> _pagingController;
 
   get _provider => widget._provider ?? widget._autoDisposeProvider!;
+  bool _newDataAvailable = false;
 
   @override
   void initState() {
@@ -137,6 +157,15 @@ class _RiverPagedBuilderState<PageKeyType, ItemType>
       itemList: state.records,
       nextPageKey: state.nextPageKey,
     );
+  }
+
+  void _onRefresh() async {
+    // not sure why but this seems to be the only thing that works
+    var state = ref.refresh(_provider);
+    _updatePagingState(state);
+    setState(() {
+      _newDataAvailable = false;
+    });
   }
 
   @override
@@ -182,10 +211,77 @@ class _RiverPagedBuilderState<PageKeyType, ItemType>
     // return a [PagedBuilder]
     var pagedBuilder = widget.pagedBuilder(_pagingController, itemBuilder);
 
+    // Display the "New Content Available" button if needed
+    if (_newDataAvailable) {
+      pagedBuilder = Stack(
+        children: [
+          pagedBuilder,
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: widget.newDataIndicatorBuilder != null
+                  ? widget.newDataIndicatorBuilder!(context, _onRefresh)
+                  : ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        elevation: 3,
+                        foregroundColor: context.onSecondaryColor,
+                        shadowColor: context.secondaryColor,
+                        backgroundColor: context.secondaryColor,
+                      ),
+                      onPressed: _onRefresh,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.arrow_upward_rounded),
+                          context.sh,
+                          Logo(
+                              isDarkMode: false, size: context.iconSizeStandard)
+                        ],
+                      ),
+                    ),
+            ),
+          ),
+        ],
+      );
+    }
+
+    if (widget.newDataProvider != null) {
+      final newDataAsyncValue = ref.watch(widget.newDataProvider!);
+
+      newDataAsyncValue.whenData((latestData) {
+        final currentData = _pagingController.itemList;
+
+        if (widget.hasNewData?.call(currentData, latestData) == true) {
+          if (!_newDataAvailable) {
+            setState(() {
+              _newDataAvailable = true;
+            });
+          }
+        } else if (widget.hasNewData?.call(currentData, latestData) == false) {
+          if (_newDataAvailable) {
+            setState(() {
+              _newDataAvailable = false;
+            });
+          }
+        }
+      });
+    }
+
     // Add pull to refresh functionality if specified
     if (widget.pullToRefresh) {
       pagedBuilder = RefreshIndicator(
-          onRefresh: () async => ref.refresh(_provider), child: pagedBuilder);
+        onRefresh: () async {
+          // some bizarre situation where I call ref.refresh and not
+          // pagingController.refresh like above
+          setState(() {
+            _newDataAvailable = false;
+          });
+          return ref.refresh(_provider);
+        },
+        child: pagedBuilder,
+      );
     }
 
     return pagedBuilder;

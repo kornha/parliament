@@ -65,6 +65,10 @@ final storyProvider = StreamProvider.family<Story?, String>((ref, pid) {
   });
 });
 
+final storiesStreamProvider = StreamProvider.family<List<Story>?, ZSettings?>(
+  (ref, settings) => Database.instance().streamStoriesFiltered(settings),
+);
+
 final storiesProvider = StateNotifierProvider.family<StoryNotifier,
     PagedState<int, Story>, ZSettings?>(
   (ref, settings) => StoryNotifier(settings),
