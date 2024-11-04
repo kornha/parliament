@@ -476,14 +476,15 @@ Learn Flutter, backend, and AI/ML.
 2. Install our frontend framework [Flutter](https://docs.flutter.dev/get-started/install).
 3. (Optional for iOS) [Install XCode](https://apps.apple.com/us/app/xcode/id497799835?mt=12) on your machine. If you are not on a Mac, you can develop on Chrome and skip this step. Note that at this time Chrome UI will look strange, as we have concerted our efforts on iOS.
 4. Setup a [Firebase](https://firebase.google.com/) project, which comes with free credits.
-5. Add an iOS and/or web project. Copy your variables and create a `.env` file under the project root folder
-6. (Strongly recommended) We recommend using [Flutterfire CLI](https://firebase.google.com/docs/flutter/setup?platform=ios) to assist your setup. Be sure to run through this end to end to connect your Flutter project to Firebase.
-7. You will need to ensure Firestore, Firebase Auth, Google Sign in, Firebase Storage are enabled. Google each of these if there is any issue. Google sign in will not be handled by Flutterfire CLI, but enabling it is trivial.
-8. You will need [NodeJS](https://nodejs.org/en/download/package-manager) on your machine. We are on version 20, but 22 should also work.
-9. Setup an an [OpenAI account](https://platform.openai.com/), which comes with free credits.
-10. (Optional for advanced X scraping) Setup an X account that is Premium, (paid, can skip for simpler development). 
-11. (Optional for advanced news API) Setup an account with [Newsapi.ai](https://newsapi.ai/). This comes with free credits.
-12. (Optional for maps support) Enable [Static Maps API](https://console.cloud.google.com/google/maps-apis/) in your new [Google Cloud](cloud.google.com) Project, which got created when you created a Firebase project. From there, you will need to setup your Maps API. Setup `dark_mode Static – Raster` and `light_mode Static – Raster` maps. For each map, add a style that matches the colors in Parliament's [palette](/lib/common/constants.dart#L9), by making the water equal the background color, and the surface equal the `primaryColor` from the [theme](/lib/common/ztheme.dart#L8). All borders are set to the onPrimaryColor.
+5. Add an iOS and/or web project. Copy your variables and create a `.env` file under the project root folder.
+7. (Strongly recommended) We recommend using [Flutterfire CLI](https://firebase.google.com/docs/flutter/setup?platform=ios) to assist your setup. Be sure to run through this end to end to connect your Flutter project to Firebase.
+8. (Optional) setup a local Firebare [emulator](https://firebase.google.com/docs/emulator-suite) for ease of development.
+9. You will need to ensure Firestore, Firebase Auth, Google Sign in, Firebase Storage are enabled. Google each of these if there is any issue. Google sign in will not be handled by Flutterfire CLI, but enabling it is trivial.
+10. You will need [NodeJS](https://nodejs.org/en/download/package-manager) on your machine. We are on version 20, but 22 should also work.
+11. Setup an an [OpenAI account](https://platform.openai.com/), which comes with free credits.
+12. (Optional for advanced X scraping) Setup an X account that is Premium, (paid, can skip for simpler development). 
+13. (Optional for advanced news API) Setup an account with [Newsapi.ai](https://newsapi.ai/). This comes with free credits.
+14. (Optional for maps support) Enable [Static Maps API](https://console.cloud.google.com/google/maps-apis/) in your new [Google Cloud](cloud.google.com) Project, which got created when you created a Firebase project. From there, you will need to setup your Maps API. Setup `dark_mode Static – Raster` and `light_mode Static – Raster` maps. For each map, add a style that matches the colors in Parliament's [palette](/lib/common/constants.dart#L9), by making the water equal the background color, and the surface equal the `primaryColor` from the [theme](/lib/common/ztheme.dart#L8). All borders are set to the onPrimaryColor.
 
 Try running the backend and frontend in different windows.
 
