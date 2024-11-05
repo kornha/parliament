@@ -90,6 +90,7 @@ class _FeedState extends ConsumerState<Feed> {
               child: RiverPagedBuilder<int, Story>(
                 pullToRefresh: true,
                 firstPageKey: 0,
+                keyExtractor: (item) => item.sid,
                 provider: storiesProvider(user?.settings),
                 newDataProvider: storiesStreamProvider(user?.settings),
                 itemBuilder: (context, item, index) {

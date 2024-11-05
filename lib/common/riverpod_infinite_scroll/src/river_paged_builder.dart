@@ -5,6 +5,8 @@ import 'package:political_think/common/components/logo.dart';
 import 'package:political_think/common/extensions.dart';
 import 'package:political_think/common/riverpod_infinite_scroll/riverpod_infinite_scroll.dart';
 
+typedef KeyExtractor<ItemType> = dynamic Function(ItemType item);
+
 typedef PagedBuilder<PageKeyType, ItemType> = Widget Function(
     PagingController<PageKeyType, ItemType> controller,
     PagedChildBuilderDelegate<ItemType> builder);
@@ -68,11 +70,14 @@ class RiverPagedBuilder<PageKeyType, ItemType> extends ConsumerStatefulWidget {
   final bool Function(List<ItemType>? currentData, List<ItemType>? latestData)?
       hasNewData;
 
+  final KeyExtractor<ItemType> keyExtractor;
+
   const RiverPagedBuilder(
       {required InfiniteScrollProvider<PageKeyType, ItemType> provider,
       required this.pagedBuilder,
       required this.itemBuilder,
       required this.firstPageKey,
+      required this.keyExtractor,
       this.limit = 20,
       this.pullToRefresh = false,
       this.enableInfiniteScroll = true,
@@ -97,6 +102,7 @@ class RiverPagedBuilder<PageKeyType, ItemType> extends ConsumerStatefulWidget {
       required this.pagedBuilder,
       required this.itemBuilder,
       required this.firstPageKey,
+      required this.keyExtractor,
       this.limit = 20,
       this.pullToRefresh = false,
       this.enableInfiniteScroll = true,
@@ -125,7 +131,7 @@ class _RiverPagedBuilderState<PageKeyType, ItemType>
   late final PagingController<PageKeyType, ItemType> _pagingController;
 
   get _provider => widget._provider ?? widget._autoDisposeProvider!;
-  bool _newDataAvailable = false;
+  var _latestData = <ItemType>[];
 
   @override
   void initState() {
@@ -152,9 +158,18 @@ class _RiverPagedBuilderState<PageKeyType, ItemType>
   }
 
   void _updatePagingState(PagedState<PageKeyType, ItemType> state) {
+    List<ItemType>? records = state.records;
+    if (records != null) {
+      Map<dynamic, ItemType> uniqueItems = {};
+      for (var item in records) {
+        dynamic key = widget.keyExtractor(item);
+        uniqueItems[key] = item;
+      }
+      records = uniqueItems.values.toList();
+    }
     _pagingController.value = PagingState(
       error: state.error,
-      itemList: state.records,
+      itemList: records,
       nextPageKey: state.nextPageKey,
     );
   }
@@ -163,9 +178,7 @@ class _RiverPagedBuilderState<PageKeyType, ItemType>
     // not sure why but this seems to be the only thing that works
     var state = ref.refresh(_provider);
     _updatePagingState(state);
-    setState(() {
-      _newDataAvailable = false;
-    });
+    setState(() {});
   }
 
   @override
@@ -212,7 +225,11 @@ class _RiverPagedBuilderState<PageKeyType, ItemType>
     var pagedBuilder = widget.pagedBuilder(_pagingController, itemBuilder);
 
     // Display the "New Content Available" button if needed
-    if (_newDataAvailable) {
+    var newDataAvailable =
+        widget.hasNewData?.call(_pagingController.itemList, _latestData) ??
+            false;
+
+    if (newDataAvailable) {
       pagedBuilder = Stack(
         children: [
           pagedBuilder,
@@ -251,21 +268,9 @@ class _RiverPagedBuilderState<PageKeyType, ItemType>
       final newDataAsyncValue = ref.watch(widget.newDataProvider!);
 
       newDataAsyncValue.whenData((latestData) {
-        final currentData = _pagingController.itemList;
-
-        if (widget.hasNewData?.call(currentData, latestData) == true) {
-          if (!_newDataAvailable) {
-            setState(() {
-              _newDataAvailable = true;
-            });
-          }
-        } else if (widget.hasNewData?.call(currentData, latestData) == false) {
-          if (_newDataAvailable) {
-            setState(() {
-              _newDataAvailable = false;
-            });
-          }
-        }
+        setState(() {
+          _latestData = latestData ?? [];
+        });
       });
     }
 
@@ -275,9 +280,7 @@ class _RiverPagedBuilderState<PageKeyType, ItemType>
         onRefresh: () async {
           // some bizarre situation where I call ref.refresh and not
           // pagingController.refresh like above
-          setState(() {
-            _newDataAvailable = false;
-          });
+          setState(() {});
           return ref.refresh(_provider);
         },
         child: pagedBuilder,
