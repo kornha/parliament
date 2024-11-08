@@ -259,7 +259,12 @@ const newStoryPrompt = function() {
   the 'lat' and 'long' are the location of the event, or our best guess. If the Story is about a Trump rally in the Bronx, the lat and long should be in the Bronx. If the Story is about Rutgers U, the lat and long should be of their campus in NJ, at the closest location that can be determined. If the Post only mentions a person, the lat and long might be the country they are from. The lat and long should almost NEVER be null unless absolutely no location is mentioned or inferred.
 
   Photos:
-  'photos' (sometimes described photoURL and photoDescription) are, optionally, the photos that are associated with the Story. They should be ordered by most interesting, and deduped, removing not only identical but even very similar photos. Iff the Post has a photoURL that is relevant to the Story and is not a dupe, it should be included in the Story's photos. Do not include the Post URL in the photoURL.`;
+  'photos' (sometimes described photoURL and photoDescription) are, optionally, the photos that are associated with the Story. When outputting, follow these rules.
+  1-Output ALL existing AND new photos, unless the photo violates a point below.
+  2-For a photo to be included in the output, it has to be relevant to the Story.
+  3-For a photo to be included in the output, it has to be mostly unique. Eg., if two photos are different, but very similar, eg., one is a wider shot of the other, or one includes the other, only include the most interesting photo.
+  4-Order the outputted photos by most interesting first.
+  `;
 };
 
 const storyDescriptionPrompt = function() {
@@ -276,7 +281,7 @@ const storyDescriptionPrompt = function() {
 };
 
 const storyJSONOutput = function() {
-  return `"stories":[{"sid": ID of the Story or null if Story is new, "title": "title of the story", "description": "the full description of the story; literally everything we possibly know, in a useful vector searchable description", "happenedAt": ISO 8601 time format that the event happened at, or null if it cannot be determined, "lat": latitude best estimate of the location of the Story, "long": longitude best estimate, "photos": [{"photoURL": photoURL field in the Post if any, "description": description of the photo}, ...list of UNIQUE photos taken from the Posts ordered by most interesting], "removedStories":["sid1", "sid2", ...]`;
+  return `"stories":[{"sid": ID of the Story or null if Story is new, "title": "title of the story", "description": "the full description of the story; literally everything we possibly know, in a useful vector searchable description", "happenedAt": ISO 8601 time format that the event happened at, or null if it cannot be determined, "lat": latitude best estimate of the location of the Story, "long": longitude best estimate, "photos": [{"photoURL": photoURL field in the Post if any, "description": description of the photo}, {"photoURL": photo 2, "description": desc for photo 2}, ...list of ALL RELEVANT AND CLEARLY UNIQUE photos taken from the Posts ordered by most interesting], "removedStories":["sid1", "sid2", ...]`;
 };
 
 //
@@ -521,7 +526,7 @@ const findStoryExample = function() {
     END OF EXAMPLE.
 
     A note on photos:
-    If, for example the Posts each had the same photo OR VERY SIMILAR PHOTOS about the attack, you would output the photoURL and photoDescription of the first photo only (so as to dedupe), copied from one of the Posts. If the photos are different enough and both are relevant, you would output both photos, ordered by most interesting. If another Post were to come in with an unclear description, but the same photo, it is very likely part of the same Story. Try and order the insteresting photos first.`;
+    If, for example the Posts each had the same photo OR VERY SIMILAR PHOTOS, it is very likely part of the same Story.`;
 };
 
 const findStatementsExample = function() {

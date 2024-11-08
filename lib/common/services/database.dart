@@ -151,7 +151,6 @@ class Database {
                   .toList();
 
               if (stories.isNotEmpty) {
-                print("stories: ${stories.length}");
                 return stories;
               }
             }
