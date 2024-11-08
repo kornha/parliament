@@ -473,13 +473,40 @@ Learn Flutter, backend, and AI/ML.
 ### Instructions
 
 1. Clone Parliament to your machine.
-2. Install our frontend framework [Flutter](https://docs.flutter.dev/get-started/install).
+2. Install our frontend framework [Flutter](https://docs.flutter.dev/get-started/install). If you are new we recommend running a sample Flutter app.
+Note: Web is far easier to setup than iOS. If you only focus on backend or AI development, choose web.
 3. (Optional for iOS) [Install XCode](https://apps.apple.com/us/app/xcode/id497799835?mt=12) on your machine. If you are not on a Mac, you can develop on Chrome and skip this step. Note that at this time Chrome UI will look strange, as we have concerted our efforts on iOS.
 4. Setup a [Firebase](https://firebase.google.com/) project, which comes with free credits.
 5. Add an iOS and/or web project. Copy your variables and create a `.env` file under the project root folder.
-7. (Strongly recommended) We recommend using [Flutterfire CLI](https://firebase.google.com/docs/flutter/setup?platform=ios) to assist your setup. Be sure to run through this end to end to connect your Flutter project to Firebase.
-8. (Optional) setup a local Firebare [emulator](https://firebase.google.com/docs/emulator-suite) for ease of development.
-9. You will need to ensure Firestore, Firebase Auth, Google Sign in, Firebase Storage are enabled. Google each of these if there is any issue. Google sign in will not be handled by Flutterfire CLI, but enabling it is trivial.
+Your .env file should look like this:
+```
+# Web configuration, omit if not doing web
+FIREBASE_API_KEY_WEB=from firebase
+FIREBASE_APP_ID_WEB=from firebase
+FIREBASE_MESSAGING_SENDER_ID_WEB=from firebase
+FIREBASE_PROJECT_ID=political-think
+FIREBASE_AUTH_DOMAIN=political-think.firebaseapp.com change!
+FIREBASE_STORAGE_BUCKET=political-think.appspot.com change!
+FIREBASE_MEASUREMENT_ID_WEB=from firebase
+
+# Android configuration, omit if not doing android
+FIREBASE_API_KEY_ANDROID=from firebase
+FIREBASE_APP_ID_ANDROID=***
+
+# iOS configuration, omit if not doing iOS
+FIREBASE_API_KEY_IOS=from firebase
+FIREBASE_APP_ID_IOS=from firebase
+FIREBASE_IOS_CLIENT_ID=from firebase
+FIREBASE_IOS_BUNDLE_ID=app.TheParliament, change!
+
+MAPS_DARK_ID=for advanced users who use maps api
+MAPS_LIGHT_ID=for advanced users who use maps api
+```
+
+6. (Strongly recommended) We recommend using [Flutterfire CLI](https://firebase.google.com/docs/flutter/setup?platform=ios) to assist your setup. Be sure to run through this end to end to connect your Flutter project to Firebase.
+7. (Optional, installed with firebase) familiarize with Firebase [emulator](https://firebase.google.com/docs/emulator-suite) for ease of development.
+8. You will need to ensure Firestore, Firebase Auth, Google Sign in, Firebase Storage are enabled. Google each of these if there is any issue. Google sign in will not be handled by Flutterfire CLI, but enabling it is trivial. To enable, in Firebase select auth, and google sign in.
+9. You will need to enable GCP secrets manager api, and a billing account. You can skip but will lead to limitations.
 10. You will need [NodeJS](https://nodejs.org/en/download/package-manager) on your machine. We are on version 20, but 22 should also work.
 11. Setup an an [OpenAI account](https://platform.openai.com/), which comes with free credits.
 12. (Optional for advanced X scraping) Setup an X account that is Premium, (paid, can skip for simpler development). 
