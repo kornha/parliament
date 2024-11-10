@@ -35,7 +35,8 @@ const onStoryShouldFindContext = async function(story) {
   if (story.status != "findingContext") {
     await retryAsyncFunction(() => updateStory(story.sid, {
       status: "findingContext",
-    }));
+    },
+    5));
   }
 
   const statements = await getAllStatementsForStory(story.sid);

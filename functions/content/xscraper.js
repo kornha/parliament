@@ -166,8 +166,10 @@ const connectToX = async function(page) {
   if (tryRedirect) {
     // cannot wait for network idle here as it will hang
     await page.goto("https://x.com/home");
-    // wait for redirect
-    await page.waitForNetworkIdle({idleTime: 1500});
+    await Promise.race([
+      page.waitForNavigation({waitUntil: "networkidle2"}),
+      page.waitForNetworkIdle(1500),
+    ]);
     if (!page.url().includes("login")) {
       logger.info("Already logged in.");
       return;
@@ -177,7 +179,11 @@ const connectToX = async function(page) {
   logger.info("Logging in to X.");
 
   // login
-  await page.goto("https://x.com/i/flow/login", {waitUntil: "networkidle0"});
+  await page.goto("https://x.com/i/flow/login");
+  await Promise.race([
+    page.waitForNavigation({waitUntil: "networkidle0"}),
+    page.waitForNetworkIdle(3000),
+  ]);
   await page.waitForNetworkIdle({idleTime: 1500});
 
   // Select the user input
@@ -475,10 +481,11 @@ const getContentFromX = async function(url) {
       }
     });
 
-    // Use the provided sample X URL
-    // networkidle0 waits for the page to load entirely
-    // eg networkidle2 waits for 2 remaining active items
-    await page.goto(url, {waitUntil: "networkidle0"});
+    await page.goto(url);
+    await Promise.race([
+      page.waitForNavigation({waitUntil: "networkidle2"}),
+      page.waitForNetworkIdle(3000),
+    ]);
 
     return {
       title: tweetText,

@@ -34,8 +34,9 @@ async function onPostShouldChangeConfidence(pid) {
 
   if (avgConfidence != null) {
     logger.info(`Updating Post confidence: ${pid} ${avgConfidence}`);
+    // skipping error case where post is deleted, since this throws errors
     await retryAsyncFunction(() =>
-      updatePost(pid, {confidence: avgConfidence}));
+      updatePost(pid, {confidence: avgConfidence}, 5));
   }
 }
 

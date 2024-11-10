@@ -70,9 +70,7 @@ exports.onStoryUpdate = onDocumentWritten(
         await publishMessage(STORY_SHOULD_CHANGE_STATS,
             {sid: after?.sid || before?.sid});
 
-        if (_create && _.isEmpty(after.plids) ||
-            _update && _.isEmpty(after.plids)
-        ) {
+        if (!_.isEmpty(after.pids)) {
           await publishMessage(STORY_SHOULD_CHANGE_PLATFORMS,
               {story: after});
         }
@@ -325,7 +323,7 @@ exports.onStoryShouldChangePlatforms = onMessagePublished(
       logger.info(`onStoryShouldChangePlatforms ${story.sid}`);
 
       if (_.isEmpty(story.pids)) {
-        logger.error(`Story ${story.sid} has no pids! Cannot change platform`);
+        logger.info(`Story ${story.sid} has no pids! Cannot change platform`);
         return Promise.resolve();
       }
 
@@ -338,13 +336,19 @@ exports.onStoryShouldChangePlatforms = onMessagePublished(
         return Promise.resolve();
       }
 
-      const platforms = _.uniq(posts.map((post) => post.plid));
-      if (_.isEmpty(platforms)) {
+      const plids = _.uniq(posts.map((post) => post.plid));
+      if (_.isEmpty(plids)) {
         logger.warn(`No platforms found for story ${story.sid}`);
         return Promise.resolve();
       }
 
-      await updateStory(story.sid, {plids: platforms}, 5);
+      // check if we need to update
+      const currPlids = story.plids || [];
+      if (_.isEqual(_.sortBy(currPlids), _.sortBy(plids))) {
+        logger.info(`No change in platforms for story ${story.sid}`);
+        return Promise.resolve();
+      }
+      await updateStory(story.sid, {plids: plids}, 5);
 
       return Promise.resolve();
     },
