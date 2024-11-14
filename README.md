@@ -474,19 +474,51 @@ Learn Flutter, backend, and AI/ML.
 
 1. Clone Parliament to your machine.
 2. Install our frontend framework [Flutter](https://docs.flutter.dev/get-started/install). If you are new we recommend running a sample Flutter app.
+
+### Possible Issues and Solutions
+- **Problem 1:** Errors related to SDK paths or dependencies can prevent Flutter from running.  
+  **Solution 1:** Add the Flutter SDK path to your system’s PATH, then restart your terminal for the changes to take effect.
+
+- **Problem 2:** "Command not found" errors may occur if dependencies like `npm` or `flutterfire` are missing.  
+  **Solution 2:** Install Node.js and `firebase-tools` with `npm install -g`, and add `flutterfire` by running `dart pub global activate flutterfire_cli`.
+
+- **Problem 3:** CocoaPods installation may fail if Ruby is below version 3.1.  
+  **Solution 3:** Update Ruby to version 3.2.0 or newer using a version manager like `rbenv` or `RVM`.
+
+- **Problem 4:** If `brew` or `rbenv` is unavailable, you won’t be able to install the necessary Ruby version.  
+  **Solution 4:** First, install Homebrew using:
+  ```bash
+  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
 Note: Web is far easier to setup than iOS. If you only focus on backend or AI development, choose web.
-3. (Optional for iOS) [Install XCode](https://apps.apple.com/us/app/xcode/id497799835?mt=12) on your machine. If you are not on a Mac, you can develop on Chrome and skip this step. Note that at this time Chrome UI will look strange, as we have concerted our efforts on iOS.
-4. Setup a [Firebase](https://firebase.google.com/) project, which comes with free credits.
-5. Add an iOS and/or web project. Replace your variables in the `.env`, `firebase.json`, and `.firebaserc` files under the project root folder.
-6. (Strongly recommended) We recommend using [Flutterfire CLI](https://firebase.google.com/docs/flutter/setup?platform=ios) to assist your setup. Be sure to run through this end to end to connect your Flutter project to Firebase.
-7. (Optional, installed with firebase) familiarize with Firebase [emulator](https://firebase.google.com/docs/emulator-suite) for ease of development.
-8. You will need to ensure Firestore, Firebase Auth, Google Sign in, Firebase Storage are enabled. Google each of these if there is any issue. Google sign in will not be handled by Flutterfire CLI, but enabling it is trivial. To enable, in Firebase select auth, and google sign in.
-9. You will need to enable GCP secrets manager api, and a billing account. You can skip but will lead to limitations.
-10. You will need [NodeJS](https://nodejs.org/en/download/package-manager) on your machine. We are on version 20, but 22 should also work.
-11. Setup an an [OpenAI account](https://platform.openai.com/), which comes with free credits.
-12. (Optional for advanced X scraping) Setup an X account that is Premium, (paid, can skip for simpler development). 
-13. (Optional for advanced news API) Setup an account with [Newsapi.ai](https://newsapi.ai/). This comes with free credits.
-14. (Optional for maps support) Enable [Static Maps API](https://console.cloud.google.com/google/maps-apis/) in your new [Google Cloud](cloud.google.com) Project, which got created when you created a Firebase project. From there, you will need to setup your Maps API. Setup `dark_mode Static – Raster` and `light_mode Static – Raster` maps. For each map, add a style that matches the colors in Parliament's [palette](/lib/common/constants.dart#L9), by making the water equal the background color, and the surface equal the `primaryColor` from the [theme](/lib/common/ztheme.dart#L8). All borders are set to the onPrimaryColor.
+4. (Optional for iOS) [Install XCode](https://apps.apple.com/us/app/xcode/id497799835?mt=12) on your machine. If you are not on a Mac, you can develop on Chrome and skip this step. Note that at this time Chrome UI will look strange, as we have concerted our efforts on iOS.
+5. Setup a [Firebase](https://firebase.google.com/) project, which comes with free credits.
+
+### Possible Issues and Solutions
+- **Problem 1:** Xcode installation may fail on older macOS versions.  
+  **Solution 1:** Update macOS to the latest compatible version, as Xcode requires recent OS versions.
+
+- **Problem 2:** Xcode may encounter build issues due to outdated SDKs.  
+  **Solution 2:** Ensure Xcode Command Line Tools are configured under Preferences > Locations, and update the iOS SDK if needed.
+
+6. Add an iOS and/or web project. Replace your variables in the `.env`, `firebase.json`, and `.firebaserc` files under the project root folder.
+
+### Possible Issues and Solutions
+- **Problem 1:** Errors may occur if the incorrect Firebase project is selected.  
+  **Solution 1:** Re-run `flutterfire configure`, selecting the correct Firebase project in the CLI.
+
+- **Problem 2:** Running `flutterfire configure` outside the project root can cause issues.  
+  **Solution 2:** Ensure you’re in the root directory of your Flutter project before running setup commands.
+   
+8. (Strongly recommended) We recommend using [Flutterfire CLI](https://firebase.google.com/docs/flutter/setup?platform=ios) to assist your setup. Be sure to run through this end to end to connect your Flutter project to Firebase.
+9. (Optional, installed with firebase) familiarize with Firebase [emulator](https://firebase.google.com/docs/emulator-suite) for ease of development.
+10. You will need to ensure Firestore, Firebase Auth, Google Sign in, Firebase Storage are enabled. Google each of these if there is any issue. Google sign in will not be handled by Flutterfire CLI, but enabling it is trivial. To enable, in Firebase select auth, and google sign in.
+11. You will need to enable GCP secrets manager api, and a billing account. You can skip but will lead to limitations.
+12. You will need [NodeJS](https://nodejs.org/en/download/package-manager) on your machine. We are on version 20, but 22 should also work.
+13. Setup an an [OpenAI account](https://platform.openai.com/), which comes with free credits.
+14. (Optional for advanced X scraping) Setup an X account that is Premium, (paid, can skip for simpler development). 
+15. (Optional for advanced news API) Setup an account with [Newsapi.ai](https://newsapi.ai/). This comes with free credits.
+16. (Optional for maps support) Enable [Static Maps API](https://console.cloud.google.com/google/maps-apis/) in your new [Google Cloud](cloud.google.com) Project, which got created when you created a Firebase project. From there, you will need to setup your Maps API. Setup `dark_mode Static – Raster` and `light_mode Static – Raster` maps. For each map, add a style that matches the colors in Parliament's [palette](/lib/common/constants.dart#L9), by making the water equal the background color, and the surface equal the `primaryColor` from the [theme](/lib/common/ztheme.dart#L8). All borders are set to the onPrimaryColor.
 
 Try running the backend and frontend in different windows.
 
