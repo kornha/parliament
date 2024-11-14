@@ -475,7 +475,7 @@ Learn Flutter, backend, and AI/ML.
 1. Clone Parliament to your machine.
 2. Install our frontend framework [Flutter](https://docs.flutter.dev/get-started/install). If you are new we recommend running a sample Flutter app.
 
-#### Possible Issues and Solutions
+- #### Possible Issues and Solutions
 - **Problem 1:** Errors related to SDK paths or dependencies can prevent Flutter from running.  
   **Solution 1:** Add the Flutter SDK path to your system’s PATH, then restart your terminal for the changes to take effect.
 
@@ -494,7 +494,7 @@ Note: Web is far easier to setup than iOS. If you only focus on backend or AI de
 4. (Optional for iOS) [Install XCode](https://apps.apple.com/us/app/xcode/id497799835?mt=12) on your machine. If you are not on a Mac, you can develop on Chrome and skip this step. Note that at this time Chrome UI will look strange, as we have concerted our efforts on iOS.
 5. Setup a [Firebase](https://firebase.google.com/) project, which comes with free credits.
 
-#### Possible Issues and Solutions
+- #### Possible Issues and Solutions
 - **Problem 1:** Xcode installation may fail on older macOS versions.  
   **Solution 1:** Update macOS to the latest compatible version, as Xcode requires recent OS versions.
 
@@ -503,7 +503,7 @@ Note: Web is far easier to setup than iOS. If you only focus on backend or AI de
 
 6. Add an iOS and/or web project. Replace your variables in the `.env`, `firebase.json`, and `.firebaserc` files under the project root folder.
 
-#### Possible Issues and Solutions
+- #### Possible Issues and Solutions
 - **Problem 1:** Errors may occur if the incorrect Firebase project is selected.  
   **Solution 1:** Re-run `flutterfire configure`, selecting the correct Firebase project in the CLI.
 
