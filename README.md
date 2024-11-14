@@ -494,7 +494,7 @@ Note: Web is far easier to setup than iOS. If you only focus on backend or AI de
 4. (Optional for iOS) [Install XCode](https://apps.apple.com/us/app/xcode/id497799835?mt=12) on your machine. If you are not on a Mac, you can develop on Chrome and skip this step. Note that at this time Chrome UI will look strange, as we have concerted our efforts on iOS.
 5. Setup a [Firebase](https://firebase.google.com/) project, which comes with free credits.
 
-- #### Possible Issues and Solutions
+> #### Possible Issues and Solutions
 - **Problem 1:** Xcode installation may fail on older macOS versions.  
   **Solution 1:** Update macOS to the latest compatible version, as Xcode requires recent OS versions.
 
