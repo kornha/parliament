@@ -470,7 +470,7 @@ Learn Flutter, backend, and AI/ML.
 ### Discord
 [Join our Discord](https://discord.gg/HhdBKsK9Pq) to start asking questions and becoming part of the community.
 
-### Instructions
+## Instructions
 
 1. Clone Parliament to your machine.
 2. Install our frontend framework [Flutter](https://docs.flutter.dev/get-started/install). If you are new we recommend running a sample Flutter app.
