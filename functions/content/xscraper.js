@@ -449,7 +449,8 @@ const getContentFromX = async function(url) {
         const responseUrl = response.url();
 
         // Skip preflight requests or responses without content
-        if (response.request().method() === "OPTIONS" || response.status() === 204) {
+        if (response.request().method() === "OPTIONS" ||
+         response.status() === 204) {
           return;
         }
 
@@ -501,7 +502,8 @@ const getContentFromX = async function(url) {
               resolve();
             }
           } catch (error) {
-            if (error.message.includes("Could not load body for this request")) {
+            if (error.message.
+                includes("Could not load body for this request")) {
               // Suppress the specific error
               console.warn("Skipped a response without a body.");
             } else {
