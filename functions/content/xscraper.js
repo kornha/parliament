@@ -408,27 +408,9 @@ const getContentFromX = async function(url) {
   try {
     const page = await browser.newPage();
 
-    // for video we do it by fetch since scraping directly is hard
-    let tweetVideoURL = null; // Initialize the video URL variable
-    let tweetPhotoURL = null; // Initialize the photo URL variable
-    page.on("request", (request) => {
-      // show me data for debugging requests
-      if (
-        (request.resourceType() === "media" ||
-          request.url().includes(".mp4")) &&
-        !tweetVideoURL
-      ) {
-        tweetVideoURL = request.url();
-      }
-      if (
-        request.resourceType() === "image" &&
-        request.url().includes("media")
-      ) {
-        tweetPhotoURL = request.url();
-      }
-    });
-
-    // Extract the tweet details
+    // Variables to store extracted data
+    let tweetVideoURL = null;
+    let tweetPhotoURL = null;
     let tweetText = null;
     let tweetAuthor = null;
     let tweetTime = null;
@@ -438,53 +420,106 @@ const getContentFromX = async function(url) {
     let tweetViews = null;
     let tweetReplies = null;
 
-    page.on("response", async (response) => {
-      const url = response.url();
-      if (url.includes("graphql") && url.includes("TweetResultByRestId")) {
-        try {
-          const responseBody = await response.json();
-          const tweetResult = responseBody?.data?.tweetResult?.result;
-
-          if (!tweetResult) {
-            console.error("No tweet result found in the response.");
-            return;
-          }
-
-          let tweetData;
-          // handles this case https://x.com/JamesOKeefeIII/status/1848810014497993151
-          if (tweetResult.__typename === "Tweet") {
-            tweetData = tweetResult;
-          } else if (
-            tweetResult.__typename === "TweetWithVisibilityResults"
-          ) {
-            tweetData = tweetResult.tweet;
-          } else {
-            logger.error(
-                `Unhandled tweet result type: ${tweetResult.__typename}`,
-            );
-            return;
-          }
-
-          // Extract the tweet details
-          tweetText = tweetData.legacy.full_text;
-          tweetAuthor = tweetData.core.user_results.result.legacy.name;
-          tweetTime = tweetData.legacy.created_at;
-          tweetReplies = tweetData.legacy.reply_count;
-          tweetReposts = tweetData.legacy.retweet_count;
-          tweetLikes = tweetData.legacy.favorite_count;
-          tweetBookmarks = tweetData.legacy.bookmark_count;
-          tweetViews = parseInt(tweetData.views?.count || "0", 10);
-        } catch (error) {
-          // do nothing, as there's an errant request that enters here
-          // cannot filter at the if statement level
+    // Set up a promise to capture media URLs
+    const mediaPromise = new Promise((resolve) => {
+      page.on("request", (request) => {
+        const requestUrl = request.url();
+        if (
+          (request.resourceType() === "media" ||
+            requestUrl.includes(".mp4")) &&
+          !tweetVideoURL
+        ) {
+          tweetVideoURL = requestUrl;
+          resolve();
         }
-      }
+        if (
+          request.resourceType() === "image" &&
+          requestUrl.includes("media") &&
+          !tweetPhotoURL
+        ) {
+          tweetPhotoURL = requestUrl;
+          resolve();
+        }
+      });
     });
 
+    // Set up a promise to capture tweet data
+    const tweetDataPromise = new Promise((resolve) => {
+      page.on("response", async (response) => {
+        const responseUrl = response.url();
+
+        // Skip preflight requests or responses without content
+        if (response.request().method() === "OPTIONS" || response.status() === 204) {
+          return;
+        }
+
+        // We are only interested in the specific GraphQL response
+        if (
+          responseUrl.includes("graphql") &&
+          responseUrl.includes("TweetResultByRestId")
+        ) {
+          try {
+            const headers = response.headers();
+            if (
+              headers["content-type"] &&
+              headers["content-type"].includes("application/json")
+            ) {
+              const responseBody = await response.json();
+              const tweetResult = responseBody?.data?.tweetResult?.result;
+
+              if (!tweetResult) {
+                console.error("No tweet result found in the response.");
+                resolve(); // Resolve to avoid hanging
+                return;
+              }
+
+              let tweetData;
+              if (tweetResult.__typename === "Tweet") {
+                tweetData = tweetResult;
+              } else if (
+                tweetResult.__typename === "TweetWithVisibilityResults"
+              ) {
+                tweetData = tweetResult.tweet;
+              } else {
+                console.error(
+                    `Unhandled tweet result type: ${tweetResult.__typename}`,
+                );
+                resolve(); // Resolve to avoid hanging
+                return;
+              }
+
+              // Extract the tweet details
+              tweetText = tweetData.legacy.full_text;
+              tweetAuthor = tweetData.core.user_results.result.legacy.name;
+              tweetTime = tweetData.legacy.created_at;
+              tweetReplies = tweetData.legacy.reply_count;
+              tweetReposts = tweetData.legacy.retweet_count;
+              tweetLikes = tweetData.legacy.favorite_count;
+              tweetBookmarks = tweetData.legacy.bookmark_count;
+              tweetViews = parseInt(tweetData.views?.count || "0", 10);
+
+              resolve();
+            }
+          } catch (error) {
+            if (error.message.includes("Could not load body for this request")) {
+              // Suppress the specific error
+              console.warn("Skipped a response without a body.");
+            } else {
+              console.error("Error parsing tweet data:", error);
+            }
+            resolve(); // Resolve to avoid hanging
+          }
+        }
+      });
+    });
+
+    // Navigate to the tweet URL
     await page.goto(url);
+
+    // Wait for both promises or timeout after 5 seconds
     await Promise.race([
-      page.waitForNavigation({waitUntil: "networkidle2"}),
-      page.waitForNetworkIdle(3000),
+      Promise.all([tweetDataPromise, mediaPromise]),
+      new Promise((resolve) => setTimeout(resolve, 8000)),
     ]);
 
     return {
@@ -500,12 +535,13 @@ const getContentFromX = async function(url) {
       views: tweetViews,
     };
   } catch (error) {
-    logger.error("Error in getContentFromX:", error);
+    console.error("Error in getContentFromX:", error);
     throw error;
   } finally {
     await browser.close();
   }
 };
+
 
 /**
  * REQUIRES 1GB TO RUN!
