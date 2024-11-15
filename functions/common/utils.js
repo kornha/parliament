@@ -214,20 +214,29 @@ const getPlatformType = function(platform) {
 /**
    * Gets the status of a post based on its current status and poster.
    * @param {Object} post - The post to get the status for.
-   * @param {string} existingStatus - The existing status of the post.
+   * @param {string} currStatus - The existing status of the post.
    * @return {string} - The status of the post.
    */
-function getStatus(post, existingStatus) {
+function getStatus(post, currStatus) {
   if (post.video && post.video.videoURL) {
     return "unsupported";
   } else if (post.status != "scraping" && post.status != "draft" &&
-    existingStatus != null) {
-    return existingStatus;
+    currStatus != null) {
+    return currStatus;
   } else if (post.poster) {
     return "draft";
   } else {
     return "published";
   }
+}
+
+/**
+ * Checks if a status is unsupported
+ * @param {string} status - the status to check
+ * @return {boolean} - True if the status is unsupported, false otherwise.
+ * */
+function isUnsupportedStatus(status) {
+  return status === "unsupported" || status === "noStories";
 }
 
 // //////////////////////////////////////////////////////////////////
@@ -363,6 +372,7 @@ const handleChangedRelations = async (
 module.exports = {
   isLocal,
   getStatus,
+  isUnsupportedStatus,
   urlToDomain,
   isFibonacciNumber,
   isPerfectSquare,

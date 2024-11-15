@@ -37,7 +37,8 @@ const {
 } = require("../common/database");
 const {retryAsyncFunction,
   handleChangedRelations,
-  getPlatformType} = require("../common/utils");
+  getPlatformType,
+  isUnsupportedStatus} = require("../common/utils");
 const _ = require("lodash");
 const {xupdatePost} = require("../content/xscraper");
 const {generateCompletions} = require("../common/llm");
@@ -134,12 +135,17 @@ exports.onPostUpdate = onDocumentWritten(
 
       if (_create && after.status || _update && before.status != after.status) {
         // task for findStories is sent on tryQueueTask
-        //
         if (after.status == "foundStories") {
           await queueTask(POST_SHOULD_FIND_STATEMENTS_TASK, {pid: after.pid});
         } else if (after.status == "foundStatements") {
           await updatePost(after.pid, {status: "found"});
         }
+      }
+
+      if (_create && (isUnsupportedStatus(after.status)) ||
+        _update && (before.status != after.status &&
+          isUnsupportedStatus(after.status))) {
+        logger.warn(`Unsupported status: ${after.status}, will not process`);
       }
 
       if (

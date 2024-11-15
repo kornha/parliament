@@ -18,7 +18,8 @@ enum PostStatus {
   foundStatements,
   found, // found stories, statements
   //
-  unsupported
+  unsupported,
+  noStories,
 }
 
 @JsonSerializable(explicitToJson: true)

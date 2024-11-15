@@ -87,7 +87,8 @@ exports.onStoryUpdate = onDocumentWritten(
         await publishMessage(STORY_SHOULD_CHANGE_CONFIDENCE,
             {sid: after?.sid || before?.sid});
         // skip on delete stid case since this is expensive
-        if (_update && before.stids.length >= after.stids.length) {
+        if (_create || _update && (before.stids ?? [])
+            .length <= (after.stids ?? []).length) {
           await tryQueueTask(
               "stories",
               after?.sid || before?.sid,

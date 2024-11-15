@@ -122,10 +122,6 @@ async function processItem(data, platformType, poster = null) {
       ...(replies && {replies}),
     };
 
-    if (post.status == "unsupported") {
-      logger.info(`Video not supported, post won't find stories: ${xid}`);
-    }
-
     const success = await createPost(post);
     if (!success) {
       logger.error(`Failed to create post for xid: ${xid}`);
@@ -269,10 +265,6 @@ async function updatePostWithXData(post) {
 
   const status = getStatus(updateData, post.status);
   updateData.status = status;
-
-  if (status == "unsupported") {
-    logger.warn("Video not supported, skipping post: " + post.pid);
-  }
 
   await updatePost(post.pid, updateData);
   logger.info(`Updated post: ${post.pid} with X data.`);

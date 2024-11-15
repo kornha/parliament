@@ -570,10 +570,6 @@ const xupdatePost = async function(post) {
   // currently we do not support video
   const supported = xMetaData.videoURL == null;
 
-  if (!supported) {
-    logger.warn("Video not supported, skipping post: " + post.pid);
-  }
-
   // if the post already exists (eg., not scraping, draft, and not null), keep
   // if the post has a poster, set to draft
   // otherwise, if created from backend, set to published

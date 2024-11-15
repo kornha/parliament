@@ -61,7 +61,7 @@ const onPostShouldFindStories = async function(post) {
 
   if (resp == null) {
     await retryAsyncFunction(() => updatePost(post.pid, {
-      status: "unsupported",
+      status: "noStories",
     }));
     return;
   }
