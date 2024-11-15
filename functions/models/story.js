@@ -86,17 +86,20 @@ exports.onStoryUpdate = onDocumentWritten(
             {sid: after?.sid || before?.sid});
         await publishMessage(STORY_SHOULD_CHANGE_CONFIDENCE,
             {sid: after?.sid || before?.sid});
-        await tryQueueTask(
-            "stories",
-            after?.sid || before?.sid,
-            (story) =>
+        // skip on delete stid case since this is expensive
+        if (_update && before.stids.length >= after.stids.length) {
+          await tryQueueTask(
+              "stories",
+              after?.sid || before?.sid,
+              (story) =>
               // unlike posts can find in draft
-              story && (story.status === "draft" || story.status === "found"),
-            {status: "findingContext"},
-            STORY_SHOULD_FIND_CONTEXT_TASK,
-            {sid: after?.sid || before?.sid},
-            3, // delay 3s to give time for more statement changes
-        );
+                story && (story.status === "draft" || story.status === "found"),
+              {status: "findingContext"},
+              STORY_SHOULD_FIND_CONTEXT_TASK,
+              {sid: after?.sid || before?.sid},
+              3, // delay 3s to give time for more statement changes
+          );
+        }
       }
 
       if (

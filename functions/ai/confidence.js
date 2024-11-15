@@ -58,7 +58,7 @@ async function onStoryShouldChangeConfidence(sid) {
   if (avgConfidence != null) {
     logger.info(`Updating Story confidence: ${sid} ${avgConfidence}`);
     await retryAsyncFunction(() =>
-      updateStory(sid, {confidence: avgConfidence}));
+      updateStory(sid, {confidence: avgConfidence}, 5));
   }
 }
 

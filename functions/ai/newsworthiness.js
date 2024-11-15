@@ -27,7 +27,7 @@ async function onStoryShouldChangeNewsworthiness(sid) {
   if (newsworthiness != null) {
     logger.info(`Updating Story newsworthiness: ${sid} ${newsworthiness}`);
     await retryAsyncFunction(() =>
-      updateStory(sid, {newsworthiness: newsworthiness}));
+      updateStory(sid, {newsworthiness: newsworthiness}, 5));
   }
 
   return Promise.resolve();
