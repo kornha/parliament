@@ -143,26 +143,47 @@ const getPost = async function(pid) {
   }
 };
 
-const getPosts = async function(pids) {
-  if (!pids) {
-    logger.error(`Could not get posts: ${pids}`);
-    return;
-  }
-
-  if (pids.length > 10) {
-    logger.error(`Too many pids! ${pids}`);
+/**
+ * fetches all stories for an array of ids
+ * MAKES A CALL FOR EACH CHUNK OF 10
+ * USE WITH CARE AS IT IS EXPENSIVE
+ * @param {*} pids
+ * @param {*} limit // INCLUDES LIMIT DUE TO POTENTIAL SIZE
+ * @return {Array} of stories
+ * */
+const getPosts = async function(pids, limit = 10) {
+  if (!pids || !Array.isArray(pids)) {
+    logger.error(`Invalid pids: ${pids}`);
     return;
   }
 
   const postsRef = admin.firestore().collection("posts");
+  let allPosts = [];
+  const chunkSize = 10; // Firestore 'in' operator limit
+
   try {
-    const posts = await postsRef.where(FieldPath.documentId(),
-        "in", pids).get();
-    return posts.docs.map((post) => post.data());
+    for (let i = 0; i < pids.length &&
+       allPosts.length < limit; i += chunkSize) {
+      const chunk = pids.slice(i, i + chunkSize);
+      const postsSnapshot = await postsRef
+          .where(admin.firestore.FieldPath.documentId(), "in", chunk)
+          .get();
+
+      const postsData = postsSnapshot.docs.map((doc) => doc.data());
+      allPosts = allPosts.concat(postsData);
+
+      if (allPosts.length >= limit) {
+        allPosts = allPosts.slice(0, limit);
+        break;
+      }
+    }
+    return allPosts;
   } catch (e) {
+    logger.error(`Error fetching posts: ${e}`);
     return null;
   }
 };
+
 
 /**
  * fetches a post by xid
@@ -423,23 +444,43 @@ const getRecentStories = async function(time) {
   }
 };
 
-const getStories = async function(sids) {
-  if (!sids) {
-    logger.error(`Could not get stories: ${sids}`);
-    return;
-  }
-
-  if (sids.length > 10) {
-    logger.error(`Too many sids! ${sids}`);
+/**
+ * fetches all stories for an array of ids
+ * MAKES A CALL FOR EACH CHUNK OF 10
+ * USE WITH CARE AS IT IS EXPENSIVE
+ * @param {*} sids
+ * @param {*} limit // INCLUDES LIMIT DUE TO POTENTIAL SIZE
+ * @return {Array} of stories
+ * */
+const getStories = async function(sids, limit = 10) {
+  if (!sids || !Array.isArray(sids)) {
+    logger.error(`Invalid sids: ${sids}`);
     return;
   }
 
   const storiesRef = admin.firestore().collection("stories");
+  let allStories = [];
+  const chunkSize = 10; // Firestore 'in' operator limit
+
   try {
-    const stories = await storiesRef.where(FieldPath.documentId(),
-        "in", sids).get();
-    return stories.docs.map((story) => story.data());
+    for (let i = 0; i < sids.length &&
+       allStories.length < limit; i += chunkSize) {
+      const chunk = sids.slice(i, i + chunkSize);
+      const storiesSnapshot = await storiesRef
+          .where(admin.firestore.FieldPath.documentId(), "in", chunk)
+          .get();
+
+      const storiesData = storiesSnapshot.docs.map((doc) => doc.data());
+      allStories = allStories.concat(storiesData);
+
+      if (allStories.length >= limit) {
+        allStories = allStories.slice(0, limit);
+        break;
+      }
+    }
+    return allStories;
   } catch (e) {
+    logger.error(`Error fetching stories: ${e}`);
     return null;
   }
 };
