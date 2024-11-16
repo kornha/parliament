@@ -113,10 +113,12 @@ const findStories = async function(post) {
   let resp = null;
 
   try {
-    resp = await generateCompletions({
-      messages: _prompt,
-      loggingText: "findStories " + post.pid,
-    });
+    resp = await retryAsyncFunction(() => {
+      return generateCompletions({
+        messages: _prompt,
+        loggingText: "findStories " + post.pid,
+      });
+    }, 2);
   } catch (e) {
     // some grade A level BS to unmark invalid images
     if (isInvalidImageError(e)) {
