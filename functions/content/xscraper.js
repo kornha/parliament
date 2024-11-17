@@ -13,7 +13,8 @@ const {
 } = require("../common/database");
 const {v5} = require("uuid");
 const {Timestamp} = require("firebase-admin/firestore");
-const {isoToMillis, getPlatformType} = require("../common/utils");
+const {isoToMillis, getPlatformType,
+  retryAsyncFunction} = require("../common/utils");
 const {defineSecret} = require("firebase-functions/params");
 const {
   publishMessage,
@@ -524,6 +525,11 @@ const getContentFromX = async function(url) {
       new Promise((resolve) => setTimeout(resolve, 8000)),
     ]);
 
+    // return null if any null values
+    if (!tweetText || !tweetAuthor || !tweetTime) {
+      return null;
+    }
+
     return {
       title: tweetText,
       creatorEntity: tweetAuthor,
@@ -537,8 +543,8 @@ const getContentFromX = async function(url) {
       views: tweetViews,
     };
   } catch (error) {
-    console.error("Error in getContentFromX:", error);
-    throw error;
+    logger.error("Error in getContentFromX:", error);
+    return null;
   } finally {
     await browser.close();
   }
@@ -557,7 +563,9 @@ const xupdatePost = async function(post) {
 
   logger.info(`Updating Post: ${post.pid} with X metadata.`);
 
-  const xMetaData = await getContentFromX(post.url);
+  // retries
+  const xMetaData = await retryAsyncFunction(() =>
+    getContentFromX(post.url), 2);
   if (!xMetaData) {
     throw new HttpsError(
         "invalid-argument",

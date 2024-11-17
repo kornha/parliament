@@ -276,7 +276,7 @@ exports.onStoryShouldChangeStats = onMessagePublished(
         return Promise.resolve();
       }
 
-      await updateStory(sid, stats);
+      await updateStory(sid, stats, 5);
 
 
       return Promise.resolve();
