@@ -71,11 +71,12 @@ const scrapeXFeed = async function(feedUrl) {
 /**
  * REQUIRES 1GB TO RUN!
  * Scrapes X for top news feeds
+ * @param {string} url the url to scrape from.
  * @param {number} limit the number of feeds to include.
  * Max is ~8 depends on the autoscroll duration
  * @return {Promise<void>}
  * */
-const scrapeXTopNews = async function(limit = 1) {
+const scrapeXTopNews = async function(url= "https://x.com/explore/tabs/news", limit = 1) {
   logger.info("Started scraping top X news.");
 
   const browser = await puppeteer.launch({headless: "new"});
@@ -84,7 +85,7 @@ const scrapeXTopNews = async function(limit = 1) {
 
     await connectToX(page);
 
-    await page.goto("https://x.com/explore/tabs/news");
+    await page.goto(url);
     await page.waitForNetworkIdle({idleTime: 2500});
 
     // go to top news url https://x.com/explore/tabs/news

@@ -1,4 +1,4 @@
-const {scrapeXFeed, isXURL} = require("./xscraper");
+const {scrapeXFeed, isXURL, scrapeXTopNews} = require("./xscraper");
 /**
  * REQUIRES 1GB TO RUN!
  * REQUIRES LONGER TIMEOUT
@@ -16,6 +16,22 @@ const scrapeFeed = async function(feedUrl) {
 };
 
 /**
+ * REQUIRES 1GB TO RUN!
+ * REQUIRES LONGER TIMEOUT
+ * Scrapes a feed of feeds
+ * @param {string} feedUrl - The URL to scrape
+ * @return {Promise<void>}
+ */
+const scrapeMetaFeed = async function(feedUrl) {
+  if (isXURL(feedUrl)) {
+    // feedUrl is also default for scrapeXTopNews
+    await scrapeXTopNews(feedUrl);
+    return;
+  }
+  throw new Error("Not implemented");
+};
+
+/**
  * Fetches base platform icon (favicon or similar) from a given URL
  * @param {string} domain - The URL to fetch the base platform image from
  * @return {Promise<string>} - The platform image URL
@@ -27,5 +43,6 @@ const getImageFromURL = async function(domain) {
 
 module.exports = {
   scrapeFeed,
+  scrapeMetaFeed,
   getImageFromURL,
 };

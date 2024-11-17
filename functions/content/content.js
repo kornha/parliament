@@ -5,7 +5,7 @@ const {authenticate} = require("../common/auth");
 const {scrapeConfig} = require("../common/functions");
 const {SHOULD_SCRAPE_FEED} = require("../common/pubsub");
 const {findCreatePlatform} = require("../common/database");
-const {scrapeFeed} = require("./scraper");
+const {scrapeFeed, scrapeMetaFeed} = require("./scraper");
 const {getPlatformType} = require("../common/utils");
 const {processLinks, processItems} = require("./contentProcessor");
 const {scrapeXTopNews} = require("./xscraper");
@@ -56,7 +56,7 @@ const fetchNews = onCall(
       authenticate(request);
       const platformType = request.data.platformType;
       if (platformType === "x") {
-        await scrapeXTopNews();
+        await scrapeXTopNews(); // could also scrapeMetaFeed here.
         return {message: "Top news scraping initiated for X platform."};
       } else if (platformType === "news") {
         // For News, fetch articles and process them
@@ -113,7 +113,12 @@ const onScrapeFeed = onMessagePublished(
         return;
       }
 
-      await scrapeFeed(message.json.link);
+      if (message.json.metaFeed) {
+        await scrapeMetaFeed(message.json.link);
+      } else {
+        await scrapeFeed(message.json.link);
+      }
+
 
       return;
     },

@@ -74,12 +74,15 @@ const {onPlatformUpdate,
   onPlatformShouldChangeImage,
   onPlatformShouldChangeStats,
   onPlatformChangedStats} = require("./models/platform");
+const {onHourTrigger} = require("./common/schedule");
+
 
 admin.initializeApp();
 
 // For Local Task Mocking Only
 // cannot use isLocal from utils as its not initialized
 if (process.env.FUNCTIONS_EMULATOR === "true") {
+  // Needed for mocking cloud tasks which we use for scheduled messages
   Object.assign(TaskQueue.prototype, {
     enqueue: async (message, params) => {
       if (message.task == POST_SHOULD_FIND_STORIES_TASK) {
@@ -187,6 +190,8 @@ module.exports = {
   fetchNews,
   onScrapeFeed,
   onShouldProcessLink,
+  //
+  onHourTrigger,
   // Scripts
   generateBiasTraining,
   // Dev helper
