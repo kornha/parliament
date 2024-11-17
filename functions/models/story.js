@@ -70,7 +70,7 @@ exports.onStoryUpdate = onDocumentWritten(
         await publishMessage(STORY_SHOULD_CHANGE_STATS,
             {sid: after?.sid || before?.sid});
 
-        if (!_.isEmpty(after.pids)) {
+        if (!_delete && !_.isEmpty(after.pids)) {
           await publishMessage(STORY_SHOULD_CHANGE_PLATFORMS,
               {story: after});
         }

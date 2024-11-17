@@ -166,7 +166,7 @@ const getPosts = async function(pids, limit = 10) {
        allPosts.length < limit; i += chunkSize) {
       const chunk = pids.slice(i, i + chunkSize);
       const postsSnapshot = await postsRef
-          .where(admin.firestore.FieldPath.documentId(), "in", chunk)
+          .where(FieldPath.documentId(), "in", chunk)
           .get();
 
       const postsData = postsSnapshot.docs.map((doc) => doc.data());
@@ -467,7 +467,7 @@ const getStories = async function(sids, limit = 10) {
        allStories.length < limit; i += chunkSize) {
       const chunk = sids.slice(i, i + chunkSize);
       const storiesSnapshot = await storiesRef
-          .where(admin.firestore.FieldPath.documentId(), "in", chunk)
+          .where(FieldPath.documentId(), "in", chunk)
           .get();
 
       const storiesData = storiesSnapshot.docs.map((doc) => doc.data());
