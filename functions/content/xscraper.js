@@ -49,7 +49,8 @@ const scrapeXFeed = async function(feedUrl) {
 
     if (feedUrl) {
       await page.goto(feedUrl);
-      await page.waitForNetworkIdle({idleTime: 4000});
+      // simply wait 5s, maybe need to be changed
+      await page.waitForTimeout(5000);
     }
 
     // Uses async generator to get links
