@@ -122,9 +122,11 @@ async function processItem(data, platformType, poster = null) {
       ...(replies && {replies}),
     };
 
-    const success = await createPost(post);
+    // skips on duplicate error, in race condition
+    const success = await createPost(post, 6);
+    // wait fail in duplicate
     if (!success) {
-      logger.error(`Failed to create post for xid: ${xid}`);
+      logger.warn(`Failed to create post for xid: ${xid}`);
       return null;
     }
   } else {

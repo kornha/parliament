@@ -80,7 +80,7 @@ const deleteUser = async function(uid) {
 // /////////////////////////////////////////
 
 // Important! For most cases use atomicCreatePost instead
-const createPost = async function(post) {
+const createPost = async function(post, skipError) {
   if (!post.pid || !post.createdAt || !post.updatedAt || !post.status ) {
     logger.error(`Could not create post: ${post}`);
     return;
@@ -90,6 +90,9 @@ const createPost = async function(post) {
     await postRef.create(post);
     return true;
   } catch (e) {
+    if (e?.code && e?.code == skipError) {
+      return true;
+    }
     logger.error(e);
     return false;
   }
