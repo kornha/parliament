@@ -474,6 +474,7 @@ Learn Flutter, backend, and AI/ML.
 
 1. Clone Parliament to your machine.
 2. Install our frontend framework [Flutter](https://docs.flutter.dev/get-started/install). If you are new we recommend running a sample Flutter app.
+
 **Note:**
 - If it is your first time using flutter, we recommend setting up the demo project first
 - We develop on XCode 14.3.1. If you are new to setting up XCode, you may encounter building challenges. Reach out to the Discord channel if they are not easily solved. If you want an easier setup and are mainly interested in the Backend, AI, or Web, choose Flutter Web instead.
