@@ -474,10 +474,10 @@ Learn Flutter, backend, and AI/ML.
 
 1. Clone Parliament to your machine.
 2. Install our frontend framework [Flutter](https://docs.flutter.dev/get-started/install). If you are new we recommend running a sample Flutter app.
-- **Note 1:** If it is your first time using flutter, we recommend setting up the demo project first
-- **Note 2:** We develop on XCode 14.3.1. If you are new to setting up XCode, you may encounter building challenges. Reach out to the Discord channel if they are not easily solved. If you want an easier setup and are mainly interested in the Backend, AI, or Web, choose Flutter Web instead.
-
-Note: Web is far easier to setup than iOS. If you only focus on backend or AI development, choose web.
+**Note:**
+- If it is your first time using flutter, we recommend setting up the demo project first
+- We develop on XCode 14.3.1. If you are new to setting up XCode, you may encounter building challenges. Reach out to the Discord channel if they are not easily solved. If you want an easier setup and are mainly interested in the Backend, AI, or Web, choose Flutter Web instead.
+- Web is far easier to setup than iOS. If you only focus on backend or AI development, choose web.
 4. (Optional for iOS) [Install XCode](https://apps.apple.com/us/app/xcode/id497799835?mt=12) on your machine. If you are not on a Mac, you can develop on Chrome and skip this step. Note that at this time Chrome UI will look strange, as we have concerted our efforts on iOS.
 5. Setup a [Firebase](https://firebase.google.com/) project, which comes with free credits.
 - **Note 1:** Setting up XCode is very issue prone and will require some research if it is your first time using it. 
