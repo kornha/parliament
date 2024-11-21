@@ -478,23 +478,23 @@ Learn Flutter, backend, and AI/ML.
 **Note:**
 - If it is your first time using flutter, we recommend setting up the demo project first
 - We develop on XCode 14.3.1. If you are new to setting up XCode, you may encounter building challenges. Reach out to the Discord channel if they are not easily solved. If you want an easier setup and are mainly interested in the Backend, AI, or Web, choose Flutter Web instead.
-- Web is far easier to setup than iOS. If you only focus on backend or AI development, choose web.
+
+3. (Optional for iOS) Install XCode on your machine. If you are not on a Mac, you can develop on Chrome and skip this step. Note that at this time Chrome UI will look strange, as we have concerted our efforts on iOS.
+
 4. (Optional for iOS) [Install XCode](https://apps.apple.com/us/app/xcode/id497799835?mt=12) on your machine. If you are not on a Mac, you can develop on Chrome and skip this step. Note that at this time Chrome UI will look strange, as we have concerted our efforts on iOS.
 5. Setup a [Firebase](https://firebase.google.com/) project, which comes with free credits.
-
-**Note:** 
-- Setting up XCode is very issue prone and will require some research if it is your first time using it. 
 
 6. Add an iOS and/or web project. Replace your variables in the `.env`, `firebase.json`, and `.firebaserc` files under the project root folder.
 
 #### Possible Issues and Solutions
 - **Problem 1:** Errors may occur if the incorrect Firebase project is selected.  
   **Solution 1:** Re-run `flutterfire configure`, selecting the correct Firebase project in the CLI.
-
-- **Problem 2:** Running `flutterfire configure` outside the project root can cause issues.  
-  **Solution 2:** Ensure you’re in the root directory of your Flutter project before running setup commands.
    
 8. (Strongly recommended) We recommend using [Flutterfire CLI](https://firebase.google.com/docs/flutter/setup?platform=ios) to assist your setup. Be sure to run through this end to end to connect your Flutter project to Firebase.
+
+- **Problem 1:** Running `flutterfire configure` outside the project root can cause issues.  
+  **Solution 1:** Ensure you’re in the root directory of your Flutter project before running setup commands.
+
 9. (Optional, installed with firebase) familiarize with Firebase [emulator](https://firebase.google.com/docs/emulator-suite) for ease of development.
 10. You will need to ensure Firestore, Firebase Auth, Google Sign in, Firebase Storage are enabled. Google each of these if there is any issue. Google sign in will not be handled by Flutterfire CLI, but enabling it is trivial. To enable, in Firebase select auth, and google sign in.
 11. You will need to enable GCP secrets manager api, and a billing account. You can skip but will lead to limitations.
