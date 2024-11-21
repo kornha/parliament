@@ -77,7 +77,7 @@ const tryQueueTask = async function(
     // Use the provided condition function to determine if we should proceed
     if (!conditionFn(docData)) {
       logger.info(
-          `Conditions not met for document: ${collectionName}/${id}`);
+          `Conditions not met for ${queue} ${collectionName}/${id}`);
       return;
     }
 

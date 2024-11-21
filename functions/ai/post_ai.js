@@ -28,7 +28,7 @@ const {findStatements, resetStatementVector} = require("./statement_ai");
 // eslint-disable-next-line no-unused-vars
 const {publishMessage, POST_SHOULD_FIND_STORIES} =
 require("../common/pubsub");
-const {queueTask, POST_SHOULD_FIND_STORIES_TASK} =
+const {queueTask, POST_SHOULD_FIND_STORIES_TASK, POST_SHOULD_FIND_STATEMENTS_TASK} =
 require("../common/tasks");
 
 /** FLAGSHIP FUNCTION
@@ -295,7 +295,7 @@ const onPostShouldFindStatements = async function(post) {
       logger.info(`Deleted statements ${resp.removedStatements}`);
 
       changedPosts.forEach(async (post) => {
-        queueTask(POST_SHOULD_FIND_STORIES_TASK, {pid: post.pid});
+        queueTask(POST_SHOULD_FIND_STATEMENTS_TASK, {pid: post.pid});
       });
     }
   }
