@@ -83,4 +83,19 @@ class Functions {
     }
     return null;
   }
+
+  // Used as a dev-time helper to test functions
+  Future<String?> triggerTimeFunction(String schedule) async {
+    final HttpsCallable callable =
+        FirebaseFunctions.instance.httpsCallable('triggerTimeFunction');
+
+    try {
+      final HttpsCallableResult _ = await callable.call({
+        'schedule': schedule,
+      });
+    } catch (e) {
+      print(e);
+    }
+    return null;
+  }
 }

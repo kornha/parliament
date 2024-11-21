@@ -101,8 +101,6 @@ class _PostBuilderState extends ConsumerState<PostBuilder> {
                             } else {
                               Database.instance().updatePost(p.pid, {
                                 "status": PostStatus.published.name,
-                                "updatedAt":
-                                    Timestamp.now().millisecondsSinceEpoch,
                               });
                               context.pop();
                               context.push("${PostView.location}/${_pid!}");

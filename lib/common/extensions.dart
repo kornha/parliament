@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -27,6 +28,7 @@ import 'package:political_think/common/chat/chat_types/flutter_chat_types.dart'
 extension ProviderExt on WidgetRef {
   get authWatch => watch(authProvider);
   get authRead => read(authProvider);
+
   AsyncValue<ZUser?> userWatch(uid) => watch(zuserProvider(uid));
   AsyncValue<ZUser?> userRead(uid) => read(zuserProvider(uid));
   AsyncValue<ZUser?> selfUserWatch() =>

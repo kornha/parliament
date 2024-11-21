@@ -97,7 +97,14 @@ exports.onPlatformShouldChangeStats = onMessagePublished(
         platform.statsCount = 0;
       }
 
-      if (isFibonacciNumber(platform.statsCount)) {
+      const isFibonacci = isFibonacciNumber(platform.statsCount);
+
+      // increment doesn't work on null. Stats count is technically 1 higher
+      // we move this up here to reduce concurrent cases of the same count
+      await updatePlatform(plid, {statsCount: platform.statsCount == 0 ? 1 :
+              FieldValue.increment(1)});
+
+      if (isFibonacci) {
         logger.info(
             `Updating platform stats ${plid} count: ${platform.statsCount}`);
         const posts = await getAllPostsForPlatform(plid);
@@ -111,10 +118,6 @@ exports.onPlatformShouldChangeStats = onMessagePublished(
           await updatePlatform(plid, stats);
         }
       }
-
-      // increment doesn't work on null. Stats count is technically 1 higher
-      await updatePlatform(plid, {statsCount: platform.statsCount == 0 ? 1 :
-         FieldValue.increment(1)});
 
       return Promise.resolve();
     });

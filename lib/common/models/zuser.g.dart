@@ -9,7 +9,6 @@ part of 'zuser.dart';
 ZUser _$ZUserFromJson(Map<String, dynamic> json) => ZUser(
       uid: json['uid'] as String,
       elo: json['elo'] as int? ?? 1500,
-      isAdmin: json['isAdmin'] as bool? ?? false,
       settings: json['settings'] == null
           ? const ZSettings()
           : ZSettings.fromJson(json['settings'] as Map<String, dynamic>),
@@ -26,6 +25,5 @@ Map<String, dynamic> _$ZUserToJson(ZUser instance) => <String, dynamic>{
       'phoneNumber': instance.phoneNumber,
       'photoURL': instance.photoURL,
       'username': instance.username,
-      'isAdmin': instance.isAdmin,
       'settings': instance.settings.toJson(),
     };

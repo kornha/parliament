@@ -74,7 +74,7 @@ const {onPlatformUpdate,
   onPlatformShouldChangeImage,
   onPlatformShouldChangeStats,
   onPlatformChangedStats} = require("./models/platform");
-const {onHourTrigger} = require("./common/schedule");
+const {onHourTrigger, triggerTimeFunction} = require("./common/schedule");
 
 
 admin.initializeApp();
@@ -192,6 +192,7 @@ module.exports = {
   onShouldProcessLink,
   //
   onHourTrigger,
+  triggerTimeFunction,
   // Scripts
   generateBiasTraining,
   // Dev helper

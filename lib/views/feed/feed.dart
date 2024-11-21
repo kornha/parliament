@@ -2,6 +2,7 @@
 
 import 'dart:math';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -43,21 +44,44 @@ class _FeedState extends ConsumerState<Feed> {
   Widget build(BuildContext context) {
     final AsyncValue<ZUser?> userRef = ref.selfUserWatch();
     ZUser? user = userRef.value;
+    Auth? authUser = ref.authWatch;
+
     return ZScaffold(
       appBar: ZAppBar(
         showLogo: true,
         leading: [
-          IconButton(
-            icon: const Icon(FontAwesomeIcons.newspaper),
-            onPressed: () {
-              Functions.instance().fetchNews(PlatformType.news);
-            },
+          Visibility(
+            visible: authUser?.isAdmin ?? false,
+            child: IconButton(
+              icon: const Icon(FontAwesomeIcons.newspaper),
+              onPressed: () {
+                Functions.instance().fetchNews(PlatformType.news);
+              },
+            ),
           ),
-          IconButton(
-            icon: const Icon(FontAwesomeIcons.xTwitter),
-            onPressed: () {
-              Functions.instance().fetchNews(PlatformType.x);
-            },
+          Visibility(
+            visible: authUser?.isAdmin ?? false,
+            child: IconButton(
+              icon: const Icon(FontAwesomeIcons.xTwitter),
+              onPressed: () {
+                Functions.instance().fetchNews(PlatformType.x);
+              },
+            ),
+          ),
+          Visibility(
+            visible: authUser?.isAdmin ?? false,
+            child: PopupMenuButton<String>(
+              icon: const Icon(Icons.access_time),
+              onSelected: (String value) {
+                Functions.instance().triggerTimeFunction(value);
+              },
+              itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                const PopupMenuItem<String>(
+                  value: 'every hour',
+                  child: Text('every hour'),
+                ),
+              ],
+            ),
           ),
         ],
         actions: [

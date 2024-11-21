@@ -545,7 +545,7 @@ const getContentFromX = async function(url) {
       views: tweetViews,
     };
   } catch (error) {
-    logger.error("Error in getContentFromX:", error);
+    logger.error(`Error in getContentFromX url: ${url}, error`, error);
     return null;
   } finally {
     await browser.close();

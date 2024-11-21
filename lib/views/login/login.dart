@@ -42,7 +42,7 @@ class _LoginState extends ConsumerState<Login> {
                 ],
               ),
               onPressed: () async {
-                Auth().signInWithGoogle().then(
+                Auth.instance().signInWithGoogle().then(
                   (value) {},
                   onError: (e) {
                     context.showFullScreenModal(Text(e.toString()));

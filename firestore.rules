@@ -2,8 +2,52 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
+    
+    match /posts/{pid} {
+      allow read: if true;
+      allow update: if request.auth != null
+                    && resource.data.status == 'draft'
+                    && request.resource.data.status == 'published'
+                    && resource.data.diff(request.resource.data).changedKeys().hasOnly(['status']);
+      allow create, delete: if false;
+    }
+    
+    match /stories/{sid} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /platforms/{pid} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /rooms/{rid} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /entities/{eid} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /statements/{stid} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /users/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if request.auth != null 
+                   && request.auth.uid == uid 
+                   && resource.data.role == request.resource.data.role;
+    }
+
+
+    // Deny all other access
     match /{document=**} {
-      allow read, write: if true;
+      allow read, write: if false;
     }
   }
 }

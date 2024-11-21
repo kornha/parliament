@@ -30,7 +30,7 @@ class _MessagesState extends ConsumerState<Messages> {
                 ],
               ),
               onPressed: () async {
-                Auth().signOut();
+                Auth.instance().signOut();
               },
             ),
           ],

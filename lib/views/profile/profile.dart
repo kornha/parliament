@@ -97,7 +97,7 @@ class _ProfileState extends ConsumerState<Profile> {
                       backgroundColor: context.surfaceColor,
                       foregroundColor: context.onSurfaceColor,
                       onPressed: () {
-                        Auth().signOut();
+                        Auth.instance().signOut();
                       },
                       child: const Text("Logout"),
                     ),
@@ -109,7 +109,7 @@ class _ProfileState extends ConsumerState<Profile> {
                       backgroundColor: context.errorColor,
                       foregroundColor: context.onErrorColor,
                       onPressed: () {
-                        Auth().delete();
+                        Auth.instance().delete();
                       },
                       child: const Text("Delete Account"),
                     ),

@@ -16,7 +16,7 @@ class Maps extends ConsumerStatefulWidget {
 class _GamesState extends ConsumerState<Maps> {
   @override
   Widget build(BuildContext context) {
-    Auth().signOut();
+    Auth.instance().signOut();
 
     return ZScaffold(
       body: Center(

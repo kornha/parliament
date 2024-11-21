@@ -22,12 +22,15 @@ import 'package:political_think/common/chat/chat_types/flutter_chat_types.dart'
 //////////////////////////////////////////////////////////////
 // Auth/User
 //////////////////////////////////////////////////////////////
+// Change notifier
+final authProvider = ChangeNotifierProvider<Auth>((ref) {
+  return Auth.instance();
+});
 
-final firebaseAuthProvider =
-    Provider<FirebaseAuth>((ref) => FirebaseAuth.instance);
-
-final authProvider = ChangeNotifierProvider<AuthState>((ref) {
-  return AuthState.instance();
+// stream of user
+final authUserProvider = Provider<User?>((ref) {
+  final auth = ref.watch(authProvider);
+  return auth.authUser;
 });
 
 final zuserProvider = StreamProvider.family<ZUser?, String>((ref, uid) {

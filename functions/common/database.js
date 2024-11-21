@@ -298,7 +298,7 @@ const getAllPostsForStatement = async function(stid) {
  * @param {*} limit // INCLUDES LIMIT DUE TO POTENTIAL SIZE
  * @return {Array} of posts
  */
-const getAllPostsForPlatform = async function(plid, limit = 10000) {
+const getAllPostsForPlatform = async function(plid, limit = 1000) {
   if (!plid) {
     logger.error(`Could not get posts for platform: ${plid}`);
     return;
@@ -308,6 +308,7 @@ const getAllPostsForPlatform = async function(plid, limit = 10000) {
       .where("plid", "==", plid)
       .orderBy("updatedAt", "desc")
       .limit(limit);
+
   try {
     const posts = await postsRef.get();
     return posts.docs.map((post) => post.data());

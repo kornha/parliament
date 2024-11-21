@@ -5,6 +5,7 @@ const secretsList = [
   "X_PASSWORD_KEY",
   "X_EMAIL_KEY",
   "NEWS_API_KEY",
+  "ADMIN_EMAIL_KEY",
 ];
 
 exports.defaultConfig = {

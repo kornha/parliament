@@ -6,40 +6,50 @@ import 'package:political_think/firebase_options.dart';
 
 enum AuthStatus { authenticating, authenticated, unauthenticated, unknown }
 
-class AuthState extends ChangeNotifier {
+enum Role { admin, user, unknown }
+
+class Auth extends ChangeNotifier {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
   AuthStatus status = AuthStatus.unknown;
-  final Auth _auth = Auth();
+  Role roll = Role.unknown;
   User? authUser;
 
   bool get isLoggedIn => status == AuthStatus.authenticated;
   bool get isLoading =>
       status == AuthStatus.unknown || status == AuthStatus.authenticating;
+  bool get isAdmin => roll == Role.admin;
 
-  AuthState.instance() {
+  // Add a private static instance variable
+  static final Auth _instance = Auth._internal();
+
+  // Private constructor
+  Auth._internal() {
     status = AuthStatus.unknown;
-    _auth.auth.authStateChanges().listen((user) async {
+    _auth.authStateChanges().listen((user) async {
+      User? previousUser = authUser;
       authUser = user;
       if (user == null) {
         status = AuthStatus.unauthenticated;
+        roll = Role.unknown;
       } else {
         status = AuthStatus.authenticated;
+      }
+
+      if (previousUser?.uid != authUser?.uid && authUser != null) {
+        // add 3 second delay
+        var claims = await _getCustomClaims();
+        if (claims != null) {
+          roll = claims["role"] == Role.admin.name ? Role.admin : Role.user;
+        }
       }
       notifyListeners();
     });
   }
-}
 
-class Auth {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
+  // Factory constructor that returns the same instance
+  factory Auth.instance() => _instance;
 
-  Stream<User?> get fbUser {
-    return _auth.authStateChanges();
-  }
-
-  FirebaseAuth get auth => _auth;
-  bool get isLoggedIn => _auth.currentUser != null;
-
-  /* Google */
   Future<UserCredential> signInWithGoogle() async {
     if (kIsWeb) {
       // Create a new provider
@@ -97,9 +107,19 @@ class Auth {
     await _auth.sendPasswordResetEmail(email: email);
   }
 
-  Future<User?> firebaseUser() async {
-    var user = _auth.currentUser;
-    await user?.reload();
-    return user;
+  /// Private method to retrieve custom claims of the current user
+  Future<Map<String, dynamic>?> _getCustomClaims() async {
+    User? user = _auth.currentUser;
+    if (user != null) {
+      try {
+        // Force token refresh to get the latest claims
+        IdTokenResult idTokenResult = await user.getIdTokenResult(true);
+        return idTokenResult.claims;
+      } catch (e) {
+        print("Error retrieving custom claims: $e");
+        // Handle errors appropriately in your app
+      }
+    }
+    return null;
   }
 }

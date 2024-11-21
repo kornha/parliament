@@ -8,6 +8,8 @@ import 'package:political_think/common/models/zsettings.dart';
 
 part 'zuser.g.dart';
 
+enum Role { admin, user }
+
 @JsonSerializable(explicitToJson: true)
 class ZUser {
   final String uid;
@@ -16,13 +18,11 @@ class ZUser {
   String? phoneNumber;
   String? photoURL;
   String? username;
-  bool isAdmin;
   ZSettings settings;
 
   ZUser({
     required this.uid,
     this.elo = 1500,
-    this.isAdmin = false,
     this.settings = const ZSettings(),
   });
 
