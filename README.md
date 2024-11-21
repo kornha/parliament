@@ -492,6 +492,7 @@ Learn Flutter, backend, and AI/ML.
    
 8. (Strongly recommended) We recommend using [Flutterfire CLI](https://firebase.google.com/docs/flutter/setup?platform=ios) to assist your setup. Be sure to run through this end to end to connect your Flutter project to Firebase.
 
+#### Possible Issues and Solutions
 - **Problem 1:** Running `flutterfire configure` outside the project root can cause issues.  
   **Solution 1:** Ensure you’re in the root directory of your Flutter project before running setup commands.
 
