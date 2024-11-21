@@ -507,6 +507,28 @@ Learn Flutter, backend, and AI/ML.
 
 Try running the backend and frontend in different windows.
 
+Try Running the Program as follows to see if it works properly: 
+
+17. Start building your Flutter web/ios app by clicking on Run > Start Debugging.
+18. After that, on a different window start building your backend by running the follwoing command in the Terminal: npm run serve. 
+**Note:** 
+- After completing steps 17. and 18., a website window should open.
+- If you running Web, you may need to resize the window so that the website looks like the appropriate APP design.  
+21. Once the Parliament web page is open, log in by pressing "Sign in with G" at the bottom of the screen.
+22. Next, click on "+ Add new account."
+23. You can either generate user information by clicking on "Auto-generate user information" or you can manually enter your preferred user information.
+**Note:** 
+- It is recommended that you generate a new user so that you keep your information private and do not run into any potential bugs. 
+24. Once you are finished with step 23. press "Sign in with Google.com" at the bottom right of the window.
+25. Add a post by clicking on the plus symbol at the upper-right of the window "+".
+26. Make sure you copy a X post that either has text only or text and one image, and paste it into the box in the center of the screen where it says "Paste a link here" by clicking anywhere in that region.
+**Note:** 
+- If a pop-up request comes up that says "See text and images copied to the clipboard," choose "Allow."
+- If you are running this on a computer with 8 GB ram or less, it is recommended that you close all windows or any running applications to free as much space as possible since, generate step will requires a lot of RAM space.
+- You should see Chromium pop up twice, if it takes too long for it to run that means that you need to pay attention to your RAM space  
+ 
+28. To generate a story click on the green buttion "Generate" in the upper right center of the window.
+
 Firebase may prompt you to add env vars, but if it doesn't, or if you run into billing or other account setup issues, Googling them should be straightforward to solve.
 Feel free to add helpful info to this readme.
 
