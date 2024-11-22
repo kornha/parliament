@@ -115,7 +115,9 @@ const _$PostStatusEnumMap = {
   PostStatus.foundStories: 'foundStories',
   PostStatus.findingStatements: 'findingStatements',
   PostStatus.foundStatements: 'foundStatements',
+  PostStatus.noStatements: 'noStatements',
   PostStatus.found: 'found',
   PostStatus.unsupported: 'unsupported',
   PostStatus.noStories: 'noStories',
+  PostStatus.errored: 'errored',
 };

@@ -137,7 +137,8 @@ exports.onPostUpdate = onDocumentWritten(
         // task for findStories is sent on tryQueueTask
         if (after.status == "foundStories") {
           await queueTask(POST_SHOULD_FIND_STATEMENTS_TASK, {pid: after.pid});
-        } else if (after.status == "foundStatements") {
+        } else if (after.status == "foundStatements" ||
+           after.status == "noStatements") {
           await updatePost(after.pid, {status: "found"});
         }
       }

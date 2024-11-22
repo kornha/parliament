@@ -6,7 +6,8 @@ const {writeTrainingData} = require("./trainer");
 const {findStatementsPrompt} = require("./prompts");
 const {logger} = require("firebase-functions/v2");
 const {isInvalidImageError,
-  extractInvalidImageUrl} = require("../common/utils");
+  extractInvalidImageUrl,
+  retryAsyncFunction} = require("../common/utils");
 
 const findStatements = async function(post, statements) {
   if (!post) {
@@ -24,13 +25,13 @@ const findStatements = async function(post, statements) {
 
   let resp = null;
 
-
   try {
-    resp =
-    await generateCompletions({
-      messages: prompt,
-      loggingText: "findStatements " + post.pid,
-    });
+    resp = await retryAsyncFunction(() => {
+      generateCompletions({
+        messages: prompt,
+        loggingText: "findStatements " + post.pid,
+      });
+    }, 2);
   } catch (e) {
     // some grade A level BS to unmark invalid images
     if (isInvalidImageError(e)) {

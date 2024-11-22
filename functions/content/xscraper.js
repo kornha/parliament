@@ -569,6 +569,9 @@ const xupdatePost = async function(post) {
   const xMetaData = await retryAsyncFunction(() =>
     getContentFromX(post.url), 2);
   if (!xMetaData) {
+    // firebase doesn't log the httpsError as an error
+    logger.error("Could not fetch content from " + post.url);
+    await updatePost(post.pid, {status: "errored"});
     throw new HttpsError(
         "invalid-argument",
         "Could not fetch content from " + post.url,

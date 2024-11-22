@@ -224,10 +224,10 @@ const onPostShouldFindStatements = async function(post) {
   const resp = await findStatements(post, statements);
 
   if (resp == null) {
-    // we dont set the status here as we there may legitimately be none
-    // await retryAsyncFunction(() => updatePost(post.pid, {
-    //   status: "unsupported",
-    // }));
+    // might be OK as not all posts have statements
+    await retryAsyncFunction(() => updatePost(post.pid, {
+      status: "noStatements",
+    }));
     return;
   }
 
