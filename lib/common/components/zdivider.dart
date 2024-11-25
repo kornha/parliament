@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:political_think/common/extensions.dart';
 
-enum DividerType { PRIMARY, SECONDARY, VERTICAL, VERTICAL_SECONDARY }
+enum DividerType { PRIMARY, SECONDARY, TERTIARY, VERTICAL, VERTICAL_SECONDARY }
 
 class ZDivider extends StatelessWidget {
   const ZDivider({
@@ -14,8 +14,10 @@ class ZDivider extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width:
-          type == DividerType.VERTICAL || type == DividerType.VERTICAL_SECONDARY
+      width: type == DividerType.TERTIARY
+          ? context.blockSizeLarge.width / 2
+          : type == DividerType.VERTICAL ||
+                  type == DividerType.VERTICAL_SECONDARY
               ? context.sd.width
               : context.blockSizeLarge.width,
       child: type == DividerType.VERTICAL ||

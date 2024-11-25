@@ -2,7 +2,17 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    
+
+    // Function to check if the user is an admin
+    function isAdmin() {
+      return request.auth != null && request.auth.token.role == 'admin';
+    }
+
+    // TODO: Even with admins, need to limit
+    match /{document=**} {
+      allow read, write: if isAdmin();
+    }
+
     match /posts/{pid} {
       allow read: if true;
       allow update: if request.auth != null
@@ -11,7 +21,7 @@ service cloud.firestore {
                     && resource.data.diff(request.resource.data).changedKeys().hasOnly(['status']);
       allow create, delete: if false;
     }
-    
+
     match /stories/{sid} {
       allow read: if true;
       allow write: if false;
@@ -25,6 +35,11 @@ service cloud.firestore {
     match /rooms/{rid} {
       allow read: if true;
       allow write: if false;
+
+      match /messages/{mid} {
+        allow create: if request.auth != null;
+        allow read: if true;
+      }
     }
 
     match /entities/{eid} {
@@ -44,17 +59,9 @@ service cloud.firestore {
                    && resource.data.role == request.resource.data.role;
     }
 
-
-    // Deny all other access
+    // Deny all other access for non-admin users
     match /{document=**} {
       allow read, write: if false;
     }
   }
 }
-
-// export instructions (run from functions folder)
-// gcloud projects list
-// gcloud config set project political-think
-// gcloud firestore export gs://political-think.appspot.com/exports
-// gsutil -m cp -r gs://political-think.appspot.com/exports ./emulator
-// ... firebase emulators:start ... --import ./emulator/exports

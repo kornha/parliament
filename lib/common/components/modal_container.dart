@@ -5,11 +5,9 @@ class ModalContainer extends StatelessWidget {
   const ModalContainer({
     super.key,
     required this.child,
-    this.padding = EdgeInsets.zero,
     this.color,
   });
   final Widget child;
-  final EdgeInsetsGeometry padding;
   final Color? color;
 
   @override
@@ -22,8 +20,14 @@ class ModalContainer extends StatelessWidget {
       // however this has only been tested with ios
       top: false,
       child: Container(
-        padding: padding,
+        padding: context.blockPaddingExtra,
+        // set min height
+        constraints: BoxConstraints(
+            minHeight: context.sqt.height!,
+            maxWidth: context.blockSizeLarge.width),
         color: color ?? context.backgroundColor,
+        // width: context.isDesktop ? context.blockSize.width : null,
+        // height: context.isDesktop ? context.blockSize.height / 2 : null,
         child: child,
       ),
     );

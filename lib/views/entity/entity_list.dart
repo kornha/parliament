@@ -19,23 +19,24 @@ class EntityListView extends ConsumerStatefulWidget {
 
 class _EntityListViewState extends ConsumerState<EntityListView> {
   @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return ModalContainer(
-      padding: context.blockPaddingExtra,
-      child: ListView.separated(
-        separatorBuilder: (context, index) =>
-            const ZDivider(type: DividerType.SECONDARY),
-        shrinkWrap: true,
-        itemCount: widget.eids.length,
-        itemBuilder: (context, index) {
-          return EntityItemView(eid: widget.eids[index]);
-        },
-      ),
+    if (widget.eids.isEmpty) {
+      return const Center(child: Text("No items available"));
+    }
+
+    // In separated listview, single item isnt centered
+    if (widget.eids.length == 1) {
+      return EntityItemView(eid: widget.eids.first);
+    }
+
+    // For multiple items, display the ListView as usual
+    return ListView.separated(
+      separatorBuilder: (context, index) =>
+          const ZDivider(type: DividerType.SECONDARY),
+      itemCount: widget.eids.length,
+      itemBuilder: (context, index) {
+        return EntityItemView(eid: widget.eids[index]);
+      },
     );
   }
 }

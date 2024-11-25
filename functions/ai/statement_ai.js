@@ -27,7 +27,7 @@ const findStatements = async function(post, statements) {
 
   try {
     resp = await retryAsyncFunction(() => {
-      generateCompletions({
+      return generateCompletions({
         messages: prompt,
         loggingText: "findStatements " + post.pid,
       });

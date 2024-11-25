@@ -20,7 +20,7 @@ class Logo extends StatelessWidget {
         : 'assets/images/logo_black.png';
     return Image.asset(
       path,
-      fit: BoxFit.cover,
+      fit: BoxFit.contain,
       width: size ?? context.iconSizeLarge,
       height: size ?? context.iconSizeLarge,
     );
@@ -39,7 +39,8 @@ class LogoName extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.end,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
         const Logo(),
         context.sh,
@@ -60,6 +61,6 @@ class LogoText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text("Parliament", style: context.d3.copyWith(letterSpacing: 5));
+    return Text("Parliament", style: context.h1.copyWith(letterSpacing: 5));
   }
 }

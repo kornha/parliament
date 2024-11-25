@@ -48,7 +48,7 @@ class ZTextButton extends StatelessWidget {
         minimumSize: type == ZButtonTypes.area
             ? null
             : type == ZButtonTypes.wide
-                ? Size(context.blockSize.width, context.sd.height!)
+                ? Size(context.blockSize.width, context.sfh.height!)
                 : type == ZButtonTypes.icon
                     ? const Size(0, 0)
                     : null,

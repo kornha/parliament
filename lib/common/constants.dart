@@ -32,6 +32,7 @@ class Margins {
   static const double full = 16.0;
   static const double threeHalf = full * 1.5;
   static const double twice = full * 2;
+  static const double fiveHalf = full * 2.5;
   static const double triple = full * 3;
   static const double quadruple = full * 4;
   static const double quintuple = full * 5;

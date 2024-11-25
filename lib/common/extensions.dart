@@ -10,6 +10,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
+import 'package:political_think/common/components/modal_container.dart';
 import 'package:political_think/common/components/zapp_bar.dart';
 import 'package:political_think/common/components/zscaffold.dart';
 import 'package:political_think/common/constants.dart';
@@ -101,6 +102,7 @@ extension ThemeExt on BuildContext {
   Color get surfaceColorBright => Theme.of(this).colorScheme.surfaceBright;
   Color get onSurfaceColor => Theme.of(this).colorScheme.onSurfaceVariant;
   Color get backgroundColorWithOpacity => backgroundColor.withOpacity(0.55);
+  Color get surfaceColorWithOpacity => surfaceColor.withOpacity(0.9);
 
   Color get primaryColor => Theme.of(this).colorScheme.primary;
   Color get primaryColorWithOpacity => primaryColor.withOpacity(0.2);
@@ -228,6 +230,8 @@ extension Spacing on BuildContext {
       const SizedBox(height: Margins.quadruple, width: Margins.quadruple);
   SizedBox get st =>
       const SizedBox(height: Margins.triple, width: Margins.triple);
+  SizedBox get sfh =>
+      const SizedBox(height: Margins.fiveHalf, width: Margins.fiveHalf);
   SizedBox get sd =>
       const SizedBox(height: Margins.twice, width: Margins.twice);
   SizedBox get sf => const SizedBox(height: Margins.full, width: Margins.full);
@@ -274,16 +278,18 @@ extension ModalExt on BuildContext {
   void showModal(Widget child) {
     if (isDesktop) {
       showCupertinoModalPopup(
+        barrierColor: surfaceColorWithOpacity,
         context: this,
         builder: (BuildContext context) {
           return Center(
             child: Material(
-              color: context.backgroundColor,
-              child: SizedBox(
-                width: context.blockSize.width,
-                // TODO: NEED TO FIX SIZING
-                height: context.blockSize.height / 2,
-                child: child,
+              color: Colors.transparent, // needed to remove corners
+              child: ClipRRect(
+                borderRadius: BRadius.standard,
+                child: ModalContainer(
+                  color: context.backgroundColor,
+                  child: child,
+                ),
               ),
             ),
           );
@@ -292,7 +298,7 @@ extension ModalExt on BuildContext {
       return;
     }
     showCupertinoModalBottomSheet(
-      barrierColor: surfaceColor.withOpacity(0.9),
+      barrierColor: surfaceColorWithOpacity,
       context: this,
       expand: false,
       useRootNavigator: true,
@@ -300,10 +306,7 @@ extension ModalExt on BuildContext {
         color: context.backgroundColor,
         // Note: we use this to show above keyboard
         child: SingleChildScrollView(
-          //always bounce
-          padding:
-              EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-          child: child,
+          child: ModalContainer(child: child),
         ),
       ),
     );
