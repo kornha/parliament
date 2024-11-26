@@ -447,7 +447,7 @@ TheParliament.app (to be released shortly) is a commercial hosted and deployed i
 
 ## Socials
 - **Discord**: Parliament currently an official [Discord server](https://discord.gg/HhdBKsK9Pq). Join the Discord to ask questions.
-- **GitHub**: Parliament supports and official [GitHub](https://github.com/kornha/parliament) (the page you're reading now). You can create issues and feature requests in the repo.
+- **GitHub**: Parliament supports an official [GitHub](https://github.com/kornha/parliament) (the page you're reading now). You can create issues and feature requests in the repo.
 - **X, Reddit, IG, Tiktok and Others**: No current accounts, but these will be created in the near future.
 
 # Development
