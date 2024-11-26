@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:political_think/common/constants.dart';
 import 'package:political_think/common/extensions.dart';
 
 enum DividerType { PRIMARY, SECONDARY, TERTIARY, VERTICAL, VERTICAL_SECONDARY }
@@ -24,7 +25,7 @@ class ZDivider extends StatelessWidget {
               type == DividerType.VERTICAL_SECONDARY
           ? VerticalDivider(
               color: context.surfaceColor,
-              thickness: 1.0,
+              thickness: Thickness.small,
               indent: type == DividerType.VERTICAL ? context.sh.height! : 0,
               endIndent: type == DividerType.VERTICAL ? context.sh.height! : 0,
             )
@@ -32,7 +33,7 @@ class ZDivider extends StatelessWidget {
               color: type == DividerType.PRIMARY
                   ? context.surfaceColorBright
                   : context.surfaceColor,
-              thickness: type == DividerType.PRIMARY ? 1.5 : 1.5,
+              thickness: Thickness.standard,
             ),
     );
   }

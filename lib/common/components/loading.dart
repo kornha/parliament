@@ -82,7 +82,7 @@ class Loading extends StatelessWidget {
         return LoadingShimmer(
           child: Container(
             width: context.imageSize.width / 3.0 - context.sl.width!,
-            height: context.blockSizeSmall.height,
+            height: context.blockSizeXS.height,
             decoration: BoxDecoration(
               color: context.surfaceColor,
             ),

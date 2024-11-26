@@ -1,13 +1,15 @@
 name: political_think
 description: An open-source news project that organizes news into `Confidence`, `Bias`, and `Newsworthiness` to tell maximally truthful news in a clear and measurable way.
 
-version: 1.14.6+1
+version: 1.14.7+1
 
 environment:
   sdk: '>=3.0.0'
 
 dependencies:
   flutter:
+    sdk: flutter
+  flutter_web_plugins:
     sdk: flutter
   cupertino_icons: ^1.0.2
   go_router: ^10.1.2

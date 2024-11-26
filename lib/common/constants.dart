@@ -61,7 +61,7 @@ class BRadius {
 
 // Should be moved to context
 class IconSize {
-  static const double tiny = 6.0;
+  static const double least = 6.0;
   static const double small = 12.5;
   static const double standard = 24.0;
   static const double large = 33;
@@ -95,8 +95,8 @@ class UIHelpers {
 class Thickness {
   static const double least = 0.25;
   static const double small = 1.0;
-  static const double normal = 2.0;
-  static const double full = 4.0;
+  static const double standard = 1.5;
+  static const double large = 4.0;
 }
 
 class ImageSize {

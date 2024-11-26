@@ -19,9 +19,7 @@ class ZRouter {
   static final rootNavigatorKey = GlobalKey<NavigatorState>();
   static final _shellNavigatorKey = GlobalKey<NavigatorState>();
 
-  static GoRouter instance(
-    WidgetRef ref,
-  ) {
+  static GoRouter instance(WidgetRef ref) {
     return GoRouter(
       initialLocation: Login.location,
       navigatorKey: rootNavigatorKey,
@@ -110,8 +108,8 @@ class ZRouter {
             ),
           ],
         ),
+        // Other routes like Login and LoadingPage without parentNavigatorKey
         GoRoute(
-          parentNavigatorKey: rootNavigatorKey,
           path: Login.location,
           pageBuilder: (context, state) => zPage(
             context: context,
@@ -119,7 +117,6 @@ class ZRouter {
           ),
         ),
         GoRoute(
-          parentNavigatorKey: rootNavigatorKey,
           path: LoadingPage.location,
           pageBuilder: (context, state) => zPage(
             context: context,
@@ -131,20 +128,34 @@ class ZRouter {
       redirect: (context, state) {
         final authState = ref.read(authProvider);
         final loggedIn = authState.isLoggedIn;
-        final loginPath = state.fullPath?.startsWith(Login.location) ?? false;
-        // final loading = authState.isLoading;
+        final isOnLoginPage = state.matchedLocation == Login.location;
         if (state.uri.path == '/') {
           return Login.location;
         }
 
         if (!loggedIn) {
-          return Login.location;
+          if (isOnLoginPage) {
+            // Already on the login page and not logged in, no redirect needed.
+            return null;
+          }
+          // Redirect to login with 'from' parameter.
+          final from = state.uri.toString();
+          return '${Login.location}?from=${Uri.encodeComponent(from)}';
         }
 
-        if (loggedIn && loginPath) {
-          return Feed.location;
+        if (loggedIn && isOnLoginPage) {
+          // Retrieve the 'from' parameter.
+          final from = state.uri.queryParameters['from'];
+          if (from != null && from.isNotEmpty && from != Login.location) {
+            // Redirect back to the 'from' location if it's valid and different from the login page.
+            return from;
+          } else {
+            // No valid 'from' parameter, redirect to the default page.
+            return Feed.location;
+          }
         }
 
+        // No redirect needed.
         return null;
       },
     );

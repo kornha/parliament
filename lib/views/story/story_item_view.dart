@@ -22,6 +22,10 @@ class StoryItemView extends ConsumerStatefulWidget {
 }
 
 class _StoryItemViewState extends ConsumerState<StoryItemView> {
+  _onTapStory() {
+    context.go("${StoryView.location}/${widget.sid}");
+  }
+
   @override
   Widget build(BuildContext context) {
     var storyRef = ref.storyWatch(widget.sid);
@@ -53,8 +57,7 @@ class _StoryItemViewState extends ConsumerState<StoryItemView> {
                               child: MouseRegion(
                                 cursor: SystemMouseCursors.click,
                                 child: GestureDetector(
-                                  onTap: () => context.push(
-                                      "${StoryView.location}/${story.sid}"),
+                                  onTap: _onTapStory,
                                   child: Text(
                                     story.headline ?? story.title!,
                                     style: newsworthiness < 0.5
@@ -81,8 +84,7 @@ class _StoryItemViewState extends ConsumerState<StoryItemView> {
                       ? MouseRegion(
                           cursor: SystemMouseCursors.click,
                           child: GestureDetector(
-                            onTap: () => context
-                                .push("${StoryView.location}/${story.sid}"),
+                            onTap: _onTapStory,
                             child: Text(
                               story.subHeadline!,
                               style: context.m,
@@ -118,7 +120,7 @@ class _StoryItemViewState extends ConsumerState<StoryItemView> {
                   Visibility(
                     visible: shouldShowSecondaryPosts,
                     child: SizedBox(
-                      height: context.blockSizeSmall.height,
+                      height: context.blockSizeXS.height,
                       child: ListView.separated(
                         shrinkWrap: true,
                         scrollDirection: Axis.horizontal,

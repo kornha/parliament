@@ -103,7 +103,7 @@ class _PostBuilderState extends ConsumerState<PostBuilder> {
                                 "status": PostStatus.published.name,
                               });
                               context.pop();
-                              context.push("${PostView.location}/${_pid!}");
+                              context.go("${PostView.location}/${_pid!}");
                             }
                           },
                     backgroundColor: context.secondaryColor,

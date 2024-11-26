@@ -23,6 +23,7 @@ class ConfidenceComponent extends StatefulWidget {
   final bool showText;
   final bool showNullBackround;
   final bool jagged;
+  final bool horizontal; // New flag added here
 
   ConfidenceComponent({
     Key? key,
@@ -41,6 +42,7 @@ class ConfidenceComponent extends StatefulWidget {
     this.showText = false,
     this.showNullBackround = true,
     this.jagged = false,
+    this.horizontal = false, // Initialize the new flag
   }) : super(key: key);
 
   @override
@@ -60,7 +62,9 @@ class _ConfidenceComponentState extends State<ConfidenceComponent> {
             painter: ConfidencePainter(
               context: context,
               confidence: widget.confidence ??
-                  (widget.showNullBackround ? Confidence(value: 0.5) : null),
+                  (widget.showNullBackround
+                      ? const Confidence(value: 0.5)
+                      : null),
               confidence2: widget.confidence2,
               confidence3: widget.confidence3,
               width: widget.width,
@@ -74,17 +78,18 @@ class _ConfidenceComponentState extends State<ConfidenceComponent> {
               showUnselected: widget.showUnselected,
               showEndRows: widget.showEndRows,
               jagged: widget.jagged,
+              horizontal: widget.horizontal, // Pass the flag to the painter
             ),
           ),
         ),
         Visibility(
-            visible: widget.showText && widget.confidence != null,
-            child: Text(
-              widget.confidence.toString(),
-              style: widget.width > context.iconSizeLarge
-                  ? context.am
-                  : context.as,
-            )),
+          visible: widget.showText && widget.confidence != null,
+          child: Text(
+            widget.confidence.toString(),
+            style:
+                widget.width > context.iconSizeLarge ? context.am : context.as,
+          ),
+        ),
       ],
     );
   }
@@ -105,6 +110,7 @@ class ConfidencePainter extends CustomPainter {
   final bool fadeAbove;
   final bool showEndRows;
   final bool jagged;
+  final bool horizontal; // New flag added here
 
   ConfidencePainter({
     required this.context,
@@ -121,16 +127,19 @@ class ConfidencePainter extends CustomPainter {
     this.showUnselected = true,
     this.showEndRows = true,
     this.jagged = false,
+    this.horizontal = false, // Initialize the new flag
   });
 
   late final _paint = Paint()
     ..color = context.surfaceColor
     ..style = PaintingStyle.fill;
 
-  late final _radiusSmall = min(((width / columns)), (height / rows)) * 0.5;
+  late final _radiusSmall = min((width / columns), (height / rows)) * 0.5;
 
   @override
   void paint(Canvas canvas, Size size) {
+    int dimension = horizontal ? columns : rows;
+
     for (int i = 0; i < columns; i++) {
       for (int j = 0; j < rows; j++) {
         var currentConfidence =
@@ -140,45 +149,49 @@ class ConfidencePainter extends CustomPainter {
             showUnselected ? context.surfaceColor : context.backgroundColor;
 
         if (currentConfidence != null) {
-          // Base credibleRow calculation
-          var baseRow =
-              (rows - 1) - (currentConfidence.value * (rows - 1)).toInt();
+          var basePosition = horizontal
+              ? (currentConfidence.value * (dimension - 1)).toInt()
+              : (dimension - 1) -
+                  (currentConfidence.value * (dimension - 1)).toInt();
 
-          int credibleRow;
+          int crediblePosition;
 
           if (jagged) {
-            // Calculate the jagged offset using a sine wave
-            var amplitude = (rows * 0.15).toInt(); // Adjust amplitude as needed
-            var frequency = 0.845; // Adjust frequency as needed
-            var wave = (sin(i * frequency) * amplitude).toInt();
-            credibleRow = baseRow + wave;
+            var amplitude = (dimension * 0.15).toInt();
+            var frequency = 0.845;
+            var wave =
+                (sin((horizontal ? j : i) * frequency) * amplitude).toInt();
+            crediblePosition = basePosition + wave;
           } else {
-            credibleRow = baseRow;
+            crediblePosition = basePosition;
           }
 
-          double exp = pow(decay, (credibleRow - j).abs()).toDouble();
-          color = !fadeAbove && credibleRow > j
+          double exp = pow(
+            decay,
+            (crediblePosition - (horizontal ? i : j)).abs(),
+          ).toDouble();
+
+          color = !fadeAbove && crediblePosition > (horizontal ? i : j)
               ? Colors.transparent
               : setColor?.withOpacity(exp) ??
                   currentConfidence.color.withOpacity(exp);
 
-          // Existing code for showing end rows
           if (showEndRows) {
-            if (j == 0) {
+            if ((horizontal ? i : j) == 0) {
               color = Palette.green;
-            } else if (j == rows - 1) {
+            } else if ((horizontal ? i : j) == (dimension - 1)) {
               color = Palette.purple;
             }
           }
-        } else {
-          // Existing code for when currentConfidence is null
-          // ...
         }
 
         var offsetx = 2 * _radiusSmall * i + _radiusSmall;
         var offsety = 2 * _radiusSmall * j + _radiusSmall;
         canvas.drawCircle(
-            Offset(offsetx, offsety), _radiusSmall, _paint..color = color);
+          Offset(offsetx, offsety),
+          _radiusSmall,
+          _paint..color = color,
+        );
       }
     }
   }

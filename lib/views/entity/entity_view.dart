@@ -82,7 +82,7 @@ class _EntityItemViewState extends ConsumerState<EntityView> {
                     Visibility(
                         visible: allPosts != null && allPosts.isNotEmpty,
                         child: SizedBox(
-                          height: context.blockSizeSmall.height,
+                          height: context.blockSizeXS.height,
                           child: ListView.separated(
                             shrinkWrap: true,
                             scrollDirection: Axis.horizontal,

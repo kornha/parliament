@@ -147,9 +147,14 @@ extension MediaQueryExt on BuildContext {
       );
 
   // TODO: Should this be static?
-  Size get blockSizeSmall => Size(
+  Size get blockSizeXS => Size(
         min(blockSize.width / 2.5, 160),
         min(blockSize.width / 2.5, 160) * 9 / 16,
+      );
+
+  Size get blockSizeSmall => Size(
+        min(blockSize.width / 1.35, 400),
+        min(blockSize.width / 1.35, 400) * 9 / 16,
       );
 
   Size get blockSizeLarge => Size(
@@ -157,7 +162,7 @@ extension MediaQueryExt on BuildContext {
       min(screenSize.width - blockMargin.horizontal, 1000) * 9 / 16);
 
   Size get imageSize => blockSize;
-  Size get imageSizeSmall => blockSizeSmall;
+  Size get imageSizeSmall => blockSizeXS;
 
   // TODO: Hack, we need to fix all this sizing
   Size get screenBlock {
@@ -391,7 +396,7 @@ extension ConstantsExt on BuildContext {
   //Widget get sendIcon => Icon(Icons.send, color: onSurfaceColor);
   //Widget get deliveredIcon => Icon(Icons.receipt, color: primaryColor);
 
-  double get iconSizeTiny => IconSize.tiny;
+  double get iconSizeTiny => IconSize.least;
   double get iconSizeSmall => IconSize.small;
   double get iconSizeStandard => IconSize.standard;
   double get iconSizeLarge => IconSize.large;

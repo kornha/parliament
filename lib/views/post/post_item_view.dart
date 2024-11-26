@@ -64,7 +64,7 @@ class _PostViewState extends ConsumerState<PostItemView> {
                       // Is there a better way to do this?
                       context.router.uri.path.contains(PostView.location)
                           ? null
-                          : context.push("${PostView.location}/${post?.pid}"),
+                          : context.go("${PostView.location}/${post?.pid}"),
               child: !widget.isSubView
                   ? Column(
                       children: [
