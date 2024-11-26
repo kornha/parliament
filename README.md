@@ -10,7 +10,7 @@
 
 ![In Progress](https://img.shields.io/badge/status-pre%20release-blue)
 
-**Parliament** is an open-source news project that organizes news by `Confidence`, `Bias`, `Newsworthiness`, and `Context` to tell maximally truthful news in a clear and measurable way.
+**Parliament** is an open-source news project that organizes news by `Confidence`, `Bias`, `Newsworthiness`, and `Contextualization` to tell maximally truthful news in a clear and measurable way.
 
 ### Key Concepts
 
@@ -46,8 +46,8 @@
         5. [Extreme](#extreme)
     5. [Newsworthiness](#newsworthiness)
         1. [Newsworthiness Algorithm](#newsworthiness-algorithm)
-    6. [Context](#context)
-        1. [Context Algorithm](#context-algorithm)
+    6. [Contextualization](#contextualization)
+        1. [Contextualization Algorithm](#contextualization-algorithm)
     7. [Concepts](#concepts)
         1. [Story](#story)
         2. [Post](#post)
@@ -84,7 +84,7 @@ For people, our perceived credibility in certain outlets is weighed by many thin
 
 We also perceive some news events to be more important than others. This may be due to various factors, such as ramifications that impact our lives, significant geopolitical events, events that confirm or reject our beliefs, local concerns, unique occurrences (_man bites dog_), or other considerations. For example, on August 9, 1974, when the New York Times published *NIXON RESIGNS* in capital letters on their front page, they were expressing significant urgency in the event. While the importance of the `Story` is different to each person, i.e., it may have been more interesting to an American autoworker than to a Nepalese farmer, the New York Times felt it was newsworthy enough for their audience to warrant an all-caps title. This judgment we call `Newsworthiness`.
 
-News, when told, also includes a varying contextualization around the event that may significantly alter our understanding and perception of an event. In the most simplest case, an image can be so powerful, only to reverse its meaning when it is zoomed out. The fairness and completeness around which a `Story` is told we call `Context`. 
+News, when told, also includes a varying contextualization around the event that may significantly alter our understanding and perception of an event. In the most simplest case, an image can be so powerful, only to reverse its meaning when it is zoomed out. The fairness and completeness around which a `Story` is told we call `Contextualization`. 
 
 Each human consumes news differently due to their unique experiences and circumstances. This is partly why the same event can be perceived so differently by different individuals. 
 Parliament's mission is to tell maximally truthful news in a clear and measurable way.
@@ -367,15 +367,15 @@ There is almost an unlimited amount of news, and choosing _what_ news to publish
 
 A heuristic would be to consider something newsworthy if it is discussed with high frequency. Social media feeds and news outlets rely on this heuristic significantly. As discussed, this is not sufficient, and it favors bias. However, if we already know bias as we have calculated above, we can consider something to be `Newsworthy` if it not only has a high frequency in our given publication period, but it also has a high frequency amongst some or all bias groups. This exact algorithm is still being calculated but it yields a number between `0.0` and `1.0` where `0.0` represents _the least possible newsworthy event_ and `1.0` represents _the most possible newsworthy event_. For regionalization we don't change the scale at all, it is a global concept from which we can still filter by region for localized news.
 
-## Context
+## Contextualization
 
-> **Context**: The cross-bias consensus for what information should be included in a `Story`.
+> **Contextualization**: The cross-bias consensus for what information should be included in a `Story`.
 
-News providers will invariably include different information when telling a `Story`. Based on the information included, a viewer may perceive content very differently. If we were to find cross-bias consensus on what `Context` to include in a given `Story`, we could maximally ensure fairness in reporting.
+News providers will invariably include different information when telling a `Story`. Based on the information included, a viewer may perceive content very differently. If we were to find cross-bias consensus on what `Contextualization` to include in a given `Story`, we could maximally ensure fairness in reporting.
 
-### Context Algorithm
+### Contextualization Algorithm
 
-We calculate context by ensuring information reporting meets a `Center` degree of `Bias`. That is, if we have significant amount of centrist sources, we will aggregate their contextualization of a `Story` and use that in our reporting. For each `Claim`, `Opinion`, or `Phrase` that is beyond centrist, we should be sure to include labeling of the context, as well as context from the angular opposite. In this way, we are always reporting news with fair `Context` that matches our `Centrist` `Bias`. 
+We calculate contextualization by ensuring information reporting meets a `Center` degree of `Bias`. That is, if we have significant amount of centrist sources, we will aggregate their contextualization of a `Story` and use that in our reporting. For each `Claim`, `Opinion`, or `Phrase` that is beyond centrist, we should be sure to include labeling of the contextualization, as well as contextualization from the angular opposite. In this way, we are always reporting news with fair `Contextualization` that matches our `Centrist` `Bias`. 
 
 ## Concepts
 
@@ -383,7 +383,8 @@ We calculate context by ensuring information reporting meets a `Center` degree o
 
 A Story is an event that happened.
 - It is created from a collection of Posts that are 'talking about the same thing.' (more on this below)
-- A Story has a title, a description, a headline, a subheadline, which are textual descriptions of the Story.
+- A Story has a title and description which are raw captures of the Story's information.
+- A Story has a headline, subHeadline, lede, and article which are the `Contextualization` of the story.
 - A Story has a "happenedAt" timestamp, which represents when the event happened in the real world.
 - A Story has a "newsworthiness" value, which is a number between 0.0 and 1.0, where 1.0 is the most possibly newsworthy event.
 - A Story has a lat and long, which are the best estimates of the location of the Story.
@@ -415,7 +416,7 @@ A Claim is a statement about an event that is verifiable.
 - A Claim has a "value" field, which is the statement itself.
 - A Claim has a "pro" field, which is a list of Posts that support the Claim.
 - A Claim has an "against" field, which is a list of Posts that refute the Claim.
-- A Claim has a "context" field, which provides more information about the Claim, and helps for search.
+- A Claim has a "context" field, which provides more information about the Claim, and helps for search. Not to be confused with "Contextualization".
 - A Claim is fundamentally verifiable; a non-verifiable "claim" is called an `Opinion`.
 - A Claim has an associated `Confidence`.
 - A Claim has associated `Entities`.
@@ -427,7 +428,7 @@ An opinion is a statement about an event that is not verifiable.
 - An Opinion has a "value" field, which is the statement itself.
 - An Opinion has a "pro" field, which is a list of Posts that support the Claim.
 - An Opinion has an "against" field, which is a list of Posts that refute the Claim.
-- An Opinion has a "context" field, which provides more information about the Claim, and helps for search.
+- An Opinion has a "context" field, which provides more information about the Claim, and helps for search. Not to be confused with "Contextualization".
 - An Opinion is fundamentally non-verifiable; a verifiable "opinion" is called a `Claim`.
 - An Opinion has an associated `Bias`.
 - An Opinion has associated `Entities`.
