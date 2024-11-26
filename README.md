@@ -72,7 +72,7 @@
 
 ### Credible News
 
-![In Progress](https://img.shields.io/badge/status-in%20progress-yellow)
+by [Alexander Kornhauser](https://www.linkedin.com/in/alexkornhauser/).
 
 ## Mission
 
