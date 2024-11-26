@@ -12,6 +12,16 @@
 
 **Parliament** is an open-source news project that organizes news by `Confidence`, `Bias`, `Newsworthiness`, and `Context` to tell maximally truthful news in a clear and measurable way.
 
+### Key Concepts
+
+* **Parliament** is the open-source repo that anyone can contribute to.
+* **Parliament** is based on the whitepaper [Credible News](#whitepaper), by [Alexander Kornhauser](https://www.linkedin.com/in/alexkornhauser/).
+  * The author of this whitepaper does not speak for Parliament or necessarily reflect Parliament's view on [Commitment to Zero Political Evangelism](#commitment-to-zero-political-evangelism).
+  * Parliament's belief is that the approach laid out in the whitepaper represents the theoretical best way to present maximally truthful and maximally unbiased news without the need for direct content validation.
+* **www.parliament.foundation** (launched in early 2025) is a **commercial Web and Mobile** implementation of Parliament. 
+  * Anyone can host a Parliament, provided there is compliance with the [LICENSE](LICENSE).
+
+
 *This project is in pre-release, and as such, is a preview. Many features are in development.*
 
 <div align="center">
@@ -27,17 +37,17 @@
     1. [Credible News](#credible-news)
     2. [Mission](#mission)
     3. [Confidence](#confidence)
-        1. [Algorithm](#algorithm)
+        1. [Confidence Algorithm](#confidence-algorithm)
     4. [Bias](#bias)
-        1. [Algorithm](#algorithm)
+        1. [Bias Algorithm](#bias-algorithm)
         2. [Center](#center)
         3. [Right](#right)
         4. [Left](#left)
         5. [Extreme](#extreme)
     5. [Newsworthiness](#newsworthiness)
-        1. [Algorithm](#algorithm)
+        1. [Newsworthiness Algorithm](#newsworthiness-algorithm)
     6. [Context](#context)
-        1. [Algorithm](#algorithm)
+        1. [Context Algorithm](#context-algorithm)
     7. [Concepts](#concepts)
         1. [Story](#story)
         2. [Post](#post)
@@ -47,18 +57,16 @@
         6. [Opinion](#opinion)
         7. [Phrase](#phrase)
 2. [Contact](#contact)
-    1. [Socials](#socials) 
-2. [Development](#development)
-    1. [Why Participate?](#why-participate)
-        1. [Shared ownership](#shared-ownership)
+    1. [Socials](#socials)
+3. [Development](#development)
+    1. [Commitment to Zero Political Evangelism](#commitment-to-zero-political-evangelism)
+    2. [Why Participate?](#why-participate)
+        1. [Shared Ownership](#shared-ownership)
         2. [Swag](#swag)
         3. [Learn](#learn)
-    2. [Getting started](#getting-started)
+    3. [Getting Started](#getting-started)
         1. [Discord](#discord)
-        2. [Instructions](#instructions)   
-        3. [Flutter](#flutter)
-        4. [Firebase](#firebase)
-        5. [AI/ML](#aiml)
+        2. [Instructions](#instructions)
 
 # Whitepaper 
 
@@ -90,7 +98,7 @@ Let's dive into how the system works.
 How do we know that something is true? This is a philosophical question, and there are several product approaches to addressing it. X, for instance, relies on community notes. FactCheck.org focuses on fact-checking. These two approaches work by direct content validation. A strategy that, when implemented correctly, can be extremely accurate.
 Parliament takes what you may call the additional level of abstraction to the above. In the view of Parliament, FactCheck.org, @elonmusk, X fact checker, NYT, a random account on IG, etc. are each what we call an `Entity`. Otherwise put, Parliament does use fact checkers too, it just tries to use all of them. And, based on if they've been right or wrong in the data we've collected, we know how much to trust them going forward. In this mode of thinking, we can assign news `Confidence` scores, a score between `0.0` and `1.0`, where 0 represents *maximal certainty that something is false*, and 1.0 represents *maximal certainty that something is true*. Total certainty is unknowable, and both 0.0 and 1.0 can never be achieved.
 
-### Algorithm
+### Confidence Algorithm
 
 We will only cover a high level of the confidence algorithm here, as the specifics are [written in the code](functions/ai/confidence.js). 
 
@@ -240,7 +248,7 @@ In principle, understanding political `Bias` requires a currency for comparing b
 
 Consider a *Parliamentary* (roll credits) system of government, in which there are different parties that appeal to different voter segments, which in turn correlates a party to bias groups. Let's say in our Parliament the seating is circular, and similar parties seat near one another. We can organize our Parliament by asking the following question:
 
-### Algorithm
+### Bias Algorithm
 
 *If I were to seat every member of Parliament at a round table, such that I wanted to maximize agreement and minimize the disagreement between a member and the two people sitting next to the member, how would I seat the people?* The reason this is chosen is more philosophical than mathematical, as it assumes there is a center, right, left, and anti-center, what we label the extreme. This is a mode of grouping that we find to be understandable by many people and is a manifestation of the _horseshoe theory_. If we accept this assumption, we mathematically represent bias as an angle between `0.0` and `360.0` degrees, and calculate angle updates by simple angular arithmetic. The full algorithm [written in the code](functions/ai/confidence.js).
 
@@ -355,7 +363,7 @@ Hence for a given claim we can now say how confident we are that it is true, and
 
 There is almost an unlimited amount of news, and choosing _what_ news to publish is a core part of any platform. For instance, a heavily biased platform may choose to publish news that corroborates their narrative more than news that supports a different narrative. Even within this context, regionalization of the platform, reader interest, and other aspects control _what_ gets published. Under the hood, something is filtering large amounts of information and deciding what is newsworthy. In contrast, social media feeds may show different news to different people, as what is important and interesting to one person may be different than to another. In aggregate some `Stories` and `Posts` will be shown more than others, but this may reflect the bias or even abuse of the platform or the algorithm. If we wish to label all `Stories`, we must determine a way they can be labeled without bias. To solve this question, we calculate `Newsworthiness`.
 
-### Algorithm
+### Newsworthiness Algorithm
 
 A heuristic would be to consider something newsworthy if it is discussed with high frequency. Social media feeds and news outlets rely on this heuristic significantly. As discussed, this is not sufficient, and it favors bias. However, if we already know bias as we have calculated above, we can consider something to be `Newsworthy` if it not only has a high frequency in our given publication period, but it also has a high frequency amongst some or all bias groups. This exact algorithm is still being calculated but it yields a number between `0.0` and `1.0` where `0.0` represents _the least possible newsworthy event_ and `1.0` represents _the most possible newsworthy event_. For regionalization we don't change the scale at all, it is a global concept from which we can still filter by region for localized news.
 
@@ -365,7 +373,7 @@ A heuristic would be to consider something newsworthy if it is discussed with hi
 
 News providers will invariably include different information when telling a `Story`. Based on the information included, a viewer may perceive content very differently. If we were to find cross-bias consensus on what `Context` to include in a given `Story`, we could maximally ensure fairness in reporting.
 
-### Algorithm
+### Context Algorithm
 
 We calculate context by ensuring information reporting meets a `Center` degree of `Bias`. That is, if we have significant amount of centrist sources, we will aggregate their contextualization of a `Story` and use that in our reporting. For each `Claim`, `Opinion`, or `Phrase` that is beyond centrist, we should be sure to include labeling of the context, as well as context from the angular opposite. In this way, we are always reporting news with fair `Context` that matches our `Centrist` `Bias`. 
 
@@ -437,20 +445,24 @@ Parliament is open source. For questions related to this GitHub repo, please [jo
 TheParliament.app (to be released shortly) is a commercial hosted and deployed implementation of Parliament. For investment information and other queries, please email <a href="mailto:contact@theparliament.app">contact@theparliament.app</a>.
 
 ## Socials
-- **Discord**: Parliament currently supports an official [Discord server](https://discord.gg/HhdBKsK9Pq).
+- **Discord**: Parliament currently an official [Discord server](https://discord.gg/HhdBKsK9Pq). Join the Discord to ask questions.
+- **GitHub**: Parliament supports and official [GitHub](https://github.com/kornha/parliament) (the page you're reading now). You can create issues and feature requests in the repo.
 - **X, Reddit, IG, Tiktok and Others**: No current accounts, but these will be created in the near future.
 
 # Development
 
 ![Instructions Coming Soon](https://img.shields.io/badge/status-instructions%20coming%20soon-green)
 
+### Commitment to Zero Political Evangelism
+Parliament is an apolitical project, and due to the sensitive nature of the information Parliament presents, it is reasonable to think that political actors may wish to get involved. Parliament requires all contributors to abide by a `Commitment to Zero Political Evangelism`. Anyone in violation of this will be banned from the project. Expect this to be clarified as we develop further.
+
+You should **not** participate if you are a political activist looking to push a political agenda. Parliament is apolitical, and will always be.
+
 ## Why Participate?
 
 > You believe in our mission.
 
 There are serious quality issues with current news. It is often misleading, decontextualized, or even fake. Parliament is an apolitical solution to this problem. If, and only if, this mission is for you, only then do we recommend you contribute.
-
-You should **not** participate if you are a political activist looking to push a political agenda. Parliament is apolitical, and will always be.
 
 ### Shared ownership
 
