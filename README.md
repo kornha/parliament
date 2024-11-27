@@ -20,7 +20,7 @@
   * Parliament's belief is that the approach laid out in the whitepaper represents the theoretical best way to present maximally truthful and maximally unbiased news without the need for direct content validation.
 * **Parliament Foundation** (www.parliament.foundation coming in early 2025) is a **commercial Web and Mobile** implementation of Parliament. 
   * Anyone can host a Parliament, provided there is compliance with the [LICENSE](LICENSE).
-  * Parliament Foundation is not endorsed or affiliated with Parliament, but holds the right to use Parliament branding and trademarks.
+  * Parliament Foundation is **not endorsed or affiliated** with Parliament, but holds the right to use Parliament branding and trademarks.
   * For inquiries about Parliament Foundation, you can email contact@parliament.foundation.
 
 *This project is in pre-release, and as such, is a preview. Many features are in development.*
@@ -444,7 +444,7 @@ A Phrase is a word or group of words that are used to express `Posts`, `Claims`,
 # Contact
 Parliament is open source. For questions related to this GitHub repo, please [join our discord](https://discord.gg/HhdBKsK9Pq) or raise an issue in this repo.
 
-TheParliament.app (to be released shortly) is a commercial hosted and deployed implementation of Parliament. For investment information and other queries, please email <a href="mailto:contact@theparliament.app">contact@theparliament.app</a>.
+**Parliament Foundation** is a commercial hosted and deployed implementation of Parliament. Parliament is not affiliated with and does not endorse Parliament Foundation. For inquiries, contact contact@parliament.foundation.
 
 ## Socials
 - **Discord**: Parliament currently an official [Discord server](https://discord.gg/HhdBKsK9Pq). Join the Discord to ask questions.
