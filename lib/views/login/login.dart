@@ -48,7 +48,7 @@ class _LoginState extends ConsumerState<Login> {
               },
               child: const Text("Join"),
             ),
-            context.sf,
+            context.stq,
             ZTextButton(
               type: ZButtonTypes.wide,
               backgroundColor: context.surfaceColor,

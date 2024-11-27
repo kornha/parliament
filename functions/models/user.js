@@ -59,7 +59,7 @@ exports.onAuthUserDelete = functions.runWith(defaultConfig)
 // API's
 //
 
-exports.setUsernameV2 = onCall({...defaultConfig},
+exports.setUsername = onCall({...defaultConfig},
     async (request) => {
       authenticate(request);
 
@@ -67,7 +67,10 @@ exports.setUsernameV2 = onCall({...defaultConfig},
       if (!data.username) {
         throw new HttpsError("invalid-argument", "No username provided.");
       }
-      return updateUser(context.auth.uid, {username: data.username});
+
+      // TODO: add check again here for race condition
+
+      return updateUser(request.auth.uid, {username: data.username});
     },
 );
 

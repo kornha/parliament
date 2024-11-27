@@ -33,7 +33,7 @@ extension ProviderExt on WidgetRef {
   AsyncValue<ZUser?> userWatch(uid) => watch(zuserProvider(uid));
   AsyncValue<ZUser?> userRead(uid) => read(zuserProvider(uid));
   AsyncValue<ZUser?> selfUserWatch() =>
-      watch(zuserProvider(authRead.authUser!.uid));
+      watch(zuserProvider(authWatch.authUser!.uid));
   AsyncValue<ZUser?> selfUserRead() =>
       read(zuserProvider(authRead.authUser!.uid));
   // gets the user assuming logged in
@@ -239,9 +239,9 @@ extension Spacing on BuildContext {
       const SizedBox(height: Margins.fiveHalf, width: Margins.fiveHalf);
   SizedBox get sd =>
       const SizedBox(height: Margins.twice, width: Margins.twice);
-  SizedBox get sf => const SizedBox(height: Margins.full, width: Margins.full);
   SizedBox get sth =>
       const SizedBox(height: Margins.threeHalf, width: Margins.threeHalf);
+  SizedBox get sf => const SizedBox(height: Margins.full, width: Margins.full);
   SizedBox get stq =>
       const SizedBox(height: Margins.threeQuarter, width: Margins.threeQuarter);
   SizedBox get sh => const SizedBox(height: Margins.half, width: Margins.half);

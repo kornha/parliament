@@ -14,7 +14,7 @@ class BrandingText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var style = context.d2;
+    var style = context.d3;
 
     return Stack(
       alignment: Alignment.center,

@@ -102,7 +102,7 @@ class _ProfileState extends ConsumerState<Profile> {
                       child: const Text("Logout"),
                     ),
                   ),
-                  context.sh,
+                  context.stq,
                   Center(
                     child: ZTextButton(
                       type: ZButtonTypes.wide,

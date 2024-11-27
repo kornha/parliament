@@ -47,6 +47,7 @@ class LoginModal extends StatelessWidget {
           foregroundColor: context.onSecondaryColor,
           child: const Text("Sign in with Email"),
         ),
+        context.sh,
         const ZTextButton(
           type: ZButtonTypes.wide,
           child: Row(

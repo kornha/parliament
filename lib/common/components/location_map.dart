@@ -5,6 +5,7 @@ import 'package:countries_world_map/countries_world_map.dart';
 import 'package:countries_world_map/data/maps/world_map.dart';
 import 'package:country_flags/country_flags.dart';
 import 'package:country_picker/country_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -64,16 +65,24 @@ class _LocationMapState extends State<LocationMap> {
   @override
   Widget build(BuildContext context) {
     var side = widget.size ?? context.iconSizeLarge;
-    var mapId = context.isDarkMode
-        ? dotenv.env['MAPS_DARK_ID']!
-        : dotenv.env['MAPS_LIGHT_ID']!;
+    String? mapId = context.isDarkMode
+        ? dotenv.env['MAPS_DARK_ID']
+        : dotenv.env['MAPS_LIGHT_ID'];
+    String? key = dotenv.env['FIREBASE_API_KEY_IOS'];
+
+    if (key == null || mapId == null) {
+      if (kDebugMode) {
+        print("Include FIREBASE_API_KEY_IOS and MAP_ID in .env");
+      }
+      return const SizedBox.shrink();
+    }
 
     var url = "https://maps.googleapis.com/maps/api/staticmap?"
         "size=150x150"
         "&zoom=5"
         "&visible=${widget.location.geoPoint.latitude},${widget.location.geoPoint.longitude}"
         "&map_id=$mapId"
-        "&key=${dotenv.env['FIREBASE_API_KEY_IOS']!}";
+        "&key=$key";
 
     return Stack(
       alignment: AlignmentDirectional.bottomStart,
