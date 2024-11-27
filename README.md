@@ -20,8 +20,8 @@
   * Parliament's belief is that the approach laid out in the whitepaper represents the theoretical best way to present maximally truthful and maximally unbiased news without the need for direct content validation.
 * **Parliament Foundation** (www.parliament.foundation coming in early 2025) is a **commercial Web and Mobile** implementation of Parliament. 
   * Anyone can host a Parliament, provided there is compliance with the [LICENSE](LICENSE).
+  * Parliament Foundation is not endorsed or affiliated with Parliament, but holds the right to use Parliament branding and trademarks.
   * For inquiries about Parliament Foundation, you can email contact@parliament.foundation.
-
 
 *This project is in pre-release, and as such, is a preview. Many features are in development.*
 
