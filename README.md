@@ -20,6 +20,7 @@
   * Parliament's belief is that the approach laid out in the whitepaper represents the theoretical best way to present maximally truthful and maximally unbiased news without the need for direct content validation.
 * **Parliament Foundation** (www.parliament.foundation coming in early 2025) is a **commercial Web and Mobile** implementation of Parliament. 
   * Anyone can host a Parliament, provided there is compliance with the [LICENSE](LICENSE).
+  * For inquiries about Parliament Foundation, you can email contact@parliament.foundation.
 
 
 *This project is in pre-release, and as such, is a preview. Many features are in development.*
@@ -455,7 +456,7 @@ TheParliament.app (to be released shortly) is a commercial hosted and deployed i
 ### Commitment to Zero Political Evangelism
 Parliament is an apolitical project, and due to the sensitive nature of the information Parliament presents, it is reasonable to think that political actors may wish to get involved. Parliament requires all contributors to abide by a `Commitment to Zero Political Evangelism`. Anyone in violation of this will be banned from the project. Expect this to be clarified as we develop further.
 
-You should **not** participate if you are a political activist looking to push a political agenda. Parliament is apolitical, and will always be.
+You should **not** participate if you are a political activist looking to push a political agenda. Parliament is apolitical, and always will be.
 
 ## Why Participate?
 
@@ -470,7 +471,7 @@ TheParliament.app is reserving a meaningful amount of equity for top contributor
 
 ### Swag
 
-Contributors with accepted commits get swag at different milestones.
+Contributors with accepted commits get swag at different milestones. (Coming soon!)
 
 ### Learn
 
