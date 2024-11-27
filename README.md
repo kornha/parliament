@@ -452,8 +452,6 @@ TheParliament.app (to be released shortly) is a commercial hosted and deployed i
 
 # Development
 
-![Instructions Coming Soon](https://img.shields.io/badge/status-instructions%20coming%20soon-green)
-
 ### Commitment to Zero Political Evangelism
 Parliament is an apolitical project, and due to the sensitive nature of the information Parliament presents, it is reasonable to think that political actors may wish to get involved. Parliament requires all contributors to abide by a `Commitment to Zero Political Evangelism`. Anyone in violation of this will be banned from the project. Expect this to be clarified as we develop further.
 
