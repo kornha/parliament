@@ -52,10 +52,11 @@
         1. [Story](#story)
         2. [Post](#post)
         3. [Entity](#entity)
-        4. [Statement](#statement)
-        5. [Claim](#claim)
-        6. [Opinion](#opinion)
-        7. [Phrase](#phrase)
+        4. [Platform](#platform)
+        5. [Statement](#statement)
+        6. [Claim](#claim)
+        7. [Opinion](#opinion)
+        8. [Phrase](#phrase)
 2. [Contact](#contact)
     1. [Socials](#socials)
 3. [Development](#development)
@@ -405,6 +406,13 @@ A Post is a social media post (text, image, video), news article, or any other n
 An Entity is an author, sometimes one person and sometimes a whole news outlet, depending on the level of granularity that can be obtained.
 - An Entity has a Bias and Confidence score tracking the Entity's history.
 - An Entity is associated with a list of Posts, Claims, Opinions, and Phrases.
+- An Entity has an associated Platform. (Possibly multiple but limited to singleton currently.)
+
+### Platform
+
+A Platform is the outlet to which an Entity publishes. It can be social (eg., X, Instagram), news (eg., BBC, NYT), or any other outlet.
+- A Platform has associated with Entities.
+- A Platform has metadata attributes like avg. likes, avg. replies, avg. reposts, avg. bookmarks, avg. views.
 
 ### Statement
 A Statement is either a `Claim`, `Opinion`, or `Phrase`.
