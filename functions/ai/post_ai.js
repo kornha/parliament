@@ -19,7 +19,7 @@ const {
 } = require("../common/database");
 const {generateEmbeddings} = require("../common/llm");
 
-const {retryAsyncFunction, isoToMillis} = require("../common/utils");
+const {retryAsyncFunction, isoToMillis, getCountryCode} = require("../common/utils");
 const {v4} = require("uuid");
 const {Timestamp, FieldValue, GeoPoint} = require("firebase-admin/firestore");
 const geo = require("geofire-common");
@@ -28,8 +28,7 @@ const {findStatements, resetStatementVector} = require("./statement_ai");
 // eslint-disable-next-line no-unused-vars
 const {publishMessage, POST_SHOULD_FIND_STORIES} =
 require("../common/pubsub");
-const {queueTask,
-  POST_SHOULD_FIND_STORIES_TASK, POST_SHOULD_FIND_STATEMENTS_TASK} =
+const {queueTask, POST_SHOULD_FIND_STORIES_TASK} =
 require("../common/tasks");
 
 /** FLAGSHIP FUNCTION
@@ -62,7 +61,7 @@ const onPostShouldFindStories = async function(post) {
 
   if (resp == null) {
     await retryAsyncFunction(() => updatePost(post.pid, {
-      status: "noStories",
+      status: "unsupported",
     }));
     return;
   }
@@ -88,10 +87,10 @@ const onPostShouldFindStories = async function(post) {
       }));
     }
 
-    const location = gstory.lat && gstory.long ? {
+    const location = gstory.lat && gstory.long ? { 
       geoPoint: new GeoPoint(gstory.lat, gstory.long),
-      geoHash: geo.geohashForLocation([gstory.lat,
-        gstory.long]),
+      geoHash: geo.geohashForLocation([gstory.lat, gstory.long]),
+      countryCode: await getCountryCode(gstory.lat, gstory.long)
     } : null;
 
     const storyData = {
@@ -224,10 +223,10 @@ const onPostShouldFindStatements = async function(post) {
   const resp = await findStatements(post, statements);
 
   if (resp == null) {
-    // might be OK as not all posts have statements
-    await retryAsyncFunction(() => updatePost(post.pid, {
-      status: "noStatements",
-    }));
+    // we dont set the status here as we there may legitimately be none
+    // await retryAsyncFunction(() => updatePost(post.pid, {
+    //   status: "unsupported",
+    // }));
     return;
   }
 
@@ -296,7 +295,7 @@ const onPostShouldFindStatements = async function(post) {
       logger.info(`Deleted statements ${resp.removedStatements}`);
 
       changedPosts.forEach(async (post) => {
-        queueTask(POST_SHOULD_FIND_STATEMENTS_TASK, {pid: post.pid});
+        queueTask(POST_SHOULD_FIND_STORIES_TASK, {pid: post.pid});
       });
     }
   }
