@@ -1,6 +1,8 @@
 const {Timestamp, FieldValue} = require("firebase-admin/firestore");
 const _ = require("lodash");
 const {logger} = require("firebase-functions/v2");
+const axios = require("axios"); 
+
 
 const isLocal = process.env.FUNCTIONS_EMULATOR === "true";
 
@@ -118,6 +120,8 @@ function urlToDomain(url) {
 // Retry
 // //////////////////////////////////////////////////////////////////
 
+
+// match syntax 127- 128
 /**
  *
  * @param {Function} asyncFn
@@ -149,6 +153,31 @@ async function retryAsyncFunction(
     logger.error(`Failed after ${retries} attempts`);
   }
   return false;
+}
+
+
+// //////////////////////////////////////////////////////////////////
+// Location
+// //////////////////////////////////////////////////////////////////
+
+/**
+ * @param {number} lat
+ * @param {number} long
+ * @return {Promise<string|null>}
+ */
+async function getCountryCode(lat,long) {
+  try {
+    const response = await axios.get(
+      `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${long}&key=PLACEHOLDER`
+    );
+    const country = response.data.results.find(result =>
+      result.types.includes("country")
+    );
+    return country ? country.address_components[0].short_name : null;
+  } catch (error) {
+    logger.error("Error fetching country code:", error);
+    return null;
+  }
 }
 
 // //////////////////////////////////////////////////////////////////
@@ -214,29 +243,20 @@ const getPlatformType = function(platform) {
 /**
    * Gets the status of a post based on its current status and poster.
    * @param {Object} post - The post to get the status for.
-   * @param {string} currStatus - The existing status of the post.
+   * @param {string} existingStatus - The existing status of the post.
    * @return {string} - The status of the post.
    */
-function getStatus(post, currStatus) {
+function getStatus(post, existingStatus) {
   if (post.video && post.video.videoURL) {
     return "unsupported";
   } else if (post.status != "scraping" && post.status != "draft" &&
-    currStatus != null) {
-    return currStatus;
+    existingStatus != null) {
+    return existingStatus;
   } else if (post.poster) {
     return "draft";
   } else {
     return "published";
   }
-}
-
-/**
- * Checks if a status is unsupported
- * @param {string} status - the status to check
- * @return {boolean} - True if the status is unsupported, false otherwise.
- * */
-function isUnsupportedStatus(status) {
-  return status === "unsupported" || status === "noStories";
 }
 
 // //////////////////////////////////////////////////////////////////
@@ -372,7 +392,6 @@ const handleChangedRelations = async (
 module.exports = {
   isLocal,
   getStatus,
-  isUnsupportedStatus,
   urlToDomain,
   isFibonacciNumber,
   isPerfectSquare,
@@ -385,4 +404,5 @@ module.exports = {
   extractInvalidImageUrl,
   getPlatformType,
   handleChangedRelations,
+  getCountryCode,
 };
