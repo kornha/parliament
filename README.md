@@ -15,13 +15,10 @@
 ### Key Concepts
 
 * **Parliament** is the open-source repo that anyone can contribute to.
-* Parliament is based on the whitepaper [Credible News](#whitepaper), by [Alexander Kornhauser](https://www.linkedin.com/in/alexkornhauser/).
-  * The author of this whitepaper does not speak for Parliament or necessarily reflect Parliament's view on [Commitment to Zero Political Evangelism](#commitment-to-zero-political-evangelism).
-  * Parliament's belief is that the approach laid out in the whitepaper represents the theoretical best way to present maximally truthful and maximally unbiased news without the need for direct content validation.
-* **Parliament Foundation** (www.parliament.foundation coming in early 2025) is a **commercial web, iOS, and Android** implementation of Parliament.
-  * Anyone can host a Parliament, provided there is compliance with the [LICENSE](LICENSE).
-  * For inquiries about Parliament Foundation, you can email contact@parliament.foundation.
-
+* Parliament is based on the whitepaper [Credible News](#whitepaper).
+* Anyone can host a Parliament, provided there is compliance with the [LICENSE](LICENSE).
+* Hosted website and mobile apps coming soon.
+    
 *This project is in pre-release, and as such, is a preview. Many features are in development.*
 
 <div align="center">
