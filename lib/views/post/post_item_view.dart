@@ -62,9 +62,9 @@ class _PostViewState extends ConsumerState<PostItemView> {
                   : () =>
                       // See if current location == PostView.location
                       // Is there a better way to do this?
-                      context.router.uri.path.contains(PostView.location)
+                      context.currentLocation.contains(PostView.location)
                           ? null
-                          : context.go("${PostView.location}/${post?.pid}"),
+                          : context.route("${PostView.location}/${post?.pid}"),
               child: !widget.isSubView
                   ? Column(
                       children: [

@@ -78,7 +78,7 @@ class _ZScaffoldState extends ConsumerState<ProfileIcon> {
       type: ZButtonTypes.icon,
       onPressed: widget.onPressed ??
           (entity != null
-              ? () => context.go("${EntityView.location}/${widget.eid}")
+              ? () => context.route("${EntityView.location}/${widget.eid}")
               : null),
       child: Stack(
         alignment: Alignment.bottomRight,

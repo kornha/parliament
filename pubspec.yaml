@@ -1,7 +1,7 @@
 name: political_think
 description: An open-source news project that organizes news into `Confidence`, `Bias`, and `Newsworthiness` to tell maximally truthful news in a clear and measurable way.
 
-version: 1.14.8+1
+version: 1.14.9+1
 
 environment:
   sdk: '>=3.0.0'
@@ -67,6 +67,11 @@ dev_dependencies:
   build_runner: ^2.4.6  
   flutter_lints: ^2.0.0
   flutter_launcher_icons: ^0.13.1
+
+# building dart 3.5.0 causes an issue that is fixed with this
+# there might be a better way to resolve, but we dont use win32 and this works
+dependency_overrides: 
+  win32: ^5.5.4
 
 flutter:
   uses-material-design: true

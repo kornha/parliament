@@ -190,7 +190,18 @@ extension MediaQueryExt on BuildContext {
   bool get isMobileOrTablet => isMobile || isTablet;
   Brightness get brightness => MediaQuery.of(this).platformBrightness;
   bool get isDarkMode => brightness == Brightness.dark;
-  GoRouterState get router => GoRouterState.of(this);
+}
+
+extension Routing on BuildContext {
+  GoRouter get router => GoRouter.of(this);
+  String get currentLocation => router.routeInformationProvider.value.uri.path;
+  // Ideally we can use the go router directly, but with push it will stack the same page
+  void route(String path) {
+    if (path == currentLocation) {
+      return;
+    }
+    push(path);
+  }
 }
 
 extension Spacing on BuildContext {

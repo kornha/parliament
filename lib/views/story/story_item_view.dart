@@ -23,7 +23,7 @@ class StoryItemView extends ConsumerStatefulWidget {
 
 class _StoryItemViewState extends ConsumerState<StoryItemView> {
   _onTapStory() {
-    context.go("${StoryView.location}/${widget.sid}");
+    context.route("${StoryView.location}/${widget.sid}");
   }
 
   @override

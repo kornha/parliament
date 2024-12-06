@@ -49,7 +49,7 @@ class _EntityItemViewState extends ConsumerState<EntityItemView> {
                     // we override onPressed here since we need to pop the context
                     // otherwise we can allow default navigation from ProfileIcon
                     onPressed: () {
-                      context.go("${EntityView.location}/${widget.eid}");
+                      context.route("${EntityView.location}/${widget.eid}");
                       context.pop();
                     },
                   ),
@@ -60,7 +60,7 @@ class _EntityItemViewState extends ConsumerState<EntityItemView> {
                       style: context.h5b,
                     ),
                     onTap: () {
-                      context.go("${EntityView.location}/${widget.eid}");
+                      context.route("${EntityView.location}/${widget.eid}");
                       context.pop();
                     },
                   ),

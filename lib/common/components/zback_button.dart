@@ -19,7 +19,7 @@ class ZBackButton extends StatelessWidget {
           context.pop();
         } else {
           // TODO: Hack! above should work but doesn't?
-          context.go('/');
+          context.route('/');
         }
       },
     );

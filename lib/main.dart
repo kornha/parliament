@@ -6,13 +6,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:political_think/common/ztheme.dart';
 import 'package:political_think/firebase_options.dart';
 import 'package:political_think/sharing.dart';
 import 'common/zrouter.dart';
+import 'package:flutter_web_plugins/url_strategy.dart';
 
 void main() async {
+  usePathUrlStrategy();
+
+  // gorouter recommends not using since top of stack is not always deeplinkable
+  // but otherwise its not swipeable on iOS
+  GoRouter.optionURLReflectsImperativeAPIs = true;
+
   await dotenv.load(fileName: ".env");
 
   WidgetsFlutterBinding.ensureInitialized();
