@@ -1,6 +1,10 @@
 const {Timestamp, FieldValue} = require("firebase-admin/firestore");
 const _ = require("lodash");
 const {logger} = require("firebase-functions/v2");
+const axios = require("axios");
+const {defineSecret} = require("firebase-functions/params");
+const _cloudApiKey = defineSecret("CLOUD_API_KEY");
+
 
 const isLocal = process.env.FUNCTIONS_EMULATOR === "true";
 
@@ -240,6 +244,30 @@ function isUnsupportedStatus(status) {
 }
 
 // //////////////////////////////////////////////////////////////////
+// Location
+// //////////////////////////////////////////////////////////////////
+
+/**
+ * @param {number} lat
+ * @param {number} long
+ * @return {Promise<string|null>}
+ */
+async function getCountryCode(lat, long) {
+  try {
+    const response = await axios.get(
+        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${long}&key=${_cloudApiKey.value()}`,
+    );
+    const country = response.data.results.find((result) =>
+      result.types.includes("country"),
+    );
+    return country ? country.address_components[0].short_name : null;
+  } catch (error) {
+    logger.error("Error fetching country code:", error);
+    return null;
+  }
+}
+
+// //////////////////////////////////////////////////////////////////
 // Sync
 // //////////////////////////////////////////////////////////////////
 
@@ -385,4 +413,5 @@ module.exports = {
   extractInvalidImageUrl,
   getPlatformType,
   handleChangedRelations,
+  getCountryCode,
 };

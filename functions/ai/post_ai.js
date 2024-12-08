@@ -19,7 +19,9 @@ const {
 } = require("../common/database");
 const {generateEmbeddings} = require("../common/llm");
 
-const {retryAsyncFunction, isoToMillis} = require("../common/utils");
+const {retryAsyncFunction,
+  isoToMillis,
+  getCountryCode} = require("../common/utils");
 const {v4} = require("uuid");
 const {Timestamp, FieldValue, GeoPoint} = require("firebase-admin/firestore");
 const geo = require("geofire-common");
@@ -90,8 +92,8 @@ const onPostShouldFindStories = async function(post) {
 
     const location = gstory.lat && gstory.long ? {
       geoPoint: new GeoPoint(gstory.lat, gstory.long),
-      geoHash: geo.geohashForLocation([gstory.lat,
-        gstory.long]),
+      geoHash: geo.geohashForLocation([gstory.lat, gstory.long]),
+      countryCode: await getCountryCode(gstory.lat, gstory.long),
     } : null;
 
     const storyData = {

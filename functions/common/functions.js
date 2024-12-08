@@ -1,3 +1,5 @@
+// firebase functions:secrets:set KEY
+
 const secretsList = [
   "OPENAI_API_KEY",
   "PINECONE_KEY",
@@ -6,6 +8,7 @@ const secretsList = [
   "X_EMAIL_KEY",
   "NEWS_API_KEY",
   "ADMIN_EMAIL_KEY",
+  "CLOUD_API_KEY",
 ];
 
 exports.defaultConfig = {
