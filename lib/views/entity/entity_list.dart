@@ -31,6 +31,7 @@ class _EntityListViewState extends ConsumerState<EntityListView> {
 
     // For multiple items, display the ListView as usual
     return ListView.separated(
+      shrinkWrap: true,
       separatorBuilder: (context, index) =>
           const ZDivider(type: DividerType.SECONDARY),
       itemCount: widget.eids.length,

@@ -38,13 +38,13 @@ void main() async {
 
   runApp(
     const ProviderScope(
-      child: Sharing(child: MyApp()),
+      child: Sharing(child: Parliament()),
     ),
   );
 }
 
-class MyApp extends ConsumerWidget {
-  const MyApp({super.key});
+class Parliament extends ConsumerWidget {
+  const Parliament({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
