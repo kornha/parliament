@@ -4,7 +4,7 @@ import 'package:political_think/common/chat/chat_types/flutter_chat_types.dart'
 import 'package:political_think/common/link_previewer/flutter_link_previewer.dart'
     show LinkPreview, regexEmail, regexLink;
 import 'package:flutter_parsed_text/flutter_parsed_text.dart';
-import 'package:url_launcher/url_launcher.dart';
+// import 'package:url_launcher/url_launcher.dart';
 
 import '../../models/emoji_enlargement_behavior.dart';
 import '../../models/pattern_style.dart';
@@ -75,26 +75,26 @@ class TextMessage extends StatelessWidget {
         : InheritedChatTheme.of(context)
             .theme
             .receivedMessageLinkTitleTextStyle;
-
-    return LinkPreview(
-      enableAnimation: true,
-      metadataTextStyle: linkDescriptionTextStyle,
-      metadataTitleStyle: linkTitleTextStyle,
-      onLinkPressed: options.onLinkPressed,
-      onPreviewDataFetched: _onPreviewDataFetched,
-      openOnPreviewImageTap: options.openOnPreviewImageTap,
-      openOnPreviewTitleTap: options.openOnPreviewTitleTap,
-      padding: EdgeInsets.symmetric(
-        horizontal:
-            InheritedChatTheme.of(context).theme.messageInsetsHorizontal,
-        vertical: InheritedChatTheme.of(context).theme.messageInsetsVertical,
-      ),
-      previewData: message.previewData,
-      text: message.text,
-      textWidget: _textWidgetBuilder(user, context, false),
-      userAgent: userAgent,
-      width: width,
-    );
+    return const Text("Reenable link preview");
+    // return LinkPreview(
+    //   enableAnimation: true,
+    //   metadataTextStyle: linkDescriptionTextStyle,
+    //   metadataTitleStyle: linkTitleTextStyle,
+    //   onLinkPressed: options.onLinkPressed,
+    //   onPreviewDataFetched: _onPreviewDataFetched,
+    //   openOnPreviewImageTap: options.openOnPreviewImageTap,
+    //   openOnPreviewTitleTap: options.openOnPreviewTitleTap,
+    //   padding: EdgeInsets.symmetric(
+    //     horizontal:
+    //         InheritedChatTheme.of(context).theme.messageInsetsHorizontal,
+    //     vertical: InheritedChatTheme.of(context).theme.messageInsetsVertical,
+    //   ),
+    //   previewData: message.previewData,
+    //   text: message.text,
+    //   textWidget: _textWidgetBuilder(user, context, false),
+    //   userAgent: userAgent,
+    //   width: width,
+    // );
   }
 
   void _onPreviewDataFetched(types.PreviewData previewData) {
@@ -221,9 +221,9 @@ class TextMessageText extends StatelessWidget {
           MatchText(
             onTap: (mail) async {
               final url = Uri(scheme: 'mailto', path: mail);
-              if (await canLaunchUrl(url)) {
-                await launchUrl(url);
-              }
+              // if (await canLaunchUrl(url)) {
+              //   await launchUrl(url);
+              // }
             },
             pattern: regexEmail,
             style: bodyLinkTextStyle ??
@@ -244,12 +244,12 @@ class TextMessageText extends StatelessWidget {
                 options.onLinkPressed!(urlText);
               } else {
                 final url = Uri.tryParse(urlText);
-                if (url != null && await canLaunchUrl(url)) {
-                  await launchUrl(
-                    url,
-                    mode: LaunchMode.externalApplication,
-                  );
-                }
+                // if (url != null && await canLaunchUrl(url)) {
+                //   await launchUrl(
+                //     url,
+                //     mode: LaunchMode.externalApplication,
+                //   );
+                // }
               }
             },
             pattern: regexLink,

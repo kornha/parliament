@@ -18,6 +18,7 @@ class Auth extends ChangeNotifier {
   bool get isLoggedIn => status == AuthStatus.authenticated;
   bool get isLoading =>
       status == AuthStatus.unknown || status == AuthStatus.authenticating;
+  bool get isUnknown => status == AuthStatus.unknown;
   bool get isAdmin => roll == Role.admin;
 
   // Add a private static instance variable
@@ -58,7 +59,9 @@ class Auth extends ChangeNotifier {
       googleProvider.addScope("email");
       googleProvider.setCustomParameters({'login_hint': 'user@example.com'});
 
-      return await FirebaseAuth.instance.signInWithPopup(googleProvider);
+      FirebaseAuth.instance.signInWithRedirect(googleProvider);
+      // After the page redirects back
+      return await FirebaseAuth.instance.getRedirectResult();
     } else {
       final googleSignIn = GoogleSignIn(
         scopes: ["email"],

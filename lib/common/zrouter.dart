@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:political_think/common/components/loading.dart';
@@ -129,6 +130,9 @@ class ZRouter {
         final authState = ref.read(authProvider);
         final loggedIn = authState.isLoggedIn;
         final isOnLoginPage = state.matchedLocation == Login.location;
+        if (!authState.isUnknown) {
+          FlutterNativeSplash.remove();
+        }
         if (state.uri.path == '/') {
           return Login.location;
         }
