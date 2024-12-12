@@ -59,6 +59,7 @@ dependencies:
   flutter_dotenv: ^5.1.0
   animated_text_kit: ^4.2.2
   package_info_plus: ^8.1.1
+  url_launcher: ^6.3.1
 
 dev_dependencies:
   flutter_test:

@@ -12,6 +12,7 @@ import 'package:political_think/common/constants.dart';
 import 'package:political_think/common/extensions.dart';
 import 'package:political_think/common/services/auth.dart';
 import 'package:political_think/views/login/login_modal.dart';
+import 'package:political_think/views/profile/about.dart';
 import 'package:political_think/views/profile/profile.dart';
 
 class Login extends ConsumerStatefulWidget {

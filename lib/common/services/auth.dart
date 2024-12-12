@@ -59,9 +59,11 @@ class Auth extends ChangeNotifier {
       googleProvider.addScope("email");
       googleProvider.setCustomParameters({'login_hint': 'user@example.com'});
 
-      FirebaseAuth.instance.signInWithRedirect(googleProvider);
+      return await FirebaseAuth.instance.signInWithPopup(googleProvider);
+
+      // FirebaseAuth.instance.signInWithRedirect(googleProvider);
       // After the page redirects back
-      return await FirebaseAuth.instance.getRedirectResult();
+      // return await FirebaseAuth.instance.getRedirectResult();
     } else {
       final googleSignIn = GoogleSignIn(
         scopes: ["email"],

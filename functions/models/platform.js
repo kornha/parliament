@@ -3,7 +3,7 @@
 // Firestore
 
 const {onDocumentWritten} = require("firebase-functions/v2/firestore");
-const {defaultConfig, scrapeConfig} = require("../common/functions");
+const {defaultConfig, scrapeConfig, gbConfig} = require("../common/functions");
 const {publishMessage,
   PLATFORM_SHOULD_CHANGE_IMAGE,
   PLATFORM_CHANGED_POSTS,
@@ -79,7 +79,7 @@ exports.onPlatformUpdate = onDocumentWritten(
 exports.onPlatformShouldChangeStats = onMessagePublished(
     {
       topic: PLATFORM_SHOULD_CHANGE_STATS,
-      ...defaultConfig,
+      ...gbConfig, // this fetches 1k posts, might be causing memory issues
     },
     async (event) => {
       const plid = event.data.message.json.plid;

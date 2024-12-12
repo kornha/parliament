@@ -53,3 +53,8 @@ functions/emulator/
 *.env
 **/*.plist
 **/google-services.json
+
+# unsupport platforms
+linux/
+macos/
+windows/
