@@ -333,18 +333,25 @@ extension ModalExt on BuildContext {
     FToast().init(this).showToast(
           positionedToastBuilder: (context, child) {
             return Positioned(
-              bottom: Margins.full,
-              left: Margins.full,
+              top: Margins.twice,
+              left: (screenSize.width - blockSizeSmall.width) / 2,
               child: child,
             );
           },
           child: Container(
-            padding: blockPadding,
-            width: blockSize.width,
+            padding: blockPaddingExtra.copyWith(top: 0, bottom: 0),
+            width: blockSizeSmall.width,
             height: st.height,
             decoration: BoxDecoration(
-              borderRadius: BRadius.least,
-              color: isError ? errorColor : secondaryColor,
+              boxShadow: [
+                BoxShadow(
+                  color: isError ? errorColor : secondaryColor,
+                  blurRadius: 1.0,
+                  spreadRadius: 0.1,
+                ),
+              ],
+              borderRadius: BRadius.standard,
+              color: backgroundColor,
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.start,
@@ -353,14 +360,14 @@ extension ModalExt on BuildContext {
               children: [
                 Icon(
                   isError ? ZIcons.error : ZIcons.check,
-                  color: isError ? onErrorColor : onSecondaryColor,
+                  color: isError ? errorColor : secondaryColor,
                   size: iconSizeStandard,
                 ),
                 sh,
                 Text(
                   message,
                   style: TextStyle(
-                    color: isError ? onErrorColor : onSecondaryColor,
+                    color: isError ? errorColor : secondaryColor,
                   ),
                 ),
               ],

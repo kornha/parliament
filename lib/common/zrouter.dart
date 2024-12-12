@@ -132,6 +132,8 @@ class ZRouter {
         final isOnLoginPage = state.matchedLocation == Login.location;
         if (!authState.isUnknown) {
           FlutterNativeSplash.remove();
+        } else {
+          return null;
         }
         if (state.uri.path == '/') {
           return Login.location;
@@ -143,12 +145,13 @@ class ZRouter {
             return null;
           }
           // Redirect to login with 'from' parameter.
-          final from = state.uri.toString();
-          return '${Login.location}?from=${Uri.encodeComponent(from)}';
+          //final from = state.uri.toString();
+          // return '${Login.location}?from=${Uri.encodeComponent(from)}';
+          return Login.location;
         }
 
         if (loggedIn && isOnLoginPage) {
-          // Retrieve the 'from' parameter.
+          // Retrieve the 'from' parameter. Currenctly not set (disabled above).
           final from = state.uri.queryParameters['from'];
           if (from != null && from.isNotEmpty && from != Login.location) {
             // Redirect back to the 'from' location if it's valid and different from the login page.

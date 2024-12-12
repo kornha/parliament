@@ -90,6 +90,7 @@ class Auth extends ChangeNotifier {
 
   Future signOut() async {
     try {
+      // clear "from"
       return await _auth.signOut();
     } catch (error) {
       // TODO toast

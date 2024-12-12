@@ -18,6 +18,13 @@ class About extends StatefulWidget {
 
 class _AboutState extends State<About> {
   String? _version;
+  final FocusNode _selectableTextFocusNode = FocusNode();
+
+  @override
+  void dispose() {
+    _selectableTextFocusNode.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -28,30 +35,32 @@ class _AboutState extends State<About> {
         });
       });
     }
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         const LogoName(),
         Align(
           alignment: Alignment.center,
-          child: Text("$_version",
-              style: context.l.copyWith(color: context.surfaceColorBright)),
+          child: Text(
+            "$_version",
+            style: context.l.copyWith(color: context.surfaceColorBright),
+          ),
         ),
         const ZDivider(type: DividerType.TERTIARY),
         SelectableText.rich(
           TextSpan(
-            text: 'contact@parliament.foundation',
-            style: TextStyle(
-              color: context.primaryColor,
-            ),
+            text: 'email: contact@parliament.foundation',
+            style: TextStyle(color: context.primaryColor),
             recognizer: TapGestureRecognizer()
               ..onTap = () {
-                //copy to clipboard
                 Clipboard.setData(
-                    const ClipboardData(text: "contact@parliament.foundation"));
+                  const ClipboardData(text: "contact@parliament.foundation"),
+                );
                 context.showToast("email copied");
               },
           ),
+          focusNode: _selectableTextFocusNode, // Assign the focus node here
         ),
         const ZDivider(type: DividerType.TERTIARY),
         ZTextButton(
@@ -83,18 +92,6 @@ class _AboutState extends State<About> {
             ],
           ),
         ),
-        // context.stq,
-        // ZTextButton(
-        //   type: ZButtonTypes.wide,
-        //   backgroundColor: context.surfaceColor,
-        //   foregroundColor: context.onSurfaceColor,
-        //   onPressed: () {
-        //     final Uri url =
-        //         Uri.parse("https://github.com/kornha/parliament/issues");
-        //     launchUrl(url);
-        //   },
-        //   child: const Text("Submit an Issue/Request (Requires GitHub)"),
-        // ),
         const ZDivider(type: DividerType.TERTIARY),
         ZTextButton(
           type: ZButtonTypes.wide,

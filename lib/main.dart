@@ -29,7 +29,7 @@ void main() async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
-  const bool local = false;
+  const bool local = true;
 
   if (local) {
     FirebaseFirestore.instance.useFirestoreEmulator("localhost", 8080);
