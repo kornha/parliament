@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:political_think/common/components/loading.dart';
+import 'package:political_think/common/components/logo.dart';
 import 'package:political_think/common/components/profile_icon.dart';
+import 'package:political_think/common/components/zdivider.dart';
 import 'package:political_think/common/components/zscaffold.dart';
 import 'package:political_think/common/components/ztext_button.dart';
 import 'package:political_think/common/extensions.dart';
 import 'package:political_think/common/models/zuser.dart';
 import 'package:political_think/common/services/auth.dart';
 import 'package:political_think/views/profile/create_username_component.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 class Profile extends ConsumerStatefulWidget {
   const Profile({super.key});
@@ -113,10 +117,71 @@ class _ProfileState extends ConsumerState<Profile> {
                       },
                       child: const Text("Delete Account"),
                     ),
-                  )
+                  ),
+                  const ZDivider(type: DividerType.SECONDARY),
+                  const About(),
                 ],
               ),
             ),
+    );
+  }
+}
+
+class About extends StatefulWidget {
+  const About({super.key});
+
+  @override
+  State<About> createState() => _AboutState();
+}
+
+class _AboutState extends State<About> {
+  String? _version;
+
+  @override
+  Widget build(BuildContext context) {
+    if (_version == null) {
+      PackageInfo.fromPlatform().then((PackageInfo packageInfo) {
+        setState(() {
+          _version = packageInfo.version;
+        });
+      });
+    }
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const LogoName(),
+        Align(
+          alignment: Alignment.center,
+          child: Text("$_version",
+              style: context.l.copyWith(color: context.surfaceColorBright)),
+        ),
+        context.stq,
+        ZTextButton(
+          type: ZButtonTypes.wide,
+          backgroundColor: context.surfaceColor,
+          onPressed: () {
+            //
+          },
+          child: const Text("Read Our Whitepaper"),
+        ),
+        context.stq,
+        ZTextButton(
+          type: ZButtonTypes.wide,
+          backgroundColor: context.surfaceColor,
+          onPressed: () {
+            //
+          },
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(FontAwesomeIcons.github),
+              context.sh,
+              const Text("View Source Code"),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

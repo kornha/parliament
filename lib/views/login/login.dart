@@ -12,6 +12,7 @@ import 'package:political_think/common/constants.dart';
 import 'package:political_think/common/extensions.dart';
 import 'package:political_think/common/services/auth.dart';
 import 'package:political_think/views/login/login_modal.dart';
+import 'package:political_think/views/profile/profile.dart';
 
 class Login extends ConsumerStatefulWidget {
   const Login({super.key});
@@ -53,7 +54,7 @@ class _LoginState extends ConsumerState<Login> {
               type: ZButtonTypes.wide,
               backgroundColor: context.surfaceColor,
               onPressed: () {
-                print("about page");
+                context.showModal(const About());
               },
               child: const Text("About"),
             ),
