@@ -60,16 +60,18 @@ class ZScaffold extends StatelessWidget {
           right: defaultSafeArea,
           top: defaultSafeArea,
           bottom: defaultSafeArea,
-          child: Container(
-            margin: defaultMargin
-                ? context.blockMargin.copyWith(top: 0, bottom: 0)
-                : EdgeInsets.zero,
-            padding: defaultPadding
-                ? context.blockPadding.copyWith(top: 0, bottom: 0)
-                : EdgeInsets.zero,
-            width: context.blockSize.width,
-            // height: context.blockSize.height,
-            child: body,
+          child: Center(
+            child: Container(
+              margin: defaultMargin
+                  ? context.blockMargin.copyWith(top: 0, bottom: 0)
+                  : EdgeInsets.zero,
+              padding: defaultPadding
+                  ? context.blockPadding.copyWith(top: 0, bottom: 0)
+                  : EdgeInsets.zero,
+              width: context.blockSizeLarge.width,
+              // height: context.blockSize.height,
+              child: body,
+            ),
           ),
         ),
       ), //body,

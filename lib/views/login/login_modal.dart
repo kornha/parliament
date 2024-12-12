@@ -40,7 +40,6 @@ class LoginModal extends StatelessWidget {
         ),
         context.sh,
         const ZDivider(type: DividerType.TERTIARY),
-        context.sh,
         ZTextButton(
           type: ZButtonTypes.wide,
           backgroundColor: context.secondaryColor,

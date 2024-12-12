@@ -37,7 +37,23 @@ class _AboutState extends State<About> {
           child: Text("$_version",
               style: context.l.copyWith(color: context.surfaceColorBright)),
         ),
-        context.stq,
+        const ZDivider(type: DividerType.TERTIARY),
+        SelectableText.rich(
+          TextSpan(
+            text: 'contact@parliament.foundation',
+            style: TextStyle(
+              color: context.primaryColor,
+            ),
+            recognizer: TapGestureRecognizer()
+              ..onTap = () {
+                //copy to clipboard
+                Clipboard.setData(
+                    const ClipboardData(text: "contact@parliament.foundation"));
+                context.showToast("email copied");
+              },
+          ),
+        ),
+        const ZDivider(type: DividerType.TERTIARY),
         ZTextButton(
           type: ZButtonTypes.wide,
           backgroundColor: context.surfaceColor,
@@ -63,37 +79,40 @@ class _AboutState extends State<About> {
             children: [
               const Icon(FontAwesomeIcons.github),
               context.sh,
-              const Text("View Source Code"),
+              const Text("View Repository"),
             ],
           ),
         ),
-        const ZDivider(type: DividerType.TERTIARY),
-        SelectableText.rich(
-          TextSpan(
-            text: 'contact@parliament.foundation',
-            style: TextStyle(
-              color: context.primaryColor,
-            ),
-            recognizer: TapGestureRecognizer()
-              ..onTap = () {
-                //copy to clipboard
-                Clipboard.setData(
-                    const ClipboardData(text: "contact@parliament.foundation"));
-                context.showToast("email copied");
-              },
-          ),
-        ),
+        // context.stq,
+        // ZTextButton(
+        //   type: ZButtonTypes.wide,
+        //   backgroundColor: context.surfaceColor,
+        //   foregroundColor: context.onSurfaceColor,
+        //   onPressed: () {
+        //     final Uri url =
+        //         Uri.parse("https://github.com/kornha/parliament/issues");
+        //     launchUrl(url);
+        //   },
+        //   child: const Text("Submit an Issue/Request (Requires GitHub)"),
+        // ),
         const ZDivider(type: DividerType.TERTIARY),
         ZTextButton(
           type: ZButtonTypes.wide,
-          backgroundColor: context.surfaceColor,
+          backgroundColor: const Color.fromRGBO(114, 137, 218, 1),
           foregroundColor: context.onSurfaceColor,
           onPressed: () {
-            final Uri url =
-                Uri.parse("https://github.com/kornha/parliament/issues");
+            final Uri url = Uri.parse("https://discord.com/invite/HhdBKsK9Pq");
             launchUrl(url);
           },
-          child: const Text("Submit an Issue/Request (Requires GitHub)"),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(FontAwesomeIcons.discord),
+              context.sh,
+              const Text("Join Our Discord"),
+            ],
+          ),
         ),
       ],
     );

@@ -124,7 +124,7 @@ class _ProfileState extends ConsumerState<Profile> {
                       child: const Text("Delete Account"),
                     ),
                   ),
-                  const ZDivider(type: DividerType.SECONDARY),
+                  const Center(child: ZDivider(type: DividerType.SECONDARY)),
                   const About(),
                 ],
               ),
