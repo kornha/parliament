@@ -493,68 +493,63 @@ Learn Flutter, backend, and AI/ML.
 
 **Note:**
 - If it is your first time using flutter, we recommend setting up the demo project first
-- We develop on XCode 14.3.1. If you are new to setting up XCode, you may encounter building challenges. Reach out to the Discord channel if they are not easily solved. If you want an easier setup and are mainly interested in the Backend, AI, or Web, choose Flutter Web instead.
+- We support both web and mobile development in Flutter. If you are not an iOS or mobile specialist, we recommend you work with web.
+  
+3. (Optional for iOS) [Install XCode](https://apps.apple.com/us/app/xcode/id497799835?mt=12) on your machine. We currently use Version 14.
+4. Setup a [Firebase](https://firebase.google.com/) project, which comes with free credits.
+5. Add an iOS and/or web project. Replace your variables in the `.env`, `firebase.json`, and `.firebaserc` files under the project root folder.
 
-3. (Optional for iOS) Install XCode on your machine. If you are not on a Mac, you can develop on Chrome and skip this step. Note that at this time Chrome UI will look strange, as we have concerted our efforts on iOS.
-
-4. (Optional for iOS) [Install XCode](https://apps.apple.com/us/app/xcode/id497799835?mt=12) on your machine. If you are not on a Mac, you can develop on Chrome and skip this step. Note that at this time Chrome UI will look strange, as we have concerted our efforts on iOS.
-5. Setup a [Firebase](https://firebase.google.com/) project, which comes with free credits.
-
-6. Add an iOS and/or web project. Replace your variables in the `.env`, `firebase.json`, and `.firebaserc` files under the project root folder.
-
-#### Possible Issues and Solutions
-- **Problem 1:** Errors may occur if the incorrect Firebase project is selected.  
-  **Solution 1:** Re-run `flutterfire configure`, selecting the correct Firebase project in the CLI.
+**Note:**
+- `flutterfire` helps connect flutter to the Firebase/GCP project.
+- Upon creating a Firebase project, you also have a GCP project.
    
-8. (Strongly recommended) We recommend using [Flutterfire CLI](https://firebase.google.com/docs/flutter/setup?platform=ios) to assist your setup. Be sure to run through this end to end to connect your Flutter project to Firebase.
+6. (Strongly recommended) We recommend using [Flutterfire CLI](https://firebase.google.com/docs/flutter/setup?platform=ios) to assist your setup. Be sure to run through this end to end to connect your Flutter project to Firebase.
 
-#### Possible Issues and Solutions
-- **Problem 1:** Running `flutterfire configure` outside the project root can cause issues.  
-  **Solution 1:** Ensure you’re in the root directory of your Flutter project before running setup commands.
+**Note:**
+- Use the firebase emulator to develop locally.
+- In `main.dart` you can set the `local` variable to true or false to direct the Flutter app to run locally.
 
-9. (Optional, installed with firebase) familiarize with Firebase [emulator](https://firebase.google.com/docs/emulator-suite) for ease of development.
-10. You will need to ensure Firestore, Firebase Auth, Google Sign in, Firebase Storage are enabled. Google each of these if there is any issue. Google sign in will not be handled by Flutterfire CLI, but enabling it is trivial. To enable, in Firebase select auth, and google sign in.
-11. You will need to enable GCP secrets manager api, and a billing account. You can skip but will lead to limitations.
-12. You will need [NodeJS](https://nodejs.org/en/download/package-manager) on your machine. We are on version 20, but 22 should also work.
-13. Setup an an [OpenAI account](https://platform.openai.com/), which comes with free credits.
-14. (Optional for advanced X scraping) Setup an X account that is Premium, (paid, can skip for simpler development). 
-15. (Optional for advanced news API) Setup an account with [Newsapi.ai](https://newsapi.ai/). This comes with free credits.
-16. (Optional for maps support) Enable [Static Maps API](https://console.cloud.google.com/google/maps-apis/) in your new [Google Cloud](cloud.google.com) Project, which got created when you created a Firebase project. From there, you will need to setup your Maps API. Setup `dark_mode Static – Raster` and `light_mode Static – Raster` maps. For each map, add a style that matches the colors in Parliament's [palette](/lib/common/constants.dart#L9), by making the water equal the background color, and the surface equal the `primaryColor` from the [theme](/lib/common/ztheme.dart#L8). All borders are set to the onPrimaryColor.
+7. (Optional, installed with firebase) familiarize with Firebase [emulator](https://firebase.google.com/docs/emulator-suite) for ease of development.
+8. You will need to ensure Firestore, Firebase Auth, Google Sign in, Firebase Storage are enabled. Google each of these if there is any issue. Google sign in will not be handled by Flutterfire CLI, but enabling it is trivial. To enable, in Firebase select auth, and google sign in.
+9. You will need to enable GCP secrets manager api, and a billing account. You can skip but will lead to limitations.
 
-Try running the backend and frontend in different windows.
+**Note:**
+- We use Node JS version 20 for our backend.
+- The code is inside the root project, under functions/.
+    
+10. You will need [NodeJS](https://nodejs.org/en/download/package-manager) on your machine.
+11. Setup an an [OpenAI account](https://platform.openai.com/), which comes with free credits.
+12. (Optional for advanced X scraping) Setup an X account that is Premium, (paid, can skip for simpler development).
+13. (Optional for advanced news API) Setup an account with [Newsapi.ai](https://newsapi.ai/). This comes with free credits.
+14. (Optional for maps support) Enable [Static Maps API](https://console.cloud.google.com/google/maps-apis/) in your new [Google Cloud](cloud.google.com) Project, which got created when you created a Firebase project. From there, you will need to setup your Maps API. Setup `dark_mode Static – Raster` and `light_mode Static – Raster` maps. For each map, add a style that matches the colors in Parliament's [palette](/lib/common/constants.dart#L9), by making the water equal the background color, and the surface equal the `primaryColor` from the [theme](/lib/common/ztheme.dart#L8). All borders are set to the onPrimaryColor.
 
-Try Running the Program as follows to see if it works properly: 
+**Note:**
+- VSCode is our recommended IDE, or a VSCode fork/compatible IDE.
+- Try running the backend and frontend in different IDE windows.
+- If you are not using VSCode, each following the build prompts in launch.json and package.json for Frontend and Backend respectively.
 
-17. Start building your Flutter web/ios app by clicking on Run > Start Debugging.
-18. After that, on a different window start building your backend by running the follwoing command in the Terminal: npm run serve. 
-
-**Note:** 
-- After completing steps 17. and 18., a website window should open.
-- If you running Web, you may need to resize the window so that the website looks like the appropriate APP design.  
-21. Once the Parliament web page is open, log in by pressing "Sign in with G" at the bottom of the screen.
-22. Next, click on "+ Add new account."
-23. You can either generate user information by clicking on "Auto-generate user information" or you can manually enter your preferred user information.
-
-**Note:** 
-- It is recommended that you generate a new user so that you keep your information private and do not run into any potential bugs. 
-24. Once you are finished with step 23. press "Sign in with Google.com" at the bottom right of the window.
-25. Add a post by clicking on the plus symbol at the upper-right of the window "+".
-26. Make sure you copy a X post that either has text only or text and one image, and paste it into the box in the center of the screen where it says "Paste a link here" by clicking anywhere in that region.
+15. Start building your Flutter web/ios app by clicking on Run > Start Debugging in VSCode.
+16. After that, your Node by clicking on Run > Start Debugging in VSCode.
+17. It's possible you might need to tweak your VSCode run script.
 
 **Note:** 
-- If a pop-up request comes up that says "See text and images copied to the clipboard," choose "Allow."
+- After completing steps 15. and 16., a website window/iOS app should open.
+  
+18. Once the Parliament web page is open, log in by pressing "Sign in with G" at the bottom of the screen.
+19. Add a post by clicking on the plus symbol at the upper-right of the window "+".
+20. Click to paste an X.com link that has text only or text and one image, and paste it into the box in the center of the screen where it says "Paste a link here" by clicking anywhere in that region.
+
+**Note:** 
 - If you are running this on a computer with 8 GB ram or less, it is recommended that you close all windows or any running applications to free as much space as possible since, generate step will requires a lot of RAM space.
-- You should see Chromium pop up twice, if it takes too long for it to run that means that you need to pay attention to your RAM space  
+- You should see Chromium pop up twice, if it takes too long for it to run that means that you need to pay attention to your RAM space.
  
-28. To generate a story click on the green buttion "Generate" in the upper right center of the window.
+21. To generate a story click on the green buttion "Generate" in the upper right center of the window.
 
+**Note:** 
 Firebase may prompt you to add env vars, but if it doesn't, or if you run into billing or other account setup issues, Googling them should be straightforward to solve.
 Feel free to add helpful info to this readme.
 
-How do I know if I am set up?
-Once you run the project correctly, the frontend will appear in either iOS or web. You must be able to sign in with Google.
-In the top right, click the 'Plus' button, and copy this link https://x.com/Eagles/status/1835413000569704460 and click the paste area.
-The page should spin and load for a few moments. Afterwards press "generate". From here, navigate back to the home screen, pull to refresh, and if you see a Story you are set up!
+22. Afterwards press "generate". From here, navigate back to the home screen, pull to refresh, and if you see a Story you are set up!
 
 For any questions connect in our [Discord](https://discord.gg/HhdBKsK9Pq).
 
