@@ -43,7 +43,7 @@ class _AboutState extends State<About> {
         Align(
           alignment: Alignment.center,
           child: Text(
-            "$_version",
+            _version ?? "",
             style: context.l.copyWith(color: context.surfaceColorBright),
           ),
         ),

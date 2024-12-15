@@ -292,11 +292,13 @@ extension ModalExt on BuildContext {
   }
 
   void showModal(Widget child) {
+    // We use inconsistent libraries here purly for design
     if (isDesktop) {
-      showCupertinoModalPopup(
-        barrierColor: surfaceColorWithOpacity,
+      showDialog(
         context: this,
-        builder: (BuildContext context) {
+        barrierDismissible: true, // Allows dismissing by tapping outside
+        barrierColor: surfaceColorWithOpacity,
+        builder: (context) {
           return Center(
             child: Material(
               color: Colors.transparent, // needed to remove corners

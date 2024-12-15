@@ -15,10 +15,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Fetch .env file from secret
+      - name: Fetch config.env file from secret
         env:
           FLUTTER_DOT_ENV: ${{ secrets.FLUTTER_DOT_ENV }}
-        run: echo "${FLUTTER_DOT_ENV}" > .env
+        run: echo "${FLUTTER_DOT_ENV}" > config.env
 
       - name: Download GoogleService-Info.plist
         env:

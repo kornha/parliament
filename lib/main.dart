@@ -22,11 +22,14 @@ void main() async {
   // but otherwise its not swipeable on iOS
   GoRouter.optionURLReflectsImperativeAPIs = true;
 
-  await dotenv.load(fileName: ".env");
+  await dotenv.load(fileName: "config.env");
 
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  // Keep splash screen open until manually removed in zrouter
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
   const bool local = false;

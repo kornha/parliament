@@ -24,7 +24,7 @@ jobs:
         working-directory: ./functions # Specify again if it's not a global setting
 
       - name: Deploy to Firebase
-        run: firebase deploy
+        run: firebase deploy --except hosting # Hosting deployed separately
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
         working-directory: ./functions

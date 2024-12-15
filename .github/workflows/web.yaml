@@ -1,0 +1,49 @@
+name: Deploy Web
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'lib/**'
+      - 'web/**'
+      - '.github/workflows/web.yaml'
+
+jobs:
+  build_and_deploy_web:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the repository
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Step 2: Fetch config.env file from secrets
+      - name: Fetch config.env file from secret
+        env:
+          FLUTTER_DOT_ENV: ${{ secrets.FLUTTER_DOT_ENV }}
+        run: echo "${FLUTTER_DOT_ENV}" > config.env
+
+      # Step 3: Install Flutter
+      - name: Flutter get
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.5' # TODO: this version is static here...
+          channel: 'stable'
+
+      # Step 4: Install dependencies
+      - name: Install Flutter dependencies
+        run: flutter pub get
+
+      # Step 5: Build the Flutter Web application
+      - name: Build Flutter Web
+        run: flutter build web
+
+      # Step 6: Install Firebase CLI
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools
+
+      # Step 7: Deploy to Firebase Hosting
+      - name: Deploy to Firebase Hosting
+        run: firebase deploy --only hosting
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}

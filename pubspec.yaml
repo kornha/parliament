@@ -1,7 +1,7 @@
 name: political_think
 description: An open-source news project that organizes news into `Confidence`, `Bias`, `Newsworthiness`, and `Contextualization` to tell maximally truthful news in a clear and measurable way.
 
-version: 1.14.16+1
+version: 1.15.0+1
 
 environment:
   sdk: '>=3.0.0'
@@ -78,15 +78,9 @@ flutter:
   assets:
     - assets/images/
     - assets/maps/
-    - .env
+    - config.env
 
   fonts:
-    - family: Technology
-      fonts:
-        - asset: assets/fonts/technology.regular.ttf
-    - family: Hackney
-      fonts:
-        - asset: assets/fonts/hackney.ttf
     - family: Minecart
       fonts:
         - asset: assets/fonts/Minecart_LCD.ttf
@@ -116,18 +110,15 @@ flutter:
 
 # run this command to regenerate
 # flutter pub run flutter_launcher_icons
-# TODO: we need to change the image here to have a background (not transparent)
-# since ios does not allow background configuration
-# also need the source image to be 512x512 I think, if its not already
 flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
-  image_path: "assets/images/logo_white.png"
+  image_path: "assets/images/logo_white_on_black.png"
   min_sdk_android: 21 # android min sdk min:16, default 21
   adaptive_icon_background: "#0E0E0E" # Set background color for Android adaptive icons
   web:
     generate: true
-    image_path: "assets/images/logo_white.png"
+    image_path: "assets/images/logo_white_on_black.png"
     background_color: "#0E0E0E" # Set background color for web icons
     theme_color: "#0E0E0E" # Optionally, set theme color for web
 
