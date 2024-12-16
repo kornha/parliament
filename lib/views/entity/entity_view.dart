@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:political_think/common/components/loading.dart';
 import 'package:political_think/common/components/profile_icon.dart';
@@ -7,13 +6,12 @@ import 'package:political_think/common/components/stats_table.dart';
 import 'package:political_think/common/components/zapp_bar.dart';
 import 'package:political_think/common/components/zdivider.dart';
 import 'package:political_think/common/components/zerror.dart';
-import 'package:political_think/common/components/zicon_text.dart';
 import 'package:political_think/common/components/zscaffold.dart';
 import 'package:political_think/common/models/platform.dart';
 import 'package:political_think/common/models/post.dart';
 import 'package:political_think/common/extensions.dart';
 import 'package:political_think/common/util/utils.dart';
-import 'package:political_think/views/Confidence/Confidence_widget.dart';
+import 'package:political_think/views/Confidence/confidence_widget.dart';
 import 'package:political_think/views/bias/political_position_widget.dart';
 import 'package:political_think/views/post/post_item_view.dart';
 

@@ -9,7 +9,7 @@ import 'package:political_think/common/components/zscaffold.dart';
 import 'package:political_think/common/extensions.dart';
 import 'package:political_think/common/services/zprovider.dart';
 import 'package:political_think/common/util/utils.dart';
-import 'package:political_think/views/Confidence/Confidence_widget.dart';
+import 'package:political_think/views/Confidence/confidence_widget.dart';
 import 'package:political_think/views/bias/political_position_widget.dart';
 import 'package:political_think/views/statement/statement_tab_view.dart';
 
