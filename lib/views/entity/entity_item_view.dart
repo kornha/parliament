@@ -7,7 +7,7 @@ import 'package:political_think/common/components/zdivider.dart';
 import 'package:political_think/common/components/zerror.dart';
 import 'package:political_think/common/extensions.dart';
 import 'package:political_think/common/models/platform.dart';
-import 'package:political_think/views/Confidence/confidence_widget.dart';
+import 'package:political_think/views/confidence/confidence_widget.dart';
 import 'package:political_think/views/bias/political_position_widget.dart';
 import 'package:political_think/views/entity/entity_view.dart';
 

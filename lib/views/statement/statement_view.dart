@@ -8,7 +8,7 @@ import 'package:political_think/common/models/platform.dart';
 import 'package:political_think/common/models/statement.dart';
 import 'package:political_think/common/services/database.dart';
 import 'package:political_think/common/services/zprovider.dart';
-import 'package:political_think/views/Confidence/confidence_widget.dart';
+import 'package:political_think/views/confidence/confidence_widget.dart';
 import 'package:political_think/views/bias/political_position_widget.dart';
 import 'package:political_think/views/entity/entity_list.dart';
 
