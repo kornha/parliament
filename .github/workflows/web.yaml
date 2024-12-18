@@ -42,7 +42,13 @@ jobs:
       - name: Install Firebase CLI
         run: npm install -g firebase-tools
 
-      # Step 7: Deploy to Firebase Hosting
+      # Need to enable the webframeworks experiment for web
+      - name: Enable webframeworks Experiment
+        run: firebase experiments:enable webframeworks
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+
+      # Deploy to Firebase Hosting
       - name: Deploy to Firebase Hosting
         run: firebase deploy --only hosting
         env:
