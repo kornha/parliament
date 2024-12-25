@@ -251,7 +251,8 @@ class _RiverPagedBuilderState<PageKeyType, ItemType>
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.arrow_upward_rounded),
+                          Icon(Icons.arrow_upward_rounded,
+                              color: context.onSecondaryColor),
                           context.sh,
                           Logo(
                               isDarkMode: false, size: context.iconSizeStandard)

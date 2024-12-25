@@ -1,7 +1,7 @@
 name: political_think
 description: An open-source news project that organizes news into `Confidence`, `Bias`, `Newsworthiness`, and `Contextualization` to tell maximally truthful news in a clear and measurable way.
 
-version: 1.16.1+1
+version: 1.16.2+1
 
 environment:
   sdk: '>=3.0.0'
@@ -42,13 +42,11 @@ dependencies:
   flutter_countdown_timer: ^4.1.0
   flutter_joystick: ^0.0.4
   google_fonts: ^6.1.0
-  syncfusion_flutter_maps: ^24.1.41
   countries_world_map: ^1.1.1
   google_maps_flutter: ^2.10.0
   http: ^1.1.2
-  syncfusion_flutter_sliders: ^24.1.44
-  flutter_xlider: ^3.5.0
-  syncfusion_flutter_core: ^24.1.44
+  syncfusion_flutter_sliders: ^28.1.36
+  syncfusion_flutter_core: ^28.1.36
   country_picker: ^2.0.23
   image_stack: ^2.1.1
   json_annotation: ^4.8.1

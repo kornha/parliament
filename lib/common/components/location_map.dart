@@ -10,7 +10,6 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:political_think/common/constants.dart';
 import 'package:political_think/common/extensions.dart';
 import 'package:political_think/common/models/location.dart';
-import 'package:syncfusion_flutter_maps/maps.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:http/http.dart' as http;
 
