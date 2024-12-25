@@ -19,12 +19,13 @@ class LoginModal extends StatelessWidget {
           type: ZButtonTypes.wide,
           backgroundColor: context.secondaryColor,
           foregroundColor: context.onSecondaryColor,
-          child: const Row(
+          child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text("Sign in with  "),
-              Icon(FontAwesomeIcons.google),
+              Text("Sign in with  ",
+                  style: context.m.copyWith(color: context.onSecondaryColor)),
+              Icon(FontAwesomeIcons.google, color: context.onSecondaryColor),
             ],
           ),
           onPressed: () async {
@@ -58,31 +59,7 @@ class LoginModal extends StatelessWidget {
             ],
           ),
         ),
-        // context.sf,
-        // const ZTextButton(
-        //   type: ZButtonTypes.wide,
-        //   child: Text("Login with Email (Coming Soon)"),
-        // ),
       ],
     );
   }
 }
-
-            // TextButton(
-            //   child: const Row(
-            //     mainAxisAlignment: MainAxisAlignment.center,
-            //     mainAxisSize: MainAxisSize.min,
-            //     children: [
-            //       Text("Sign in with  "),
-            //       Icon(FontAwesomeIcons.google),
-            //     ],
-            //   ),
-            //   onPressed: () async {
-            //     Auth.instance().signInWithGoogle().then(
-            //       (value) {},
-            //       onError: (e) {
-            //         context.showFullScreenModal(Text(e.toString()));
-            //       },
-            //     );
-            //   },
-            // ),

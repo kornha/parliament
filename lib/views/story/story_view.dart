@@ -46,98 +46,106 @@ class _StoryViewState extends ConsumerState<StoryView> {
 
     return ZScaffold(
       appBar: ZAppBar(showBackButton: true),
+      ignoreConstraints: true,
       body: storyRef.isLoading
           ? const Loading(type: LoadingType.standard)
           : SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    story?.title ?? "",
-                    style: context.h3,
-                    textAlign: TextAlign.center,
-                  ),
-                  context.sf,
-                  Text(
-                    story?.lede ?? "",
-                    style: context.l,
-                  ),
-                  context.sf,
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Text(
-                        Utils.toHumanReadableDate(story?.happenedAt),
-                        style: context.m.copyWith(
-                          color: context.secondaryColor,
-                        ),
-                      ),
-                      const Spacer(),
-                    ],
-                  ),
-                  const ZDivider(type: DividerType.PRIMARY),
-                  StatementTabView(statements: statementsFromStory),
-                  context.sh, // just for visual improvement
-                  const ZDivider(type: DividerType.SECONDARY),
-                  if (story?.article != null)
-                    ZExpansionTile(
-                      initiallyExpanded: true,
-                      title: Text(story!.headline!, style: context.h4),
-                      subtitle: Text(
-                        "article",
-                        style: context.m,
-                      ),
+              child: ZscaffoldConstraints(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      story?.title ?? "",
+                      style: context.h3,
+                      textAlign: TextAlign.center,
+                    ),
+                    context.sf,
+                    Text(
+                      story?.lede ?? "",
+                      style: context.l,
+                    ),
+                    context.sf,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Text(
-                          story.article!,
-                          style: context.l,
+                          Utils.toHumanReadableDate(story?.happenedAt),
+                          style: context.m.copyWith(
+                            color: context.secondaryColor,
+                          ),
                         ),
+                        const Spacer(),
                       ],
                     ),
-                  ZExpansionTile(
-                    initiallyExpanded: true,
-                    title: Text("Stats", style: context.h4),
-                    children: [
-                      StatsTable(map: {
-                        "Newsworthiness": ConfidenceWidget(
-                            confidence: story!.newsworthiness,
-                            enabled: false,
-                            jagged: true),
-                        "Avg. Confidence": ConfidenceWidget(
-                            confidence: story.confidence, enabled: false),
-                        "Avg. Bias": PoliticalPositionWidget(
-                            position: story.bias, enabled: false),
-                        "Avg. Replies":
-                            Text(Utils.numToReadableString(story.avgReplies)),
-                        "Avg. Reposts":
-                            Text(Utils.numToReadableString(story.avgReposts)),
-                        "Avg. Likes":
-                            Text(Utils.numToReadableString(story.avgLikes)),
-                        "Avg. Bookmarks":
-                            Text(Utils.numToReadableString(story.avgBookmarks)),
-                        "Avg. Views":
-                            Text(Utils.numToReadableString(story.avgViews)),
-                        "Sample Size":
-                            Text(Utils.numToReadableString(story.pids.length)),
-                      }),
-                    ],
-                  ),
-                  if (story.description != null)
-                    ZExpansionTile(
-                        initiallyExpanded: false,
-                        title: Text("Description", style: context.h4),
+                    const ZDivider(type: DividerType.PRIMARY),
+                    StatementTabView(statements: statementsFromStory),
+                    context.sh, // just for visual improvement
+                    const ZDivider(type: DividerType.SECONDARY),
+                    if (story?.article != null)
+                      ZExpansionTile(
+                        initiallyExpanded: true,
+                        title: Text(story!.headline!, style: context.h4),
                         subtitle: Text(
-                          "aggregated from posts",
+                          "article",
                           style: context.m,
                         ),
                         children: [
                           Text(
-                            story.description ?? "",
+                            story.article!,
                             style: context.l,
                           ),
-                        ]),
-                ],
+                        ],
+                      ),
+                    ZExpansionTile(
+                      initiallyExpanded: true,
+                      title: Text("Stats", style: context.h4),
+                      children: [
+                        StatsTable(map: {
+                          "Newsworthiness": ConfidenceWidget(
+                              confidence: story!.newsworthiness,
+                              enabled: false,
+                              wave: true),
+                          "Avg. Confidence": ConfidenceWidget(
+                              confidence: story.confidence, enabled: false),
+                          "Avg. Bias": PoliticalPositionWidget(
+                              position: story.bias, enabled: false),
+                          "Virality": ConfidenceWidget(
+                            confidence: story.virality,
+                            viral: true,
+                            enabled: false,
+                          ),
+                          "Avg. Replies":
+                              Text(Utils.numToReadableString(story.avgReplies)),
+                          "Avg. Reposts":
+                              Text(Utils.numToReadableString(story.avgReposts)),
+                          "Avg. Likes":
+                              Text(Utils.numToReadableString(story.avgLikes)),
+                          "Avg. Bookmarks": Text(
+                              Utils.numToReadableString(story.avgBookmarks)),
+                          "Avg. Views":
+                              Text(Utils.numToReadableString(story.avgViews)),
+                          "Sample Size": Text(
+                              Utils.numToReadableString(story.pids.length)),
+                        }),
+                      ],
+                    ),
+                    if (story.description != null)
+                      ZExpansionTile(
+                          initiallyExpanded: false,
+                          title: Text("Description", style: context.h4),
+                          subtitle: Text(
+                            "aggregated from posts",
+                            style: context.m,
+                          ),
+                          children: [
+                            Text(
+                              story.description ?? "",
+                              style: context.l,
+                            ),
+                          ]),
+                  ],
+                ),
               ),
             ),
     );

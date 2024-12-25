@@ -22,7 +22,8 @@ class ConfidenceComponent extends StatefulWidget {
   final bool showEndRows;
   final bool showText;
   final bool showNullBackround;
-  final bool jagged;
+  final bool wave;
+  final bool viral;
   final bool horizontal; // New flag added here
 
   ConfidenceComponent({
@@ -41,9 +42,12 @@ class ConfidenceComponent extends StatefulWidget {
     this.showEndRows = false,
     this.showText = false,
     this.showNullBackround = true,
-    this.jagged = false,
+    this.wave = false,
+    this.viral = false,
     this.horizontal = false, // Initialize the new flag
-  }) : super(key: key);
+  }) : super(key: key) {
+    assert(!viral || !wave);
+  }
 
   @override
   State<ConfidenceComponent> createState() => _ConfidenceComponentState();
@@ -77,7 +81,8 @@ class _ConfidenceComponentState extends State<ConfidenceComponent> {
                   (widget.width / widget.height * 28.0).toInt(),
               showUnselected: widget.showUnselected,
               showEndRows: widget.showEndRows,
-              jagged: widget.jagged,
+              wave: widget.wave,
+              viral: widget.viral,
               horizontal: widget.horizontal, // Pass the flag to the painter
             ),
           ),
@@ -109,7 +114,8 @@ class ConfidencePainter extends CustomPainter {
   final Color? setColor;
   final bool fadeAbove;
   final bool showEndRows;
-  final bool jagged;
+  final bool wave;
+  final bool viral;
   final bool horizontal; // New flag added here
 
   ConfidencePainter({
@@ -126,7 +132,8 @@ class ConfidencePainter extends CustomPainter {
     this.decay = 0.77,
     this.showUnselected = true,
     this.showEndRows = true,
-    this.jagged = false,
+    this.wave = false,
+    this.viral = false,
     this.horizontal = false, // Initialize the new flag
   });
 
@@ -156,9 +163,15 @@ class ConfidencePainter extends CustomPainter {
 
           int crediblePosition;
 
-          if (jagged) {
+          if (wave) {
             var amplitude = (dimension * 0.15).toInt();
-            var frequency = 0.845;
+            var frequency = 0.245;
+            var wave =
+                (sin((horizontal ? j : i) * frequency) * amplitude).toInt();
+            crediblePosition = basePosition + wave;
+          } else if (viral) {
+            var amplitude = (dimension * 0.45).toInt();
+            var frequency = 2.245;
             var wave =
                 (sin((horizontal ? j : i) * frequency) * amplitude).toInt();
             crediblePosition = basePosition + wave;

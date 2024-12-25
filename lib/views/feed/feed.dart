@@ -49,6 +49,7 @@ class _FeedState extends ConsumerState<Feed> {
     Auth? authUser = ref.authWatch;
 
     return ZScaffold(
+      ignoreConstraints: true, // TODO: hack to move our scroller outside
       appBar: ZAppBar(
         showLogo: true,
         leading: [
@@ -158,9 +159,13 @@ class _FeedState extends ConsumerState<Feed> {
                   // use future since cannot set in the tree
                   _pagingController = controller;
 
-                  return PagedListView(
-                    pagingController: controller,
-                    builderDelegate: builder,
+                  return CustomScrollView(
+                    slivers: [
+                      PagedSliverList(
+                        pagingController: controller,
+                        builderDelegate: builder,
+                      )
+                    ],
                   );
                 },
               ),

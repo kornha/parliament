@@ -7,7 +7,7 @@ part of 'room.dart';
 // **************************************************************************
 
 Room _$RoomFromJson(Map<String, dynamic> json) => Room(
-      createdAt: json['createdAt'] as int?,
+      createdAt: (json['createdAt'] as num?)?.toInt(),
       id: json['id'] as String,
       imageUrl: json['imageUrl'] as String?,
       lastMessages: (json['lastMessages'] as List<dynamic>?)
@@ -16,7 +16,7 @@ Room _$RoomFromJson(Map<String, dynamic> json) => Room(
       metadata: json['metadata'] as Map<String, dynamic>?,
       name: json['name'] as String?,
       type: $enumDecodeNullable(_$RoomTypeEnumMap, json['type']),
-      updatedAt: json['updatedAt'] as int?,
+      updatedAt: (json['updatedAt'] as num?)?.toInt(),
       users: (json['users'] as List<dynamic>)
           .map((e) => User.fromJson(e as Map<String, dynamic>))
           .toList(),

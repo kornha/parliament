@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:political_think/common/components/loading.dart';
 import 'package:political_think/common/components/logo.dart';
-import 'package:political_think/common/components/political_component.dart';
+import 'package:political_think/common/components/political_position_component.dart';
 import 'package:political_think/common/components/profile_icon.dart';
 import 'package:political_think/common/components/zerror.dart';
 import 'package:political_think/common/extensions.dart';
@@ -130,7 +130,7 @@ class _BiasViewViewState extends ConsumerState<BiasView> {
         children: [
           first,
           context.sd,
-          PoliticalComponent(
+          PoliticalPositionComponent(
             position: second,
             radius: context.iconSizeSmall,
           ),

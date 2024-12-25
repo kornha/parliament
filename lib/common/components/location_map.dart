@@ -77,7 +77,7 @@ class _LocationMapState extends State<LocationMap> {
 
     var url = "https://maps.googleapis.com/maps/api/staticmap?"
         "size=150x150"
-        "&zoom=5"
+        "&zoom=1"
         "&visible=${widget.location.geoPoint.latitude},${widget.location.geoPoint.longitude}"
         "&map_id=$mapId"
         "&key=$key";

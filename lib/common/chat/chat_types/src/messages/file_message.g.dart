@@ -8,7 +8,7 @@ part of 'file_message.dart';
 
 FileMessage _$FileMessageFromJson(Map<String, dynamic> json) => FileMessage(
       author: User.fromJson(json['author'] as Map<String, dynamic>),
-      createdAt: json['createdAt'] as int?,
+      createdAt: (json['createdAt'] as num?)?.toInt(),
       id: json['id'] as String,
       isLoading: json['isLoading'] as bool?,
       metadata: json['metadata'] as Map<String, dynamic>?,
@@ -23,7 +23,7 @@ FileMessage _$FileMessageFromJson(Map<String, dynamic> json) => FileMessage(
       size: json['size'] as num,
       status: $enumDecodeNullable(_$StatusEnumMap, json['status']),
       type: $enumDecodeNullable(_$MessageTypeEnumMap, json['type']),
-      updatedAt: json['updatedAt'] as int?,
+      updatedAt: (json['updatedAt'] as num?)?.toInt(),
       uri: json['uri'] as String,
     );
 

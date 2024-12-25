@@ -9,8 +9,8 @@ part of 'entity.dart';
 Entity _$EntityFromJson(Map<String, dynamic> json) => Entity(
       eid: json['eid'] as String,
       handle: json['handle'] as String,
-      createdAt: Utils.timestampFromJson(json['createdAt'] as int),
-      updatedAt: Utils.timestampFromJson(json['updatedAt'] as int),
+      createdAt: Utils.timestampFromJson((json['createdAt'] as num).toInt()),
+      updatedAt: Utils.timestampFromJson((json['updatedAt'] as num).toInt()),
       avgReplies: (json['avgReplies'] as num?)?.toDouble(),
       avgReposts: (json['avgReposts'] as num?)?.toDouble(),
       avgLikes: (json['avgLikes'] as num?)?.toDouble(),

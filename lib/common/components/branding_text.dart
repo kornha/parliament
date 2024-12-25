@@ -2,8 +2,9 @@ import 'dart:math';
 
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/material.dart';
+import 'package:political_think/common/chat/src/util.dart';
 import 'package:political_think/common/components/confidence_component.dart';
-import 'package:political_think/common/components/political_component.dart';
+import 'package:political_think/common/components/political_position_component.dart';
 import 'package:political_think/common/extensions.dart';
 import 'package:political_think/common/models/confidence.dart';
 
@@ -14,7 +15,8 @@ class BrandingText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var style = context.d3;
+    // TODO: Make this scale with screen size
+    var style = isMobile ? context.h1 : context.d2;
 
     return Stack(
       alignment: Alignment.center,

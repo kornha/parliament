@@ -20,7 +20,8 @@ class ConfidenceSlider extends StatefulWidget {
   final bool showUnselected;
   final bool showText;
   final bool showNullBackround;
-  final bool jagged;
+  final bool wave;
+  final bool viral;
 
   ConfidenceSlider({
     super.key,
@@ -37,8 +38,9 @@ class ConfidenceSlider extends StatefulWidget {
     this.showText = true,
     this.showNull2AsLoading = false,
     this.showNull3AsLoading = false,
-    this.jagged = false,
-  });
+    this.wave = false,
+    this.viral = false,
+  }) : assert(!viral || !wave);
 
   @override
   State<ConfidenceSlider> createState() => _ConfidenceSliderState();
@@ -86,7 +88,8 @@ class _ConfidenceSliderState extends State<ConfidenceSlider> {
                 showUnselected: widget.showUnselected,
                 showText: widget.showText,
                 showNullBackround: widget.showNullBackround,
-                jagged: widget.jagged,
+                wave: widget.wave,
+                viral: widget.viral,
               ),
             ),
             Visibility(
@@ -99,7 +102,7 @@ class _ConfidenceSliderState extends State<ConfidenceSlider> {
                       rows: widget.rows,
                       columns: widget.columns,
                       showUnselected: widget.showUnselected,
-                      jagged: widget.jagged,
+                      wave: widget.wave,
                     )
                   : ConfidenceComponent(
                       confidence: widget.confidence2,
@@ -109,7 +112,7 @@ class _ConfidenceSliderState extends State<ConfidenceSlider> {
                       columns: widget.columns,
                       showUnselected: widget.showUnselected,
                       showNullBackround: widget.showNullBackround,
-                      jagged: widget.jagged,
+                      wave: widget.wave,
                     ),
             ),
             Visibility(
@@ -122,7 +125,7 @@ class _ConfidenceSliderState extends State<ConfidenceSlider> {
                       rows: widget.rows,
                       columns: widget.columns,
                       showUnselected: widget.showUnselected,
-                      jagged: widget.jagged,
+                      wave: widget.wave,
                     )
                   : ConfidenceComponent(
                       confidence: widget.confidence3,
@@ -132,7 +135,7 @@ class _ConfidenceSliderState extends State<ConfidenceSlider> {
                       columns: widget.columns,
                       showUnselected: widget.showUnselected,
                       showNullBackround: widget.showNullBackround,
-                      jagged: widget.jagged,
+                      wave: widget.wave,
                     ),
             ),
           ],

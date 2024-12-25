@@ -11,7 +11,7 @@ enum PoliticalOptions {
   leftRight,
 }
 
-class PoliticalComponent extends StatefulWidget {
+class PoliticalPositionComponent extends StatefulWidget {
   final PoliticalPosition? position;
   final PoliticalOptions options;
   final double radius;
@@ -21,12 +21,12 @@ class PoliticalComponent extends StatefulWidget {
   final bool showUnselected;
   final bool showNullBackround;
 
-  const PoliticalComponent({
+  const PoliticalPositionComponent({
     Key? key,
     this.position,
     this.radius = 50,
     this.options = PoliticalOptions.all,
-    this.rings = 4,
+    this.rings = 1,
     this.give = 0.26,
     this.maxCirclesPerRing = 75,
     this.showUnselected = true,
@@ -34,10 +34,12 @@ class PoliticalComponent extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<PoliticalComponent> createState() => _PoliticalComponentState();
+  State<PoliticalPositionComponent> createState() =>
+      _PoliticalPositionComponentState();
 }
 
-class _PoliticalComponentState extends State<PoliticalComponent> {
+class _PoliticalPositionComponentState
+    extends State<PoliticalPositionComponent> {
   @override
   Widget build(BuildContext context) {
     return SizedBox(

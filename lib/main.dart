@@ -43,7 +43,7 @@ void main() async {
 
   runApp(
     const ProviderScope(
-      child: Sharing(child: Parliament()),
+      child: Parliament(),
     ),
   );
 }

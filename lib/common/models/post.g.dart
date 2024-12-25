@@ -9,10 +9,10 @@ part of 'post.dart';
 Post _$PostFromJson(Map<String, dynamic> json) => Post(
       pid: json['pid'] as String,
       status: $enumDecode(_$PostStatusEnumMap, json['status']),
-      createdAt: Utils.timestampFromJson(json['createdAt'] as int),
-      updatedAt: Utils.timestampFromJson(json['updatedAt'] as int),
-      sourceCreatedAt:
-          Utils.timestampFromJsonNullable(json['sourceCreatedAt'] as int?),
+      createdAt: Utils.timestampFromJson((json['createdAt'] as num).toInt()),
+      updatedAt: Utils.timestampFromJson((json['updatedAt'] as num).toInt()),
+      sourceCreatedAt: Utils.timestampFromJsonNullable(
+          (json['sourceCreatedAt'] as num?)?.toInt()),
       eid: json['eid'] as String?,
       sid: json['sid'] as String?,
       xid: json['xid'] as String?,
@@ -37,18 +37,18 @@ Post _$PostFromJson(Map<String, dynamic> json) => Post(
               ?.map((e) => e as String)
               .toList() ??
           const [],
-      replies: json['replies'] as int?,
-      reposts: json['reposts'] as int?,
-      likes: json['likes'] as int?,
-      bookmarks: json['bookmarks'] as int?,
-      views: json['views'] as int?,
+      replies: (json['replies'] as num?)?.toInt(),
+      reposts: (json['reposts'] as num?)?.toInt(),
+      likes: (json['likes'] as num?)?.toInt(),
+      bookmarks: (json['bookmarks'] as num?)?.toInt(),
+      views: (json['views'] as num?)?.toInt(),
       bias: json['bias'] == null
           ? null
           : PoliticalPosition.fromJson(json['bias']),
       confidence: json['confidence'] == null
           ? null
           : Confidence.fromJson(json['confidence']),
-      messageCount: json['messageCount'] as int?,
+      messageCount: (json['messageCount'] as num?)?.toInt(),
       userBias: json['userBias'] == null
           ? null
           : PoliticalPosition.fromJson(json['userBias']),
@@ -64,9 +64,9 @@ Post _$PostFromJson(Map<String, dynamic> json) => Post(
       aiConfidence: json['aiConfidence'] == null
           ? null
           : Confidence.fromJson(json['aiConfidence']),
-      voteCountBias: json['voteCountBias'] as int? ?? 0,
-      voteCountConfidence: json['voteCountConfidence'] as int? ?? 0,
-      debateCountBias: json['debateCountBias'] as int? ?? 0,
+      voteCountBias: (json['voteCountBias'] as num?)?.toInt() ?? 0,
+      voteCountConfidence: (json['voteCountConfidence'] as num?)?.toInt() ?? 0,
+      debateCountBias: (json['debateCountBias'] as num?)?.toInt() ?? 0,
     );
 
 Map<String, dynamic> _$PostToJson(Post instance) => <String, dynamic>{

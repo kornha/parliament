@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:political_think/common/components/loading.dart';
 import 'package:political_think/common/components/location_map.dart';
+import 'package:political_think/common/components/political_position_component.dart';
 import 'package:political_think/common/components/zdivider.dart';
 import 'package:political_think/common/extensions.dart';
+import 'package:political_think/common/models/political_position.dart';
 import 'package:political_think/common/util/zimage.dart';
+import 'package:political_think/views/bias/political_position_widget.dart';
+import 'package:political_think/views/confidence/confidence_widget.dart';
 import 'package:political_think/views/post/post_item_view.dart';
 import 'package:political_think/views/story/story_view.dart';
 
@@ -74,9 +77,39 @@ class _StoryItemViewState extends ConsumerState<StoryItemView> {
                             )
                           : const SizedBox.shrink(),
                       const Spacer(),
-                      story.location != null
-                          ? LocationMap(location: story.location!)
-                          : const SizedBox.shrink(),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          if (story.confidence != null) ...[
+                            ConfidenceWidget(
+                              confidence: story.newsworthiness!,
+                              enabled: false,
+                            ),
+                            context.sh,
+                          ],
+                          if (true) ...[
+                            PoliticalPositionWidget(
+                              position: const PoliticalPosition(angle: 90),
+                              enabled: false,
+                              radius: context.iconSizeStandard / 2,
+                            ),
+                            context.sh,
+                          ],
+                          if (story.newsworthiness != null) ...[
+                            ConfidenceWidget(
+                              confidence: story.newsworthiness!,
+                              enabled: false,
+                              wave: true,
+                            ),
+                            context.sh,
+                          ],
+                          if (story.location != null) ...[
+                            LocationMap(location: story.location!),
+                            // Avoid adding a spacer after the last widget
+                          ],
+                        ],
+                      )
                     ],
                   ),
                   context.sh,

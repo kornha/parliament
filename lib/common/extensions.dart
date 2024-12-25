@@ -33,9 +33,9 @@ extension ProviderExt on WidgetRef {
   AsyncValue<ZUser?> userWatch(uid) => watch(zuserProvider(uid));
   AsyncValue<ZUser?> userRead(uid) => read(zuserProvider(uid));
   AsyncValue<ZUser?> selfUserWatch() =>
-      watch(zuserProvider(authWatch.authUser!.uid));
+      watch(zuserProvider(authWatch.authUser?.uid));
   AsyncValue<ZUser?> selfUserRead() =>
-      read(zuserProvider(authRead.authUser!.uid));
+      read(zuserProvider(authRead.authUser?.uid));
   // gets the user assuming logged in
   ZUser user() => read(zuserProvider(authRead.authUser!.uid)).value!;
   AsyncValue<List<ZUser>?> usersWatch(uids) => watch(zusersProvider(uids));
@@ -333,7 +333,7 @@ extension ModalExt on BuildContext {
   // TODO: We use this custom library since Material snackbar shows behind modals
   void showToast(String message, {bool isError = false}) {
     FToast().init(this).showToast(
-          positionedToastBuilder: (context, child) {
+          positionedToastBuilder: (context, child, gravity) {
             return Positioned(
               top: Margins.twice,
               left: (screenSize.width - blockSizeSmall.width) / 2,

@@ -9,7 +9,7 @@ part of 'system_message.dart';
 SystemMessage _$SystemMessageFromJson(Map<String, dynamic> json) =>
     SystemMessage(
       author: User.fromJson(json['author'] as Map<String, dynamic>),
-      createdAt: json['createdAt'] as int?,
+      createdAt: (json['createdAt'] as num?)?.toInt(),
       id: json['id'] as String,
       metadata: json['metadata'] as Map<String, dynamic>?,
       remoteId: json['remoteId'] as String?,
@@ -21,7 +21,7 @@ SystemMessage _$SystemMessageFromJson(Map<String, dynamic> json) =>
       status: $enumDecodeNullable(_$StatusEnumMap, json['status']),
       text: json['text'] as String,
       type: $enumDecodeNullable(_$MessageTypeEnumMap, json['type']),
-      updatedAt: json['updatedAt'] as int?,
+      updatedAt: (json['updatedAt'] as num?)?.toInt(),
     );
 
 Map<String, dynamic> _$SystemMessageToJson(SystemMessage instance) =>

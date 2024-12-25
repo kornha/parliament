@@ -8,7 +8,7 @@ part of 'zuser.dart';
 
 ZUser _$ZUserFromJson(Map<String, dynamic> json) => ZUser(
       uid: json['uid'] as String,
-      elo: json['elo'] as int? ?? 1500,
+      elo: (json['elo'] as num?)?.toInt() ?? 1500,
       settings: json['settings'] == null
           ? const ZSettings()
           : ZSettings.fromJson(json['settings'] as Map<String, dynamic>),

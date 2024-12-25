@@ -9,8 +9,8 @@ part of 'platform.dart';
 Platform _$PlatformFromJson(Map<String, dynamic> json) => Platform(
       plid: json['plid'] as String,
       url: json['url'] as String,
-      createdAt: Utils.timestampFromJson(json['createdAt'] as int),
-      updatedAt: Utils.timestampFromJson(json['updatedAt'] as int),
+      createdAt: Utils.timestampFromJson((json['createdAt'] as num).toInt()),
+      updatedAt: Utils.timestampFromJson((json['updatedAt'] as num).toInt()),
       avgReplies: (json['avgReplies'] as num?)?.toDouble(),
       avgReposts: (json['avgReposts'] as num?)?.toDouble(),
       avgLikes: (json['avgLikes'] as num?)?.toDouble(),

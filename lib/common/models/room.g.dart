@@ -31,9 +31,9 @@ Room _$RoomFromJson(Map<String, dynamic> json) => Room(
               ?.map((e) => e as String)
               .toList() ??
           const [],
-      maxUsers: json['maxUsers'] as int?,
-      createdAt: Room._timestampFromJson(json['createdAt'] as int),
-      messageCount: json['messageCount'] as int?,
+      maxUsers: (json['maxUsers'] as num?)?.toInt(),
+      createdAt: Room._timestampFromJson((json['createdAt'] as num).toInt()),
+      messageCount: (json['messageCount'] as num?)?.toInt(),
       clock: json['clock'] == null
           ? null
           : Clock.fromJson(json['clock'] as Map<String, dynamic>),

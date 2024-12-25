@@ -33,7 +33,10 @@ final authUserProvider = Provider<User?>((ref) {
   return auth.authUser;
 });
 
-final zuserProvider = StreamProvider.family<ZUser?, String>((ref, uid) {
+final zuserProvider = StreamProvider.family<ZUser?, String?>((ref, uid) {
+  if (uid == null) {
+    return Stream.value(null);
+  }
   return Database.instance().getUser(uid);
 });
 

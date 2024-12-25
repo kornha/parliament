@@ -45,6 +45,7 @@ class Story {
   final Confidence? confidence;
 
   final Confidence? newsworthiness;
+  final Confidence? virality;
 
   @JsonKey(fromJson: Utils.timestampFromJson, toJson: Utils.timestampToJson)
   final Timestamp createdAt;
@@ -79,6 +80,7 @@ class Story {
     this.avgBookmarks,
     this.avgViews,
     this.newsworthiness,
+    this.virality,
     this.bias,
     this.confidence,
     required this.status,

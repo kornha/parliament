@@ -8,7 +8,7 @@ part of 'image_message.dart';
 
 ImageMessage _$ImageMessageFromJson(Map<String, dynamic> json) => ImageMessage(
       author: User.fromJson(json['author'] as Map<String, dynamic>),
-      createdAt: json['createdAt'] as int?,
+      createdAt: (json['createdAt'] as num?)?.toInt(),
       height: (json['height'] as num?)?.toDouble(),
       id: json['id'] as String,
       metadata: json['metadata'] as Map<String, dynamic>?,
@@ -22,7 +22,7 @@ ImageMessage _$ImageMessageFromJson(Map<String, dynamic> json) => ImageMessage(
       size: json['size'] as num,
       status: $enumDecodeNullable(_$StatusEnumMap, json['status']),
       type: $enumDecodeNullable(_$MessageTypeEnumMap, json['type']),
-      updatedAt: json['updatedAt'] as int?,
+      updatedAt: (json['updatedAt'] as num?)?.toInt(),
       uri: json['uri'] as String,
       width: (json['width'] as num?)?.toDouble(),
     );

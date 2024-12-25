@@ -9,7 +9,7 @@ part of 'clock.dart';
 Clock _$ClockFromJson(Map<String, dynamic> json) => Clock(
       duration: (json['duration'] as num).toDouble(),
       increment: (json['increment'] as num?)?.toDouble() ?? 0,
-      start: Clock._timestampFromJsonNullable(json['start'] as int?),
+      start: Clock._timestampFromJsonNullable((json['start'] as num?)?.toInt()),
     );
 
 Map<String, dynamic> _$ClockToJson(Clock instance) => <String, dynamic>{

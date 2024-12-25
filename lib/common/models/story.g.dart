@@ -8,11 +8,12 @@ part of 'story.dart';
 
 Story _$StoryFromJson(Map<String, dynamic> json) => Story(
       sid: json['sid'] as String,
-      createdAt: Utils.timestampFromJson(json['createdAt'] as int),
-      updatedAt: Utils.timestampFromJson(json['updatedAt'] as int),
-      happenedAt: Utils.timestampFromJsonNullable(json['happenedAt'] as int?),
-      scaledHappenedAt:
-          Utils.timestampFromJsonNullable(json['scaledHappenedAt'] as int?),
+      createdAt: Utils.timestampFromJson((json['createdAt'] as num).toInt()),
+      updatedAt: Utils.timestampFromJson((json['updatedAt'] as num).toInt()),
+      happenedAt: Utils.timestampFromJsonNullable(
+          (json['happenedAt'] as num?)?.toInt()),
+      scaledHappenedAt: Utils.timestampFromJsonNullable(
+          (json['scaledHappenedAt'] as num?)?.toInt()),
       location: json['location'] == null
           ? null
           : Location.fromJson(json['location'] as Map<String, dynamic>),
@@ -30,6 +31,9 @@ Story _$StoryFromJson(Map<String, dynamic> json) => Story(
       newsworthiness: json['newsworthiness'] == null
           ? null
           : Confidence.fromJson(json['newsworthiness']),
+      virality: json['virality'] == null
+          ? null
+          : Confidence.fromJson(json['virality']),
       bias: json['bias'] == null
           ? null
           : PoliticalPosition.fromJson(json['bias']),
@@ -74,6 +78,7 @@ Map<String, dynamic> _$StoryToJson(Story instance) => <String, dynamic>{
       'bias': instance.bias?.toJson(),
       'confidence': instance.confidence?.toJson(),
       'newsworthiness': instance.newsworthiness?.toJson(),
+      'virality': instance.virality?.toJson(),
       'createdAt': Utils.timestampToJson(instance.createdAt),
       'updatedAt': Utils.timestampToJson(instance.updatedAt),
       'happenedAt': Utils.timestampToJsonNullable(instance.happenedAt),

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:political_think/common/components/political_component.dart';
+import 'package:political_think/common/components/political_position_component.dart';
 import 'package:political_think/common/extensions.dart';
 import 'package:political_think/common/models/political_position.dart';
 
@@ -77,7 +77,7 @@ class _PoliticalPositionJoystickState extends State<PoliticalPositionJoystick> {
           ),
         ),
       ),
-      base: PoliticalComponent(
+      base: PoliticalPositionComponent(
         position: _position ?? widget.selectedPosition,
         options: widget.options,
         radius: widget.radius,
@@ -89,6 +89,9 @@ class _PoliticalPositionJoystickState extends State<PoliticalPositionJoystick> {
       ),
       period: Duration(milliseconds: _period),
       listener: (StickDragDetails details) {
+        if (widget.onPositionSelected == null) {
+          return;
+        }
         setState(() {
           _position = PoliticalPosition.fromCoordinate(details.x, details.y);
         });

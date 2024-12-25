@@ -9,7 +9,7 @@ part of 'custom_message.dart';
 CustomMessage _$CustomMessageFromJson(Map<String, dynamic> json) =>
     CustomMessage(
       author: User.fromJson(json['author'] as Map<String, dynamic>),
-      createdAt: json['createdAt'] as int?,
+      createdAt: (json['createdAt'] as num?)?.toInt(),
       id: json['id'] as String,
       metadata: json['metadata'] as Map<String, dynamic>?,
       remoteId: json['remoteId'] as String?,
@@ -20,7 +20,7 @@ CustomMessage _$CustomMessageFromJson(Map<String, dynamic> json) =>
       showStatus: json['showStatus'] as bool?,
       status: $enumDecodeNullable(_$StatusEnumMap, json['status']),
       type: $enumDecodeNullable(_$MessageTypeEnumMap, json['type']),
-      updatedAt: json['updatedAt'] as int?,
+      updatedAt: (json['updatedAt'] as num?)?.toInt(),
     );
 
 Map<String, dynamic> _$CustomMessageToJson(CustomMessage instance) =>

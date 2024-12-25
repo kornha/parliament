@@ -11,7 +11,7 @@ Score _$ScoreFromJson(Map<String, dynamic> json) => Score(
         (k, e) => MapEntry(k, (e as num).toDouble()),
       ),
       reason: json['reason'] as String?,
-      updatedAt: Score._timestampFromJson(json['updatedAt'] as int),
+      updatedAt: Score._timestampFromJson((json['updatedAt'] as num).toInt()),
     );
 
 Map<String, dynamic> _$ScoreToJson(Score instance) => <String, dynamic>{

@@ -22,12 +22,16 @@ async function onStoryShouldChangeNewsworthiness(sid) {
 
   const platforms = await getPlatforms(story.plids);
 
-  const newsworthiness = calculateNewsworthiness(story, platforms);
+  const virality = calculateVirality(story, platforms);
+  const newsworthiness = calculateNewsworthiness(story, virality);
 
   if (newsworthiness != null) {
     logger.info(`Updating Story newsworthiness: ${sid} ${newsworthiness}`);
     await retryAsyncFunction(() =>
-      updateStory(sid, {newsworthiness: newsworthiness}, 5));
+      updateStory(sid, {
+        newsworthiness: newsworthiness,
+        virality: virality,
+      }, 5));
   }
 
   return Promise.resolve();
@@ -37,10 +41,30 @@ async function onStoryShouldChangeNewsworthiness(sid) {
  * Calculate the newsworthiness of a story
  * prereqs: story avgBias, stats, platform stats
  * @param {Story} story - the story to calculate the newsworthiness for
- * @param {Array<Platform>} platforms - the list of platforms of the posts
+ * @param {number|null} virality - the viral score of the story
  * @return {number|null} the newsworthiness of the story or null if not prereqs
  */
-function calculateNewsworthiness(story, platforms) {
+function calculateNewsworthiness(story, virality) {
+  if (!story || virality == null) {
+    return null;
+  }
+
+  const angleDiff = story.bias != null ? getDistance(story.bias, 90) : 90;
+
+  const biasMultiple = 1 - angleDiff / 360; // 75% if right/left, 50% if extreme
+
+  const newsworthiness = virality * biasMultiple;
+
+  return _.round(Math.max(0, Math.min(1, newsworthiness)), 2);
+}
+
+/**
+ * Calculate the virality of a story
+ * @param {Story} story - the story to calculate the virality for
+ * @param {Array<Platform>} platforms - the list of platforms of the posts
+ * @return {number|null} the virality of the story or null if not possible
+ * */
+function calculateVirality(story, platforms) {
   if (!story || !platforms || platforms.length === 0) {
     return null;
   }
@@ -77,7 +101,6 @@ function calculateNewsworthiness(story, platforms) {
     avgOfAvgViews > 0 && story.avgViews != null ?
        story.avgViews / avgOfAvgViews : 0;
 
-
   const adjustedScore =
     adjustLikes +
     adjustReplies +
@@ -85,15 +108,7 @@ function calculateNewsworthiness(story, platforms) {
     adjustBookmarks +
     adjustViews;
 
-  const engagementScore = adjustedScore / (adjustedScore + 1);
-
-  const angleDiff = story.bias != null ? getDistance(story.bias, 90) : 90;
-
-  const biasMultiple = 1 - angleDiff / 360; // 75% if right/left, 50% if extreme
-
-  const newsworthiness = engagementScore * biasMultiple;
-
-  return _.round(Math.max(0, Math.min(1, newsworthiness)), 2);
+  return adjustedScore / (adjustedScore + 1);
 }
 
 // //////////////////////////////////////////////////////////////////
@@ -213,5 +228,6 @@ module.exports = {
   calculateAverageStats,
   didChangeStats,
   calculateNewsworthiness,
+  calculateVirality,
   calculateScaledHappenedAt,
 };

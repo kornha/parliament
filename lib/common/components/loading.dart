@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:political_think/common/components/confidence_component.dart';
 import 'package:political_think/common/components/loading_shimmer.dart';
-import 'package:political_think/common/components/political_component.dart';
+import 'package:political_think/common/components/political_position_component.dart';
 import 'package:political_think/common/components/zscaffold.dart';
 import 'package:political_think/common/constants.dart';
 import 'package:political_think/common/extensions.dart';
@@ -187,7 +187,7 @@ class _LoadingPoliticalPositionAnimationState
 
   @override
   Widget build(BuildContext context) {
-    return PoliticalComponent(
+    return PoliticalPositionComponent(
       showUnselected: widget.showUnselected,
       rings: widget.rings ?? (widget.size >= context.iconSizeStandard ? 3 : 2),
       position:
@@ -206,7 +206,7 @@ class LoadingConfidenceAnimation extends StatefulWidget {
   final int? columns;
   late final int _rows = rows ?? 28;
   late final int _columns = columns ?? width ~/ height * _rows;
-  final bool jagged;
+  final bool wave;
 
   final bool showUnselected;
 
@@ -219,7 +219,7 @@ class LoadingConfidenceAnimation extends StatefulWidget {
     this.rows,
     this.columns,
     this.showUnselected = false,
-    this.jagged = false,
+    this.wave = false,
   }) : super(key: key);
 
   @override
@@ -272,7 +272,7 @@ class _LoadingConfidenceAnimationState extends State<LoadingConfidenceAnimation>
       height: widget.height,
       confidence: Confidence(
           value: topdown ? 1.0 - _animation.value : _animation.value),
-      jagged: widget.jagged,
+      wave: widget.wave,
     );
   }
 }

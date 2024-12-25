@@ -7,7 +7,7 @@ part of 'partial_audio.dart';
 // **************************************************************************
 
 PartialAudio _$PartialAudioFromJson(Map<String, dynamic> json) => PartialAudio(
-      duration: Duration(microseconds: json['duration'] as int),
+      duration: Duration(microseconds: (json['duration'] as num).toInt()),
       metadata: json['metadata'] as Map<String, dynamic>?,
       mimeType: json['mimeType'] as String?,
       name: json['name'] as String,

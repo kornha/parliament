@@ -8,10 +8,10 @@ part of 'statement.dart';
 
 Statement _$StatementFromJson(Map<String, dynamic> json) => Statement(
       stid: json['stid'] as String,
-      updatedAt: Utils.timestampFromJson(json['updatedAt'] as int),
-      createdAt: Utils.timestampFromJson(json['createdAt'] as int),
+      updatedAt: Utils.timestampFromJson((json['updatedAt'] as num).toInt()),
+      createdAt: Utils.timestampFromJson((json['createdAt'] as num).toInt()),
       value: json['value'] as String,
-      statedAt: Utils.timestampFromJson(json['statedAt'] as int),
+      statedAt: Utils.timestampFromJson((json['statedAt'] as num).toInt()),
       type: $enumDecode(_$StatementTypeEnumMap, json['type']),
       context: json['context'] as String?,
       pro: (json['pro'] as List<dynamic>?)?.map((e) => e as String).toList() ??

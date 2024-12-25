@@ -27,7 +27,7 @@ jobs:
       - name: Flutter get
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.24.5' # TODO: this version is static here...
+          flutter-version: '3.27.1' # TODO: this version is static here...
           channel: 'stable'
 
       # Step 4: Install dependencies

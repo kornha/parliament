@@ -13,6 +13,7 @@ class ZScaffold extends StatelessWidget {
   final bool defaultPadding;
   final bool defaultMargin;
   final bool defaultSafeArea;
+  final bool ignoreConstraints;
   final ScrollPhysics scrollPhysics;
 
   const ZScaffold({
@@ -29,57 +30,81 @@ class ZScaffold extends StatelessWidget {
     this.defaultPadding = true,
     this.defaultMargin = true,
     this.defaultSafeArea = true,
+    this.ignoreConstraints = false,
   });
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: null,
-      body: NestedScrollView(
-        //controller: scrollController,
-        physics: scrollPhysics,
-        headerSliverBuilder: (context, innerBoxIsScrolled) {
-          return [
-            SliverAppBar(
-              surfaceTintColor: context.backgroundColor,
-              backgroundColor: context.backgroundColorWithOpacity,
-              // pinned: true,
-              title: appBar,
-              titleSpacing: context.sh.width,
-              centerTitle: true,
-              floating: true,
-              snap: true,
-              automaticallyImplyLeading: false,
-              forceElevated: innerBoxIsScrolled,
-              elevation: 0,
-            ),
-          ];
-        },
-        body: SafeArea(
-          left: defaultSafeArea,
-          right: defaultSafeArea,
-          top: defaultSafeArea,
-          bottom: defaultSafeArea,
-          child: Center(
-            child: Container(
-              margin: defaultMargin
-                  ? context.blockMargin.copyWith(top: 0, bottom: 0)
-                  : EdgeInsets.zero,
-              padding: defaultPadding
-                  ? context.blockPadding.copyWith(top: 0, bottom: 0)
-                  : EdgeInsets.zero,
-              width: context.blockSizeLarge.width,
-              // height: context.blockSize.height,
-              child: body,
-            ),
-          ),
-        ),
-      ), //body,
       backgroundColor: context.backgroundColor,
       floatingActionButton: floatingActionButton,
       floatingActionButtonLocation: floatingActionButtonLocation,
       floatingActionButtonAnimator: floatingActionButtonAnimator,
       bottomNavigationBar: bottomNavigationBar,
+      appBar: null,
+      body: SafeArea(
+        left: defaultSafeArea,
+        right: defaultSafeArea,
+        top: defaultSafeArea,
+        bottom: defaultSafeArea,
+        child: NestedScrollView(
+          //controller: scrollController,
+          physics: scrollPhysics,
+          headerSliverBuilder: (context, innerBoxIsScrolled) {
+            return [
+              SliverAppBar(
+                surfaceTintColor: context.backgroundColor,
+                backgroundColor: context.backgroundColorWithOpacity,
+                // pinned: true,
+                title: appBar,
+                titleSpacing: context.sh.width,
+                centerTitle: true,
+                floating: true,
+                snap: true,
+                automaticallyImplyLeading: false,
+                forceElevated: innerBoxIsScrolled,
+                elevation: 0,
+              ),
+            ];
+          },
+          body: ignoreConstraints
+              ? body
+              : ZscaffoldConstraints(
+                  defaultPadding: defaultPadding,
+                  defaultMargin: defaultMargin,
+                  child: body,
+                ),
+        ),
+      ),
+    );
+  }
+}
+
+class ZscaffoldConstraints extends StatelessWidget {
+  final Widget child;
+  final bool defaultPadding;
+  final bool defaultMargin;
+  const ZscaffoldConstraints({
+    super.key,
+    required this.child,
+    this.defaultPadding = true,
+    this.defaultMargin = true,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Container(
+        margin: defaultMargin
+            ? context.blockMargin.copyWith(top: 0, bottom: 0)
+            : EdgeInsets.zero,
+        padding: defaultPadding
+            ? context.blockPadding.copyWith(top: 0, bottom: 0)
+            : EdgeInsets.zero,
+        width: context.blockSizeLarge.width,
+        // height: context.blockSize.height,
+        child: child,
+      ),
     );
   }
 }
