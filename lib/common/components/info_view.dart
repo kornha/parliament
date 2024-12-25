@@ -12,8 +12,8 @@ class InfoView extends StatelessWidget {
   final String title;
   final String type;
   final String description;
-  final String? learnMoreLabel;
-  final String? learnMoreUrl;
+  final String learnMoreLabel;
+  final String learnMoreUrl;
   final Color? accentColor;
   final bool showLearnMoreIfUrlIsPresent;
 
@@ -57,17 +57,18 @@ class InfoView extends StatelessWidget {
           style: context.m,
         ),
         context.sf,
-        if (learnMoreUrl != null && showLearnMoreIfUrlIsPresent)
-          ZTextButton(
+        Align(
+          alignment: Alignment.center,
+          child: ZTextButton(
             type: ZButtonTypes.wide,
             foregroundColor: accentColor,
             onPressed: () {
-              if (learnMoreUrl == null) return;
-              final Uri url = Uri.parse(learnMoreUrl!);
+              final Uri url = Uri.parse(learnMoreUrl);
               launchUrl(url);
             },
-            child: Text(learnMoreLabel ?? "Learn More"),
+            child: Text(learnMoreLabel),
           ),
+        ),
       ],
     );
   }
@@ -97,7 +98,7 @@ class PoliticalPositionView extends StatelessWidget {
         radius: context.iconSizeXL / 2,
       ),
       title: title,
-      type: "bias",
+      type: "Bias",
       description: description,
       learnMoreLabel: "Learn More About Bias",
       learnMoreUrl:
@@ -130,7 +131,7 @@ class NewsworthinessView extends StatelessWidget {
         showText: true,
       ),
       title: title,
-      type: "newsworthiness",
+      type: "Newsworthiness",
       description: description,
       learnMoreLabel: "Learn More About Newsworthiness",
       learnMoreUrl:
@@ -163,7 +164,7 @@ class ViralityView extends StatelessWidget {
         showText: true,
       ),
       title: title,
-      type: "virality",
+      type: "Virality",
       description: description,
       learnMoreLabel: "Learn More About Virality",
       learnMoreUrl:
@@ -195,7 +196,7 @@ class ConfidenceView extends StatelessWidget {
         showText: true,
       ),
       title: title,
-      type: "confidence",
+      type: "Confidence",
       description: description,
       learnMoreLabel: "Learn More About Confidence",
       learnMoreUrl:
