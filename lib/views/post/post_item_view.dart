@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:political_think/common/components/loading.dart';
 import 'package:political_think/common/components/profile_icon.dart';
@@ -12,7 +11,6 @@ import 'package:political_think/common/models/story.dart';
 import 'package:political_think/common/util/utils.dart';
 import 'package:political_think/common/util/zimage.dart';
 import 'package:political_think/views/post/post_view.dart';
-import 'package:political_think/views/post/post_view_buttons.dart';
 
 class PostItemView extends ConsumerStatefulWidget {
   final String pid;

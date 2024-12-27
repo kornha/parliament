@@ -108,9 +108,14 @@ class _EntityItemViewState extends ConsumerState<EntityView> {
                     StatsTable(
                       map: {
                         "Confidence": ConfidenceWidget(
-                            confidence: entity.confidence, eid: entity.eid),
+                          confidence: entity.confidence,
+                          eid: entity.eid,
+                          enabled: ref.isAdmin,
+                        ),
                         "Bias": PoliticalPositionWidget(
-                            position: entity.bias, eid: entity.eid),
+                            position: entity.bias,
+                            eid: entity.eid,
+                            enabled: ref.isAdmin),
                         if (entity.avgReplies != null)
                           "Avg. Replies": Text(
                               Utils.numToReadableString(entity.avgReplies)),

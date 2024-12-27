@@ -82,6 +82,7 @@ class _StatementViewState extends ConsumerState<StatementView> {
                         child: ConfidenceWidget(
                           confidence: statement.confidence,
                           stid: statement.stid,
+                          enabled: ref.isAdmin,
                         ),
                       ),
                       Visibility(
@@ -89,6 +90,7 @@ class _StatementViewState extends ConsumerState<StatementView> {
                         child: PoliticalPositionWidget(
                           position: statement.bias,
                           stid: statement.stid,
+                          enabled: ref.isAdmin,
                         ),
                       )
                     ],

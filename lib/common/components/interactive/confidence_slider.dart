@@ -144,9 +144,9 @@ class _ConfidenceSliderState extends State<ConfidenceSlider> {
           height: widget.height, //magic number
           width: widget.width,
           child: SfSliderTheme(
-            data: SfSliderThemeData(
-                //thumbColor: Colors.transparent,
-                //overlayColor: Colors.transparent,
+            data: const SfSliderThemeData(
+                thumbColor: Colors.transparent,
+                overlayColor: Colors.transparent,
                 thumbRadius: 0,
                 overlayRadius: 0),
             child: SfSlider.vertical(

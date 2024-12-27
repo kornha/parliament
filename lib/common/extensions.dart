@@ -22,13 +22,16 @@ import 'package:political_think/common/models/room.dart';
 import 'package:political_think/common/models/story.dart';
 import 'package:political_think/common/models/vote.dart';
 import 'package:political_think/common/models/zuser.dart';
+import 'package:political_think/common/services/auth.dart';
 import 'package:political_think/common/services/zprovider.dart';
 import 'package:political_think/common/chat/chat_types/flutter_chat_types.dart'
     as ct;
 
 extension ProviderExt on WidgetRef {
-  get authWatch => watch(authProvider);
-  get authRead => read(authProvider);
+  Auth get authWatch => watch(authProvider);
+  Auth get authRead => read(authProvider);
+
+  bool get isAdmin => authWatch.isAdmin;
 
   AsyncValue<ZUser?> userWatch(uid) => watch(zuserProvider(uid));
   AsyncValue<ZUser?> userRead(uid) => read(zuserProvider(uid));

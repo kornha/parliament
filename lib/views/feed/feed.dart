@@ -46,7 +46,6 @@ class _FeedState extends ConsumerState<Feed> {
   Widget build(BuildContext context) {
     final AsyncValue<ZUser?> userRef = ref.selfUserWatch();
     ZUser? user = userRef.value;
-    Auth? authUser = ref.authWatch;
 
     return ZScaffold(
       ignoreConstraints: true, // TODO: hack to move our scroller outside
@@ -54,7 +53,7 @@ class _FeedState extends ConsumerState<Feed> {
         showLogo: true,
         leading: [
           Visibility(
-            visible: authUser?.isAdmin ?? false,
+            visible: ref.isAdmin,
             child: IconButton(
               icon: const Icon(FontAwesomeIcons.newspaper),
               onPressed: () {
@@ -63,7 +62,7 @@ class _FeedState extends ConsumerState<Feed> {
             ),
           ),
           Visibility(
-            visible: authUser?.isAdmin ?? false,
+            visible: ref.isAdmin,
             child: IconButton(
               icon: const Icon(FontAwesomeIcons.xTwitter),
               onPressed: () {
@@ -72,7 +71,7 @@ class _FeedState extends ConsumerState<Feed> {
             ),
           ),
           Visibility(
-            visible: authUser?.isAdmin ?? false,
+            visible: ref.isAdmin,
             child: PopupMenuButton<String>(
               icon: const Icon(Icons.access_time),
               onSelected: (String value) {

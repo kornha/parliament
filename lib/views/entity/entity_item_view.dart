@@ -71,6 +71,7 @@ class _EntityItemViewState extends ConsumerState<EntityItemView> {
                   PoliticalPositionWidget(
                     position: entity.bias,
                     eid: entity.eid,
+                    enabled: ref.isAdmin,
                   ),
                   SizedBox(
                       // need this here or the divider will not show
@@ -80,6 +81,7 @@ class _EntityItemViewState extends ConsumerState<EntityItemView> {
                   ConfidenceWidget(
                     confidence: entity.confidence,
                     eid: entity.eid,
+                    enabled: ref.isAdmin,
                   ),
                 ],
               );

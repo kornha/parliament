@@ -61,6 +61,7 @@ class _BiasViewViewState extends ConsumerState<BiasView> {
                         // NEED TO ADD STID OR EID!
                         PoliticalPositionWidget(
                           radius: context.iconSizeXL,
+                          enabled: ref.isAdmin,
                         ),
                         // context.sf,
                         // Expanded(
