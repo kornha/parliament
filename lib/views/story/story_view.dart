@@ -48,7 +48,7 @@ class _StoryViewState extends ConsumerState<StoryView> {
       appBar: ZAppBar(showBackButton: true),
       ignoreConstraints: true,
       body: storyRef.isLoading
-          ? const Loading(type: LoadingType.standard)
+          ? const Loading()
           : SingleChildScrollView(
               child: ZscaffoldConstraints(
                 child: Column(

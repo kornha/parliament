@@ -42,14 +42,14 @@ class InfoView extends StatelessWidget {
             context.sf,
             Text(
               title,
-              style: context.h1,
+              style: context.h2.copyWith(color: accentColor),
             ),
           ],
         ),
         context.sf,
         Text(
           type,
-          style: context.h1.copyWith(color: context.surfaceColor),
+          style: context.h1,
         ),
         context.sf,
         Text(

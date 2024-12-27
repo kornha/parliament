@@ -62,28 +62,31 @@ class _ConfidenceComponentState extends State<ConfidenceComponent> {
         SizedBox(
           width: widget.width,
           height: widget.height,
-          child: CustomPaint(
-            painter: ConfidencePainter(
-              context: context,
-              confidence: widget.confidence ??
-                  (widget.showNullBackround
-                      ? const Confidence(value: 0.5)
-                      : null),
-              confidence2: widget.confidence2,
-              confidence3: widget.confidence3,
-              width: widget.width,
-              height: widget.height,
-              setColor: widget.setColor,
-              decay: widget.decay,
-              fadeAbove: widget.fadeAbove,
-              rows: widget.rows ?? 28,
-              columns: widget.columns ??
-                  (widget.width / widget.height * 28.0).toInt(),
-              showUnselected: widget.showUnselected,
-              showEndRows: widget.showEndRows,
-              wave: widget.wave,
-              viral: widget.viral,
-              horizontal: widget.horizontal, // Pass the flag to the painter
+          child: RepaintBoundary(
+            // hope this doesnt cause perf degredation
+            child: CustomPaint(
+              painter: ConfidencePainter(
+                context: context,
+                confidence: widget.confidence ??
+                    (widget.showNullBackround
+                        ? const Confidence(value: 0.5)
+                        : null),
+                confidence2: widget.confidence2,
+                confidence3: widget.confidence3,
+                width: widget.width,
+                height: widget.height,
+                setColor: widget.setColor,
+                decay: widget.decay,
+                fadeAbove: widget.fadeAbove,
+                rows: widget.rows ?? 28,
+                columns: widget.columns ??
+                    (widget.width / widget.height * 28.0).toInt(),
+                showUnselected: widget.showUnselected,
+                showEndRows: widget.showEndRows,
+                wave: widget.wave,
+                viral: widget.viral,
+                horizontal: widget.horizontal, // Pass the flag to the painter
+              ),
             ),
           ),
         ),

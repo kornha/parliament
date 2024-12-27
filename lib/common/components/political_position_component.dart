@@ -45,19 +45,21 @@ class _PoliticalPositionComponentState
     return SizedBox(
       width: widget.radius * 2,
       height: widget.radius * 2,
-      child: CustomPaint(
-        painter: PoliticalPainter(
-          context: context,
-          position: widget.position,
-          options: widget.options,
-          radius: widget.radius,
-          rings: widget.rings,
-          maxCirclesPerRing: widget.maxCirclesPerRing,
-          showUnselected: widget.showUnselected,
-          give: widget.give,
-          backgroundColor: widget.showNullBackround && widget.position == null
-              ? Palette.teal.withOpacity(0.4)
-              : null,
+      child: RepaintBoundary(
+        child: CustomPaint(
+          painter: PoliticalPainter(
+            context: context,
+            position: widget.position,
+            options: widget.options,
+            radius: widget.radius,
+            rings: widget.rings,
+            maxCirclesPerRing: widget.maxCirclesPerRing,
+            showUnselected: widget.showUnselected,
+            give: widget.give,
+            backgroundColor: widget.showNullBackround && widget.position == null
+                ? Palette.teal.withOpacity(0.4)
+                : null,
+          ),
         ),
       ),
     );
