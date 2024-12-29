@@ -48,18 +48,22 @@ class Confidence {
           : value > 0.5
               ? "Plausible"
               : value > 0.25
-                  ? "Uncredible"
-                  : "Fake";
+                  ? "Implausible"
+                  : value > 0.1
+                      ? "Uncredible"
+                      : "Fake";
 
   String get newsworthyName => value > 0.9
       ? "BREAKING"
       : value > 0.75
           ? "Urgent"
           : value > 0.5
-              ? "Important"
+              ? "Significant"
               : value > 0.25
-                  ? "Uninteresting"
-                  : "Spam";
+                  ? "Filler"
+                  : value > 0.1
+                      ? "Clickbait"
+                      : "Spam";
 
   String get viralName => value > 0.9
       ? "Viral"
@@ -68,8 +72,10 @@ class Confidence {
           : value > 0.5
               ? "Trending"
               : value > 0.25
-                  ? "Unpopular"
-                  : "Ignored";
+                  ? "Limited"
+                  : value > 0.1
+                      ? "Unseen"
+                      : "Ignored";
 
   Color get color => Color.fromRGBO(
         value < 0.5 ? 255 * (1.0 - value) ~/ 1.0 : 0,

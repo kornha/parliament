@@ -6,6 +6,7 @@ import 'package:political_think/common/components/political_position_component.d
 import 'package:political_think/common/components/zdivider.dart';
 import 'package:political_think/common/extensions.dart';
 import 'package:political_think/common/models/political_position.dart';
+import 'package:political_think/common/models/story.dart';
 import 'package:political_think/common/util/zimage.dart';
 import 'package:political_think/views/bias/political_position_widget.dart';
 import 'package:political_think/views/confidence/confidence_widget.dart';
@@ -77,37 +78,48 @@ class _StoryItemViewState extends ConsumerState<StoryItemView> {
                             )
                           : const SizedBox.shrink(),
                       const Spacer(),
-                      Row(
+                      Column(
                         mainAxisSize: MainAxisSize.min,
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          if (story.confidence != null) ...[
-                            ConfidenceWidget(
-                              confidence: story.newsworthiness!,
-                              enabled: false,
-                            ),
-                            context.sh,
-                          ],
-                          if (true) ...[
-                            PoliticalPositionWidget(
-                              position: const PoliticalPosition(angle: 90),
-                              enabled: false,
-                              radius: context.iconSizeStandard / 2,
-                            ),
-                            context.sh,
-                          ],
-                          if (story.newsworthiness != null) ...[
-                            ConfidenceWidget(
-                              confidence: story.newsworthiness!,
-                              enabled: false,
-                              wave: true,
-                            ),
-                            context.sh,
-                          ],
-                          if (story.location != null) ...[
-                            LocationMap(location: story.location!),
-                            // Avoid adding a spacer after the last widget
-                          ],
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              if (story.newsworthiness != null)
+                                ConfidenceWidget(
+                                  confidence: story.newsworthiness!,
+                                  enabled: false,
+                                  wave: true,
+                                ),
+                              if (story.newsworthiness != null &&
+                                  story.location != null)
+                                context.sq,
+                              if (story.location != null)
+                                LocationMap(location: story.location!),
+                            ],
+                          ),
+                          context.sq,
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              if (story.bias != null)
+                                PoliticalPositionWidget(
+                                  position: story.bias,
+                                  enabled: false,
+                                  radius: context.iconSizeLarge / 2,
+                                ),
+                              if (story.bias != null &&
+                                  story.confidence != null)
+                                context.sq,
+                              if (story.confidence != null)
+                                ConfidenceWidget(
+                                  confidence: story.confidence!,
+                                  enabled: false,
+                                ),
+                            ],
+                          ),
                         ],
                       )
                     ],
