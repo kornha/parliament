@@ -1,7 +1,7 @@
 name: political_think
 description: An open-source news project that organizes news into `Confidence`, `Bias`, `Newsworthiness`, and `Contextualization` to tell maximally truthful news in a clear and measurable way.
 
-version: 1.16.5+1
+version: 1.16.6+1
 
 environment:
   sdk: '>=3.0.0'
@@ -51,7 +51,7 @@ dependencies:
   image_stack: ^2.1.1
   json_annotation: ^4.8.1
   fluttertoast: ^8.2.8
-  flutter_native_splash: ^2.4.3
+  flutter_native_splash: ^2.4.4
   timeago: ^3.6.1
   photo_view: ^0.15.0
   flutter_dotenv: ^5.1.0
@@ -126,3 +126,6 @@ flutter_native_splash:
   image: assets/images/logo_black.png # Logo for light mode
   color_dark: "#0E0E0E" # Black background for dark mode
   image_dark: assets/images/logo_white.png # Logo for dark mode
+  branding_bottom_padding: 24
+  branding: assets/images/prerelease_light.png
+  branding_dark: assets/images/prerelease_dark.png

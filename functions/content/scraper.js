@@ -20,12 +20,13 @@ const scrapeFeed = async function(feedUrl) {
  * REQUIRES LONGER TIMEOUT
  * Scrapes a feed of feeds
  * @param {string} feedUrl - The URL to scrape
+ * @param {number} limit - The number of feeds to fetch
  * @return {Promise<void>}
  */
-const scrapeMetaFeed = async function(feedUrl) {
+const scrapeMetaFeed = async function(feedUrl, limit) {
   if (isXURL(feedUrl)) {
     // feedUrl is also default for scrapeXTopNews
-    await scrapeXTopNews(feedUrl);
+    await scrapeXTopNews(feedUrl, limit);
     return;
   }
   throw new Error("Not implemented");

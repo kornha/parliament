@@ -47,14 +47,8 @@ const scrapeXFeed = async function(feedUrl) {
 
     await connectToX(page);
 
-    if (feedUrl) {
-      await page.goto(feedUrl);
-      // simply wait 5s, maybe need to be changed
-      await page.waitForTimeout(5000);
-    }
-
     // Uses async generator to get links
-    for await (const link of autoScrollX(page, false, 10000)) {
+    for await (const link of autoScrollX(page, feedUrl, false, 10000)) {
       await publishMessage(SHOULD_PROCESS_LINK, {link: link});
     }
 
@@ -77,7 +71,7 @@ const scrapeXFeed = async function(feedUrl) {
  * Max is ~8 depends on the autoscroll duration
  * @return {Promise<void>}
  * */
-const scrapeXTopNews = async function(url= "https://x.com/explore/tabs/news", limit = 1) {
+const scrapeXTopNews = async function(url = "https://x.com/explore/tabs/news", limit = 1) {
   logger.info("Started scraping top X news.");
 
   const browser = await puppeteer.launch({headless: "new"});
@@ -86,25 +80,25 @@ const scrapeXTopNews = async function(url= "https://x.com/explore/tabs/news", li
 
     await connectToX(page);
 
-    await page.goto(url);
-    await page.waitForNetworkIdle({idleTime: 2500});
-
     // go to top news url https://x.com/explore/tabs/news
     const uniqueEntries = new Set();
-    for await (const response of autoScrollX(page, true, 6000)) {
+    for await (const response of autoScrollX(page, url, true, 6000)) {
       if (response?.data?.timeline?.timeline?.instructions?.length) {
         const entries =
           response.data.timeline.timeline.instructions.find(
               (item) => item.entries,
           )?.entries ?? [];
+
+        // index randomization and sorting, removed for now
         // sort by sortIndex from X
-        entries.sort((a, b) => b.sortIndex - a.sortIndex);
-        let index = 0;
-        const rand = Math.floor(Math.random() * 10);
+        // entries.sort((a, b) => b.sortIndex - a.sortIndex);
+        // const index = 0;
+        // const rand = Math.floor(Math.random() * 10);
+
         for (const entry of entries) {
-          if (index++ != rand) {
-            continue;
-          }
+          // if (index++ != rand) {
+          //   continue;
+          // }
           if (entry.entryId) {
             if (entry?.entryId == "cursor-bottom") {
               continue;
@@ -263,18 +257,17 @@ const connectToX = async function(page) {
  * THIS IS AN *ASYNC GENERATOR* FUNCTION,
  * it will yield the links found like a promise.all
  * @param {page} page the page instance to connect with
+ * @param {string} url the url to scrape from
  * @param {bool} yieldResponses whether to yield responses or links
  * @param {number} maxDuration the maximum duration to scroll
  * @return {AsyncGenerator<string>} with response json or link urls
  */
 const autoScrollX = async function* (
     page,
+    url,
     yieldResponses = false,
     maxDuration = 10000,
 ) {
-  const startTime = Date.now();
-  // eslint-disable-next-line no-undef
-  let lastHeight = await page.evaluate(() => document.body.scrollHeight);
   const uniqueLinksSeen = new Set();
   const responses = [];
 
@@ -296,6 +289,13 @@ const autoScrollX = async function* (
       }
     });
   }
+
+  await page.goto(url);
+  await page.waitForTimeout(4000);
+
+  const startTime = Date.now();
+  // eslint-disable-next-line no-undef
+  let lastHeight = await page.evaluate(() => document.body.scrollHeight);
 
   while (Date.now() - startTime < maxDuration) {
     // eslint-disable-next-line no-undef

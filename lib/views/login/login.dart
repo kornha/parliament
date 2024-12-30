@@ -4,7 +4,7 @@ import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:political_think/common/components/branding_text.dart';
+import 'package:political_think/common/components/branding.dart';
 import 'package:political_think/common/components/logo.dart';
 import 'package:political_think/common/components/zscaffold.dart';
 import 'package:political_think/common/components/ztext_button.dart';
@@ -40,7 +40,7 @@ class _LoginState extends ConsumerState<Login> {
           children: [
             Logo(size: context.iconSizeXXL),
             const Spacer(flex: 20), // hack, change
-            const BrandingText(),
+            const BrandingPuzzleText(),
             const Spacer(flex: 20), // hack, change
             ZTextButton(
               type: ZButtonTypes.wide,

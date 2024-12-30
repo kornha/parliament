@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:political_think/common/components/branding.dart';
 import 'package:political_think/common/components/logo.dart';
 import 'package:political_think/common/components/zback_button.dart';
 import 'package:political_think/common/constants.dart';
@@ -55,7 +56,8 @@ class _ZAppBarState extends ConsumerState<ZAppBar> {
                       )
                     // TODO: Padding because IconButton in ZBackButton is padded
                     : const SizedBox.shrink(),
-            ...widget.leading,
+            if (widget.leading.isNotEmpty) ...widget.leading,
+            if (widget.leading.isEmpty) const PreRelease(),
             const Spacer(),
             ...widget.actions,
           ],

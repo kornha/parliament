@@ -73,6 +73,7 @@ class _FeedState extends ConsumerState<Feed> {
           Visibility(
             visible: ref.isAdmin,
             child: PopupMenuButton<String>(
+              tooltip: "", // hack to remove tooltip
               icon: const Icon(Icons.access_time),
               onSelected: (String value) {
                 Functions.instance().triggerTimeFunction(value);
@@ -81,6 +82,14 @@ class _FeedState extends ConsumerState<Feed> {
                 const PopupMenuItem<String>(
                   value: 'every hour',
                   child: Text('every hour'),
+                ),
+                const PopupMenuItem<String>(
+                  value: 'every 30 minutes',
+                  child: Text('every 30 minutes'),
+                ),
+                const PopupMenuItem<String>(
+                  value: 'every 15 minutes',
+                  child: Text('every 15 minutes'),
                 ),
               ],
             ),

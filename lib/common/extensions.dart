@@ -113,6 +113,7 @@ extension ThemeExt on BuildContext {
   Color get errorColor => Theme.of(this).colorScheme.error;
   Color get onErrorColor => Theme.of(this).colorScheme.onError;
   Color get secondaryColor => Theme.of(this).colorScheme.secondary;
+  Color get secondaryColorWithOpacity => secondaryColor.withValues(alpha: 0.1);
   Color get onSecondaryColor => Theme.of(this).colorScheme.onSecondary;
   TargetPlatform get platform => Theme.of(this).platform;
 
@@ -228,6 +229,8 @@ extension Spacing on BuildContext {
 
   EdgeInsets get blockMargin => const EdgeInsets.symmetric(
       horizontal: Margins.half, vertical: Margins.half);
+  EdgeInsets get blockMarginSmall => const EdgeInsets.symmetric(
+      horizontal: Margins.quarter, vertical: Margins.quarter);
   EdgeInsets get blockPaddingSmall => const EdgeInsets.symmetric(
       horizontal: Margins.quarter, vertical: Margins.quarter);
   EdgeInsets get blockPadding => const EdgeInsets.symmetric(

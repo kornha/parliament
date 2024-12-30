@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:political_think/common/components/zapp_bar.dart';
 import 'package:political_think/common/extensions.dart';
 
 class ZScaffold extends StatelessWidget {
@@ -56,7 +57,7 @@ class ZScaffold extends StatelessWidget {
                 surfaceTintColor: context.backgroundColor,
                 backgroundColor: context.backgroundColorWithOpacity,
                 // pinned: true,
-                title: appBar,
+                title: appBar ?? ZAppBar(),
                 titleSpacing: context.sh.width,
                 centerTitle: true,
                 floating: true,

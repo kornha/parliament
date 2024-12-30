@@ -114,7 +114,7 @@ const onScrapeFeed = onMessagePublished(
       }
 
       if (message.json.metaFeed) {
-        await scrapeMetaFeed(message.json.link);
+        await scrapeMetaFeed(message.json.link, message.json.limit);
       } else {
         await scrapeFeed(message.json.link);
       }

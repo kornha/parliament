@@ -5,11 +5,33 @@ import 'package:flutter/material.dart';
 import 'package:political_think/common/chat/src/util.dart';
 import 'package:political_think/common/components/confidence_component.dart';
 import 'package:political_think/common/components/political_position_component.dart';
+import 'package:political_think/common/components/ztext_button.dart';
+import 'package:political_think/common/constants.dart';
 import 'package:political_think/common/extensions.dart';
 import 'package:political_think/common/models/confidence.dart';
+import 'package:political_think/views/profile/about.dart';
 
-class BrandingText extends StatelessWidget {
-  const BrandingText({
+class PreRelease extends StatelessWidget {
+  const PreRelease({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return ZTextButton(
+      type: ZButtonTypes.area,
+      onPressed: () => context.showModal(const About()),
+      foregroundColor: context.secondaryColor,
+      child: Text(
+        "Pre-Release",
+        style: context.s.copyWith(
+          color: context.secondaryColor,
+        ),
+      ),
+    );
+  }
+}
+
+class BrandingPuzzleText extends StatelessWidget {
+  const BrandingPuzzleText({
     super.key,
   });
 
