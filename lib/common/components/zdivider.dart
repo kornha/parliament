@@ -20,7 +20,7 @@ class ZDivider extends StatelessWidget {
           : type == DividerType.VERTICAL ||
                   type == DividerType.VERTICAL_SECONDARY
               ? context.sd.width
-              : context.blockSizeLarge.width,
+              : context.blockSize.width,
       child: type == DividerType.VERTICAL ||
               type == DividerType.VERTICAL_SECONDARY
           ? VerticalDivider(
@@ -31,9 +31,11 @@ class ZDivider extends StatelessWidget {
             )
           : Divider(
               color: type == DividerType.PRIMARY
-                  ? context.surfaceColorBright
+                  ? context.primaryColor
                   : context.surfaceColor,
-              thickness: Thickness.standard,
+              thickness: type == DividerType.PRIMARY
+                  ? Thickness.large
+                  : Thickness.standard,
             ),
     );
   }

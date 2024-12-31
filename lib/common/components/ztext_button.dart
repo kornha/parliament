@@ -22,38 +22,42 @@ class ZTextButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TextButton(
-      onPressed: onPressed,
-      style: TextButton.styleFrom(
-        padding: type == ZButtonTypes.area
-            ? context.blockPadding
-            : type == ZButtonTypes.wide
-                ? context.blockPaddingSmall
-                : type == ZButtonTypes.icon
-                    ? EdgeInsets.zero
-                    : const EdgeInsets.all(0.0),
-        tapTargetSize:
-            type == ZButtonTypes.icon ? MaterialTapTargetSize.shrinkWrap : null,
-        shape: type == ZButtonTypes.area
-            ? const RoundedRectangleBorder(
-                borderRadius: BRadius.least,
-              )
-            : type == ZButtonTypes.icon
-                ? const CircleBorder()
-                : null,
-        foregroundColor: foregroundColor ?? context.primaryColor,
-        backgroundColor: backgroundColor != null && onPressed != null
-            ? backgroundColor
-            : Colors.transparent,
-        minimumSize: type == ZButtonTypes.area
-            ? null
-            : type == ZButtonTypes.wide
-                ? Size(context.blockSize.width, context.sfh.height!)
-                : type == ZButtonTypes.icon
-                    ? const Size(0, 0)
-                    : null,
+    return IgnorePointer(
+      ignoring: onPressed == null,
+      child: TextButton(
+        onPressed: onPressed,
+        style: TextButton.styleFrom(
+          padding: type == ZButtonTypes.area
+              ? context.blockPadding
+              : type == ZButtonTypes.wide
+                  ? context.blockPaddingSmall
+                  : type == ZButtonTypes.icon
+                      ? EdgeInsets.zero
+                      : const EdgeInsets.all(0.0),
+          tapTargetSize: type == ZButtonTypes.icon
+              ? MaterialTapTargetSize.shrinkWrap
+              : null,
+          shape: type == ZButtonTypes.area
+              ? const RoundedRectangleBorder(
+                  borderRadius: BRadius.least,
+                )
+              : type == ZButtonTypes.icon
+                  ? const CircleBorder()
+                  : null,
+          foregroundColor: foregroundColor ?? context.primaryColor,
+          backgroundColor: backgroundColor != null && onPressed != null
+              ? backgroundColor
+              : Colors.transparent,
+          minimumSize: type == ZButtonTypes.area
+              ? null
+              : type == ZButtonTypes.wide
+                  ? Size(context.blockSize.width, context.sfh.height!)
+                  : type == ZButtonTypes.icon
+                      ? const Size(0, 0)
+                      : null,
+        ),
+        child: child,
       ),
-      child: child,
     );
   }
 }

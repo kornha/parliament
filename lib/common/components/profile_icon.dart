@@ -21,26 +21,16 @@ class ProfileIcon extends ConsumerStatefulWidget {
     super.key,
     this.uid,
     this.eid,
-    this.radius,
     this.url,
     this.plid,
+    this.watch = true,
     // will show self if url or uid is null
     this.isSelf = false,
     this.showIfNull = true,
-    this.watch = true,
+    this.radius,
     this.showPlatormMini = false,
     this.onPressed,
   });
-  // : assert(
-  //           // Complex because we allow user, entity, and url to all work
-  //           ((url != null ? 1 : 0) +
-  //                       (uid != null ? 1 : 0) +
-  //                       (eid != null ? 1 : 0)) <=
-  //                   1 &&
-  //               ((url == null && uid == null && eid == null)
-  //                   ? defaultToSelf
-  //                   : true),
-  //           'At most one of url, uid, or eid can be non-null, and if all are null, defaultToSelf must be true.');
 
   @override
   ConsumerState<ConsumerStatefulWidget> createState() => _ZScaffoldState();
@@ -74,12 +64,14 @@ class _ZScaffoldState extends ConsumerState<ProfileIcon> {
       return const SizedBox.shrink();
     }
 
+    Function()? onPressed = widget.onPressed ??
+        (entity != null
+            ? () => context.route("${EntityView.location}/${widget.eid}")
+            : null);
+
     return ZTextButton(
       type: ZButtonTypes.icon,
-      onPressed: widget.onPressed ??
-          (entity != null
-              ? () => context.route("${EntityView.location}/${widget.eid}")
-              : null),
+      onPressed: onPressed,
       child: Stack(
         alignment: Alignment.bottomRight,
         children: [

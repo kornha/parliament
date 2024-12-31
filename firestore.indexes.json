@@ -21,10 +21,6 @@
           "mode": "ASCENDING"
         },
         {
-          "fieldPath": "importance",
-          "mode": "DESCENDING"
-        },
-        {
           "fieldPath": "vector",
           "vectorConfig": {
             "dimension": 1536,

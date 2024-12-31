@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:political_think/common/models/confidence.dart';
+import 'package:political_think/common/models/entity.dart';
 import 'package:political_think/common/models/platform.dart';
 import 'package:political_think/common/models/post.dart';
 import 'package:political_think/common/models/room.dart';
@@ -309,6 +310,23 @@ class Database {
     return entityCollection.doc(eid).update(value);
   }
 
+  Future<List<Entity>?> getEntities(List<String> eids, {limit = 25}) {
+    return entityCollection
+        .where(FieldPath.documentId, whereIn: eids)
+        //.orderBy("importance", descending: true)
+        .limit(limit) // need to configure
+        .get()
+        .then((querySnapshot) {
+      if (querySnapshot.docs.isNotEmpty) {
+        return querySnapshot.docs.map((doc) {
+          final data = doc.data() as Map<String, dynamic>;
+          return Entity.fromJson(data);
+        }).toList();
+      } else {
+        return null;
+      }
+    });
+  }
   //////////////////////////////////////////////////////////////
   /// Platforms
   //////////////////////////////////////////////////////////////

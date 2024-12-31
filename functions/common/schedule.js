@@ -12,6 +12,11 @@ const {authenticate} = require("./auth");
  * */
 async function onHour() {
   logger.info("Starting hourly trigger...");
+  await publishMessage(SHOULD_SCRAPE_FEED, {
+    link: "https://x.com/explore/tabs/news",
+    metaFeed: true,
+    limit: 3,
+  });
 }
 
 /**
@@ -20,11 +25,6 @@ async function onHour() {
  * */
 async function onThirtyMinutes() {
   logger.info("Starting 30 minutes trigger...");
-  await publishMessage(SHOULD_SCRAPE_FEED, {
-    link: "https://x.com/explore/tabs/news",
-    metaFeed: true,
-    limit: 3,
-  });
 }
 
 /**

@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:political_think/common/components/icon_grid.dart';
 import 'package:political_think/common/components/loading.dart';
 import 'package:political_think/common/components/location_map.dart';
 import 'package:political_think/common/components/political_position_component.dart';
 import 'package:political_think/common/components/zdivider.dart';
 import 'package:political_think/common/extensions.dart';
+import 'package:political_think/common/models/entity.dart';
 import 'package:political_think/common/models/political_position.dart';
 import 'package:political_think/common/models/story.dart';
+import 'package:political_think/common/services/database.dart';
 import 'package:political_think/common/util/zimage.dart';
 import 'package:political_think/views/bias/political_position_widget.dart';
 import 'package:political_think/views/confidence/confidence_widget.dart';
@@ -26,6 +29,8 @@ class StoryItemView extends ConsumerStatefulWidget {
 }
 
 class _StoryItemViewState extends ConsumerState<StoryItemView> {
+  List<Entity>? entities;
+
   _onTapStory() {
     context.route("${StoryView.location}/${widget.sid}");
   }
@@ -40,6 +45,24 @@ class _StoryItemViewState extends ConsumerState<StoryItemView> {
 
     var allPostsRef = ref.postsFromStoryWatch(widget.sid);
     var allPosts = allPostsRef.value;
+
+    List<String> eids = allPosts
+            ?.map((p) => p.eid)
+            .where((eid) => eid != null) // filter out null
+            .map((eid) => eid!) // cast non-null to String
+            .toList() ??
+        [];
+
+    // provider causes loop
+    if (eids.isNotEmpty && entities == null) {
+      Database.instance().getEntities(eids).then((List<Entity>? temp) {
+        if (!mounted) return;
+
+        setState(() {
+          entities = temp;
+        });
+      });
+    }
 
     bool shouldShowSecondaryPosts = (allPosts?.length ?? 0) >= 1;
     bool shouldShowPhotos = (story?.photos.length ?? 0) >= 1;
@@ -58,22 +81,31 @@ class _StoryItemViewState extends ConsumerState<StoryItemView> {
                       story.headline != null || story.title != null
                           ? Expanded(
                               flex: 5,
-                              child: MouseRegion(
-                                cursor: SystemMouseCursors.click,
-                                child: GestureDetector(
-                                  onTap: _onTapStory,
-                                  child: Text(
-                                    story.headline ?? story.title!,
-                                    style: newsworthiness < 0.5
-                                        ? context.h5b
-                                        : newsworthiness < 0.7
-                                            ? context.h4b
-                                            : newsworthiness < 0.9
-                                                ? context.h3b
-                                                : context.h2b,
-                                    textAlign: TextAlign.start,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  MouseRegion(
+                                    cursor: SystemMouseCursors.click,
+                                    child: GestureDetector(
+                                      onTap: _onTapStory,
+                                      child: Text(
+                                        story.headline ?? story.title!,
+                                        style: newsworthiness < 0.5
+                                            ? context.h5b
+                                            : newsworthiness < 0.7
+                                                ? context.h4b
+                                                : newsworthiness < 0.9
+                                                    ? context.h3b
+                                                    : context.h2b,
+                                        textAlign: TextAlign.start,
+                                      ),
+                                    ),
                                   ),
-                                ),
+                                  context.sh,
+                                  if (entities?.isNotEmpty ?? false)
+                                    IconGrid(entities: entities),
+                                  if (entities?.isEmpty ?? true) context.sd,
+                                ],
                               ),
                             )
                           : const SizedBox.shrink(),
