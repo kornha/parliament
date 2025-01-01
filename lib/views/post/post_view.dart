@@ -78,6 +78,7 @@ class _PostViewState extends ConsumerState<PostView> {
     //
     return ZScaffold(
       appBar: ZAppBar(showBackButton: true),
+      ignoreScrollView: true,
       body: isLoading
           ? const Loading()
           : isError

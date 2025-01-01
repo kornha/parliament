@@ -71,6 +71,10 @@ extension ProviderExt on WidgetRef {
       watch(statementsFromStoryProvider(sid));
   AsyncValue<List<Statement>?> statementsFromStoriesRead(String sid) =>
       read(statementsFromStoryProvider(sid));
+  AsyncValue<List<Statement>?> statementsWatch(List<String> stids) =>
+      watch(statementsProvider(stids));
+  AsyncValue<List<Statement>?> statementsRead(List<String> stids) =>
+      read(statementsProvider(stids));
 
   AsyncValue<Entity?> entityWatch(String eid) => watch(entityProvider(eid));
   AsyncValue<Entity?> entityRead(String eid) => read(entityProvider(eid));

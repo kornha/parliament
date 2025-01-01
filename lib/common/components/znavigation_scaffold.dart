@@ -9,9 +9,8 @@ import 'package:political_think/common/constants.dart';
 import 'package:political_think/common/extensions.dart';
 import 'package:political_think/common/services/zprovider.dart';
 import 'package:political_think/views/feed/feed.dart';
-import 'package:political_think/views/games/games.dart';
 import 'package:political_think/views/profile/profile.dart';
-import 'package:political_think/views/maps/maps.dart';
+import 'package:political_think/views/search/search.dart';
 
 class ZNavigationScaffold extends ConsumerStatefulWidget {
   const ZNavigationScaffold(
@@ -45,18 +44,11 @@ class _ZScaffoldState extends ConsumerState<ZNavigationScaffold> {
         initialLocation: Feed.location,
       ),
       ZBottomBarNavigationItem(
-        icon: Icon(FontAwesomeIcons.earthEurope, color: context.surfaceColor),
+        icon: Icon(FontAwesomeIcons.searchengin, color: context.surfaceColor),
         activeIcon:
-            Icon(FontAwesomeIcons.earthAmericas, color: context.secondaryColor),
-        label: 'MAPS',
-        initialLocation: Maps.location,
-      ),
-      ZBottomBarNavigationItem(
-        icon:
-            Icon(FontAwesomeIcons.solidChessRook, color: context.surfaceColor),
-        activeIcon: Icon(FontAwesomeIcons.chess, color: context.secondaryColor),
-        label: 'GAMES',
-        initialLocation: Games.location,
+            Icon(FontAwesomeIcons.searchengin, color: context.secondaryColor),
+        label: 'SEARCH',
+        initialLocation: Search.location,
       ),
       const ZBottomBarNavigationItem(
         icon: ProfileIcon(
@@ -141,10 +133,8 @@ class _ZScaffoldState extends ConsumerState<ZNavigationScaffold> {
   int _getCurrentIndex(String path) {
     switch (path) {
       case Profile.location:
-        return 3;
-      case Games.location:
         return 2;
-      case Maps.location:
+      case Search.location:
         return 1;
       default:
         return 0;

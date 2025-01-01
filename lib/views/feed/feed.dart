@@ -48,7 +48,8 @@ class _FeedState extends ConsumerState<Feed> {
     ZUser? user = userRef.value;
 
     return ZScaffold(
-      ignoreConstraints: true, // TODO: hack to move our scroller outside
+      ignoreScrollView: true,
+      ignoreConstraints: true, // this class self manages scroll
       appBar: ZAppBar(
         showLogo: true,
         leading: [

@@ -10,12 +10,12 @@ class ZScaffold extends StatelessWidget {
   final FloatingActionButtonLocation? floatingActionButtonLocation;
   final FloatingActionButtonAnimator? floatingActionButtonAnimator;
   final Widget? bottomNavigationBar;
-  final ScrollController? scrollController;
   final bool defaultPadding;
   final bool defaultMargin;
   final bool defaultSafeArea;
   final bool ignoreConstraints;
   final ScrollPhysics scrollPhysics;
+  final bool? ignoreScrollView;
 
   const ZScaffold({
     super.key,
@@ -26,16 +26,21 @@ class ZScaffold extends StatelessWidget {
     this.floatingActionButtonLocation,
     this.floatingActionButtonAnimator,
     this.bottomNavigationBar,
-    this.scrollController,
     this.scrollPhysics = const BouncingScrollPhysics(),
     this.defaultPadding = true,
     this.defaultMargin = true,
     this.defaultSafeArea = true,
     this.ignoreConstraints = false,
+    this.ignoreScrollView, // whether or not include in scroll controller, defaults to scrollPhysics.allowUserScrolling
   });
 
   @override
   Widget build(BuildContext context) {
+    // whether or not to include scrollView wrapper
+    bool scrollView = ignoreScrollView != null
+        ? !ignoreScrollView!
+        : scrollPhysics.allowUserScrolling;
+
     return Scaffold(
       backgroundColor: context.backgroundColor,
       floatingActionButton: floatingActionButton,
@@ -68,13 +73,23 @@ class ZScaffold extends StatelessWidget {
               ),
             ];
           },
-          body: ignoreConstraints
-              ? body
-              : ZscaffoldConstraints(
-                  defaultPadding: defaultPadding,
-                  defaultMargin: defaultMargin,
-                  child: body,
-                ),
+          body: scrollView
+              ? SingleChildScrollView(
+                  child: ignoreConstraints
+                      ? body
+                      : ZscaffoldConstraints(
+                          defaultPadding: defaultPadding,
+                          defaultMargin: defaultMargin,
+                          child: body,
+                        ),
+                )
+              : ignoreConstraints
+                  ? body
+                  : ZscaffoldConstraints(
+                      defaultPadding: defaultPadding,
+                      defaultMargin: defaultMargin,
+                      child: body,
+                    ),
         ),
       ),
     );
@@ -102,7 +117,7 @@ class ZscaffoldConstraints extends StatelessWidget {
         padding: defaultPadding
             ? context.blockPadding.copyWith(top: 0, bottom: 0)
             : EdgeInsets.zero,
-        width: context.blockSizeLarge.width,
+        width: context.blockSize.width, // large or medium?
         // height: context.blockSize.height,
         child: child,
       ),

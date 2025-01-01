@@ -214,6 +214,26 @@ final statementProvider =
   });
 });
 
+final statementsProvider =
+    StreamProvider.family<List<Statement>?, List<String>>((ref, stids) {
+  // int limit = ridlimit.$2;
+  return Database.instance()
+      .statementCollection
+      .where(FieldPath.documentId, whereIn: stids)
+      .limit(50)
+      .snapshots()
+      .map((querySnapshot) {
+    if (querySnapshot.docs.isNotEmpty) {
+      return querySnapshot.docs.map((doc) {
+        final data = doc.data() as Map<String, dynamic>;
+        return Statement.fromJson(data);
+      }).toList();
+    } else {
+      return null;
+    }
+  });
+});
+
 final statementsFromStoryProvider =
     StreamProvider.family<List<Statement>?, String>((ref, sid) {
   // int limit = ridlimit.$2;

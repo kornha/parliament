@@ -48,7 +48,7 @@ const scrapeXFeed = async function(feedUrl) {
     await connectToX(page);
 
     // Uses async generator to get links
-    for await (const link of autoScrollX(page, feedUrl, false, 10000)) {
+    for await (const link of autoScrollX(page, feedUrl, false, 12000)) {
       await publishMessage(SHOULD_PROCESS_LINK, {link: link});
     }
 

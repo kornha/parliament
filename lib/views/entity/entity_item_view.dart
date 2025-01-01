@@ -54,7 +54,7 @@ class _EntityItemViewState extends ConsumerState<EntityItemView> {
                     },
                   ),
                   context.sh,
-                  GestureDetector(
+                  InkWell(
                     child: Text(
                       entity.handle,
                       style: context.h5b,

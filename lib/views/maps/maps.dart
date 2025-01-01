@@ -10,10 +10,10 @@ class Maps extends ConsumerStatefulWidget {
   static const location = "/maps";
 
   @override
-  ConsumerState<ConsumerStatefulWidget> createState() => _GamesState();
+  ConsumerState<ConsumerStatefulWidget> createState() => _MapsState();
 }
 
-class _GamesState extends ConsumerState<Maps> {
+class _MapsState extends ConsumerState<Maps> {
   @override
   Widget build(BuildContext context) {
     return ZScaffold(

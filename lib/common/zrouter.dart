@@ -8,12 +8,12 @@ import 'package:political_think/common/extensions.dart';
 import 'package:political_think/common/services/zprovider.dart';
 import 'package:political_think/views/entity/entity_view.dart';
 import 'package:political_think/views/feed/feed.dart';
-import 'package:political_think/views/games/games.dart';
 import 'package:political_think/views/login/login.dart';
 import 'package:political_think/views/message/message.dart';
 import 'package:political_think/views/post/post_view.dart';
 import 'package:political_think/views/profile/profile.dart';
 import 'package:political_think/views/maps/maps.dart';
+import 'package:political_think/views/search/search.dart';
 import 'package:political_think/views/story/story_view.dart';
 
 class ZRouter {
@@ -55,10 +55,10 @@ class ZRouter {
             ),
             GoRoute(
               parentNavigatorKey: _shellNavigatorKey,
-              path: Games.location,
+              path: Search.location,
               pageBuilder: (context, state) => zPage(
                 context: context,
-                child: const Games(),
+                child: const Search(),
               ),
             ),
             GoRoute(

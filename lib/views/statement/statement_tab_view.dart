@@ -49,6 +49,7 @@ class _StatementTabViewState extends State<StatementTabView>
               .map((e) => _buildDynamicListView(e))
               .toList(),
         ),
+        context.sh, // visual improvement
       ],
     );
   }
@@ -57,6 +58,20 @@ class _StatementTabViewState extends State<StatementTabView>
     List<Statement> values = (widget.statements ?? [])
         .where((element) => element.type == type)
         .toList();
+
+    if (values.isEmpty) {
+      return SizedBox(
+        height: context.sd.height,
+        child: Center(
+          child: Text(
+            "No ${type.name}s",
+            style: context.h5,
+          ),
+        ),
+      );
+    }
+
+    // Otherwise, show the list of StatementViews:
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: values.map((e) => StatementView(stid: e.stid)).toList(),

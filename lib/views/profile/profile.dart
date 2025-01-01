@@ -44,90 +44,85 @@ class _ProfileState extends ConsumerState<Profile> {
     }
 
     return ZScaffold(
+      scrollPhysics: const NeverScrollableScrollPhysics(),
       body: isLoading
           ? const Loading()
-          : Container(
-              padding: context.blockPadding,
-              margin: context.blockMargin,
-              width: context.blockSize.width,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ProfileIcon(radius: context.iconSizeLarge / 2, isSelf: true),
-                  context.sf,
-                  isEditing || user?.username == null
-                      ? CreateUsernameComponent(
-                          onClose: () {
-                            setState(() {
-                              isEditing = false;
-                            });
-                          },
-                          onSave: (text) {
-                            setState(() {
-                              isEditing = false;
-                              _localUsername = text;
-                            });
-                          },
-                          onSaveError: () {
-                            setState(() {
-                              _localUsername = null;
-                            });
-                          },
-                          onSaveSuccess: () {
-                            context.showToast("Username updated",
-                                isError: false);
-                            setState(() {
-                              _localUsername = null;
-                            });
-                          },
-                        )
-                      : Row(
-                          children: [
-                            Text("@ ", style: context.h3),
-                            Text(_localUsername ?? user?.username ?? "username",
-                                style: context.l), // matches hint style
-                            const Spacer(),
-                            IconButton(
-                              icon: Icon(
-                                Icons.lock_sharp,
-                                color: context.surfaceColor,
-                              ),
-                              onPressed: () {
-                                setState(() {
-                                  isEditing = true;
-                                });
-                              },
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ProfileIcon(radius: context.iconSizeLarge / 2, isSelf: true),
+                context.sf,
+                isEditing || user?.username == null
+                    ? CreateUsernameComponent(
+                        onClose: () {
+                          setState(() {
+                            isEditing = false;
+                          });
+                        },
+                        onSave: (text) {
+                          setState(() {
+                            isEditing = false;
+                            _localUsername = text;
+                          });
+                        },
+                        onSaveError: () {
+                          setState(() {
+                            _localUsername = null;
+                          });
+                        },
+                        onSaveSuccess: () {
+                          context.showToast("Username updated", isError: false);
+                          setState(() {
+                            _localUsername = null;
+                          });
+                        },
+                      )
+                    : Row(
+                        children: [
+                          Text("@ ", style: context.h3),
+                          Text(_localUsername ?? user?.username ?? "username",
+                              style: context.l), // matches hint style
+                          const Spacer(),
+                          IconButton(
+                            icon: Icon(
+                              Icons.lock_sharp,
+                              color: context.surfaceColor,
                             ),
-                          ],
-                        ),
-                  const Spacer(),
-                  Center(
-                    child: ZTextButton(
-                      type: ZButtonTypes.wide,
-                      backgroundColor: context.surfaceColor,
-                      foregroundColor: context.onSurfaceColor,
-                      onPressed: () {
-                        Auth.instance().signOut();
-                      },
-                      child: const Text("Logout"),
-                    ),
+                            onPressed: () {
+                              setState(() {
+                                isEditing = true;
+                              });
+                            },
+                          ),
+                        ],
+                      ),
+                const Spacer(),
+                Center(
+                  child: ZTextButton(
+                    type: ZButtonTypes.wide,
+                    backgroundColor: context.surfaceColor,
+                    foregroundColor: context.onSurfaceColor,
+                    onPressed: () {
+                      Auth.instance().signOut();
+                    },
+                    child: const Text("Logout"),
                   ),
-                  context.stq,
-                  Center(
-                    child: ZTextButton(
-                      type: ZButtonTypes.wide,
-                      backgroundColor: context.errorColor,
-                      foregroundColor: context.onErrorColor,
-                      onPressed: () {
-                        Auth.instance().delete();
-                      },
-                      child: const Text("Delete Account"),
-                    ),
+                ),
+                context.stq,
+                Center(
+                  child: ZTextButton(
+                    type: ZButtonTypes.wide,
+                    backgroundColor: context.errorColor,
+                    foregroundColor: context.onErrorColor,
+                    onPressed: () {
+                      Auth.instance().delete();
+                    },
+                    child: const Text("Delete Account"),
                   ),
-                  const Center(child: ZDivider(type: DividerType.SECONDARY)),
-                  const About(),
-                ],
-              ),
+                ),
+                const Center(child: ZDivider(type: DividerType.SECONDARY)),
+                const About(),
+              ],
             ),
     );
   }
