@@ -23,6 +23,9 @@ const {
   PLATFORM_SHOULD_CHANGE_STATS,
   POST_SHOULD_CHANGE_CONFIDENCE,
   POST_SHOULD_CHANGE_BIAS,
+  POST_SHOULD_CHANGE_VIRALITY,
+  POST_CHANGED_VIRALITY,
+  STORY_SHOULD_CHANGE_NEWSWORTHINESS,
 } = require("../common/pubsub");
 const {
   getPost,
@@ -48,7 +51,8 @@ const {tryQueueTask,
   queueTask,
   POST_SHOULD_FIND_STATEMENTS_TASK} = require("../common/tasks");
 const {onTaskDispatched} = require("firebase-functions/v2/tasks");
-const {didChangeStats} = require("../ai/newsworthiness");
+const {didChangeStats,
+  onPostShouldChangeVirality} = require("../ai/newsworthiness");
 const {onPostShouldChangeConfidence} = require("../ai/confidence");
 const {onPostShouldChangeBias} = require("../ai/bias");
 
@@ -141,6 +145,13 @@ exports.onPostUpdate = onDocumentWritten(
            after.status == "noStatements") {
           await updatePost(after.pid, {status: "found"});
         }
+      }
+
+      if (_create && after.virality ||
+        _update && before.virality != after.virality ||
+        _delete && before.virality) {
+        await publishMessage(POST_CHANGED_VIRALITY,
+            {pid: before.pid ?? after.pid});
       }
 
       if (_create && (isUnsupportedStatus(after.status)) ||
@@ -278,6 +289,63 @@ exports.onPostShouldChangeBias = onMessagePublished(
 );
 
 // ////////////////////////////////////////////////////////////////////////////
+// Newsworthiness
+// ////////////////////////////////////////////////////////////////////////////
+
+/**
+ * triggers posts to update virality
+ * @param {Message} message
+ * @return {Promise<void>}
+ * */
+exports.onPostShouldChangeVirality = onMessagePublished(
+    {
+      topic: POST_SHOULD_CHANGE_VIRALITY,
+      ...gbConfig,
+    },
+    async (event) => {
+      const pid = event.data.message.json.pid;
+      if (!pid) {
+        return Promise.resolve();
+      }
+      logger.info(`onPostShouldChangeVirality: ${pid}`);
+
+      await onPostShouldChangeVirality(pid);
+
+      return Promise.resolve();
+    });
+
+/**
+ * triggers stories to update their newsworthiness
+ * called when a post changed virality
+ * @param {Message} message
+ * @return {Promise<void>}
+ * */
+exports.onPostChangedVirality = onMessagePublished(
+    {
+      topic: POST_CHANGED_VIRALITY,
+      ...defaultConfig,
+    },
+    async (event) => {
+      const pid = event.data.message.json.pid;
+      if (!pid) {
+        return Promise.resolve();
+      }
+      logger.info(`onPostChangedVirality: ${pid}`);
+
+      const stories = await getAllStoriesForPost(pid);
+      if (!stories) {
+        return Promise.resolve();
+      }
+
+      for (const story of stories) {
+        await publishMessage(STORY_SHOULD_CHANGE_NEWSWORTHINESS,
+            {sid: story.sid});
+      }
+
+      return Promise.resolve();
+    });
+
+// ////////////////////////////////////////////////////////////////////////////
 // Content
 // ////////////////////////////////////////////////////////////////////////////
 
@@ -342,6 +410,8 @@ exports.onPostChangedStats = onMessagePublished(
         logger.error("No post found for onPostChangedStats");
         return Promise.resolve();
       }
+
+      await publishMessage(POST_SHOULD_CHANGE_VIRALITY, {pid: post.pid});
 
       await publishMessage(ENTITY_SHOULD_CHANGE_STATS, {eid: post.eid});
 

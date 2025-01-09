@@ -24,6 +24,8 @@ const {
   onPostShouldChangeBias,
   onPostShouldChangeConfidence,
   onPostShouldFindStatementsTask,
+  onPostShouldChangeVirality,
+  onPostChangedVirality,
   shouldFindStories,
   shouldFindStatements,
 } = require("./models/post");
@@ -68,6 +70,7 @@ const {
   onEntityShouldChangeBias,
   onEntityChangedBias,
   onEntityShouldChangeStats,
+  onEntityChangedStats,
   onPlatformChangedEntities,
 } = require("./models/entity");
 const {onPlatformUpdate,
@@ -140,6 +143,8 @@ module.exports = {
   onPlatformChangedPosts,
   onPostShouldChangeBias,
   onPostShouldChangeConfidence,
+  onPostShouldChangeVirality,
+  onPostChangedVirality,
   // Story
   onStoryUpdate,
   onStoryPostsChanged,
@@ -180,6 +185,7 @@ module.exports = {
   onEntityShouldChangeBias,
   onEntityChangedBias,
   onEntityShouldChangeStats,
+  onEntityChangedStats,
   onPlatformChangedEntities,
   // Platform
   onPlatformUpdate,

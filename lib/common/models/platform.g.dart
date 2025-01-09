@@ -17,6 +17,7 @@ Platform _$PlatformFromJson(Map<String, dynamic> json) => Platform(
       avgBookmarks: (json['avgBookmarks'] as num?)?.toDouble(),
       avgViews: (json['avgViews'] as num?)?.toDouble(),
       photoURL: json['photoURL'] as String?,
+      statsCount: (json['statsCount'] as num?)?.toInt(),
     );
 
 Map<String, dynamic> _$PlatformToJson(Platform instance) => <String, dynamic>{
@@ -28,6 +29,7 @@ Map<String, dynamic> _$PlatformToJson(Platform instance) => <String, dynamic>{
       'avgLikes': instance.avgLikes,
       'avgBookmarks': instance.avgBookmarks,
       'avgViews': instance.avgViews,
+      'statsCount': instance.statsCount,
       'createdAt': Utils.timestampToJson(instance.createdAt),
       'updatedAt': Utils.timestampToJson(instance.updatedAt),
     };

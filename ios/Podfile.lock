@@ -1496,7 +1496,7 @@ SPEC CHECKSUMS:
   FirebaseMessagingInterop: d768073b71144b7bceadfec019d3dc49c743d53e
   FirebaseSharedSwift: a4e5dfca3e210633bb3a3dfb94176c019211948b
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
-  flutter_native_splash: e8a1e01082d97a8099d973f919f57904c925008a
+  flutter_native_splash: f71420956eb811e6d310720fee915f1d42852e7a
   fluttertoast: e9a18c7be5413da53898f660530c56f35edfba9c
   Google-Maps-iOS-Utils: 66d6de12be1ce6d3742a54661e7a79cb317a9321
   google_maps_flutter_ios: e31555a04d1986ab130f2b9f24b6cdc861acc6d3

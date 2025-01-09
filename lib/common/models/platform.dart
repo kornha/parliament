@@ -20,16 +20,18 @@ class Platform {
   final String url;
   final String? photoURL;
 
-  double? avgReplies;
-  double? avgReposts;
-  double? avgLikes;
-  double? avgBookmarks;
-  double? avgViews;
+  final double? avgReplies;
+  final double? avgReposts;
+  final double? avgLikes;
+  final double? avgBookmarks;
+  final double? avgViews;
+
+  final int? statsCount;
 
   @JsonKey(fromJson: Utils.timestampFromJson, toJson: Utils.timestampToJson)
-  Timestamp createdAt;
+  final Timestamp createdAt;
   @JsonKey(fromJson: Utils.timestampFromJson, toJson: Utils.timestampToJson)
-  Timestamp updatedAt;
+  final Timestamp updatedAt;
 
   Platform({
     required this.plid,
@@ -42,6 +44,7 @@ class Platform {
     this.avgBookmarks,
     this.avgViews,
     this.photoURL,
+    this.statsCount,
   });
 
   factory Platform.fromJson(Map<String, dynamic> json) =>

@@ -69,7 +69,8 @@ exports.onStoryUpdate = onDocumentWritten(
         await publishMessage(STORY_CHANGED_POSTS, {before, after});
         await publishMessage(STORY_SHOULD_CHANGE_STATS,
             {sid: after?.sid || before?.sid});
-
+        await publishMessage(STORY_SHOULD_CHANGE_NEWSWORTHINESS,
+            {sid: after?.sid || before?.sid});
         if (!_delete && !_.isEmpty(after.pids)) {
           await publishMessage(STORY_SHOULD_CHANGE_PLATFORMS,
               {story: after});
@@ -108,13 +109,13 @@ exports.onStoryUpdate = onDocumentWritten(
         _update && !_.isEqual(before.plids, after.plids) ||
         _delete && !_.isEmpty(before.plids)
       ) {
-        await publishMessage(STORY_SHOULD_CHANGE_NEWSWORTHINESS,
-            {sid: after?.sid || before?.sid});
+        // await publishMessage(STORY_SHOULD_CHANGE_NEWSWORTHINESS,
+        //     {sid: after?.sid || before?.sid});
       }
 
       if (didChangeStats(_create, _update, _delete, before, after, true)) {
-        await publishMessage(STORY_SHOULD_CHANGE_NEWSWORTHINESS,
-            {sid: after?.sid || before?.sid});
+        // await publishMessage(STORY_SHOULD_CHANGE_NEWSWORTHINESS,
+        //     {sid: after?.sid || before?.sid});
       }
 
       if (

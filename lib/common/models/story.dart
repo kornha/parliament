@@ -39,6 +39,9 @@ class Story {
   final double? avgBookmarks;
   final double? avgViews;
 
+  final Confidence? avgEntityVirality;
+  final Confidence? avgPlatformVirality;
+
   final StoryStatus status;
 
   final PoliticalPosition? bias;
@@ -79,6 +82,8 @@ class Story {
     this.avgLikes,
     this.avgBookmarks,
     this.avgViews,
+    this.avgEntityVirality,
+    this.avgPlatformVirality,
     this.newsworthiness,
     this.virality,
     this.bias,

@@ -15,6 +15,8 @@ const PLATFORM_CHANGED_POSTS = "onPlatformChangedPosts";
 const POST_CHANGED_STATS = "onPostChangedStats";
 const POST_SHOULD_CHANGE_BIAS = "onPostShouldChangeBias";
 const POST_SHOULD_CHANGE_CONFIDENCE = "onPostShouldChangeConfidence";
+const POST_SHOULD_CHANGE_VIRALITY = "onPostShouldChangeVirality";
+const POST_CHANGED_VIRALITY = "onPostChangedVirality";
 
 const STORY_CHANGED_VECTOR = "onStoryChangedVector";
 const POST_CHANGED_STORIES = "onPostChangedStories";
@@ -48,6 +50,7 @@ const ENTITY_SHOULD_CHANGE_CONFIDENCE = "onEntityShouldChangeConfidence";
 const ENTITY_CHANGED_BIAS = "onEntityChangedBias";
 const ENTITY_SHOULD_CHANGE_BIAS = "onEntityShouldChangeBias";
 const ENTITY_SHOULD_CHANGE_STATS = "onEntityShouldChangeStats";
+const ENTITY_CHANGED_STATS = "onEntityChangedStats";
 const ENTITY_SHOULD_CHANGE_PLATFORM = "onEntityShouldChangePlatform";
 const PLATFORM_CHANGED_ENTITIES = "onPlatformChangedEntities";
 
@@ -83,6 +86,8 @@ module.exports = {
   POST_CHANGED_STATS,
   POST_SHOULD_CHANGE_BIAS,
   POST_SHOULD_CHANGE_CONFIDENCE,
+  POST_SHOULD_CHANGE_VIRALITY,
+  POST_CHANGED_VIRALITY,
   STORY_CHANGED_POSTS,
   STORY_CHANGED_STATEMENTS,
   STORY_CHANGED_VECTOR,
@@ -111,6 +116,7 @@ module.exports = {
   ENTITY_CHANGED_BIAS,
   ENTITY_SHOULD_CHANGE_BIAS,
   ENTITY_SHOULD_CHANGE_STATS,
+  ENTITY_CHANGED_STATS,
   ENTITY_SHOULD_CHANGE_PLATFORM,
   PLATFORM_CHANGED_ENTITIES,
   PLATFORM_CHANGED_POSTS,

@@ -20,16 +20,18 @@ class Entity {
   final PoliticalPosition? bias;
   final PoliticalPosition? adminBias;
 
-  double? avgReplies;
-  double? avgReposts;
-  double? avgLikes;
-  double? avgBookmarks;
-  double? avgViews;
+  final double? avgReplies;
+  final double? avgReposts;
+  final double? avgLikes;
+  final double? avgBookmarks;
+  final double? avgViews;
+
+  final int? statsCount;
 
   @JsonKey(fromJson: Utils.timestampFromJson, toJson: Utils.timestampToJson)
-  Timestamp createdAt;
+  final Timestamp createdAt;
   @JsonKey(fromJson: Utils.timestampFromJson, toJson: Utils.timestampToJson)
-  Timestamp updatedAt;
+  final Timestamp updatedAt;
 
   Entity({
     required this.eid,
@@ -49,6 +51,7 @@ class Entity {
     this.adminConfidence,
     this.bias,
     this.adminBias,
+    this.statsCount,
   });
 
   factory Entity.fromJson(Map<String, dynamic> json) => _$EntityFromJson(json);

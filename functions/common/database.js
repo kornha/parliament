@@ -233,16 +233,18 @@ const getPostsForStory = async function(sid) {
 /**
  * fetches all posts for entity
  * @param {*} eid
+ * @param {*} limit // INCLUDES LIMIT DUE TO POTENTIAL SIZE
  * @return {Array<Post>} of posts
  */
-const getAllPostsForEntity = async function(eid) {
+const getAllPostsForEntity = async function(eid, limit = 1000) {
   if (!eid) {
     logger.error(`Could not get posts for entity: ${eid}`);
     return;
   }
   // one to many entity:posts
   const postsRef = admin.firestore().collection("posts")
-      .where("eid", "==", eid);
+      .where("eid", "==", eid)
+      .limit(limit);
   try {
     const posts = await postsRef.get();
     return posts.docs.map((post) => post.data());
@@ -254,15 +256,17 @@ const getAllPostsForEntity = async function(eid) {
 /**
  * fetches primary and secondary posts for story
  * @param {*} sid
+ * @param {*} limit // unlikely an issue
  * @return {Array} of posts
  */
-const getAllPostsForStory = async function(sid) {
+const getAllPostsForStory = async function(sid, limit = 1000) {
   if (!sid) {
     logger.error(`Could not get posts mentioning story: ${sid}`);
     return;
   }
   const postsRef = admin.firestore().collection("posts")
-      .where("sids", "array-contains", sid);
+      .where("sids", "array-contains", sid)
+      .limit(limit);
   try {
     const posts = await postsRef.get();
     return posts.docs.map((post) => post.data());
@@ -517,7 +521,7 @@ const getAllStoriesForPost = async function(pid) {
  * @param {*} limit // INCLUDES LIMIT DUE TO POTENTIAL SIZE
  * @return {Array} of stories
  */
-const getAllStoriesForPlatform = async function(plid, limit = 10000) {
+const getAllStoriesForPlatform = async function(plid, limit = 1000) {
   if (!plid) {
     logger.error(`Could not get stories for platform: ${plid}`);
     return;

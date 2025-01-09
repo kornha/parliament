@@ -36,6 +36,7 @@ Entity _$EntityFromJson(Map<String, dynamic> json) => Entity(
       adminBias: json['adminBias'] == null
           ? null
           : PoliticalPosition.fromJson(json['adminBias']),
+      statsCount: (json['statsCount'] as num?)?.toInt(),
     );
 
 Map<String, dynamic> _$EntityToJson(Entity instance) => <String, dynamic>{
@@ -54,6 +55,7 @@ Map<String, dynamic> _$EntityToJson(Entity instance) => <String, dynamic>{
       'avgLikes': instance.avgLikes,
       'avgBookmarks': instance.avgBookmarks,
       'avgViews': instance.avgViews,
+      'statsCount': instance.statsCount,
       'createdAt': Utils.timestampToJson(instance.createdAt),
       'updatedAt': Utils.timestampToJson(instance.updatedAt),
     };

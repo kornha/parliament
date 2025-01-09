@@ -55,6 +55,10 @@ class Post {
   final Confidence? confidence;
   final PoliticalPosition? bias;
 
+  final Confidence? virality;
+  final Confidence? entityVirality;
+  final Confidence? platformVirality;
+
   // DEPRECATED!
 
   final PoliticalPosition? userBias;
@@ -111,6 +115,9 @@ class Post {
     this.views,
     this.bias,
     this.confidence,
+    this.virality,
+    this.entityVirality,
+    this.platformVirality,
     this.messageCount,
     this.userBias,
     this.aiBias,

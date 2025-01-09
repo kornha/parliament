@@ -3,6 +3,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:political_think/common/components/loading.dart';
 import 'package:political_think/common/components/profile_icon.dart';
+import 'package:political_think/common/components/stats_table.dart';
 import 'package:political_think/common/components/zicon_text.dart';
 import 'package:political_think/common/extensions.dart';
 import 'package:political_think/common/models/entity.dart';
@@ -10,6 +11,7 @@ import 'package:political_think/common/models/platform.dart';
 import 'package:political_think/common/models/story.dart';
 import 'package:political_think/common/util/utils.dart';
 import 'package:political_think/common/util/zimage.dart';
+import 'package:political_think/views/confidence/confidence_widget.dart';
 import 'package:political_think/views/post/post_view.dart';
 
 class PostItemView extends ConsumerStatefulWidget {
@@ -105,43 +107,25 @@ class _PostViewState extends ConsumerState<PostItemView> {
                             visible: post?.body != null &&
                                 (post!.body?.isNotEmpty ?? false),
                             child: context.sf),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Visibility(
-                              visible: post?.replies != null,
-                              child: ZIconText(
-                                  icon: FontAwesomeIcons.comment,
-                                  text:
-                                      Utils.numToReadableString(post?.replies)),
+                        Visibility(
+                          visible: post != null,
+                          child: StatsTable(map: {
+                            "Virality": ConfidenceWidget(
+                              confidence: post?.virality,
+                              viral: true,
+                              enabled: false,
                             ),
-                            Visibility(
-                              visible: post?.reposts != null,
-                              child: ZIconText(
-                                  icon: FontAwesomeIcons.retweet,
-                                  text:
-                                      Utils.numToReadableString(post?.reposts)),
-                            ),
-                            Visibility(
-                              visible: post?.likes != null,
-                              child: ZIconText(
-                                  icon: FontAwesomeIcons.heart,
-                                  text: Utils.numToReadableString(post?.likes)),
-                            ),
-                            Visibility(
-                              visible: post?.bookmarks != null,
-                              child: ZIconText(
-                                  icon: FontAwesomeIcons.bookmark,
-                                  text: Utils.numToReadableString(
-                                      post?.bookmarks)),
-                            ),
-                            Visibility(
-                              visible: post?.views != null,
-                              child: ZIconText(
-                                  icon: FontAwesomeIcons.eye,
-                                  text: Utils.numToReadableString(post?.views)),
-                            ),
-                          ],
+                            "Replies":
+                                Text(Utils.numToReadableString(post?.replies)),
+                            "Reposts":
+                                Text(Utils.numToReadableString(post?.reposts)),
+                            "Likes":
+                                Text(Utils.numToReadableString(post?.likes)),
+                            "Bookmarks": Text(
+                                Utils.numToReadableString(post?.bookmarks)),
+                            "Views":
+                                Text(Utils.numToReadableString(post?.views)),
+                          }),
                         ),
                       ],
                     )

@@ -48,6 +48,15 @@ Post _$PostFromJson(Map<String, dynamic> json) => Post(
       confidence: json['confidence'] == null
           ? null
           : Confidence.fromJson(json['confidence']),
+      virality: json['virality'] == null
+          ? null
+          : Confidence.fromJson(json['virality']),
+      entityVirality: json['entityVirality'] == null
+          ? null
+          : Confidence.fromJson(json['entityVirality']),
+      platformVirality: json['platformVirality'] == null
+          ? null
+          : Confidence.fromJson(json['platformVirality']),
       messageCount: (json['messageCount'] as num?)?.toInt(),
       userBias: json['userBias'] == null
           ? null
@@ -92,6 +101,9 @@ Map<String, dynamic> _$PostToJson(Post instance) => <String, dynamic>{
       'views': instance.views,
       'confidence': instance.confidence?.toJson(),
       'bias': instance.bias?.toJson(),
+      'virality': instance.virality?.toJson(),
+      'entityVirality': instance.entityVirality?.toJson(),
+      'platformVirality': instance.platformVirality?.toJson(),
       'userBias': instance.userBias?.toJson(),
       'aiBias': instance.aiBias?.toJson(),
       'debateBias': instance.debateBias?.toJson(),

@@ -11,13 +11,13 @@ const {publishMessage,
   PLATFORM_SHOULD_CHANGE_STATS,
   PLATFORM_CHANGED_STORIES,
   PLATFORM_CHANGED_STATS,
-  STORY_SHOULD_CHANGE_NEWSWORTHINESS} = require("../common/pubsub");
+  POST_SHOULD_CHANGE_VIRALITY} = require("../common/pubsub");
 const {onMessagePublished} = require("firebase-functions/v2/pubsub");
 const {getImageFromURL} = require("../content/scraper");
 const {updatePlatform,
   getAllPostsForPlatform,
   getPlatform,
-  getAllStoriesForPlatform} = require("../common/database");
+} = require("../common/database");
 const {logger} = require("firebase-functions/v2");
 const {
   isFibonacciNumber} = require("../common/utils");
@@ -120,12 +120,13 @@ exports.onPlatformShouldChangeStats = onMessagePublished(
       }
 
       return Promise.resolve();
-    });
+    },
+);
 
 exports.onPlatformChangedStats = onMessagePublished(
     {
       topic: PLATFORM_CHANGED_STATS,
-      ...defaultConfig,
+      ...gbConfig, // this fetches 1-2k+ posts, might be causing memory issues
     },
     async (event) => {
       const plid = event.data.message.json.plid;
@@ -134,14 +135,36 @@ exports.onPlatformChangedStats = onMessagePublished(
       }
       logger.info(`onPlatformChangedStats: ${plid}`);
 
-      const stories = await getAllStoriesForPlatform(plid);
-      if (!stories) {
+      // gets only latest 1000
+      // const stories = await getAllStoriesForPlatform(plid);
+      // if (!stories) {
+      //   return Promise.resolve();
+      // }
+
+      // for (const story of stories) {
+      //   await publishMessage(STORY_SHOULD_CHANGE_NEWSWORTHINESS,
+      //       {sid: story.sid});
+      // }
+
+      // technically this is not a prerequisite for a post changing virality
+      // however since the post virality needs to update
+      // this is a useful cadence to do so
+      // this also double triggers with entity stats
+      //
+      // NOTE: this is a heavy operation.
+      // we do default limit which is arbitrary
+      // this represents the universe of items to be tracked for virality
+      // since currently virality is the local percentile
+      // and not the global percentile
+      const posts = await getAllPostsForPlatform(plid);
+      if (_.isEmpty(posts)) {
+        logger.warn(`No posts for platform ${plid}`);
         return Promise.resolve();
       }
 
-      for (const story of stories) {
-        await publishMessage(STORY_SHOULD_CHANGE_NEWSWORTHINESS,
-            {sid: story.sid});
+      for (const post of posts) {
+        await publishMessage(POST_SHOULD_CHANGE_VIRALITY,
+            {pid: post.pid});
       }
 
       return Promise.resolve();

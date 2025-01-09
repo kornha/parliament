@@ -1,6 +1,6 @@
 const {onDocumentWritten} = require("firebase-functions/v2/firestore");
 const {onMessagePublished} = require("firebase-functions/v2/pubsub");
-const {defaultConfig, scrapeConfig} = require("../common/functions");
+const {defaultConfig, scrapeConfig, gbConfig} = require("../common/functions");
 const {publishMessage,
   ENTITY_SHOULD_CHANGE_IMAGE,
   POST_CHANGED_ENTITY,
@@ -16,15 +16,18 @@ const {publishMessage,
   ENTITY_SHOULD_CHANGE_STATS,
   ENTITY_SHOULD_CHANGE_PLATFORM,
   PLATFORM_CHANGED_ENTITIES,
+  ENTITY_CHANGED_STATS,
+  POST_SHOULD_CHANGE_VIRALITY,
 } = require("../common/pubsub");
 const {logger} = require("firebase-functions/v2");
 const {getEntityImage} = require("../content/xscraper");
 const {updateEntity, getAllStatementsForEntity,
   getAllPostsForEntity,
   getPlatform,
-  deleteAttribute} = require("../common/database");
-const {Timestamp} = require("firebase-admin/firestore");
-const {handleChangedRelations} = require("../common/utils");
+  deleteAttribute,
+  getEntity} = require("../common/database");
+const {Timestamp, FieldValue} = require("firebase-admin/firestore");
+const {handleChangedRelations, isFibonacciNumber} = require("../common/utils");
 const _ = require("lodash");
 const {onEntityShouldChangeConfidence} = require("../ai/confidence");
 const {onEntityShouldChangeBias} = require("../ai/bias");
@@ -293,23 +296,74 @@ exports.onEntityShouldChangeStats = onMessagePublished(
       }
       logger.info(`onEntityShouldChangeStats ${eid}`);
 
-      const posts = await getAllPostsForEntity(eid);
-      if (_.isEmpty(posts)) {
-        logger.warn(`No posts found for entity ${eid}`);
+
+      const entity = await getEntity(eid);
+      if (!entity) {
+        logger.warn(`No entity found for ${eid}`);
         return Promise.resolve();
       }
 
-      const stats = calculateAverageStats(posts);
-      if (_.isEmpty(stats)) {
-        return Promise.resolve();
+      // Ensure statsCount is defined
+      if (entity.statsCount == null) {
+        entity.statsCount = 0;
       }
 
-      logger.info(`Updating entity stats`);
-      await updateEntity(eid, stats, 5); // might not exist so skiperror
+      const isFibonacci = isFibonacciNumber(entity.statsCount);
+
+      // increment doesn't work on null. Stats count is technically 1 higher
+      // we move this up here to reduce concurrent cases of the same count
+      await updateEntity(eid, {
+        statsCount: entity.statsCount === 0 ? 1 : FieldValue.increment(1),
+      }, 5);
+
+      if (isFibonacci) {
+        const posts = await getAllPostsForEntity(eid);
+        if (_.isEmpty(posts)) {
+          logger.warn(`No posts found for entity ${eid}`);
+          return Promise.resolve();
+        }
+
+        const stats = calculateAverageStats(posts);
+        if (_.isEmpty(stats)) {
+          return Promise.resolve();
+        }
+
+        logger.info(`Updating entity stats`);
+        await updateEntity(eid, stats, 5); // might not exist so skiperror
+      }
 
       return Promise.resolve();
+    });
+
+exports.onEntityChangedStats = onMessagePublished(
+    {
+      topic: ENTITY_CHANGED_STATS,
+      ...gbConfig, // this fetches 1-2k+ posts, might be causing memory issues
     },
-);
+    async (event) => {
+      const eid = event.data.message.json.eid;
+      if (!eid) {
+        return Promise.resolve();
+      }
+      logger.info(`onEntityChangedStats: ${eid}`);
+
+      // technically this is not a prerequisite for a post changing virality
+      // however since the post virality needs to update
+      // this is a useful cadence to do so
+      // this also double triggers with entity stats
+      const posts = await getAllPostsForEntity(eid);
+      if (_.isEmpty(posts)) {
+        logger.warn(`No posts for entity ${eid}`);
+        return Promise.resolve();
+      }
+
+      for (const post of posts) {
+        await publishMessage(POST_SHOULD_CHANGE_VIRALITY,
+            {pid: post.pid});
+      }
+
+      return Promise.resolve();
+    });
 
 // ////////////////////////////////////////////////////////////////////////////
 // Platform

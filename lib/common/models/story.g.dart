@@ -28,6 +28,12 @@ Story _$StoryFromJson(Map<String, dynamic> json) => Story(
       avgLikes: (json['avgLikes'] as num?)?.toDouble(),
       avgBookmarks: (json['avgBookmarks'] as num?)?.toDouble(),
       avgViews: (json['avgViews'] as num?)?.toDouble(),
+      avgEntityVirality: json['avgEntityVirality'] == null
+          ? null
+          : Confidence.fromJson(json['avgEntityVirality']),
+      avgPlatformVirality: json['avgPlatformVirality'] == null
+          ? null
+          : Confidence.fromJson(json['avgPlatformVirality']),
       newsworthiness: json['newsworthiness'] == null
           ? null
           : Confidence.fromJson(json['newsworthiness']),
@@ -74,6 +80,8 @@ Map<String, dynamic> _$StoryToJson(Story instance) => <String, dynamic>{
       'avgLikes': instance.avgLikes,
       'avgBookmarks': instance.avgBookmarks,
       'avgViews': instance.avgViews,
+      'avgEntityVirality': instance.avgEntityVirality?.toJson(),
+      'avgPlatformVirality': instance.avgPlatformVirality?.toJson(),
       'status': _$StoryStatusEnumMap[instance.status]!,
       'bias': instance.bias?.toJson(),
       'confidence': instance.confidence?.toJson(),
