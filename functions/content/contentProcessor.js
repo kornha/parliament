@@ -11,7 +11,7 @@ const {v5} = require("uuid");
 const {Timestamp} = require("firebase-admin/firestore");
 const {logger} = require("firebase-functions/v2");
 const {getContentFromX} = require("./xscraper");
-const {isoToMillis, getStatus} = require("../common/utils");
+const {isoToMillis, getStatus, getSocialScore} = require("../common/utils");
 const {getArticleFromLink, getPostFromArticle} = require("./news");
 const {HttpsError} = require("firebase-functions/https");
 
@@ -252,6 +252,14 @@ async function updatePostWithXData(post) {
 
   const time = isoToMillis(xData.isoTime);
 
+  const socialScore = getSocialScore({
+    replies: xData.replies,
+    reposts: xData.reposts,
+    likes: xData.likes,
+    bookmarks: xData.bookmarks,
+    views: xData.views,
+  });
+
   const updateData = {
     title: xData.title,
     photo: xData.photoURL ? {photoURL: xData.photoURL} : null,
@@ -261,6 +269,7 @@ async function updatePostWithXData(post) {
     reposts: xData.reposts,
     likes: xData.likes,
     bookmarks: xData.bookmarks,
+    socialScore: socialScore,
     views: xData.views,
     updatedAt: Timestamp.now().toMillis(),
   };
@@ -281,6 +290,14 @@ async function updatePostWithXData(post) {
 async function updatePostWithNewsData(post, data) {
   const status = getStatus(post, post.status);
 
+  const socialScore = getSocialScore({
+    replies: data.replies,
+    reposts: data.reposts,
+    likes: data.likes,
+    bookmarks: data.bookmarks,
+    views: data.views,
+  });
+
   const updateData = {
     title: data.title,
     body: data.body,
@@ -293,6 +310,7 @@ async function updatePostWithNewsData(post, data) {
     ...(data.likes && {likes: data.likes}),
     ...(data.bookmarks && {bookmarks: data.bookmarks}),
     ...(data.views && {views: data.views}),
+    socialScore: socialScore,
   };
 
   await updatePost(post.pid, updateData);

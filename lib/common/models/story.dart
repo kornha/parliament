@@ -38,6 +38,7 @@ class Story {
   final double? avgLikes;
   final double? avgBookmarks;
   final double? avgViews;
+  final double? avgSocialScore;
 
   final Confidence? avgEntityVirality;
   final Confidence? avgPlatformVirality;
@@ -82,6 +83,7 @@ class Story {
     this.avgLikes,
     this.avgBookmarks,
     this.avgViews,
+    this.avgSocialScore,
     this.avgEntityVirality,
     this.avgPlatformVirality,
     this.newsworthiness,

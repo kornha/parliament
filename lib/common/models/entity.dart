@@ -25,6 +25,7 @@ class Entity {
   final double? avgLikes;
   final double? avgBookmarks;
   final double? avgViews;
+  final double? avgSocialScore;
 
   final int? statsCount;
 
@@ -43,6 +44,7 @@ class Entity {
     this.avgLikes,
     this.avgBookmarks,
     this.avgViews,
+    this.avgSocialScore,
     this.photoURL,
     this.pids = const [],
     this.stids = const [],

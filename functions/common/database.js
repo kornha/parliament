@@ -1,5 +1,6 @@
 const admin = require("firebase-admin");
-const {Timestamp, FieldPath, FieldValue} = require("firebase-admin/firestore");
+const {Timestamp, FieldPath,
+  FieldValue, AggregateField} = require("firebase-admin/firestore");
 const {v4, v5} = require("uuid");
 const _ = require("lodash");
 const {retryAsyncFunction, urlToDomain} = require("./utils");
@@ -233,22 +234,31 @@ const getPostsForStory = async function(sid) {
 /**
  * fetches all posts for entity
  * @param {*} eid
+ * @param {*} updatedAt time
  * @param {*} limit // INCLUDES LIMIT DUE TO POTENTIAL SIZE
  * @return {Array<Post>} of posts
  */
-const getAllPostsForEntity = async function(eid, limit = 1000) {
+const getAllPostsForEntity = async function(eid, updatedAt, limit = 100) {
   if (!eid) {
-    logger.error(`Could not get posts for entity: ${eid}`);
-    return;
+    console.error(`Could not get posts for entity: ${eid}`);
+    return null;
   }
-  // one to many entity:posts
-  const postsRef = admin.firestore().collection("posts")
-      .where("eid", "==", eid)
-      .limit(limit);
+
   try {
-    const posts = await postsRef.get();
-    return posts.docs.map((post) => post.data());
-  } catch (e) {
+    let query = admin.firestore().collection("posts")
+        .where("eid", "==", eid);
+
+    // Apply the updatedAt filter if provided
+    if (updatedAt) {
+      query = query.where("updatedAt", ">", updatedAt);
+    }
+
+    query = query.limit(limit);
+
+    const snapshot = await query.get();
+    return snapshot.docs.map((doc) => doc.data());
+  } catch (error) {
+    console.error(`Error fetching posts for entity ${eid}:`, error);
     return null;
   }
 };
@@ -259,7 +269,7 @@ const getAllPostsForEntity = async function(eid, limit = 1000) {
  * @param {*} limit // unlikely an issue
  * @return {Array} of posts
  */
-const getAllPostsForStory = async function(sid, limit = 1000) {
+const getAllPostsForStory = async function(sid, limit = 100) {
   if (!sid) {
     logger.error(`Could not get posts mentioning story: ${sid}`);
     return;
@@ -279,15 +289,17 @@ const getAllPostsForStory = async function(sid, limit = 1000) {
 /**
  * get all posts for statement
  * @param {*} stid
+ * @param {*} limit // INCLUDES LIMIT DUE TO POTENTIAL SIZE
  * @return {Array<Post>} of posts
  * */
-const getAllPostsForStatement = async function(stid) {
+const getAllPostsForStatement = async function(stid, limit = 100) {
   if (!stid) {
     logger.error(`Could not get posts for statement: ${stid}`);
     return;
   }
   const postsRef = admin.firestore().collection("posts")
-      .where("stids", "array-contains", stid);
+      .where("stids", "array-contains", stid)
+      .limit(limit);
   try {
     const posts = await postsRef.get();
     return posts.docs.map((post) => post.data());
@@ -297,25 +309,31 @@ const getAllPostsForStatement = async function(stid) {
 };
 
 /**
+ * USE WITH CAUTION!
  * fetches all posts for platform
  * @param {*} plid
+ * @param {*} updatedAt time
  * @param {*} limit // INCLUDES LIMIT DUE TO POTENTIAL SIZE
  * @return {Array} of posts
  */
-const getAllPostsForPlatform = async function(plid, limit = 1000) {
+const getAllPostsForPlatform = async function(plid, updatedAt, limit = 100) {
   if (!plid) {
     logger.error(`Could not get posts for platform: ${plid}`);
     return;
   }
 
-  const postsRef = admin.firestore().collection("posts")
-      .where("plid", "==", plid)
-      .orderBy("updatedAt", "desc")
-      .limit(limit);
-
   try {
-    const posts = await postsRef.get();
-    return posts.docs.map((post) => post.data());
+    let query = admin.firestore().collection("posts")
+        .where("plid", "==", plid);
+
+    if (updatedAt) {
+      query = query.where("updatedAt", ">", updatedAt);
+    }
+
+    query = query.limit(limit);
+
+    const snapshot = await query.get();
+    return snapshot.docs.map((doc) => doc.data());
   } catch (e) {
     logger.error(`Error getting posts for platform ${plid}: ${e}`);
     return null;
@@ -516,12 +534,13 @@ const getAllStoriesForPost = async function(pid) {
 };
 
 /**
+ * USE WITH CAUTION!
  * fetches all stories for platform
  * @param {*} plid
  * @param {*} limit // INCLUDES LIMIT DUE TO POTENTIAL SIZE
  * @return {Array} of stories
  */
-const getAllStoriesForPlatform = async function(plid, limit = 1000) {
+const getAllStoriesForPlatform = async function(plid, limit = 100) {
   if (!plid) {
     logger.error(`Could not get stories for platform: ${plid}`);
     return;
@@ -696,12 +715,13 @@ const getAllEntitiesForStatement = async function(stid) {
 };
 
 /**
+ * USE WITH CAUTION!
  * fetches all entities for a platform
  * @param {*} plid
  * @param {*} limit // INCLUDES LIMIT DUE TO POTENTIAL SIZE
  * @return {Array<Entity>} of entities
  * */
-const getAllEntitiesForPlatform = async function(plid, limit = 10000) {
+const getAllEntitiesForPlatform = async function(plid, limit = 100) {
   if (!plid) {
     logger.error(`Could not get entities for platform: ${plid}`);
     return;
@@ -1147,6 +1167,78 @@ const getAllStatementsForEntity = async function(eid) {
 // /////////////////////////////////////////
 // Generic
 // /////////////////////////////////////////
+/**
+ * Counts documents in the "posts" collection
+ * EXPENSIVE USE WITH CARE
+ * TODO: CHANGE TO USING BQ
+ * @param {string} collection - The collection to query
+ * @param {string} [fkField] - The foreign key field to filter by
+ * @param {*} [fkValue] - The value to filter the foreign key field by
+ * @param {string} [field] - The field to apply the primary filter
+ * @param {string} [operator] - The comparison operator for the primary filter
+ * @param {*} [value] - The value to compare against in the primary filter
+ * @return {Promise<number>} - The count of documents matching the criteria.
+ */
+const getCount = async function(collection,
+    fkField, fkValue, field, operator, value) {
+  try {
+    // Reference to the "posts" collection
+    let query = admin.firestore().collection(collection);
+
+    if (fkField && fkValue !== undefined) {
+      query = query.where(fkField, "==", fkValue);
+    }
+
+    if (field && operator && value !== undefined) {
+      query = query.where(field, operator, value);
+    }
+
+    const snapshot = await query.count().get();
+
+    return snapshot.data().count;
+  } catch (error) {
+    console.error("Error getting post count:", error);
+    throw error;
+  }
+};
+
+/**
+ * Get the average of a field in a collection
+ * @param {string} collection - The collection to query
+ * @param {string} [fkField] - The foreign key field to filter by
+ * @param {*} [fkValue] - The value to filter the foreign key field by
+ * @param {Array<string>} fields - LIMIT OF 5! NEEDS INDEX?
+ * @return {Promise<Object>} - The averages of the fields.
+ * */
+const getAverages = async function(collection, fkField, fkValue, fields) {
+  try {
+    const coll = admin.firestore().collection(collection);
+    const query = coll.where(fkField, "==", fkValue);
+    const aggregateFields = fields.reduce((acc, field) => {
+      acc[`avg${field.charAt(0).toUpperCase() + field.slice(1)}`] =
+        AggregateField.average(field);
+      return acc;
+    }, {});
+
+    const aggregateQuery = query.aggregate(aggregateFields);
+
+    const snapshot = await aggregateQuery.get();
+    const data = snapshot.data();
+
+    // round to 2 decimals
+    Object.keys(data).forEach((key) => {
+      if (typeof data[key] === "number") {
+        data[key] = parseFloat(data[key].toFixed(2));
+      }
+    });
+
+    return data;
+  } catch (error) {
+    console.error("Error getting averages:", error);
+    return null;
+  }
+};
+
 
 const getDBDocument = async function(id, collectionId) {
   if (!id || !collectionId) {
@@ -1343,6 +1435,8 @@ module.exports = {
   getAllPostsForEntity,
   getAllPostsForPlatform,
   bulkSetPosts,
+  getCount,
+  getAverages,
   //
   createStory,
   setStory,

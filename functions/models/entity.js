@@ -25,13 +25,14 @@ const {updateEntity, getAllStatementsForEntity,
   getAllPostsForEntity,
   getPlatform,
   deleteAttribute,
-  getEntity} = require("../common/database");
+  getEntity,
+  getAverages} = require("../common/database");
 const {Timestamp, FieldValue} = require("firebase-admin/firestore");
-const {handleChangedRelations, isFibonacciNumber} = require("../common/utils");
+const {handleChangedRelations,
+  isFibonacciNumber, getSocialScore} = require("../common/utils");
 const _ = require("lodash");
 const {onEntityShouldChangeConfidence} = require("../ai/confidence");
 const {onEntityShouldChangeBias} = require("../ai/bias");
-const {calculateAverageStats} = require("../ai/newsworthiness");
 
 //
 // Firestore
@@ -317,19 +318,20 @@ exports.onEntityShouldChangeStats = onMessagePublished(
       }, 5);
 
       if (isFibonacci) {
-        const posts = await getAllPostsForEntity(eid);
-        if (_.isEmpty(posts)) {
-          logger.warn(`No posts found for entity ${eid}`);
-          return Promise.resolve();
+        const stats = await getAverages("posts", "eid", eid,
+            ["likes", "reposts", "replies", "bookmarks", "views"]);
+        // can be {} if no stats in child posts
+        if (stats != null && !_.isEmpty(stats)) {
+          // do this here since getAverages is limited to 5
+          stats.avgSocialScore = getSocialScore({
+            likes: stats.avgLikes,
+            reposts: stats.avgReposts,
+            replies: stats.avgReplies,
+            bookmarks: stats.avgBookmarks,
+            views: stats.avgViews,
+          });
+          await updateEntity(eid, stats, 5); // might not exist so skiperror
         }
-
-        const stats = calculateAverageStats(posts);
-        if (_.isEmpty(stats)) {
-          return Promise.resolve();
-        }
-
-        logger.info(`Updating entity stats`);
-        await updateEntity(eid, stats, 5); // might not exist so skiperror
       }
 
       return Promise.resolve();
@@ -351,7 +353,7 @@ exports.onEntityChangedStats = onMessagePublished(
       // however since the post virality needs to update
       // this is a useful cadence to do so
       // this also double triggers with entity stats
-      const posts = await getAllPostsForEntity(eid);
+      const posts = await getAllPostsForEntity(eid, null, 20);
       if (_.isEmpty(posts)) {
         logger.warn(`No posts for entity ${eid}`);
         return Promise.resolve();
@@ -381,7 +383,7 @@ exports.onEntityShouldChangePlatform = onMessagePublished(
         return Promise.resolve();
       }
 
-      const posts = await getAllPostsForEntity(eid);
+      const posts = await getAllPostsForEntity(eid, null, 25);
       if (_.isEmpty(posts)) {
         logger.warn(`No posts found for entity ${eid}`);
         return Promise.resolve();

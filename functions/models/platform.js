@@ -17,12 +17,14 @@ const {getImageFromURL} = require("../content/scraper");
 const {updatePlatform,
   getAllPostsForPlatform,
   getPlatform,
+  getAverages,
 } = require("../common/database");
 const {logger} = require("firebase-functions/v2");
 const {
-  isFibonacciNumber} = require("../common/utils");
-const {FieldValue} = require("firebase-admin/firestore");
-const {calculateAverageStats, didChangeStats} = require("../ai/newsworthiness");
+  isFibonacciNumber,
+  getSocialScore} = require("../common/utils");
+const {FieldValue, Timestamp} = require("firebase-admin/firestore");
+const {didChangeStats} = require("../ai/newsworthiness");
 const _ = require("lodash");
 
 //
@@ -107,15 +109,20 @@ exports.onPlatformShouldChangeStats = onMessagePublished(
       if (isFibonacci) {
         logger.info(
             `Updating platform stats ${plid} count: ${platform.statsCount}`);
-        const posts = await getAllPostsForPlatform(plid);
-        if (_.isEmpty(posts)) {
-          logger.warn(`No posts for platform ${plid}`);
-        }
 
-        const stats = calculateAverageStats(posts);
+        const stats = await getAverages("posts", "plid", plid,
+            ["likes", "reposts", "replies", "bookmarks", "views"]);
         // can be {} if no stats in child posts
-        if (!_.isEmpty(stats)) {
-          await updatePlatform(plid, stats);
+        if (stats != null && !_.isEmpty(stats)) {
+          // do this here since getAverages is limited to 5
+          stats.avgSocialScore = getSocialScore({
+            likes: stats.avgLikes,
+            reposts: stats.avgReposts,
+            replies: stats.avgReplies,
+            bookmarks: stats.avgBookmarks,
+            views: stats.avgViews,
+          });
+          await updatePlatform(plid, stats, 5);
         }
       }
 
@@ -135,28 +142,14 @@ exports.onPlatformChangedStats = onMessagePublished(
       }
       logger.info(`onPlatformChangedStats: ${plid}`);
 
-      // gets only latest 1000
-      // const stories = await getAllStoriesForPlatform(plid);
-      // if (!stories) {
-      //   return Promise.resolve();
-      // }
-
-      // for (const story of stories) {
-      //   await publishMessage(STORY_SHOULD_CHANGE_NEWSWORTHINESS,
-      //       {sid: story.sid});
-      // }
-
       // technically this is not a prerequisite for a post changing virality
-      // however since the post virality needs to update
+      // however the post virality needs to update when there are few posts
       // this is a useful cadence to do so
       // this also double triggers with entity stats
-      //
-      // NOTE: this is a heavy operation.
-      // we do default limit which is arbitrary
-      // this represents the universe of items to be tracked for virality
-      // since currently virality is the local percentile
-      // and not the global percentile
-      const posts = await getAllPostsForPlatform(plid);
+      // this becomes less useful as there is more data but needed at start
+      // will be shifted to BQ
+      const threeDaysAgo = Timestamp.now().toMillis() - 3 * 24 * 60 * 60 * 1000;
+      const posts = await getAllPostsForPlatform(plid, threeDaysAgo, 20);
       if (_.isEmpty(posts)) {
         logger.warn(`No posts for platform ${plid}`);
         return Promise.resolve();

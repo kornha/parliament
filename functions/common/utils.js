@@ -243,6 +243,39 @@ function isUnsupportedStatus(status) {
   return status === "unsupported" || status === "noStories";
 }
 
+/**
+ * Calculates the weighted social score of a post
+ * Heuristic, can be adjusted as needed
+ * @param {number} views - the number of views
+ * @param {number} likes - the number of likes
+ * @param {number} replies - the number of replies
+ * @param {number} reposts - the number of reposts
+ * @param {number} bookmarks - the number of bookmarks
+ * @return {number} - the weighted social score
+ */
+function getSocialScore({
+  views = 0,
+  likes = 0,
+  replies = 0,
+  reposts = 0,
+  bookmarks = 0} = {}) {
+  const weights = {
+    views: 1,
+    likes: 10,
+    replies: 20,
+    reposts: 20,
+    bookmarks: 20,
+  };
+
+  return (
+    (views * weights.views) +
+    (likes * weights.likes) +
+    (reposts * weights.reposts) +
+    (replies * weights.replies) +
+    (bookmarks * weights.bookmarks)
+  );
+}
+
 // //////////////////////////////////////////////////////////////////
 // Location
 // //////////////////////////////////////////////////////////////////
@@ -401,6 +434,7 @@ module.exports = {
   isLocal,
   getStatus,
   isUnsupportedStatus,
+  getSocialScore,
   urlToDomain,
   isFibonacciNumber,
   isPerfectSquare,

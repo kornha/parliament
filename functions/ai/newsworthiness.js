@@ -2,8 +2,9 @@ const _ = require("lodash");
 const {
   getStory,
   updateStory, getPost,
-  getAllPostsForEntity, getAllPostsForPlatform, updatePost,
+  updatePost,
   getAllPostsForStory,
+  getCount,
 } = require("../common/database");
 const {logger} = require("firebase-functions/v2");
 const {getDistance} = require("./bias");
@@ -14,6 +15,7 @@ const {retryAsyncFunction} = require("../common/utils");
 // //////////////////////////////////////////////////////////////////
 /**
  * Calculate the virality of a post (percentile rank)
+ * TODO: THIS NEEDS TO USE BQ!
  * @param {String} pid - the pid to calculate the virality for
  * @return {Promise<void>}
  * */
@@ -23,11 +25,19 @@ async function onPostShouldChangeVirality(pid) {
     return Promise.resolve();
   }
 
-  const entityPosts = await getAllPostsForEntity(post.eid);
-  const entityVirality = calculatePostVirality(post, entityPosts);
+  const entityLower = await getCount("posts", "eid", post.eid,
+      "socialScore", "<", post.socialScore);
+  const entityTotal = await getCount("posts", "eid", post.eid);
 
-  const platformPosts = await getAllPostsForPlatform(post.plid);
-  const platformVirality = calculatePostVirality(post, platformPosts);
+  const entityVirality = entityTotal > 1 ?
+    parseFloat((entityLower / entityTotal).toFixed(2)) : 1.0;
+
+  const platformLower = await getCount("posts", "plid", post.plid,
+      "socialScore", "<", post.socialScore);
+  const platformTotal = await getCount("posts", "plid", post.plid);
+
+  const platformVirality = platformTotal > 1 ?
+      parseFloat((platformLower / platformTotal).toFixed(2)) : 1.0;
 
   const values = [entityVirality, platformVirality].filter(_.isNumber);
   const avgVirality = values.length ? _.mean(values) : null;
@@ -41,51 +51,6 @@ async function onPostShouldChangeVirality(pid) {
   }
 }
 
-/**
- * Calculate the virality (percentile) of a post compared to others.
- * @param {Post} post - The post to calculate the virality for
- * @param {Array<Post>} posts - The list of all posts
- * @return {number|null} The virality (0.0 - 1.0) or null if no valid fields
- */
-function calculatePostVirality(post, posts) {
-  // The possible fields to consider
-  const fields = ["replies", "reposts", "likes", "bookmarks", "views"];
-
-  // Filter only those fields on this post that are non-null
-  const validFields = fields.filter((field) => post[field] != null);
-
-  // If the post does not have any valid fields to compare, return null
-  if (validFields.length === 0) {
-    return null;
-  }
-
-  let percentileSum = 0;
-
-  // For each valid field, compute this post's percentile among all posts
-  for (const field of validFields) {
-    const postValue = post[field];
-
-    // Gather all posts that also have a non-null value for this field
-    const validPosts = posts.filter((p) => p[field] != null);
-
-    // Count how many of those have a value <= this post's value
-    const numLessOrEqual = validPosts.reduce((count, p) => {
-      return count + (p[field] <= postValue ? 1 : 0);
-    }, 0);
-
-    // Calculate the percentile: fraction of posts with <= this post's value
-    // (this will be between 0.0 and 1.0)
-    const percentile = numLessOrEqual / validPosts.length;
-
-    percentileSum += percentile;
-  }
-
-  // Average percentile across all valid fields
-  const averagePercentile = percentileSum / validFields.length;
-
-  // Round the final percentile to 2 decimal places
-  return parseFloat(averagePercentile.toFixed(2));
-}
 
 // //////////////////////////////////////////////////////////////////
 // Newsworthiness
@@ -172,60 +137,6 @@ function calculateNewsworthiness(virality, bias) {
 // //////////////////////////////////////////////////////////////////
 
 /**
- * Calculate the average of the stats for a post
- * @param {Array<Object>} posts - the list of posts
- * @return {Array<Object>} the avg stats; UNDEFINED if the field is not present
- * */
-function calculateAverageStats(posts) {
-  if (_.isEmpty(posts)) return {};
-
-  const fields = ["replies", "reposts", "likes", "bookmarks", "views"];
-  const totals = {
-    replies: 0,
-    reposts: 0,
-    likes: 0,
-    bookmarks: 0,
-    views: 0,
-  };
-  const counts = {
-    replies: 0,
-    reposts: 0,
-    likes: 0,
-    bookmarks: 0,
-    views: 0,
-  };
-
-  posts.forEach((post) => {
-    fields.forEach((field) => {
-      if (post[field] !== null && post[field] !== undefined) {
-        totals[field] += post[field];
-        counts[field] += 1;
-      }
-    });
-  });
-
-  const averages = {};
-
-  if (counts.replies > 0) {
-    averages.avgReplies = _.round(totals.replies / counts.replies, 2);
-  }
-  if (counts.reposts > 0) {
-    averages.avgReposts = _.round(totals.reposts / counts.reposts, 2);
-  }
-  if (counts.likes > 0) {
-    averages.avgLikes = _.round(totals.likes / counts.likes, 2);
-  }
-  if (counts.bookmarks > 0) {
-    averages.avgBookmarks = _.round(totals.bookmarks / counts.bookmarks, 2);
-  }
-  if (counts.views > 0) {
-    averages.avgViews = _.round(totals.views / counts.views, 2);
-  }
-
-  return averages;
-}
-
-/**
    * Checks if the stats of a object have changed
    * @param {boolean} _create - if the post was created
    * @param {boolean} _update - if the post was updated
@@ -238,22 +149,27 @@ function calculateAverageStats(posts) {
 function didChangeStats(_create, _update, _delete, before, after, avg) {
   if (avg) {
     return _create && (after.avgReplies || after.avgReposts ||
-        after.avgLikes || after.avgBookmarks || after.avgViews) ||
+        after.avgLikes || after.avgBookmarks || after.avgViews ||
+         after.avgSocialScore) ||
       _update && (before.avgReplies != after.avgReplies ||
         before.avgReposts != after.avgReposts ||
            before.avgLikes != after.avgLikes ||
         before.avgBookmarks != after.avgBookmarks ||
-           before.avgViews != after.avgViews) ||
+           before.avgViews != after.avgViews ||
+        before.avgSocialScore != after.avgSocialScore
+      ) ||
       _delete && (before.avgReplies || before.avgReposts ||
-        before.avgLikes || before.avgBookmarks || before.avgViews);
+        before.avgLikes || before.avgBookmarks || before.avgViews ||
+        before.avgSocialScore);
   } else {
     return _create && (after.replies || after.reposts ||
-        after.likes || after.bookmarks || after.views) ||
+        after.likes || after.bookmarks || after.views || after.socialScore) ||
       _update && (before.replies != after.replies ||
         before.reposts != after.reposts || before.likes != after.likes ||
-        before.bookmarks != after.bookmarks || before.views != after.views) ||
+        before.bookmarks != after.bookmarks || before.views != after.views ||
+         before.socialScore != after.socialScore) ||
       _delete && (before.replies || before.reposts ||
-        before.likes || before.bookmarks || before.views);
+        before.likes || before.bookmarks || before.views || before.socialScore);
   }
 }
 
@@ -282,7 +198,6 @@ function calculateScaledHappenedAt(story) {
 module.exports = {
   onPostShouldChangeVirality,
   onStoryShouldChangeNewsworthiness,
-  calculateAverageStats,
   didChangeStats,
   calculateNewsworthiness,
   calculateScaledHappenedAt,

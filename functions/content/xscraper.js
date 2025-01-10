@@ -14,7 +14,8 @@ const {
 const {v5} = require("uuid");
 const {Timestamp} = require("firebase-admin/firestore");
 const {isoToMillis, getPlatformType,
-  retryAsyncFunction} = require("../common/utils");
+  retryAsyncFunction,
+  getSocialScore} = require("../common/utils");
 const {defineSecret} = require("firebase-functions/params");
 const {
   publishMessage,
@@ -555,6 +556,7 @@ const getContentFromX = async function(url) {
 
 /**
  * REQUIRES 1GB TO RUN!
+ * DEPRECATE? updatePostWithXData is similar
  * Updates a post with metadata from X
  * @param {Post} post with xid, eid, pid
  * */
@@ -595,6 +597,14 @@ const xupdatePost = async function(post) {
       "draft" :
       "published";
 
+  const socialScore = getSocialScore({
+    likes: xMetaData.likes,
+    reposts: xMetaData.reposts,
+    views: xMetaData.views,
+    bookmarks: xMetaData.bookmarks,
+    replies: xMetaData.replies,
+  });
+
   const _post = {
     // we set to published unless status is in draft
     status: status,
@@ -613,6 +623,7 @@ const xupdatePost = async function(post) {
     likes: xMetaData.likes,
     bookmarks: xMetaData.bookmarks,
     views: xMetaData.views,
+    socialScore: socialScore,
   };
 
   await updatePost(post.pid, _post);

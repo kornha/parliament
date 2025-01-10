@@ -17,14 +17,14 @@ const {
 } = require("../common/pubsub");
 const _ = require("lodash");
 const {resetStoryVector, onStoryShouldFindContext} = require("../ai/story_ai");
-const {updateStory, getAllPostsForStory,
+const {updateStory,
   deleteAttribute,
   getPosts,
-  getStory} = require("../common/database");
-const {handleChangedRelations} = require("../common/utils");
+  getStory,
+  getAverages} = require("../common/database");
+const {handleChangedRelations, getSocialScore} = require("../common/utils");
 const {logger} = require("firebase-functions/v2");
 const {didChangeStats,
-  calculateAverageStats,
   onStoryShouldChangeNewsworthiness,
   calculateScaledHappenedAt} = require("../ai/newsworthiness");
 const {onStoryShouldChangeBias} = require("../ai/bias");
@@ -267,17 +267,21 @@ exports.onStoryShouldChangeStats = onMessagePublished(
         return Promise.resolve();
       }
 
-      const posts = await getAllPostsForStory(sid);
-      if (_.isEmpty(posts)) {
-        return Promise.resolve();
-      }
+      const stats = await getAverages("posts", "sid", sid,
+          ["likes", "reposts", "replies", "bookmarks", "views"]);
+      // can be {} if no stats in child posts
+      if (stats != null && !_.isEmpty(stats)) {
+      // do this here since getAverages is limited to 5
+        stats.avgSocialScore = getSocialScore({
+          likes: stats.avgLikes,
+          reposts: stats.avgReposts,
+          replies: stats.avgReplies,
+          bookmarks: stats.avgBookmarks,
+          views: stats.avgViews,
+        });
 
-      const stats = calculateAverageStats(posts);
-      if (_.isEmpty(stats)) {
-        return Promise.resolve();
+        await updateStory(sid, stats, 5);
       }
-
-      await updateStory(sid, stats, 5);
 
 
       return Promise.resolve();

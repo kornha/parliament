@@ -42,6 +42,7 @@ Post _$PostFromJson(Map<String, dynamic> json) => Post(
       likes: (json['likes'] as num?)?.toInt(),
       bookmarks: (json['bookmarks'] as num?)?.toInt(),
       views: (json['views'] as num?)?.toInt(),
+      socialScore: (json['socialScore'] as num?)?.toInt(),
       bias: json['bias'] == null
           ? null
           : PoliticalPosition.fromJson(json['bias']),
@@ -94,11 +95,12 @@ Map<String, dynamic> _$PostToJson(Post instance) => <String, dynamic>{
       'video': instance.video?.toJson(),
       'url': instance.url,
       'locations': instance.locations,
+      'views': instance.views,
+      'likes': instance.likes,
       'replies': instance.replies,
       'reposts': instance.reposts,
-      'likes': instance.likes,
       'bookmarks': instance.bookmarks,
-      'views': instance.views,
+      'socialScore': instance.socialScore,
       'confidence': instance.confidence?.toJson(),
       'bias': instance.bias?.toJson(),
       'virality': instance.virality?.toJson(),

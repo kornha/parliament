@@ -46,11 +46,12 @@ class Post {
   final String? url;
   final List<String> locations;
 
+  final int? views;
+  final int? likes;
   final int? replies;
   final int? reposts;
-  final int? likes;
   final int? bookmarks;
-  final int? views;
+  final int? socialScore;
 
   final Confidence? confidence;
   final PoliticalPosition? bias;
@@ -113,6 +114,7 @@ class Post {
     this.likes,
     this.bookmarks,
     this.views,
+    this.socialScore,
     this.bias,
     this.confidence,
     this.virality,
