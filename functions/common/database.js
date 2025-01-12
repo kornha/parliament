@@ -246,7 +246,8 @@ const getAllPostsForEntity = async function(eid, updatedAt, limit = 100) {
 
   try {
     let query = admin.firestore().collection("posts")
-        .where("eid", "==", eid);
+        .where("eid", "==", eid)
+        .orderBy("updatedAt", "desc");
 
     // Apply the updatedAt filter if provided
     if (updatedAt) {
@@ -324,7 +325,8 @@ const getAllPostsForPlatform = async function(plid, updatedAt, limit = 100) {
 
   try {
     let query = admin.firestore().collection("posts")
-        .where("plid", "==", plid);
+        .where("plid", "==", plid)
+        .orderBy("updatedAt", "desc"); // Order by updatedAt descending
 
     if (updatedAt) {
       query = query.where("updatedAt", ">", updatedAt);
@@ -1169,6 +1171,8 @@ const getAllStatementsForEntity = async function(eid) {
 // /////////////////////////////////////////
 /**
  * Counts documents in the "posts" collection
+ * REQURES AN INDEX ON query.where(field, operator, value);
+ * EG, plid ASCENDING socialScore DESCENDING (DESC needs to be greater than)
  * EXPENSIVE USE WITH CARE
  * TODO: CHANGE TO USING BQ
  * @param {string} collection - The collection to query

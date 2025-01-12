@@ -33,6 +33,7 @@ const {handleChangedRelations,
 const _ = require("lodash");
 const {onEntityShouldChangeConfidence} = require("../ai/confidence");
 const {onEntityShouldChangeBias} = require("../ai/bias");
+const {didChangeStats} = require("../ai/newsworthiness");
 
 //
 // Firestore
@@ -129,6 +130,14 @@ exports.onEntityUpdate = onDocumentWritten(
         await publishMessage(ENTITY_SHOULD_CHANGE_BIAS,
             {eid: after?.eid || before?.eid});
       }
+
+      // stats
+
+      if (didChangeStats(_create, _update, _delete, before, after, true)) {
+        await publishMessage(ENTITY_CHANGED_STATS,
+            {plid: after?.plid || before?.plid});
+      }
+
 
       return Promise.resolve();
     },

@@ -13,8 +13,8 @@ const isLocal = process.env.FUNCTIONS_EMULATOR === "true";
 // //////////////////////////////////////////////////////////////////
 
 const isPerfectSquare = function(x) {
-  const s = Math.sqrt(x);
-  return s * s === x;
+  const s = parseInt(Math.sqrt(x));
+  return (s * s == x);
 };
 
 const isFibonacciNumber = function(n) {

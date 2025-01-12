@@ -1,7 +1,21 @@
 {
   "indexes": [
     {
-      "collectionId": "posts",
+      "collectionGroup": "claims",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "vector",
+          "vectorConfig": {
+            "dimension": 1536,
+            "flat": {}
+          }
+        }
+      ]
+    },
+    {
+      "collectionGroup": "posts",
+      "queryScope": "COLLECTION",
       "fields": [
         {
           "fieldPath": "plid",
@@ -30,7 +44,8 @@
       ]
     },
     {
-      "collectionId": "posts",
+      "collectionGroup": "posts",
+      "queryScope": "COLLECTION",
       "fields": [
         {
           "fieldPath": "eid",
@@ -59,51 +74,132 @@
       ]
     },
     {
-      "collectionId": "posts",
+      "collectionGroup": "posts",
+      "queryScope": "COLLECTION",
       "fields": [
         {
-          "fieldPath": "vector",
-          "vectorConfig": {
-            "dimension": 1536,
-            "flat": {}
-          }
-        }
-      ]
-    },
-    {
-      "collectionId": "stories",
-      "fields": [
-        {
-          "fieldPath": "vector",
-          "vectorConfig": {
-            "dimension": 1536,
-            "flat": {}
-          }
-        }
-      ]
-    },
-    {
-      "collectionId": "claims",
-      "fields": [
-        {
-          "fieldPath": "vector",
-          "vectorConfig": {
-            "dimension": 1536,
-            "flat": {}
-          }
-        }
-      ]
-    },
-    {
-      "collectionId": "rooms",
-      "fields": [
-        {
-          "fieldPath": "parentId",
+          "fieldPath": "sid",
           "mode": "ASCENDING"
         },
         {
+          "fieldPath": "bookmarks",
+          "mode": "ASCENDING"
+        },
+        {
+          "fieldPath": "likes",
+          "mode": "ASCENDING"
+        },
+        {
+          "fieldPath": "replies",
+          "mode": "ASCENDING"
+        },
+        {
+          "fieldPath": "reposts",
+          "mode": "ASCENDING"
+        },
+        {
+          "fieldPath": "views",
+          "mode": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "posts",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "eid",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "socialScore",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "posts",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "plid",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "socialScore",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "posts",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "plid",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "updatedAt",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "posts",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "eid",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "updatedAt",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "posts",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "sid",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "vector",
+          "vectorConfig": {
+            "dimension": 1536,
+            "flat": {}
+          }
+        }
+      ]
+    },
+    {
+      "collectionGroup": "rooms",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "parentId",
+          "order": "ASCENDING"
+        },
+        {
           "fieldPath": "createdAt",
-          "mode": "DESCENDING"
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "stories",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "vector",
+          "vectorConfig": {
+            "dimension": 1536,
+            "flat": {}
+          }
         }
       ]
     }
