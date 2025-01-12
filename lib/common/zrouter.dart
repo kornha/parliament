@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
+import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:political_think/common/components/loading.dart';
@@ -180,5 +181,23 @@ class ZRouter {
     return CupertinoPage(
       child: child,
     );
+  }
+}
+
+class CustomPathStrategy extends PathUrlStrategy {
+  final String appTitle;
+
+  CustomPathStrategy({required this.appTitle});
+
+  @override
+  void pushState(Object? state, String title, String url) {
+    final pageTitle = title == "flutter" ? appTitle : title;
+    super.pushState(state, pageTitle, url);
+  }
+
+  @override
+  void replaceState(Object? state, String title, String url) {
+    final pageTitle = title == "flutter" ? appTitle : title;
+    super.pushState(state, pageTitle, url);
   }
 }

@@ -29,7 +29,7 @@ class StoryItemView extends ConsumerStatefulWidget {
 }
 
 class _StoryItemViewState extends ConsumerState<StoryItemView> {
-  List<Entity>? entities;
+  // List<Entity>? entities;
 
   _onTapStory() {
     context.route("${StoryView.location}/${widget.sid}");
@@ -46,23 +46,23 @@ class _StoryItemViewState extends ConsumerState<StoryItemView> {
     var allPostsRef = ref.postsFromStoryWatch(widget.sid);
     var allPosts = allPostsRef.value;
 
-    List<String> eids = allPosts
-            ?.map((p) => p.eid)
-            .where((eid) => eid != null) // filter out null
-            .map((eid) => eid!) // cast non-null to String
-            .toList() ??
-        [];
+    // List<String> eids = allPosts
+    //         ?.map((p) => p.eid)
+    //         .where((eid) => eid != null) // filter out null
+    //         .map((eid) => eid!) // cast non-null to String
+    //         .toList() ??
+    //     [];
 
     // provider causes loop
-    if (eids.isNotEmpty && entities == null) {
-      Database.instance().getEntities(eids).then((List<Entity>? temp) {
-        if (!mounted) return;
+    // if (eids.isNotEmpty && entities == null) {
+    //   Database.instance().getEntities(eids).then((List<Entity>? temp) {
+    //     if (!mounted) return;
 
-        setState(() {
-          entities = temp;
-        });
-      });
-    }
+    //     setState(() {
+    //       entities = temp;
+    //     });
+    //   });
+    // }
 
     bool shouldShowSecondaryPosts = (allPosts?.length ?? 0) >= 1;
     bool shouldShowPhotos = (story?.photos.length ?? 0) >= 1;
@@ -101,10 +101,10 @@ class _StoryItemViewState extends ConsumerState<StoryItemView> {
                                       ),
                                     ),
                                   ),
-                                  context.sh,
-                                  if (entities?.isNotEmpty ?? false)
-                                    IconGrid(entities: entities),
-                                  if (entities?.isEmpty ?? true) context.sd,
+                                  // context.sh,
+                                  // if (entities?.isNotEmpty ?? false)
+                                  //   IconGrid(entities: entities),
+                                  // if (entities?.isEmpty ?? true) context.sd,
                                 ],
                               ),
                             )

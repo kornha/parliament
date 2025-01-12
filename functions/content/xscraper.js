@@ -197,7 +197,7 @@ const connectToX = async function(page) {
     if (nextButton) {
       nextButton.click();
     } else {
-      console.error("Next button not found.");
+      logger.error("Next button not found.");
     }
   });
   await page.waitForNetworkIdle({idleTime: 1500});
@@ -217,7 +217,7 @@ const connectToX = async function(page) {
       if (nextButton) {
         nextButton.click();
       } else {
-        console.error("Next button not found.");
+        logger.error("Next button not found.");
       }
     });
     await page.waitForNetworkIdle({idleTime: 1500});
@@ -238,7 +238,7 @@ const connectToX = async function(page) {
     if (nextButton) {
       nextButton.click();
     } else {
-      console.error("Log in button not found.");
+      logger.error("Log in button not found.");
     }
   });
 
@@ -286,7 +286,7 @@ const autoScrollX = async function* (
           }
         }
       } catch (error) {
-        console.error("Error getting response body:", error);
+        logger.error("Error getting response body:", error);
       }
     });
   }
@@ -473,7 +473,7 @@ const getContentFromX = async function(url) {
               const tweetResult = responseBody?.data?.tweetResult?.result;
 
               if (!tweetResult) {
-                console.error("No tweet result found in the response.");
+                logger.error("No tweet result found in the response.");
                 resolve(); // Resolve to avoid hanging
                 return;
               }
@@ -486,7 +486,7 @@ const getContentFromX = async function(url) {
               ) {
                 tweetData = tweetResult.tweet;
               } else {
-                console.error(
+                logger.error(
                     `Unhandled tweet result type: ${tweetResult.__typename}`,
                 );
                 resolve(); // Resolve to avoid hanging
@@ -509,9 +509,9 @@ const getContentFromX = async function(url) {
             if (error.message.
                 includes("Could not load body for this request")) {
               // Suppress the specific error
-              console.warn("Skipped a response without a body.");
+              logger.warn("Skipped a response without a body.");
             } else {
-              console.error("Error parsing tweet data:", error);
+              logger.error("Error parsing tweet data:", error);
             }
             resolve(); // Resolve to avoid hanging
           }

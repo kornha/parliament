@@ -240,7 +240,7 @@ const getPostsForStory = async function(sid) {
  */
 const getAllPostsForEntity = async function(eid, updatedAt, limit = 100) {
   if (!eid) {
-    console.error(`Could not get posts for entity: ${eid}`);
+    logger.error(`Could not get posts for entity: ${eid}`);
     return null;
   }
 
@@ -258,7 +258,7 @@ const getAllPostsForEntity = async function(eid, updatedAt, limit = 100) {
     const snapshot = await query.get();
     return snapshot.docs.map((doc) => doc.data());
   } catch (error) {
-    console.error(`Error fetching posts for entity ${eid}:`, error);
+    logger.error(`Error fetching posts for entity ${eid}:`, error);
     return null;
   }
 };
@@ -1197,7 +1197,7 @@ const getCount = async function(collection,
 
     return snapshot.data().count;
   } catch (error) {
-    console.error("Error getting post count:", error);
+    logger.error("Error getting post count:", error);
     throw error;
   }
 };
@@ -1234,7 +1234,7 @@ const getAverages = async function(collection, fkField, fkValue, fields) {
 
     return data;
   } catch (error) {
-    console.error("Error getting averages:", error);
+    logger.error("Error getting averages:", error);
     return null;
   }
 };
@@ -1336,7 +1336,7 @@ const markPhotoAsIncompatible = async function(url, posts, stories) {
 
     return updated; // True if any updates were made
   } catch (error) {
-    console.error("Error updating photos:", error);
+    logger.error("Error updating photos:", error);
     return false; // Return false if an error occurred
   }
 };

@@ -16,7 +16,7 @@ import 'common/zrouter.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
 
 void main() async {
-  usePathUrlStrategy();
+  setUrlStrategy(CustomPathStrategy(appTitle: "Parliament"));
 
   // gorouter recommends not using since top of stack is not always deeplinkable
   // but otherwise its not swipeable on iOS

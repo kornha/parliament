@@ -8,8 +8,24 @@
           "mode": "ASCENDING"
         },
         {
-          "fieldPath": "updatedAt",
-          "mode": "DESCENDING"
+          "fieldPath": "bookmarks",
+          "mode": "ASCENDING"
+        },
+        {
+          "fieldPath": "likes",
+          "mode": "ASCENDING"
+        },
+        {
+          "fieldPath": "replies",
+          "mode": "ASCENDING"
+        },
+        {
+          "fieldPath": "reposts",
+          "mode": "ASCENDING"
+        },
+        {
+          "fieldPath": "views",
+          "mode": "ASCENDING"
         }
       ]
     },
@@ -17,9 +33,34 @@
       "collectionId": "posts",
       "fields": [
         {
-          "fieldPath": "sid",
+          "fieldPath": "eid",
           "mode": "ASCENDING"
         },
+        {
+          "fieldPath": "bookmarks",
+          "mode": "ASCENDING"
+        },
+        {
+          "fieldPath": "likes",
+          "mode": "ASCENDING"
+        },
+        {
+          "fieldPath": "replies",
+          "mode": "ASCENDING"
+        },
+        {
+          "fieldPath": "reposts",
+          "mode": "ASCENDING"
+        },
+        {
+          "fieldPath": "views",
+          "mode": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionId": "posts",
+      "fields": [
         {
           "fieldPath": "vector",
           "vectorConfig": {
