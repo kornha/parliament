@@ -9,6 +9,7 @@ const {
 const {logger} = require("firebase-functions/v2");
 const {getDistance} = require("./bias");
 const {retryAsyncFunction} = require("../common/utils");
+const {Timestamp} = require("firebase-admin/firestore");
 
 // //////////////////////////////////////////////////////////////////
 // Virality
@@ -178,21 +179,28 @@ function didChangeStats(_create, _update, _delete, before, after, avg) {
  * @param {Story} story - the story to calculate the scaled happenedAt for
  * @return {number|null} the scaled happenedAt or null if not possible
  */
-function calculateScaledHappenedAt(story) {
+function calculateNewsworthyAt(story) {
   if (!story || story.happenedAt == null) {
     return null;
   }
 
   // Define the scaling factor (e.g., 1 day in milliseconds)
-  const newsworthinessScale = 43200000; // 1/2 day in milliseconds
+  const NEWSWORTHYNESS_SCALE = 43200000; // 1/2 day in milliseconds
+
   const newsworthiness = story.newsworthiness != null ?
     story.newsworthiness : 0.1; // magic number
 
-  // Calculate the adjusted timestamp
-  const scaledHappenedAt =
-    story.happenedAt + Math.round(newsworthiness * newsworthinessScale);
+  // if its the future scale by createdAt
+  const timeAt = story.happenedAt > Timestamp.now().toMillis() ?
+    story.createdAt : story.happenedAt;
 
-  return scaledHappenedAt;
+  // Calculate the adjusted timestamp
+  const newsworthyAt =
+    timeAt +
+    Math.round(newsworthiness * NEWSWORTHYNESS_SCALE) -
+    NEWSWORTHYNESS_SCALE;
+
+  return newsworthyAt;
 }
 
 module.exports = {
@@ -200,5 +208,5 @@ module.exports = {
   onStoryShouldChangeNewsworthiness,
   didChangeStats,
   calculateNewsworthiness,
-  calculateScaledHappenedAt,
+  calculateNewsworthyAt,
 };

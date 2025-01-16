@@ -12,8 +12,8 @@ Story _$StoryFromJson(Map<String, dynamic> json) => Story(
       updatedAt: Utils.timestampFromJson((json['updatedAt'] as num).toInt()),
       happenedAt: Utils.timestampFromJsonNullable(
           (json['happenedAt'] as num?)?.toInt()),
-      scaledHappenedAt: Utils.timestampFromJsonNullable(
-          (json['scaledHappenedAt'] as num?)?.toInt()),
+      newsworthyAt: Utils.timestampFromJsonNullable(
+          (json['newsworthyAt'] as num?)?.toInt()),
       location: json['location'] == null
           ? null
           : Location.fromJson(json['location'] as Map<String, dynamic>),
@@ -92,8 +92,7 @@ Map<String, dynamic> _$StoryToJson(Story instance) => <String, dynamic>{
       'createdAt': Utils.timestampToJson(instance.createdAt),
       'updatedAt': Utils.timestampToJson(instance.updatedAt),
       'happenedAt': Utils.timestampToJsonNullable(instance.happenedAt),
-      'scaledHappenedAt':
-          Utils.timestampToJsonNullable(instance.scaledHappenedAt),
+      'newsworthyAt': Utils.timestampToJsonNullable(instance.newsworthyAt),
     };
 
 const _$StoryStatusEnumMap = {

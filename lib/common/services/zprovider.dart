@@ -91,7 +91,7 @@ class StoryNotifier extends PagedNotifier<int, Story> {
                 .getStoriesFiltered(page, limit, settings);
           },
           nextPageKeyBuilder: (List<Story>? lastItems, int page, int limit) =>
-              lastItems?.last.scaledHappenedAt?.millisecondsSinceEpoch,
+              lastItems?.last.newsworthyAt?.millisecondsSinceEpoch,
         );
 }
 

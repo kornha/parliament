@@ -40,7 +40,7 @@ const {
   onStoryShouldChangeNewsworthiness,
   onStoryShouldChangeBias,
   onStoryShouldChangeConfidence,
-  onStoryShouldChangeScaledHappenedAt,
+  onStoryShouldChangeNewsworthyAt,
   shouldFindContext,
   onStoryShouldFindContextTask,
 } = require("./models/story");
@@ -77,8 +77,7 @@ const {onPlatformUpdate,
   onPlatformShouldChangeImage,
   onPlatformShouldChangeStats,
   onPlatformChangedStats} = require("./models/platform");
-const {onHourTrigger, triggerTimeFunction,
-  onFifteenMinutesTrigger} = require("./common/schedule");
+const {onHourTrigger, triggerTimeFunction} = require("./common/schedule");
 
 
 admin.initializeApp();
@@ -158,7 +157,7 @@ module.exports = {
   onStoryShouldChangeNewsworthiness,
   onStoryShouldChangeBias,
   onStoryShouldChangeConfidence,
-  onStoryShouldChangeScaledHappenedAt,
+  onStoryShouldChangeNewsworthyAt,
   onStoryShouldFindContextTask,
   // Statement
   onStatementUpdate,
@@ -199,7 +198,8 @@ module.exports = {
   onShouldProcessLink,
   //
   onHourTrigger,
-  onFifteenMinutesTrigger,
+  // onFifteenMinutesTrigger,
+  // onThirtyMinutesTrigger,
   triggerTimeFunction,
   // Scripts
   generateBiasTraining,

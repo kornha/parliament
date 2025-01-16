@@ -103,7 +103,7 @@ class Database {
 
   Stream<List<Story>?> streamStoriesFiltered(ZSettings? settings) {
     return storyCollection
-        .orderBy('scaledHappenedAt', descending: true)
+        .orderBy('newsworthyAt', descending: true)
         .limit(5)
         .snapshots()
         .map((querySnapshot) {
@@ -131,7 +131,7 @@ class Database {
   Future<List<Story>?> getStoriesFiltered(
       int page, int limit, ZSettings? settings) {
     return storyCollection
-        .orderBy('scaledHappenedAt', descending: true)
+        .orderBy('newsworthyAt', descending: true)
         .startAfter([page == 0 ? double.maxFinite : page])
         .limit(limit)
         .get()
@@ -411,4 +411,34 @@ class Database {
         .doc(message.id)
         .set(message.toJson());
   }
+
+  // Future<void> rename() async {
+  //   // Grab all documents in the 'stories' collection
+  //   final querySnapshot = await storyCollection.get();
+
+  //   // Initialize a write batch
+  //   final batch = FirebaseFirestore.instance.batch();
+
+  //   for (final doc in querySnapshot.docs) {
+  //     final data = doc.data() as Map<String, dynamic>;
+
+  //     // If the document has 'scaledHappedAt' then rename it
+  //     if (data.containsKey('scaledHappenedAt')) {
+  //       final oldValue = data['scaledHappenedAt'];
+
+  //       // Prepare the batch update:
+  //       // 1. Set 'newsworthyAt' to oldValue
+  //       // 2. Delete 'scaledHappenedAt'
+  //       batch.update(doc.reference, {
+  //         'newsworthyAt': oldValue,
+  //         'scaledHappenedAt': FieldValue.delete(),
+  //       });
+  //     }
+  //   }
+
+  //   // Commit the batch to apply all changes
+  //   await batch.commit();
+
+  //   print('Renamed "scaledHappedAt" to "newsworthyAt" in all stories.');
+  // }
 }

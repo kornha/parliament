@@ -287,6 +287,7 @@ const autoScrollX = async function* (
         }
       } catch (error) {
         logger.error("Error getting response body:", error);
+        logger.error("Response:", response);
       }
     });
   }
@@ -335,6 +336,10 @@ const autoScrollX = async function* (
     }
   }
   if (yieldResponses && responses.length > 0) {
+    // Fixed wait of 1.5 seconds to allow pending responses to be processed
+    // can be replaced by awaiting all open promises
+    await page.waitForTimeout(1500);
+
     for (const responseBody of responses) {
       yield responseBody;
     }

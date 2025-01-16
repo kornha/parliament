@@ -111,6 +111,9 @@ class _StoryViewState extends ConsumerState<StoryView> {
                         viral: true,
                         enabled: false,
                       ),
+                      "NewsworthyAt": Text(
+                        Utils.toHumanReadableDate(story.newsworthyAt),
+                      ),
                       "Avg. Replies":
                           Text(Utils.numToReadableString(story.avgReplies)),
                       "Avg. Reposts":

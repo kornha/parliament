@@ -27,7 +27,11 @@ class Utils {
 
     DateTime date =
         DateTime.fromMillisecondsSinceEpoch(timestamp.millisecondsSinceEpoch);
-    return timeago.format(date, locale: "en_short");
+
+    // String pre = timestamp.millisecondsSinceEpoch <= Timestamp.now().millisecondsSinceEpoch
+    //     ? ""
+    //     : "in ";
+    return timeago.format(date, locale: "en", allowFromNow: true);
   }
 
   static String numToReadableString(num? number) {
