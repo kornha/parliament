@@ -15,6 +15,7 @@ class Auth extends ChangeNotifier {
   Role roll = Role.unknown;
   User? authUser;
 
+  bool get isLoggedOut => status == AuthStatus.unauthenticated;
   bool get isLoggedIn => status == AuthStatus.authenticated;
   bool get isLoading =>
       status == AuthStatus.unknown || status == AuthStatus.authenticating;

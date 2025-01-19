@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
+import 'package:political_think/common/components/branding.dart';
 import 'package:political_think/common/components/loading.dart';
 import 'package:political_think/common/components/logo.dart';
 import 'package:political_think/common/components/zapp_bar.dart';
@@ -52,68 +53,74 @@ class _FeedState extends ConsumerState<Feed> {
       ignoreConstraints: true, // this class self manages scroll
       appBar: ZAppBar(
         showLogo: true,
-        leading: [
-          Visibility(
-            visible: ref.isAdmin,
-            child: IconButton(
-              icon: const Icon(FontAwesomeIcons.newspaper),
-              onPressed: () {
-                Functions.instance().fetchNews(PlatformType.news);
-              },
-            ),
-          ),
-          Visibility(
-            visible: ref.isAdmin,
-            child: IconButton(
-              icon: const Icon(FontAwesomeIcons.xTwitter),
-              onPressed: () {
-                Functions.instance().fetchNews(PlatformType.x);
-              },
-            ),
-          ),
-          Visibility(
-            visible: ref.isAdmin,
-            child: PopupMenuButton<String>(
-              tooltip: "", // hack to remove tooltip
-              icon: const Icon(Icons.access_time),
-              onSelected: (String value) {
-                Functions.instance().triggerTimeFunction(value);
-              },
-              itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                const PopupMenuItem<String>(
-                  value: 'every hour',
-                  child: Text('every hour'),
+        leading: ref.isAdmin
+            ? [
+                Visibility(
+                  visible: ref.isAdmin,
+                  child: IconButton(
+                    icon: const Icon(FontAwesomeIcons.newspaper),
+                    onPressed: () {
+                      Functions.instance().fetchNews(PlatformType.news);
+                    },
+                  ),
                 ),
-                const PopupMenuItem<String>(
-                  value: 'every 30 minutes',
-                  child: Text('every 30 minutes'),
+                Visibility(
+                  visible: ref.isAdmin,
+                  child: IconButton(
+                    icon: const Icon(FontAwesomeIcons.xTwitter),
+                    onPressed: () {
+                      Functions.instance().fetchNews(PlatformType.x);
+                    },
+                  ),
                 ),
-                const PopupMenuItem<String>(
-                  value: 'every 15 minutes',
-                  child: Text('every 15 minutes'),
+                Visibility(
+                  visible: ref.isAdmin,
+                  child: PopupMenuButton<String>(
+                    tooltip: "", // hack to remove tooltip
+                    icon: const Icon(Icons.access_time),
+                    onSelected: (String value) {
+                      Functions.instance().triggerTimeFunction(value);
+                    },
+                    itemBuilder: (BuildContext context) =>
+                        <PopupMenuEntry<String>>[
+                      const PopupMenuItem<String>(
+                        value: 'every hour',
+                        child: Text('every hour'),
+                      ),
+                      const PopupMenuItem<String>(
+                        value: 'every 30 minutes',
+                        child: Text('every 30 minutes'),
+                      ),
+                      const PopupMenuItem<String>(
+                        value: 'every 15 minutes',
+                        child: Text('every 15 minutes'),
+                      ),
+                    ],
+                  ),
+                ),
+              ]
+            : [],
+        // only care about logged out otherwise assume ok since user above
+        actions: ref.authWatch.isLoggedOut
+            ? [const JoinAppBarButton()]
+            : [
+                IconButton(
+                  icon: const Icon(Icons.settings),
+                  onPressed: () {
+                    context.showModal(FeedSettings(onFilterChange: () {
+                      // not sure why but using delayed works better
+                      _pagingController?.refresh();
+                    }));
+                  },
+                ),
+                IconButton(
+                  icon: const Icon(FontAwesomeIcons.plus),
+                  color: context.primaryColor,
+                  onPressed: () {
+                    context.showFullScreenModal(const PostBuilder());
+                  },
                 ),
               ],
-            ),
-          ),
-        ],
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () {
-              context.showModal(FeedSettings(onFilterChange: () {
-                // not sure why but using delayed works better
-                _pagingController?.refresh();
-              }));
-            },
-          ),
-          IconButton(
-            icon: const Icon(FontAwesomeIcons.plus),
-            color: context.primaryColor,
-            onPressed: () {
-              context.showFullScreenModal(const PostBuilder());
-            },
-          ),
-        ],
       ),
       body: userRef.isLoading
           ? const Loading()

@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:political_think/common/chat/src/util.dart';
 import 'package:political_think/common/components/confidence_component.dart';
 import 'package:political_think/common/components/political_position_component.dart';
@@ -9,7 +10,9 @@ import 'package:political_think/common/components/ztext_button.dart';
 import 'package:political_think/common/constants.dart';
 import 'package:political_think/common/extensions.dart';
 import 'package:political_think/common/models/confidence.dart';
+import 'package:political_think/views/login/login.dart';
 import 'package:political_think/views/profile/about.dart';
+import 'package:political_think/views/search/search.dart';
 
 class PreRelease extends StatelessWidget {
   const PreRelease({super.key});
@@ -22,7 +25,27 @@ class PreRelease extends StatelessWidget {
       foregroundColor: context.secondaryColor,
       child: Text(
         "Pre-Release",
-        style: context.s.copyWith(
+        style: context.mb.copyWith(
+          color: context.secondaryColor,
+        ),
+      ),
+    );
+  }
+}
+
+class JoinAppBarButton extends StatelessWidget {
+  const JoinAppBarButton({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return ZTextButton(
+      type: ZButtonTypes.area,
+      onPressed: () => context
+          .go(Login.location), // .go instead of route to push over nav bar
+      foregroundColor: context.secondaryColor,
+      child: Text(
+        "Join",
+        style: context.mb.copyWith(
           color: context.secondaryColor,
         ),
       ),

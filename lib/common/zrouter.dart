@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:go_router/go_router.dart';
@@ -23,7 +24,7 @@ class ZRouter {
 
   static GoRouter instance(WidgetRef ref) {
     return GoRouter(
-      initialLocation: Login.location,
+      // initialLocation: kIsWeb ? Feed.location : Login.location,
       navigatorKey: rootNavigatorKey,
       routes: [
         ShellRoute(
@@ -131,13 +132,16 @@ class ZRouter {
         final authState = ref.read(authProvider);
         final loggedIn = authState.isLoggedIn;
         final isOnLoginPage = state.matchedLocation == Login.location;
+        final isOnFeedPage = state.matchedLocation == Feed.location;
+
         if (!authState.isUnknown) {
           FlutterNativeSplash.remove();
         } else {
           return null;
         }
+
         if (state.uri.path == '/') {
-          return Login.location;
+          return kIsWeb ? Feed.location : Login.location;
         }
 
         if (!loggedIn) {
@@ -145,6 +149,11 @@ class ZRouter {
             // Already on the login page and not logged in, no redirect needed.
             return null;
           }
+
+          if (kIsWeb && isOnFeedPage) {
+            return null;
+          }
+
           // Redirect to login with 'from' parameter.
           //final from = state.uri.toString();
           // return '${Login.location}?from=${Uri.encodeComponent(from)}';
