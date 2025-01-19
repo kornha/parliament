@@ -10,7 +10,7 @@ class ZSettings {
 
   const ZSettings({
     this.minNewsworthiness = const Confidence(value: 0.0),
-    this.minPosts = 0,
+    this.minPosts = 3,
   });
 
   factory ZSettings.fromJson(Map<String, dynamic> json) =>

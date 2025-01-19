@@ -15,9 +15,10 @@
 ### Key Concepts
 
 * **Parliament** is the open-source repo that anyone can contribute to.
+* See the hosted website (in pre-release) at [www.parliament.foundation](http://www.parliament.foundation).
+  - Mobile apps are in pre-release testing. Contact us (see below) if interested.
 * Parliament is based on the whitepaper [Credible News](#whitepaper).
 * Anyone can host a Parliament, provided there is compliance with the [LICENSE](LICENSE).
-* Hosted website and mobile apps coming soon.
     
 *This project is in pre-release, and as such, is a preview. Many features are in development.*
 

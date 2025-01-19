@@ -96,14 +96,21 @@ const onPostShouldFindStories = async function(post) {
       countryCode: await getCountryCode(gstory.lat, gstory.long),
     } : null;
 
+    if (!gstory.happenedAt) {
+      // in this case we use sourceCreatedAt
+      gstory.happenedAt = post.sourceCreatedAt;
+    } else {
+      gstory.happenedAt = isoToMillis(gstory.happenedAt);
+    }
+
     const storyData = {
       title: gstory.title,
       description: gstory.description,
       updatedAt: Timestamp.now().toMillis(),
       createdAt: Timestamp.now().toMillis(),
       photos: gstory.photos ?? [],
+      happenedAt: gstory.happenedAt,
       ...(location && {location: location}),
-      ...(gstory.happenedAt && {happenedAt: isoToMillis(gstory.happenedAt)}),
     };
 
     if (gstory.sid) {

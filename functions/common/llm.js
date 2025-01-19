@@ -25,10 +25,12 @@ const llm = function() {
  * Generates completions for the given prompt
  * @param {List<Message>} messages since images needs to be separated
  * @param {string} loggingText optional loggingText
+ * @param {number} temperature optional temperature
  * @return {Promise<string>} completion response
  */
 const generateCompletions = async function({
   messages,
+  temperature = 0.00,
   loggingText = null,
 }) {
   if (messages.length === 0) {
@@ -56,7 +58,7 @@ const generateCompletions = async function({
 
       ],
       // max_tokens: 300,
-      temperature: 0.00,
+      temperature: temperature,
       model: "gpt-4o",
       response_format: {"type": "json_object"},
     });

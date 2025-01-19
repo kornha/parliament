@@ -5,6 +5,7 @@ import 'package:political_think/common/components/loading.dart';
 import 'package:political_think/common/components/profile_icon.dart';
 import 'package:political_think/common/components/stats_table.dart';
 import 'package:political_think/common/components/zicon_text.dart';
+import 'package:political_think/common/components/ztext_button.dart';
 import 'package:political_think/common/extensions.dart';
 import 'package:political_think/common/models/entity.dart';
 import 'package:political_think/common/models/platform.dart';
@@ -13,6 +14,7 @@ import 'package:political_think/common/util/utils.dart';
 import 'package:political_think/common/util/zimage.dart';
 import 'package:political_think/views/confidence/confidence_widget.dart';
 import 'package:political_think/views/post/post_view.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class PostItemView extends ConsumerStatefulWidget {
   final String pid;
@@ -125,6 +127,20 @@ class _PostViewState extends ConsumerState<PostItemView> {
                                 Utils.numToReadableString(post?.bookmarks)),
                             "Views":
                                 Text(Utils.numToReadableString(post?.views)),
+                            "Source Created At": Text(Utils.toHumanReadableDate(
+                                post?.sourceCreatedAt)),
+                            "Source": ZTextButton(
+                              onPressed: post?.url == null
+                                  ? null
+                                  : () {
+                                      final Uri url =
+                                          Uri.parse(post?.url ?? "");
+                                      launchUrl(url);
+                                    },
+                              child: Text("link",
+                                  style: context.mb
+                                      .copyWith(color: context.secondaryColor)),
+                            ),
                           }),
                         ),
                       ],

@@ -294,6 +294,8 @@ exports.onStoryShouldChangeNewsworthyAt = onMessagePublished(
       ...defaultConfig,
     },
     async (event) => {
+      logger.info("onStoryShouldChangeNewsworthyAt");
+
       const before = event.data.message.json.before;
       const after = event.data.message.json.after;
 

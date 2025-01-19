@@ -166,6 +166,7 @@ const findContext = async function(story, statements) {
 
   const resp = await generateCompletions({
     messages: _prompt,
+    temperature: 0.8,
     loggingText: "findContext " + story.sid,
   });
 

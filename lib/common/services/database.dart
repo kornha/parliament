@@ -138,6 +138,8 @@ class Database {
         .then(
           (querySnapshot) {
             if (querySnapshot.docs.isNotEmpty) {
+              settings ??= const ZSettings();
+
               var stories = querySnapshot.docs
                   .map((doc) =>
                       Story.fromJson(doc.data() as Map<String, dynamic>))
@@ -148,7 +150,7 @@ class Database {
                   .where((story) =>
                       (story.newsworthiness ?? Confidence.min()) >=
                           settings!.minNewsworthiness &&
-                      story.pids.length >= settings.minPosts)
+                      story.pids.length >= settings!.minPosts)
                   .toList();
 
               if (stories.isNotEmpty) {

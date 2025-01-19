@@ -62,6 +62,8 @@ const findStoriesPrompt = function({post, stories, training = false, includePhot
     });
   }
 
+  messages.push({type: "text", text: `The current time is ${new Date().toISOString()} UTC`});
+
   messages.push({type: "text", text: "Only output Stories that you are certain Post belongs to. The Post must either directly mention the content in the Story, or make a Statement about the Story. For any Stories that you output, order them by most to least relevant."});
   messages.push({type: "text", text: storyJSONOutput()});
 
@@ -97,6 +99,8 @@ const findStatementsPrompt = function({
     });
   }
 
+  messages.push({type: "text", text: `The current time is ${new Date().toISOString()} UTC`});
+
   messages.push({type: "text", text: "Output all Statements that a Post makes (new and/or candidate)."});
   messages.push({type: "text", text: statementJSONOutput()});
 
@@ -122,6 +126,8 @@ const findContextPrompt = function({
   } else {
     messages.push({type: "text", text: "There are no statements associated with this story."});
   }
+
+  messages.push({type: "text", text: `The current time is ${new Date().toISOString()} UTC`});
 
   messages.push({type: "text", text: "Output the updated context/article fields, as follows:"});
   messages.push({type: "text", text: contextJSONOutput()});
@@ -227,13 +233,13 @@ const findContextForTrainingText = function() {
     1. **Newsworthiness:** Adjust urgency of the outputted text based on the score (0.0 - 1.0).
     2. **Statements with Confidence Scores:** Treat high scores as true, low scores as false, neutral if null.
     3. **Statements with Bias Scores:** Reflect political bias appropriately; favor centrist views.
-    4. **Title and Description:** Use as information sources but do not mimic their phrasing.
+    4. **Title and Description:** Use as information sources but do not necessarily mimic their phrasing.
 
     **Field Specifications:**
 
-    - **Headline:** 2-6 words, engaging, active, reflects Newsworthiness.
-    - **SubHeadline:** 1-3 sentences, provides key details.
-    - **Lede:** 3-6 sentences, expands on details, mentions Claims and Opinions.
+    - **Headline:** 2-6 words, engaging, active, reflects Newsworthiness. The headline must clearly show what the story is about. Eg., "Snoop Dogg, Nelly to perform" is incomplete, but "Snoop Dog, Nelly to perform at Trump's Inauguration" is more complete.
+    - **SubHeadline:** 1-2 sentences, provides key details.
+    - **Lede:** Very straightforward "bullet point" style synopsis of what the story is about. Output in 1 string and separate sentences by 2 newlines each.
     - **Article:** Optional, 1-8 paragraphs, comprehensive, journalistic tone.
   `;
 };
@@ -253,7 +259,7 @@ const newStoryPrompt = function() {
   Description should be 1-many sentences, and completely describes every detail we know about the Story. It should be focused around the event, and provide all known details and call out opinions.
 
   HappenedAt:
-  'happenedAt' is the time the event happened in the REAL WORLD, not the timestamp of the Posts. Determine when the Story "happenedAt" based on the time the Post(s) were created, as well as context in the Post(s). Eg., if a Post says "today Trump had a rally in the Bronx", and the Post 'sourceCreatedAt' is at 9PM Eastern, the "happenedAt" is the time of the rally, since 'day' is mentioned, our best guess would be 2PM ET (but outputted in ISO 8601 format).
+  'happenedAt' is the time the event happened in the REAL WORLD, not the timestamp of the Posts. Determine when the Story "happenedAt" based on the time the Post(s) were created, as well as context in the Post(s). Eg., if a Post says "today Trump had a rally in the Bronx", and the Post 'sourceCreatedAt' is at 9PM Eastern, the "happenedAt" is the time of the rally, since 'day' is mentioned, our best guess would be 2PM ET (but outputted in ISO 8601 format). If there is a range of time, favor recency; e.g. if a post says "in 2024 X had its best year ever", the happenedAt is the very end of 2024 or the current date if it is in 2024.
 
   Lat/Long:
   the 'lat' and 'long' are the location of the event, or our best guess. If the Story is about a Trump rally in the Bronx, the lat and long should be in the Bronx. If the Story is about Rutgers U, the lat and long should be of their campus in NJ, at the closest location that can be determined. If the Post only mentions a person, the lat and long might be the country they are from. The lat and long should almost NEVER be null unless absolutely no location is mentioned or inferred.

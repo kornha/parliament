@@ -50,11 +50,14 @@ class _StoryViewState extends ConsumerState<StoryView> {
           ? const Loading()
           : Column(
               mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  story?.title ?? "",
-                  style: context.h3,
-                  textAlign: TextAlign.center,
+                Center(
+                  child: Text(
+                    story?.title ?? "",
+                    style: context.h3,
+                    textAlign: TextAlign.center,
+                  ),
                 ),
                 context.sf,
                 Text(
@@ -82,10 +85,7 @@ class _StoryViewState extends ConsumerState<StoryView> {
                   ZExpansionTile(
                     initiallyExpanded: true,
                     title: Text(story!.headline!, style: context.h4),
-                    subtitle: Text(
-                      "article",
-                      style: context.m,
-                    ),
+                    subtitle: const Text("article"),
                     children: [
                       Text(
                         story.article!,
@@ -95,7 +95,8 @@ class _StoryViewState extends ConsumerState<StoryView> {
                   ),
                 ZExpansionTile(
                   initiallyExpanded: true,
-                  title: Text("Stats", style: context.h4),
+                  title: Text("Primary indicators", style: context.h4),
+                  subtitle: const Text("stats"),
                   children: [
                     StatsTable(map: {
                       "Newsworthiness": ConfidenceWidget(
@@ -111,8 +112,10 @@ class _StoryViewState extends ConsumerState<StoryView> {
                         viral: true,
                         enabled: false,
                       ),
-                      "NewsworthyAt": Text(
-                        Utils.toHumanReadableDate(story.newsworthyAt),
+                      "NewsworthyAt":
+                          Text(Utils.toHumanReadableDate(story.newsworthyAt)),
+                      "HappenedAt": Text(
+                        Utils.toHumanReadableDate(story.happenedAt),
                       ),
                       "Avg. Replies":
                           Text(Utils.numToReadableString(story.avgReplies)),
@@ -133,10 +136,7 @@ class _StoryViewState extends ConsumerState<StoryView> {
                   ZExpansionTile(
                       initiallyExpanded: false,
                       title: Text("Description", style: context.h4),
-                      subtitle: Text(
-                        "aggregated from posts",
-                        style: context.m,
-                      ),
+                      subtitle: const Text("aggregated from posts"),
                       children: [
                         Text(
                           story.description ?? "",

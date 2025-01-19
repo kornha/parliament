@@ -30,15 +30,17 @@ async function onPostShouldChangeVirality(pid) {
       "socialScore", "<", post.socialScore);
   const entityTotal = await getCount("posts", "eid", post.eid);
 
+  // if theres 1 post percentile should be 1.0, we use 0.5 for better scoring
   const entityVirality = entityTotal > 1 ?
-    parseFloat((entityLower / entityTotal).toFixed(2)) : 1.0;
+    parseFloat((entityLower / entityTotal).toFixed(2)) : 0.5;
 
   const platformLower = await getCount("posts", "plid", post.plid,
       "socialScore", "<", post.socialScore);
   const platformTotal = await getCount("posts", "plid", post.plid);
 
+  // if theres 1 post percentile should be 1.0, we use 0.5 for better scoring
   const platformVirality = platformTotal > 1 ?
-      parseFloat((platformLower / platformTotal).toFixed(2)) : 1.0;
+      parseFloat((platformLower / platformTotal).toFixed(2)) : 0.5;
 
   const values = [entityVirality, platformVirality].filter(_.isNumber);
   const avgVirality = values.length ? _.mean(values) : null;
@@ -180,28 +182,24 @@ function didChangeStats(_create, _update, _delete, before, after, avg) {
  * @return {number|null} the scaled happenedAt or null if not possible
  */
 function calculateNewsworthyAt(story) {
-  if (!story || story.happenedAt == null) {
+  if (!story) {
     return null;
   }
+  // just in case; happenedAt should exist either from llm or sourceCreatedAt
+  const baseTime = story.happenedAt ?? story.createdAt - 10800000;
 
-  // Define the scaling factor (e.g., 1 day in milliseconds)
-  const NEWSWORTHYNESS_SCALE = 43200000; // 1/2 day in milliseconds
+  const NEWSWORTHYNESS_SCALE = 43200000;
+  const newsworthiness = story.newsworthiness ?? 0.1;
+  const isFuture = baseTime > Timestamp.now().toMillis();
+  const timeAt = isFuture ? story.createdAt : baseTime;
 
-  const newsworthiness = story.newsworthiness != null ?
-    story.newsworthiness : 0.1; // magic number
+  const adjustment = Math.round(
+      3 * (newsworthiness - 1) * NEWSWORTHYNESS_SCALE,
+  );
 
-  // if its the future scale by createdAt
-  const timeAt = story.happenedAt > Timestamp.now().toMillis() ?
-    story.createdAt : story.happenedAt;
-
-  // Calculate the adjusted timestamp
-  const newsworthyAt =
-    timeAt +
-    Math.round(newsworthiness * NEWSWORTHYNESS_SCALE) -
-    NEWSWORTHYNESS_SCALE;
-
-  return newsworthyAt;
+  return timeAt + adjustment;
 }
+
 
 module.exports = {
   onPostShouldChangeVirality,
