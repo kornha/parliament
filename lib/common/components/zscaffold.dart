@@ -67,6 +67,7 @@ class ZScaffold extends StatelessWidget {
                 centerTitle: true,
                 floating: true,
                 snap: true,
+                pinned: context.isDesktop, //limits buggyness on desktop browser
                 automaticallyImplyLeading: false,
                 forceElevated: innerBoxIsScrolled,
                 elevation: 0,

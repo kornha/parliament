@@ -278,7 +278,7 @@ class _LoadingConfidenceAnimationState extends State<LoadingConfidenceAnimation>
 }
 
 class LoadingPage extends StatelessWidget {
-  static const location = "/feed";
+  static const location = "/loading";
 
   const LoadingPage({Key? key}) : super(key: key);
 

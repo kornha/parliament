@@ -24,7 +24,7 @@ class ZRouter {
 
   static GoRouter instance(WidgetRef ref) {
     return GoRouter(
-      // initialLocation: kIsWeb ? Feed.location : Login.location,
+      // initialLocation: kIsWeb ? Preview.location : Login.location,
       navigatorKey: rootNavigatorKey,
       routes: [
         ShellRoute(
@@ -126,6 +126,13 @@ class ZRouter {
             child: const LoadingPage(),
           ),
         ),
+        GoRoute(
+          path: "/preview",
+          pageBuilder: (context, state) => zPage(
+            context: context,
+            child: const Feed(),
+          ),
+        ),
       ],
       refreshListenable: ref.watch(authProvider),
       redirect: (context, state) {
@@ -133,6 +140,7 @@ class ZRouter {
         final loggedIn = authState.isLoggedIn;
         final isOnLoginPage = state.matchedLocation == Login.location;
         final isOnFeedPage = state.matchedLocation == Feed.location;
+        final isOnPreviewPage = state.matchedLocation == Preview.location;
 
         if (!authState.isUnknown) {
           FlutterNativeSplash.remove();
@@ -141,7 +149,7 @@ class ZRouter {
         }
 
         if (state.uri.path == '/') {
-          return kIsWeb ? Feed.location : Login.location;
+          return kIsWeb ? Preview.location : Login.location;
         }
 
         if (!loggedIn) {
@@ -150,7 +158,7 @@ class ZRouter {
             return null;
           }
 
-          if (kIsWeb && isOnFeedPage) {
+          if (kIsWeb && isOnPreviewPage) {
             return null;
           }
 
@@ -158,6 +166,10 @@ class ZRouter {
           //final from = state.uri.toString();
           // return '${Login.location}?from=${Uri.encodeComponent(from)}';
           return Login.location;
+        }
+
+        if (loggedIn && isOnPreviewPage) {
+          return Feed.location;
         }
 
         if (loggedIn && isOnLoginPage) {

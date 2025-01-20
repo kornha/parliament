@@ -189,3 +189,9 @@ class _FeedState extends ConsumerState<Feed> {
     );
   }
 }
+
+// exists only to provide a preview of the feed
+// we cannot use feed directly due to shell route issues
+class Preview {
+  static const location = "/preview";
+}
