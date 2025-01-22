@@ -12,11 +12,12 @@ const {getStatement,
 const {retryAsyncFunction} = require("../common/utils");
 
 // Parameters
-const CORRECT_REWARD = 0.05;
-const INCORRECT_PENALTY = -0.15;
+const CORRECT_REWARD = 0.15;
+const INCORRECT_PENALTY = -0.45;
 const DECAY_FACTOR = 0.95; // Exp. decay (1 = slower decay, 0 = faster decay)
 const BASE_CONFIDENCE = 0.5;
 const DECIDED_THRESHOLD = 0.9;
+const LIKELY_THRESHOLD = 0.75;
 
 // ////////////////////////////////////////////////////////////////////////////
 // Post
@@ -101,6 +102,9 @@ async function onEntityShouldChangeConfidence(eid) {
 
 /**
  * Calculate the confidence of an entity based on its past statements.
+ * Confidence is chance we trust the entity going forward
+ * Calculated like a credit score where correct responses are rewarded less
+ * than incorrect ones.
  * @param {Entity} entity The entity object.
  * @param {Statement[]} statements The array of statement objects.
  * @return {number} The confidence of the entity.
@@ -231,9 +235,10 @@ function calculateStatementConfidence(statement, entities) {
       confidence = 1 - confidence;
     }
 
-    // Inverse Quadratic Weighting: weight = 1 - (1 - confidence)^2
+    // Inverse Quadratic Weighting: weight = 1 - (1 - confidence)^exponent
     // This is done to weight high/lows confidence more heavily
-    const weight = 1 - Math.pow(1 - confidence, 2);
+    const EXPONENT = 2.2; // 2.2 is magic to grow faster
+    const weight = 1 - Math.pow(1 - confidence, EXPONENT);
 
     // Add to weighted sum
     weightedSum += weight * confidence;
@@ -259,37 +264,48 @@ function calculateStatementConfidence(statement, entities) {
  * @return {boolean} Whether the statement crossed the threshold.
  */
 function confidenceDidCrossThreshold(before, after) {
-  const negativeThresholdExceeded = (confidence) =>
-    confidence < 1 - DECIDED_THRESHOLD;
-  const positiveThresholdExceeded = (confidence) =>
-    confidence > DECIDED_THRESHOLD;
-
-  // If before is null, assume it's starting from BASE_CONFIDENCE
   const beforeConfidence = before?.confidence ?? BASE_CONFIDENCE;
   const afterConfidence = after?.confidence ?? BASE_CONFIDENCE;
 
-  // Check if the threshold has been crossed in either direction
-  const crossedFromNegativeToPositive =
-    negativeThresholdExceeded(beforeConfidence) &&
-    !negativeThresholdExceeded(afterConfidence);
-  const crossedFromPositiveToNegative =
-    positiveThresholdExceeded(beforeConfidence) &&
-    !positiveThresholdExceeded(afterConfidence);
+  // 1) Dislodging from / returning to BASE_CONFIDENCE
+  if (
+    (beforeConfidence === BASE_CONFIDENCE &&
+       afterConfidence !== BASE_CONFIDENCE) ||
+    (afterConfidence === BASE_CONFIDENCE &&
+       beforeConfidence !== BASE_CONFIDENCE)
+  ) {
+    return true;
+  }
 
-  const crossedToNegative =
-    !negativeThresholdExceeded(beforeConfidence) &&
-    negativeThresholdExceeded(afterConfidence);
-  const crossedToPositive =
-    !positiveThresholdExceeded(beforeConfidence) &&
-    positiveThresholdExceeded(afterConfidence);
+  /**
+   * @param {number} confidence The statement object after the change
+   * @return {number} The confidence state.
+   */
+  function getConfidenceState(confidence) {
+    if (confidence < 1 - DECIDED_THRESHOLD) {
+      // negative decided
+      return -2;
+    } else if (confidence < 1 - LIKELY_THRESHOLD) {
+      // negative likely
+      return -1;
+    } else if (confidence > DECIDED_THRESHOLD) {
+      // positive decided
+      return 2;
+    } else if (confidence >= LIKELY_THRESHOLD) {
+      // positive likely
+      return 1;
+    } else {
+      // neutral
+      return 0;
+    }
+  }
 
-  return (
-    crossedFromNegativeToPositive ||
-    crossedFromPositiveToNegative ||
-    crossedToNegative ||
-    crossedToPositive
-  );
+  const beforeState = getConfidenceState(beforeConfidence);
+  const afterState = getConfidenceState(afterConfidence);
+
+  return beforeState !== afterState;
 }
+
 
 // ////////////////////////////////////////////////////////////////////////////
 // Generic
