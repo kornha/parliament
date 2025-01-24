@@ -81,22 +81,42 @@ jobs:
 
   # Release job, upload the ipa to Firebase App Distribution
   deploy_ios:
-    name: Release ipa to Firebase
+    name: Upload IPA to GCS + Release to Firebase
     needs: [ build ]
     runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+      id-token: 'write'
     steps:
-    
-    # Retrieve ipa file from GitHub artifacts
-    - uses: actions/checkout@v4
-    - name: Get release-ipa from artifacts
-      uses: actions/download-artifact@v4
-      with:
-        name: release-ipa
+      - uses: actions/checkout@v4
 
-    # Upload ipa file to Fiebase
-    - name: Upload artifact to Firebase App Distribution
-      uses: wzieba/Firebase-Distribution-Github-Action@v1
-      with:
-        appId: ${{secrets.FIREBASE_IOS_APP_ID}}
-        serviceCredentialsFileContent: ${{ secrets.CREDENTIAL_FILE_CONTENT }}
-        file: political_think.ipa
+      - name: Download IPA artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: release-ipa
+
+      # 1) Authenticate with Google Cloud
+      - id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: '${{ secrets.GH_SA_GOOGLE_CREDENTIALS }}'
+
+      # 2) Install Cloud SDK
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          version: '>= 363.0.0'
+
+      # 3) Upload the IPA to GCS
+      - name: Upload IPA to GCS
+        run: |
+          DATE=$(date +%Y-%m-%d)
+          gsutil cp political_think.ipa gs://political-think.appspot.com/ios/parliament-$DATE.ipa
+
+      # 4) Upload the IPA to Firebase App Distribution
+      - name: Upload artifact to Firebase App Distribution
+        uses: wzieba/Firebase-Distribution-Github-Action@v1
+        with:
+          appId: ${{ secrets.FIREBASE_IOS_APP_ID }}
+          serviceCredentialsFileContent: ${{ secrets.CREDENTIAL_FILE_CONTENT }}
+          file: political_think.ipa
