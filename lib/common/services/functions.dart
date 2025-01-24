@@ -98,4 +98,16 @@ class Functions {
     }
     return null;
   }
+
+  Future test() async {
+    final HttpsCallable callable =
+        FirebaseFunctions.instance.httpsCallable('testFn');
+
+    try {
+      final HttpsCallableResult _ = await callable.call({});
+    } catch (e) {
+      print(e);
+    }
+    return null;
+  }
 }

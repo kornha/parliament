@@ -117,7 +117,9 @@ class _FeedState extends ConsumerState<Feed> {
                   icon: const Icon(FontAwesomeIcons.plus),
                   color: context.primaryColor,
                   onPressed: () {
-                    context.showFullScreenModal(const PostBuilder());
+                    Functions.instance().test();
+
+                    // context.showFullScreenModal(const PostBuilder());
                   },
                 ),
               ],

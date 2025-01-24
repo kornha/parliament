@@ -78,6 +78,7 @@ const {onPlatformUpdate,
   onPlatformShouldChangeStats,
   onPlatformChangedStats} = require("./models/platform");
 const {onHourTrigger, triggerTimeFunction} = require("./common/schedule");
+const {testFn} = require("./ai/testFn");
 
 
 admin.initializeApp();
@@ -114,10 +115,6 @@ if (process.env.FUNCTIONS_EMULATOR === "true") {
 }
 
 // Used as a dev-time helper to test functions
-const functions = require("firebase-functions/v2");
-
-const test = functions.https.onCall(async (data, context) => {
-});
 
 
 module.exports = {
@@ -204,5 +201,5 @@ module.exports = {
   // Scripts
   generateBiasTraining,
   // Dev helper
-  test,
+  testFn,
 };
