@@ -8,11 +8,13 @@ import 'package:political_think/common/components/loading.dart';
 import 'package:political_think/common/components/znavigation_scaffold.dart';
 import 'package:political_think/common/extensions.dart';
 import 'package:political_think/common/services/zprovider.dart';
+import 'package:political_think/views/common/issues.dart';
 import 'package:political_think/views/entity/entity_view.dart';
 import 'package:political_think/views/feed/feed.dart';
 import 'package:political_think/views/login/login.dart';
 import 'package:political_think/views/message/message.dart';
 import 'package:political_think/views/post/post_view.dart';
+import 'package:political_think/views/common/privacy.dart';
 import 'package:political_think/views/profile/profile.dart';
 import 'package:political_think/views/maps/maps.dart';
 import 'package:political_think/views/search/search.dart';
@@ -127,10 +129,24 @@ class ZRouter {
           ),
         ),
         GoRoute(
-          path: "/preview",
+          path: Preview.location,
           pageBuilder: (context, state) => zPage(
             context: context,
             child: const Feed(),
+          ),
+        ),
+        GoRoute(
+          path: Privacy.location,
+          pageBuilder: (context, state) => zPage(
+            context: context,
+            child: const Privacy(),
+          ),
+        ),
+        GoRoute(
+          path: Issues.location,
+          pageBuilder: (context, state) => zPage(
+            context: context,
+            child: const Issues(),
           ),
         ),
       ],
@@ -141,6 +157,12 @@ class ZRouter {
         final isOnLoginPage = state.matchedLocation == Login.location;
         final isOnFeedPage = state.matchedLocation == Feed.location;
         final isOnPreviewPage = state.matchedLocation == Preview.location;
+        final pageRequiresAuth = ![
+          Login.location,
+          LoadingPage.location,
+          Preview.location,
+          Privacy.location,
+        ].contains(state.matchedLocation);
 
         if (!authState.isUnknown) {
           FlutterNativeSplash.remove();
@@ -153,14 +175,14 @@ class ZRouter {
         }
 
         if (!loggedIn) {
-          if (isOnLoginPage) {
+          if (!pageRequiresAuth) {
             // Already on the login page and not logged in, no redirect needed.
             return null;
           }
 
-          if (kIsWeb && isOnPreviewPage) {
-            return null;
-          }
+          // if (kIsWeb && isOnPreviewPage) {
+          //   return null;
+          // }
 
           // Redirect to login with 'from' parameter.
           //final from = state.uri.toString();

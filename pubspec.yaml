@@ -123,9 +123,9 @@ flutter_launcher_icons:
 # dart run flutter_native_splash:create
 flutter_native_splash:
   color: "#FFFFFF" # White background for light mode
-  image: assets/images/logo_black.png # Logo for light mode
+  image: assets/images/splash_dark.png # Logo for light mode
   color_dark: "#0E0E0E" # Black background for dark mode
-  image_dark: assets/images/logo_white.png # Logo for dark mode
+  image_dark: assets/images/splash_light.png # Logo for dark mode
   branding_bottom_padding: 24
   branding: assets/images/prerelease_light.png
   branding_dark: assets/images/prerelease_dark.png

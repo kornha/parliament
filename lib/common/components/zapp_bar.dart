@@ -4,7 +4,6 @@ import 'package:political_think/common/components/branding.dart';
 import 'package:political_think/common/components/logo.dart';
 import 'package:political_think/common/components/zback_button.dart';
 import 'package:political_think/common/constants.dart';
-import 'package:political_think/common/extensions.dart';
 
 class ZAppBar extends ConsumerStatefulWidget implements PreferredSizeWidget {
   ZAppBar({

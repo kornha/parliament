@@ -217,10 +217,11 @@ final statementProvider =
 final statementsProvider =
     StreamProvider.family<List<Statement>?, List<String>>((ref, stids) {
   // int limit = ridlimit.$2;
+  // limit 30 is max
+  var limitedStids = stids.take(30).toList();
   return Database.instance()
       .statementCollection
-      .where(FieldPath.documentId, whereIn: stids)
-      .limit(50)
+      .where(FieldPath.documentId, whereIn: limitedStids)
       .snapshots()
       .map((querySnapshot) {
     if (querySnapshot.docs.isNotEmpty) {
@@ -277,9 +278,12 @@ final entitiesFromPostsProvider =
   if (pids.isEmpty) {
     return Stream.value(null);
   }
+
+  // firebase limits to 30
+  var limitedPids = pids.take(30).toList();
   return Database.instance()
       .postCollection
-      .where(FieldPath.documentId, whereIn: pids)
+      .where(FieldPath.documentId, whereIn: limitedPids)
       .snapshots()
       .asyncMap((postsSnapshot) async {
     final eids = postsSnapshot.docs
@@ -290,15 +294,16 @@ final entitiesFromPostsProvider =
         .where((eid) => eid != null)
         .toList();
 
-    // If no entity IDs or more than 10 (limit of 'whereIn'), return null or handle appropriately
-    if (eids.isEmpty || eids.length > 10) {
+    // If no entity IDs or more than 30 (limit of 'whereIn'), return null or handle appropriately
+    if (eids.isEmpty || eids.length > 30) {
       return null;
     }
 
+    var limitedEids = eids.take(30).toList();
     // Fetch entities based on the entity IDs collected
     final entitySnapshot = await Database.instance()
         .entityCollection
-        .where(FieldPath.documentId, whereIn: eids)
+        .where(FieldPath.documentId, whereIn: limitedEids)
         .get();
 
     // Map over the entity documents and convert them to Entity objects
