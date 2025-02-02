@@ -162,6 +162,7 @@ class ZRouter {
           LoadingPage.location,
           Preview.location,
           Privacy.location,
+          Issues.location,
         ].contains(state.matchedLocation);
 
         if (!authState.isUnknown) {
