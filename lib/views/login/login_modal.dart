@@ -40,6 +40,31 @@ class LoginModal extends StatelessWidget {
           },
         ),
         context.sh,
+        ZTextButton(
+          type: ZButtonTypes.wide,
+          backgroundColor: context.backgroundColor,
+          foregroundColor: context.onBackgroundColor,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text("Sign in with  ",
+                  style: context.m.copyWith(color: context.onBackgroundColor)),
+              Icon(FontAwesomeIcons.apple, color: context.onBackgroundColor),
+            ],
+          ),
+          onPressed: () async {
+            Auth.instance().signInWithApple().then(
+              (value) {
+                context.pop();
+              },
+              onError: (e) {
+                context.showFullScreenModal(Text(e.toString()));
+              },
+            );
+          },
+        ),
+        context.sh,
         const ZDivider(type: DividerType.TERTIARY),
         ZTextButton(
           type: ZButtonTypes.wide,

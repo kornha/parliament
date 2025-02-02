@@ -89,6 +89,17 @@ class Auth extends ChangeNotifier {
     }
   }
 
+  Future<UserCredential> signInWithApple() async {
+    final appleProvider = AppleAuthProvider();
+    appleProvider.addScope('email');
+    appleProvider.addScope('name');
+    if (kIsWeb) {
+      return await FirebaseAuth.instance.signInWithPopup(appleProvider);
+    } else {
+      return await FirebaseAuth.instance.signInWithProvider(appleProvider);
+    }
+  }
+
   Future signOut() async {
     try {
       // clear "from"
