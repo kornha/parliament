@@ -41,7 +41,7 @@ class _PostViewState extends ConsumerState<PostView> {
   List<ct.Message> _messages = [];
   final List<ct.Message> _localMessages = [];
   bool _isLastMessage = false;
-  int _limit = Constants.MESSAGE_FETCH_LIMIT;
+  final int _limit = Constants.MESSAGE_FETCH_LIMIT;
   bool _isLoaded = false;
 
   @override
@@ -77,58 +77,63 @@ class _PostViewState extends ConsumerState<PostView> {
             (messagesRef?.isLoading ?? false));
     //
     return ZScaffold(
-      appBar: ZAppBar(showBackButton: true),
-      ignoreScrollView: true,
-      body: isLoading
-          ? const Loading()
-          : isError
-              ? const ZError()
-              : Chat(
-                  theme: context.isDarkMode
-                      ? ZTheme.darkChatTheme
-                      : ZTheme.lightChatTheme,
-                  scrollController: _autoScrollController,
-                  pinnedMessageHeader: Container(
-                    // margin: context.blockMargin,
-                    // padding: context.blockPaddingExtra,
-                    decoration: BoxDecoration(
-                      color: context.backgroundColor,
-                      borderRadius: BRadius.standard,
-                    ),
-                    child: PostItemView(pid: post!.pid),
-                  ),
-                  pinnedMessageFooter:
-                      _messages.isNotEmpty ? RoomClock(room: room!) : null,
-                  isLastPage: _isLastMessage,
-                  messages: _messages,
-                  messageExpiryTime: room!.clock?.end?.millisecondsSinceEpoch,
-                  onSendPressed: (pt) {
-                    final msg = ct.TextMessage(
-                      roomId: room.rid,
-                      author: ct.User(
-                          id: ref.user().uid), // ref.user().toChatUser(),
-                      id: const Uuid().v4(),
-                      text: pt.text,
-                      createdAt: Timestamp.now().millisecondsSinceEpoch,
-                      position: room.getUserPosition(ref.user().uid),
-                      status: ct.Status.sending,
-                    );
-                    Database.instance().createMessage(
-                      room.rid,
-                      msg.copyWith(status: ct.Status.sent),
-                    );
-                    setState(() {
-                      _localMessages.add(msg);
-                    });
-                  },
-                  onEndReached: () async {
-                    setState(() {
-                      _limit += Constants.MESSAGE_FETCH_LIMIT;
-                    });
-                  },
-                  user: ref.user().toChatUser(),
-                ),
-    );
+        appBar: ZAppBar(showBackButton: true),
+        ignoreScrollView: true,
+        body: isLoading
+            ? const Loading()
+            : isError
+                ? const ZError()
+                : Column(
+                    children: [
+                      PostItemView(pid: post!.pid, gestureDetection: false),
+                    ],
+                  )
+        // : Chat(
+        //     theme: context.isDarkMode
+        //         ? ZTheme.darkChatTheme
+        //         : ZTheme.lightChatTheme,
+        //     scrollController: _autoScrollController,
+        //     pinnedMessageHeader: Container(
+        //       // margin: context.blockMargin,
+        //       // padding: context.blockPaddingExtra,
+        //       decoration: BoxDecoration(
+        //         color: context.backgroundColor,
+        //         borderRadius: BRadius.standard,
+        //       ),
+        //       child: PostItemView(pid: post!.pid),
+        //     ),
+        //     pinnedMessageFooter:
+        //         _messages.isNotEmpty ? RoomClock(room: room!) : null,
+        //     isLastPage: _isLastMessage,
+        //     messages: _messages,
+        //     messageExpiryTime: room!.clock?.end?.millisecondsSinceEpoch,
+        //     onSendPressed: (pt) {
+        //       final msg = ct.TextMessage(
+        //         roomId: room.rid,
+        //         author: ct.User(
+        //             id: ref.user().uid), // ref.user().toChatUser(),
+        //         id: const Uuid().v4(),
+        //         text: pt.text,
+        //         createdAt: Timestamp.now().millisecondsSinceEpoch,
+        //         position: room.getUserPosition(ref.user().uid),
+        //         status: ct.Status.sending,
+        //       );
+        //       Database.instance().createMessage(
+        //         room.rid,
+        //         msg.copyWith(status: ct.Status.sent),
+        //       );
+        //       setState(() {
+        //         _localMessages.add(msg);
+        //       });
+        //     },
+        //     onEndReached: () async {
+        //       setState(() {
+        //         _limit += Constants.MESSAGE_FETCH_LIMIT;
+        //       });
+        //     },
+        //     user: ref.user().toChatUser(),
+        //   ),
+        );
   }
 
   List<ct.Message> get _combinedMessages {

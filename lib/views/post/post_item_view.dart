@@ -57,7 +57,9 @@ class _PostViewState extends ConsumerState<PostItemView> {
         ? Loading(
             type: widget.isSubView ? LoadingType.postSmall : LoadingType.post)
         : MouseRegion(
-            cursor: SystemMouseCursors.click,
+            cursor: widget.gestureDetection
+                ? SystemMouseCursors.click
+                : SystemMouseCursors.basic,
             child: GestureDetector(
               onTap: !widget.gestureDetection
                   ? null
