@@ -39,7 +39,7 @@ class LoginModal extends StatelessWidget {
             );
           },
         ),
-        context.sh,
+        context.stq,
         ZTextButton(
           type: ZButtonTypes.wide,
           backgroundColor: context.backgroundColor,

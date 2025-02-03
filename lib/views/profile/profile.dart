@@ -52,50 +52,52 @@ class _ProfileState extends ConsumerState<Profile> {
               children: [
                 ProfileIcon(radius: context.iconSizeLarge / 2, isSelf: true),
                 context.sf,
-                isEditing || user?.username == null
-                    ? CreateUsernameComponent(
-                        onClose: () {
-                          setState(() {
-                            isEditing = false;
-                          });
-                        },
-                        onSave: (text) {
-                          setState(() {
-                            isEditing = false;
-                            _localUsername = text;
-                          });
-                        },
-                        onSaveError: () {
-                          setState(() {
-                            _localUsername = null;
-                          });
-                        },
-                        onSaveSuccess: () {
-                          context.showToast("Username updated", isError: false);
-                          setState(() {
-                            _localUsername = null;
-                          });
-                        },
-                      )
-                    : Row(
-                        children: [
-                          Text("@ ", style: context.h3),
-                          Text(_localUsername ?? user?.username ?? "username",
-                              style: context.l), // matches hint style
-                          const Spacer(),
-                          IconButton(
-                            icon: Icon(
-                              Icons.lock_sharp,
-                              color: context.surfaceColor,
-                            ),
-                            onPressed: () {
-                              setState(() {
-                                isEditing = true;
-                              });
-                            },
-                          ),
-                        ],
-                      ),
+                // removing for now.
+                // TODO: DOES NOT WORK WITH APPLE LOGIN
+                // isEditing || user?.username == null
+                //     ? CreateUsernameComponent(
+                //         onClose: () {
+                //           setState(() {
+                //             isEditing = false;
+                //           });
+                //         },
+                //         onSave: (text) {
+                //           setState(() {
+                //             isEditing = false;
+                //             _localUsername = text;
+                //           });
+                //         },
+                //         onSaveError: () {
+                //           setState(() {
+                //             _localUsername = null;
+                //           });
+                //         },
+                //         onSaveSuccess: () {
+                //           context.showToast("Username updated", isError: false);
+                //           setState(() {
+                //             _localUsername = null;
+                //           });
+                //         },
+                //       )
+                //     : Row(
+                //         children: [
+                //           Text("@ ", style: context.h3),
+                //           Text(_localUsername ?? user?.username ?? "username",
+                //               style: context.l), // matches hint style
+                //           const Spacer(),
+                //           IconButton(
+                //             icon: Icon(
+                //               Icons.lock_sharp,
+                //               color: context.surfaceColor,
+                //             ),
+                //             onPressed: () {
+                //               setState(() {
+                //                 isEditing = true;
+                //               });
+                //             },
+                //           ),
+                //         ],
+                //       ),
                 const Spacer(),
                 Center(
                   child: ZTextButton(
