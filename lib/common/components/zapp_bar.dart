@@ -56,7 +56,6 @@ class _ZAppBarState extends ConsumerState<ZAppBar> {
                     // TODO: Padding because IconButton in ZBackButton is padded
                     : const SizedBox.shrink(),
             if (widget.leading.isNotEmpty) ...widget.leading,
-            if (widget.leading.isEmpty) const PreRelease(),
             const Spacer(),
             ...widget.actions,
           ],

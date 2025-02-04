@@ -78,12 +78,13 @@ class _PostViewState extends ConsumerState<PostView> {
     //
     return ZScaffold(
         appBar: ZAppBar(showBackButton: true),
-        ignoreScrollView: true,
         body: isLoading
             ? const Loading()
             : isError
                 ? const ZError()
                 : Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       PostItemView(pid: post!.pid, gestureDetection: false),
                     ],

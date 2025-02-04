@@ -26,7 +26,7 @@ class ZRouter {
 
   static GoRouter instance(WidgetRef ref) {
     return GoRouter(
-      // initialLocation: kIsWeb ? Preview.location : Login.location,
+      // initialLocation: Preview.location,
       navigatorKey: rootNavigatorKey,
       routes: [
         ShellRoute(
@@ -157,13 +157,18 @@ class ZRouter {
         final isOnLoginPage = state.matchedLocation == Login.location;
         final isOnFeedPage = state.matchedLocation == Feed.location;
         final isOnPreviewPage = state.matchedLocation == Preview.location;
-        final pageRequiresAuth = ![
+        final List<String> locations = [
           Login.location,
           LoadingPage.location,
           Preview.location,
           Privacy.location,
           Issues.location,
-        ].contains(state.matchedLocation);
+          StoryView.location,
+          PostView.location,
+        ];
+
+        final pageRequiresAuth = !locations
+            .any((location) => state.matchedLocation.startsWith(location));
 
         if (!authState.isUnknown) {
           FlutterNativeSplash.remove();
@@ -172,7 +177,7 @@ class ZRouter {
         }
 
         if (state.uri.path == '/') {
-          return kIsWeb ? Preview.location : Login.location;
+          return Preview.location;
         }
 
         if (!loggedIn) {

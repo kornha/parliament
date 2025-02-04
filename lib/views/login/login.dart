@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:political_think/common/components/branding.dart';
 import 'package:political_think/common/components/logo.dart';
@@ -11,6 +12,7 @@ import 'package:political_think/common/components/ztext_button.dart';
 import 'package:political_think/common/constants.dart';
 import 'package:political_think/common/extensions.dart';
 import 'package:political_think/common/services/auth.dart';
+import 'package:political_think/views/feed/feed.dart';
 import 'package:political_think/views/login/login_modal.dart';
 import 'package:political_think/views/profile/about.dart';
 import 'package:political_think/views/profile/profile.dart';
@@ -58,6 +60,16 @@ class _LoginState extends ConsumerState<Login> {
                 context.showModal(const About());
               },
               child: const Text("About"),
+            ),
+            context.stq,
+            ZTextButton(
+              type: ZButtonTypes.wide,
+              backgroundColor: context.backgroundColor,
+              foregroundColor: context.secondaryColor,
+              onPressed: () {
+                context.route(Preview.location);
+              },
+              child: const Text("Preview"),
             ),
             context.sf,
           ],
