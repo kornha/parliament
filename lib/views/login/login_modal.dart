@@ -64,26 +64,27 @@ class LoginModal extends StatelessWidget {
             );
           },
         ),
-        context.sh,
-        const ZDivider(type: DividerType.TERTIARY),
-        ZTextButton(
-          type: ZButtonTypes.wide,
-          backgroundColor: context.secondaryColor,
-          foregroundColor: context.onSecondaryColor,
-          child: const Text("Sign in with Email"),
-        ),
-        context.sh,
-        const ZTextButton(
-          type: ZButtonTypes.wide,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text("Sign in with  "),
-              Icon(FontAwesomeIcons.github),
-            ],
-          ),
-        ),
+        // Removed due to app store rejection
+        // context.sh,
+        // const ZDivider(type: DividerType.TERTIARY),
+        // ZTextButton(
+        //   type: ZButtonTypes.wide,
+        //   backgroundColor: context.secondaryColor,
+        //   foregroundColor: context.onSecondaryColor,
+        //   child: const Text("Sign in with Email"),
+        // ),
+        // context.sh,
+        // const ZTextButton(
+        //   type: ZButtonTypes.wide,
+        //   child: Row(
+        //     mainAxisAlignment: MainAxisAlignment.center,
+        //     mainAxisSize: MainAxisSize.min,
+        //     children: [
+        //       Text("Sign in with  "),
+        //       Icon(FontAwesomeIcons.github),
+        //     ],
+        //   ),
+        // ),
       ],
     );
   }

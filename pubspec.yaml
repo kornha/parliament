@@ -1,7 +1,7 @@
 name: political_think
 description: An open-source news project that organizes news into `Confidence`, `Bias`, `Newsworthiness`, and `Contextualization` to tell maximally truthful news in a clear and measurable way.
 
-version: 1.17.15+1
+version: 1.17.16+1
 
 environment:
   sdk: '>=3.0.0'

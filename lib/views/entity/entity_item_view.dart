@@ -54,15 +54,18 @@ class _EntityItemViewState extends ConsumerState<EntityItemView> {
                     },
                   ),
                   context.sh,
-                  InkWell(
-                    child: Text(
-                      entity.handle,
-                      style: context.h5b,
+                  MouseRegion(
+                    cursor: SystemMouseCursors.click,
+                    child: GestureDetector(
+                      onTap: () {
+                        context.route("${EntityView.location}/${widget.eid}");
+                        context.pop();
+                      },
+                      child: Text(
+                        entity.handle,
+                        style: context.h5b,
+                      ),
                     ),
-                    onTap: () {
-                      context.route("${EntityView.location}/${widget.eid}");
-                      context.pop();
-                    },
                   ),
                   context.sl,
                   platform?.getIcon(context.iconSizeSmall) ??

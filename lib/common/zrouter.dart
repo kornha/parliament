@@ -165,6 +165,7 @@ class ZRouter {
           Issues.location,
           StoryView.location,
           PostView.location,
+          EntityView.location,
         ];
 
         final pageRequiresAuth = !locations

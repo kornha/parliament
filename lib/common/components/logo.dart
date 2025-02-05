@@ -18,11 +18,19 @@ class Logo extends StatelessWidget {
     String path = isDarkMode ?? context.isDarkMode
         ? 'assets/images/logo_white.png'
         : 'assets/images/logo_black.png';
-    return Image.asset(
-      path,
-      fit: BoxFit.contain,
-      width: size ?? context.iconSizeLarge,
-      height: size ?? context.iconSizeLarge,
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: () {
+          context.route("/");
+        },
+        child: Image.asset(
+          path,
+          fit: BoxFit.contain,
+          width: size ?? context.iconSizeLarge,
+          height: size ?? context.iconSizeLarge,
+        ),
+      ),
     );
   }
 }
@@ -38,14 +46,22 @@ class LogoName extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        const Logo(),
-        context.sh,
-        const LogoText(),
-      ],
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: () {
+          context.route("/");
+        },
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Logo(),
+            context.sh,
+            const LogoText(),
+          ],
+        ),
+      ),
     );
   }
 }

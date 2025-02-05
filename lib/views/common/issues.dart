@@ -24,7 +24,7 @@ class Issues extends StatelessWidget {
           ),
           context.sf,
           const Text(
-              "For an issues or inquiries, please raise an issue on our GitHub repository, contact us by email, or join our Discord server."),
+              "For issues or inquiries, please raise an issue on our GitHub repository, contact with us by email, or join our Discord server."),
           context.sf,
           const About(),
         ],
