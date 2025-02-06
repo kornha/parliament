@@ -183,7 +183,7 @@
     }
 
     // Only show the popover if on mobile and the user hasn't dismissed it
-    if (true) {
+    if (isMobile() && !localStorage.getItem('appDownloadDismissed')) {
       document.getElementById('download-app-popover').style.display = 'block';
     }
 
