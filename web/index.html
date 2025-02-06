@@ -137,16 +137,17 @@
 
     <!-- Buttons Container at the Bottom -->
     <div style="
-        position: absolute;
+        position: fixed; /* Changed from absolute to fixed */
         left: 0;
         right: 0;
-        bottom: 0;
+        bottom: env(safe-area-inset-bottom, 0); /* Directly use safe-area-inset-bottom */
         display: flex;
         flex-direction: column;
         align-items: center;
         gap: 10px;
         z-index: 2;
-        padding: 20px 20px calc(20px + env(safe-area-inset-bottom));
+        padding: 30px 30px max(30px, env(safe-area-inset-bottom)); /* Adjusted padding */
+        background: transparent; /* Ensure background is transparent */
     ">
       <button id="download-app" style="
           width: 100%;
