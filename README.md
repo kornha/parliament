@@ -23,6 +23,8 @@
 *This project is in pre-release, and as such, is a preview. Many features are in development.*
 
 <div align="center">
+  <img src="https://github.com/user-attachments/assets/fc4219d8-0ad8-4adb-b3e1-d8201f6e5255" alt="01f62b98-cedc-4730-b564-d71607a066b3" height="300">
+  &nbsp;&nbsp;&nbsp;&nbsp;
   <img src="https://github.com/kornha/political_think/assets/5386694/512b8b18-edec-4b15-9af2-67d70388def0" alt="01f62b98-cedc-4730-b564-d71607a066b3" height="300">
   &nbsp;&nbsp;&nbsp;&nbsp;
   <img src="https://github.com/kornha/political_think/assets/5386694/e8d7932f-1f84-4f1b-ae1a-5553aa15759e" alt="01f62b98-cedc-4730-b564-d71607a066b3" height="300">
