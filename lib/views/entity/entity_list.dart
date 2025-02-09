@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:political_think/common/components/modal_container.dart';
 import 'package:political_think/common/components/zdivider.dart';
+import 'package:political_think/common/components/zlist_view.dart';
 import 'package:political_think/common/extensions.dart';
 import 'package:political_think/views/entity/entity_item_view.dart';
 
@@ -30,10 +31,8 @@ class _EntityListViewState extends ConsumerState<EntityListView> {
     }
 
     // For multiple items, display the ListView as usual
-    return ListView.separated(
-      shrinkWrap: true,
-      separatorBuilder: (context, index) =>
-          const ZDivider(type: DividerType.SECONDARY),
+    return ZListView(
+      horizontal: false,
       itemCount: widget.eids.length,
       itemBuilder: (context, index) {
         return EntityItemView(eid: widget.eids[index]);

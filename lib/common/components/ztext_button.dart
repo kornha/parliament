@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:political_think/common/constants.dart';
 import 'package:political_think/common/extensions.dart';
 
-enum ZButtonTypes { wide, standard, area, icon }
+enum ZButtonTypes { wide, standard, area, icon, iconSpace }
 
 class ZTextButton extends StatelessWidget {
   final Widget child;
@@ -27,17 +27,21 @@ class ZTextButton extends StatelessWidget {
       child: TextButton(
         onPressed: onPressed,
         style: TextButton.styleFrom(
+          // alignment: ZButtonTypes.iconSpace == type
+          //     ? Alignment.bottomCenter
+          //     : Alignment.center,
           padding: type == ZButtonTypes.area
               ? context.blockPadding
               : type == ZButtonTypes.wide
                   ? context.blockPaddingSmall
-                  : type == ZButtonTypes.icon
+                  : type == ZButtonTypes.icon || type == ZButtonTypes.iconSpace
                       ? EdgeInsets.zero
                       : const EdgeInsets.all(0.0),
-          tapTargetSize: type == ZButtonTypes.icon
-              ? MaterialTapTargetSize.shrinkWrap
-              : null,
-          shape: type == ZButtonTypes.area
+          tapTargetSize:
+              type == ZButtonTypes.icon || type == ZButtonTypes.iconSpace
+                  ? MaterialTapTargetSize.shrinkWrap
+                  : null,
+          shape: type == ZButtonTypes.area || type == ZButtonTypes.iconSpace
               ? const RoundedRectangleBorder(
                   borderRadius: BRadius.least,
                 )
@@ -45,16 +49,24 @@ class ZTextButton extends StatelessWidget {
                   ? const CircleBorder()
                   : null,
           foregroundColor: foregroundColor ?? context.primaryColor,
-          backgroundColor: backgroundColor != null && onPressed != null
-              ? backgroundColor
-              : Colors.transparent,
+          backgroundColor: type == ZButtonTypes.iconSpace
+              ? Colors.transparent
+              : backgroundColor != null && onPressed != null
+                  ? backgroundColor
+                  : Colors.transparent,
           minimumSize: type == ZButtonTypes.area
               ? null
               : type == ZButtonTypes.wide
                   ? Size(context.blockSize.width, context.sfh.height!)
                   : type == ZButtonTypes.icon
                       ? const Size(0, 0)
-                      : null,
+                      : type == ZButtonTypes.iconSpace
+                          ? Size(
+                              context.isDesktop
+                                  ? context.sfh.width!
+                                  : context.sqt.width!,
+                              double.infinity)
+                          : null,
         ),
         child: child,
       ),

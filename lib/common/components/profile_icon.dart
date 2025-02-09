@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:political_think/common/components/ztext_button.dart';
@@ -95,10 +96,15 @@ class _ZScaffoldState extends ConsumerState<ProfileIcon> {
                               : widget.radius!,
                         )
                       : CircleAvatar(
-                          backgroundColor: context.surfaceColor,
+                          backgroundColor: context.backgroundColor,
                           radius: widget.radius == null
                               ? context.iconSizeLarge / 2
                               : widget.radius!,
+                          child: Icon(
+                            FontAwesomeIcons.faceFlushed,
+                            size: context.iconSizeStandard,
+                            color: context.surfaceColor,
+                          ),
                         ),
           if (widget.showPlatormMini &&
               widget.plid != null &&

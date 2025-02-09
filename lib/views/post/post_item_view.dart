@@ -149,36 +149,26 @@ class _PostViewState extends ConsumerState<PostItemView> {
                     )
                   : Row(
                       mainAxisAlignment: MainAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        post?.photo?.photoURL != null
-                            ? ZImage(
-                                photoURL: post?.photo?.photoURL ?? "",
-                                imageSize: ZImageSize.small,
-                              )
-                            : const SizedBox.shrink(),
-                        post?.photo?.photoURL != null
-                            ? context.sh
-                            : const SizedBox.shrink(),
-                        SizedBox(
-                          height: context.imageSizeSmall.height,
-                          // heuristic, trying to match screen size
-                          // TODO: fix this
-                          width: (context.blockSize.width -
-                                  context.imageSizeSmall.width -
-                                  context.sd.width! -
-                                  2.0) *
-                              (post?.photo?.photoURL != null ? 0.7 : 0.55),
-                          child: Text(
-                            // some posts dont have descriptions
-                            post?.title ?? "",
-                            style: context.m,
-                            maxLines: 5,
-                            overflow: TextOverflow.ellipsis,
+                        if (post?.photo?.photoURL != null)
+                          ZImage(
+                            photoURL: post?.photo?.photoURL ?? "",
+                            imageSize: ZImageSize.small,
+                          ),
+                        if (post?.photo?.photoURL != null) context.sh,
+                        // Use Expanded to allow the text to take up the remaining space
+                        Expanded(
+                          child: SizedBox(
+                            height: context.imageSizeSmall.height,
+                            child: Text(
+                              post?.title ?? "",
+                              style: context.m,
+                              maxLines: 5,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
                         ),
-                        // TODO: move this to ProfileIcon widget
                         ProfileIcon(
                           eid: entity?.eid,
                           plid: platform?.plid,

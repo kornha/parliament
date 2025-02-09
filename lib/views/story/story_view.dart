@@ -5,6 +5,7 @@ import 'package:political_think/common/components/stats_table.dart';
 import 'package:political_think/common/components/zapp_bar.dart';
 import 'package:political_think/common/components/zdivider.dart';
 import 'package:political_think/common/components/zexpansion_tile.dart';
+import 'package:political_think/common/components/zlist_view.dart';
 import 'package:political_think/common/components/zscaffold.dart';
 import 'package:political_think/common/extensions.dart';
 import 'package:political_think/common/services/zprovider.dart';
@@ -99,9 +100,7 @@ class _StoryViewState extends ConsumerState<StoryView> {
                     children: [
                       SizedBox(
                         height: context.blockSizeXS.height,
-                        child: ListView.separated(
-                          shrinkWrap: true,
-                          scrollDirection: Axis.horizontal,
+                        child: ZListView(
                           itemCount: allPosts!.length,
                           itemBuilder: (context, index) {
                             var post = allPosts[index];
@@ -111,8 +110,6 @@ class _StoryViewState extends ConsumerState<StoryView> {
                               isSubView: true,
                             );
                           },
-                          separatorBuilder: (context, index) =>
-                              const ZDivider(type: DividerType.VERTICAL),
                         ),
                       ),
                     ],

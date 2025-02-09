@@ -5,6 +5,7 @@ import 'package:political_think/common/components/loading.dart';
 import 'package:political_think/common/components/location_map.dart';
 import 'package:political_think/common/components/political_position_component.dart';
 import 'package:political_think/common/components/zdivider.dart';
+import 'package:political_think/common/components/zlist_view.dart';
 import 'package:political_think/common/extensions.dart';
 import 'package:political_think/common/models/entity.dart';
 import 'package:political_think/common/models/political_position.dart';
@@ -92,12 +93,12 @@ class _StoryItemViewState extends ConsumerState<StoryItemView> {
                                       child: Text(
                                         story.headline ?? story.title!,
                                         style: newsworthiness < 0.5
-                                            ? context.h5b
+                                            ? context.h4b
                                             : newsworthiness < 0.7
-                                                ? context.h4b
+                                                ? context.h3b
                                                 : newsworthiness < 0.9
-                                                    ? context.h3b
-                                                    : context.h2b,
+                                                    ? context.h2b
+                                                    : context.h1b,
                                         textAlign: TextAlign.start,
                                       ),
                                     ),
@@ -176,18 +177,15 @@ class _StoryItemViewState extends ConsumerState<StoryItemView> {
                     visible: shouldShowPhotos,
                     child: Center(
                       child: SizedBox(
-                        height: context.blockSize.height,
-                        width: context.blockSize.width,
-                        child: ListView.separated(
-                          shrinkWrap: true,
-                          scrollDirection: Axis.horizontal,
+                        height: context.blockSizeLarge.height,
+                        width: context.blockSizeLarge.width,
+                        child: ZListView(
+                          singleItem: true,
                           itemCount: story.photos.length,
                           itemBuilder: (context, index) {
                             var photo = story.photos[index];
                             return ZImage(photoURL: photo.photoURL);
                           },
-                          separatorBuilder: (context, index) =>
-                              const ZDivider(type: DividerType.VERTICAL),
                         ),
                       ),
                     ),
@@ -206,9 +204,7 @@ class _StoryItemViewState extends ConsumerState<StoryItemView> {
                     visible: shouldShowSecondaryPosts,
                     child: SizedBox(
                       height: context.blockSizeXS.height,
-                      child: ListView.separated(
-                        shrinkWrap: true,
-                        scrollDirection: Axis.horizontal,
+                      child: ZListView(
                         itemCount: allPosts!.length,
                         itemBuilder: (context, index) {
                           var post = allPosts[index];
@@ -218,8 +214,6 @@ class _StoryItemViewState extends ConsumerState<StoryItemView> {
                             isSubView: true,
                           );
                         },
-                        separatorBuilder: (context, index) =>
-                            const ZDivider(type: DividerType.VERTICAL),
                       ),
                     ),
                   ),

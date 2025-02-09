@@ -97,6 +97,7 @@ class Thickness {
   static const double small = 1.0;
   static const double standard = 1.5;
   static const double large = 1.85;
+  static const double huge = 4.0;
 }
 
 class ImageSize {
