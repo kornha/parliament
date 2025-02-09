@@ -2,10 +2,12 @@ import 'dart:math';
 
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:political_think/common/chat/src/util.dart';
 import 'package:political_think/common/components/confidence_component.dart';
 import 'package:political_think/common/components/political_position_component.dart';
+import 'package:political_think/common/components/zicon_text.dart';
 import 'package:political_think/common/components/ztext_button.dart';
 import 'package:political_think/common/constants.dart';
 import 'package:political_think/common/extensions.dart';
@@ -13,6 +15,8 @@ import 'package:political_think/common/models/confidence.dart';
 import 'package:political_think/views/login/login.dart';
 import 'package:political_think/views/profile/about.dart';
 import 'package:political_think/views/search/search.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 class PreRelease extends StatelessWidget {
   const PreRelease({super.key});
@@ -28,6 +32,32 @@ class PreRelease extends StatelessWidget {
         style: context.mb.copyWith(
           color: context.secondaryColor,
         ),
+      ),
+    );
+  }
+}
+
+class DownloapApp extends StatelessWidget {
+  const DownloapApp({
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ZTextButton(
+      type: ZButtonTypes.area,
+      onPressed: () {
+        //TODO: add android
+        launchUrlString(
+            "https://apps.apple.com/us/app/parliament-foundation/id6479275256");
+      },
+      foregroundColor: context.secondaryColor,
+      child: ZIconText(
+        icon: FontAwesomeIcons.apple,
+        style: context.mb.copyWith(
+          color: context.secondaryColor,
+        ),
+        text: "App",
       ),
     );
   }

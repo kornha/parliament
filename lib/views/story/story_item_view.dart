@@ -64,9 +64,10 @@ class _StoryItemViewState extends ConsumerState<StoryItemView> {
     //   });
     // }
 
-    bool shouldShowSecondaryPosts = (allPosts?.length ?? 0) >= 1;
     bool shouldShowPhotos = (story?.photos.length ?? 0) >= 1;
     double newsworthiness = story?.newsworthiness?.value ?? 0.0;
+    bool shouldShowSecondaryPosts =
+        (allPosts?.isNotEmpty ?? false) && newsworthiness >= 0.5;
 
     return storyRef.isLoading || allPostsRef.isLoading
         ? const Loading(type: LoadingType.post)
@@ -173,19 +174,21 @@ class _StoryItemViewState extends ConsumerState<StoryItemView> {
                   Visibility(visible: shouldShowPhotos, child: context.sh),
                   Visibility(
                     visible: shouldShowPhotos,
-                    child: SizedBox(
-                      height: context.blockSize.height,
-                      width: context.blockSize.width,
-                      child: ListView.separated(
-                        shrinkWrap: true,
-                        scrollDirection: Axis.horizontal,
-                        itemCount: story.photos.length,
-                        itemBuilder: (context, index) {
-                          var photo = story.photos[index];
-                          return ZImage(photoURL: photo.photoURL);
-                        },
-                        separatorBuilder: (context, index) =>
-                            const ZDivider(type: DividerType.VERTICAL),
+                    child: Center(
+                      child: SizedBox(
+                        height: context.blockSize.height,
+                        width: context.blockSize.width,
+                        child: ListView.separated(
+                          shrinkWrap: true,
+                          scrollDirection: Axis.horizontal,
+                          itemCount: story.photos.length,
+                          itemBuilder: (context, index) {
+                            var photo = story.photos[index];
+                            return ZImage(photoURL: photo.photoURL);
+                          },
+                          separatorBuilder: (context, index) =>
+                              const ZDivider(type: DividerType.VERTICAL),
+                        ),
                       ),
                     ),
                   ),
@@ -193,7 +196,12 @@ class _StoryItemViewState extends ConsumerState<StoryItemView> {
                       visible: shouldShowSecondaryPosts, child: context.sh),
                   Visibility(
                       visible: shouldShowSecondaryPosts,
-                      child: const ZDivider(type: DividerType.SECONDARY)),
+                      child: const ZDivider(
+                        type: DividerType.SECONDARY,
+                        text: "What they're saying",
+                      )),
+                  Visibility(
+                      visible: shouldShowSecondaryPosts, child: context.sh),
                   Visibility(
                     visible: shouldShowSecondaryPosts,
                     child: SizedBox(

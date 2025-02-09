@@ -113,12 +113,12 @@ class ZscaffoldConstraints extends StatelessWidget {
     return Center(
       child: Container(
         margin: defaultMargin
-            ? context.blockMargin.copyWith(top: 0, bottom: 0)
+            ? context.blockMarginSmall.copyWith(top: 0, bottom: 0)
             : EdgeInsets.zero,
         padding: defaultPadding
-            ? context.blockPadding.copyWith(top: 0, bottom: 0)
+            ? context.blockPaddingSmall.copyWith(top: 0, bottom: 0)
             : EdgeInsets.zero,
-        width: context.blockSize.width, // large or medium?
+        width: context.blockSizeLarge.width, // large or medium?
         // height: context.blockSize.height,
         child: child,
       ),

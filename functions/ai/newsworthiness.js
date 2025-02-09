@@ -127,7 +127,7 @@ function calculateNewsworthiness(virality, bias) {
 
   const angleDiff = bias != null ? getDistance(bias, 90) : 90;
 
-  const biasMultiple = 1 - angleDiff / 360; // 75% if right/left, 50% if extreme
+  const biasMultiple = 1 - angleDiff / 720; // 87.5% if right/left, 75% extreme
 
   const newsworthiness = virality * biasMultiple;
 
@@ -193,9 +193,7 @@ function calculateNewsworthyAt(story) {
   const isFuture = baseTime > Timestamp.now().toMillis();
   const timeAt = isFuture ? story.createdAt : baseTime;
 
-  const adjustment = Math.round(
-      3 * (newsworthiness - 1) * NEWSWORTHYNESS_SCALE,
-  );
+  const adjustment = Math.round((newsworthiness - 1) * NEWSWORTHYNESS_SCALE);
 
   return timeAt + adjustment;
 }

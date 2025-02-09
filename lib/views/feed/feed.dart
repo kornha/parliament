@@ -139,11 +139,9 @@ class _FeedState extends ConsumerState<Feed> {
                         child: const ZDivider(),
                       ),
                       Container(
-                        width: context.blockSize.width,
-                        margin:
-                            context.blockMargin.copyWith(left: 0.0, right: 0.0),
-                        padding: context.blockPadding
-                            .copyWith(left: 0.0, right: 0.0),
+                        width: context.blockSizeLarge.width,
+                        margin: context.blockMargin,
+                        padding: context.blockPadding,
                         child: StoryItemView(sid: item.sid),
                       ),
                     ],

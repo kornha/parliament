@@ -191,8 +191,9 @@ extension MediaQueryExt on BuildContext {
 
   // platform
   bool get isWeb => kIsWeb;
-  bool get isTrueMobile => isMobile && !kIsWeb;
-  bool get isTrueTablet => isTablet && !kIsWeb;
+  bool get isTrueMobile => isMobile && !isWeb;
+  bool get isTrueTablet => isTablet && !isWeb;
+  bool get isIosBrowser => isIOS && isWeb;
 
   /// True if the current device is Phone or Tablet
   bool get isMobileOrTablet => isMobile || isTablet;
@@ -232,13 +233,13 @@ extension Spacing on BuildContext {
   EdgeInsets get mz => const EdgeInsets.all(0);
 
   EdgeInsets get blockMargin => const EdgeInsets.symmetric(
-      horizontal: Margins.half, vertical: Margins.half);
+      horizontal: Margins.quarter, vertical: Margins.quarter);
   EdgeInsets get blockMarginSmall => const EdgeInsets.symmetric(
-      horizontal: Margins.quarter, vertical: Margins.quarter);
+      horizontal: Margins.least, vertical: Margins.least);
   EdgeInsets get blockPaddingSmall => const EdgeInsets.symmetric(
-      horizontal: Margins.quarter, vertical: Margins.quarter);
+      horizontal: Margins.least, vertical: Margins.least);
   EdgeInsets get blockPadding => const EdgeInsets.symmetric(
-      horizontal: Margins.half, vertical: Margins.half);
+      horizontal: Margins.quarter, vertical: Margins.quarter);
   EdgeInsets get blockPaddingExtra => const EdgeInsets.symmetric(
       horizontal: Margins.full, vertical: Margins.full);
 

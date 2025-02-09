@@ -237,7 +237,7 @@ const findContextForTrainingText = function() {
 
     **Field Specifications:**
 
-    - **Headline:** 2-6 words, engaging, active, reflects Newsworthiness. The headline must clearly show what the story is about. Eg., "Snoop Dogg, Nelly to perform" is incomplete, but "Snoop Dog, Nelly to perform at Trump's Inauguration" is more complete.
+    - **Headline:** 2-6 words, engaging, active, reflects Newsworthiness. The headline must clearly show what the story is about. Eg., "Snoop Dogg, Nelly to perform" is incomplete, but "Snoop Dog, Nelly to perform at Trump's Inauguration" is more complete. "Debate on Climate Change" is too vague, but "Climate Change Bill Reaches Senate" is more specific. The user should know what the story is about from the headline.
     - **SubHeadline:** 1-2 sentences, provides key details.
     - **Lede:** Very straightforward "bullet point" style synopsis of what the story is about. Output in 1 string and separate sentences by 2 newlines each.
     - **Article:** Optional, 1-8 paragraphs, comprehensive, journalistic tone.
@@ -398,6 +398,7 @@ const findStoryExample = function() {
     2. The Post *makes a statement (claim or opinion)* specifically about the Story's key event.
     3. The Post is *very likely* to be about the Story, and mentions some details of the Story.
     4. The Post contains a photo that is relevant or duplicated from the Story.
+    5. The Post is about a clear and obvious continuation of the Story, eg., a follow-up Post.
 
     You may also need to Merge or Split Stories if the Post introduces information that causes a candidate Story to be Merged or Split.
 
@@ -432,6 +433,8 @@ const findStoryExample = function() {
     2. The Post *makes a statement (claim or opinion)* specifically about the Story's key event. NOT FULLFILLED.
     3. The Post is *very likely* to be about the Story, and mentions some details of the Story. NOT FULLFILLED, the Post is not *very likly* to be specifically related to the Soliders death though it is a similar time and place.
     4. The Post contains a photo that is relevant or duplicated from the Story. NOT FULLFILLED.
+    5. The Post is about a clear and obvious continuation of the Story, eg., a follow-up Post. NOT FULLFILLED.
+
     Since this Post does not meet the criteria for belonging to the existing Story, we will output only a new Story.
  
     The output is only the *new* Story, which is titled: "Palestinian Peace Activists Against Hamas". It is an Opinion with only 1 Post. Its happenedAt is vague and should be set to the time of the sourceCreatedAt. The lat/long should be the best guess of the location of the Post, which is likely Gaza. The other fields can be inferred, and are omitted in this instruction.

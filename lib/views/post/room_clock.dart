@@ -261,7 +261,6 @@ class ClockSide extends StatelessWidget {
           height: double.maxFinite, // height controlled by parent
           child: uids.isNotEmpty
               ? IconGrid(
-                  size: size - context.blockPaddingSmall.horizontal,
                   children: uids
                       .map((uid) => ProfileIcon(
                             uid: uid,

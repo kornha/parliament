@@ -4,6 +4,7 @@ import 'package:political_think/common/components/branding.dart';
 import 'package:political_think/common/components/logo.dart';
 import 'package:political_think/common/components/zback_button.dart';
 import 'package:political_think/common/constants.dart';
+import 'package:political_think/common/extensions.dart';
 
 class ZAppBar extends ConsumerStatefulWidget implements PreferredSizeWidget {
   ZAppBar({
@@ -56,6 +57,8 @@ class _ZAppBarState extends ConsumerState<ZAppBar> {
                     // TODO: Padding because IconButton in ZBackButton is padded
                     : const SizedBox.shrink(),
             if (widget.leading.isNotEmpty) ...widget.leading,
+            if (widget.leading.isEmpty && context.isIosBrowser)
+              const DownloapApp(),
             const Spacer(),
             ...widget.actions,
           ],

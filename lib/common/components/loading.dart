@@ -24,9 +24,13 @@ enum LoadingType {
 
 class Loading extends StatelessWidget {
   final LoadingType type;
+  final double? width;
+  final double? height;
   const Loading({
     Key? key,
     this.type = LoadingType.large,
+    this.width,
+    this.height,
   }) : super(key: key);
 
   @override
@@ -35,8 +39,8 @@ class Loading extends StatelessWidget {
       case LoadingType.image:
         return LoadingShimmer(
           child: Container(
-            width: context.imageSize.width,
-            height: context.imageSize.height,
+            width: width ?? context.imageSize.width,
+            height: height ?? context.imageSize.height,
             decoration: BoxDecoration(
               color: context.surfaceColor,
             ),
@@ -45,8 +49,8 @@ class Loading extends StatelessWidget {
       case LoadingType.imageSmall:
         return LoadingShimmer(
           child: Container(
-            width: context.imageSizeSmall.width,
-            height: context.imageSizeSmall.height,
+            width: width ?? context.imageSizeSmall.width,
+            height: height ?? context.imageSizeSmall.height,
             decoration: BoxDecoration(
               color: context.surfaceColor,
             ),
@@ -54,13 +58,13 @@ class Loading extends StatelessWidget {
         );
       case LoadingType.post:
         return SizedBox(
-          width: context.imageSize.width,
+          width: width ?? context.imageSize.width,
           child: Column(
             children: [
               LoadingShimmer(
                 child: Container(
-                  width: context.imageSize.width,
-                  height: context.imageSize.height,
+                  width: width ?? context.imageSize.width,
+                  height: height ?? context.imageSize.height,
                   decoration: BoxDecoration(
                     color: context.surfaceColor,
                   ),
@@ -81,8 +85,8 @@ class Loading extends StatelessWidget {
       case LoadingType.postSmall:
         return LoadingShimmer(
           child: Container(
-            width: context.imageSize.width / 3.0 - context.sl.width!,
-            height: context.blockSizeXS.height,
+            width: width ?? context.imageSize.width / 3.0 - context.sl.width!,
+            height: height ?? context.blockSizeXS.height,
             decoration: BoxDecoration(
               color: context.surfaceColor,
             ),

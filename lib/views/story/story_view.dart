@@ -11,6 +11,7 @@ import 'package:political_think/common/services/zprovider.dart';
 import 'package:political_think/common/util/utils.dart';
 import 'package:political_think/views/confidence/confidence_widget.dart';
 import 'package:political_think/views/bias/political_position_widget.dart';
+import 'package:political_think/views/post/post_item_view.dart';
 import 'package:political_think/views/statement/statement_tab_view.dart';
 
 class StoryView extends ConsumerStatefulWidget {
@@ -43,6 +44,11 @@ class _StoryViewState extends ConsumerState<StoryView> {
     var statementsFromStoryRef =
         ref.watch(statementsFromStoryProvider(widget.sid));
     var statementsFromStory = statementsFromStoryRef.value;
+
+    var allPostsRef = ref.postsFromStoryWatch(widget.sid);
+    var allPosts = allPostsRef.value;
+
+    bool shouldShowSecondaryPosts = (allPosts?.isNotEmpty ?? false);
 
     return ZScaffold(
       appBar: ZAppBar(showBackButton: true),
@@ -80,6 +86,38 @@ class _StoryViewState extends ConsumerState<StoryView> {
                 ),
                 const ZDivider(type: DividerType.PRIMARY),
                 StatementTabView(statements: statementsFromStory),
+                Visibility(
+                    visible: shouldShowSecondaryPosts,
+                    child: const ZDivider(
+                      type: DividerType.PRIMARY,
+                    )),
+                Visibility(
+                  visible: shouldShowSecondaryPosts,
+                  child: ZExpansionTile(
+                    initiallyExpanded: true,
+                    title: Text("Sources", style: context.h4),
+                    children: [
+                      SizedBox(
+                        height: context.blockSizeXS.height,
+                        child: ListView.separated(
+                          shrinkWrap: true,
+                          scrollDirection: Axis.horizontal,
+                          itemCount: allPosts!.length,
+                          itemBuilder: (context, index) {
+                            var post = allPosts[index];
+                            return PostItemView(
+                              pid: post.pid,
+                              story: story,
+                              isSubView: true,
+                            );
+                          },
+                          separatorBuilder: (context, index) =>
+                              const ZDivider(type: DividerType.VERTICAL),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
                 const ZDivider(type: DividerType.SECONDARY),
                 if (story?.article != null)
                   ZExpansionTile(

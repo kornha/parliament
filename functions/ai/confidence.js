@@ -12,8 +12,8 @@ const {getStatement,
 const {retryAsyncFunction} = require("../common/utils");
 
 // Parameters
-const CORRECT_REWARD = 0.15;
-const INCORRECT_PENALTY = -0.45;
+const CORRECT_REWARD = 0.2;
+const INCORRECT_PENALTY = -0.6;
 const DECAY_FACTOR = 0.95; // Exp. decay (1 = slower decay, 0 = faster decay)
 const BASE_CONFIDENCE = 0.5;
 const DECIDED_THRESHOLD = 0.9;
@@ -237,7 +237,7 @@ function calculateStatementConfidence(statement, entities) {
 
     // Inverse Quadratic Weighting: weight = 1 - (1 - confidence)^exponent
     // This is done to weight high/lows confidence more heavily
-    const EXPONENT = 2.2; // 2.2 is magic to grow faster
+    const EXPONENT = 2.65; // magic to grow faster
     const weight = 1 - Math.pow(1 - confidence, EXPONENT);
 
     // Add to weighted sum

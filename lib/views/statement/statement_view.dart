@@ -99,46 +99,12 @@ class _StatementViewState extends ConsumerState<StatementView> {
                   Row(
                     children: [
                       proList.isNotEmpty
-                          ? IconGrid(
-                              urls: proList
-                                  .map((e) =>
-                                      e.photoURL ??
-                                      platforms
-                                          ?.firstWhere((p) => p.plid == e.plid)
-                                          .photoURL)
-                                  .toList(),
-                              onPressed: () {
-                                context.showModal(EntityListView(
-                                    eids: proList.map((e) => e.eid).toList()));
-                              },
-                            )
-                          : Text(
-                              "${statement.pro.length}",
-                              style: context.al
-                                  .copyWith(color: context.secondaryColor),
-                            ),
+                          ? IconGrid(entities: proList)
+                          : const SizedBox.shrink(),
                       const Spacer(),
                       againstList.isNotEmpty
-                          ? IconGrid(
-                              urls: againstList
-                                  .map((e) =>
-                                      e.photoURL ??
-                                      platforms
-                                          ?.firstWhere((p) => p.plid == e.plid)
-                                          .photoURL)
-                                  .toList(),
-                              onPressed: () {
-                                context.showModal(EntityListView(
-                                    eids: againstList
-                                        .map((e) => e.eid)
-                                        .toList()));
-                              },
-                            )
-                          : Text(
-                              "${statement.against.length}",
-                              style: context.al
-                                  .copyWith(color: context.errorColor),
-                            ),
+                          ? IconGrid(entities: againstList)
+                          : const SizedBox.shrink(),
                       context.sh,
                     ],
                   ),
