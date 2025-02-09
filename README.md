@@ -16,7 +16,7 @@
 
 * **Parliament** is the open-source repo that anyone can contribute to.
 * See the hosted website (in pre-release) at [www.parliament.foundation](http://www.parliament.foundation).
-  - Mobile apps are in pre-release testing. Contact us (see below) if interested.
+* Download the iOS app [here](https://apps.apple.com/us/app/parliament-foundation/id6479275256).
 * Parliament is based on the whitepaper [Credible News](#whitepaper).
 * Anyone can host a Parliament, provided there is compliance with the [LICENSE](LICENSE).
     
