@@ -100,26 +100,25 @@ jobs:
         with:
           name: release-ipa
 
-      # If the downloaded artifact is in a subdirectory, move it to the workspace root.
-      - name: Move IPA to root directory
-        run: mv release-ipa/* .
-
-      # Authenticate with Google Cloud:
+      # 1) Authenticate with Google Cloud
       - id: auth
         uses: google-github-actions/auth@v2
         with:
           credentials_json: '${{ secrets.GH_SA_GOOGLE_CREDENTIALS }}'
 
+      # 2) Install Cloud SDK
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
         with:
           version: '>= 363.0.0'
 
+      # 3) Upload the IPA to GCS
       - name: Upload IPA to GCS
         run: |
           DATE=$(date +%Y-%m-%d)
           gsutil cp political_think.ipa gs://political-think.appspot.com/ios/parliament-$DATE.ipa
 
+      # 4) Upload the IPA to Firebase App Distribution
       - name: Upload artifact to Firebase App Distribution
         uses: wzieba/Firebase-Distribution-Github-Action@v1
         with:
@@ -141,14 +140,7 @@ jobs:
         with:
           name: release-ipa
 
-      - name: Move IPA to root directory
-        run: mv release-ipa/* .
-
-      - name: Upload IPA to App Store Connect
-        run: |
-          # Find the IPA file (assumes only one is present)
-          IPA_PATH=$(find . -maxdepth 1 -name "*.ipa" | head -n 1)
-          echo "Uploading $IPA_PATH to App Store Connect..."
-          # Use xcrun altool to upload the IPA.
-          # APPLE_ID is email; APPLE_APP_SPECIFIC_PASSWORD go to appleid.apple.com, in Security section, App-Specific Passwords.
-          xcrun altool --upload-app -f "$IPA_PATH" -t ios -u "${{ secrets.APPLE_ID }}" -p "${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}" --verbose
+      - name: Upload IPA to App Store Connect 
+        run: | # APPLE_ID is email; APPLE_APP_SPECIFIC_PASSWORD go to appleid.apple.com, in Security section, App-Specific Passwords.
+          echo "Uploading to App Store Connect..."
+          xcrun altool --upload-app -f political_think.ipa -t ios -u "${{ secrets.APPLE_ID }}" -p "${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}" --verbose
