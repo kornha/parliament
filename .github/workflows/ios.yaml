@@ -62,7 +62,11 @@ jobs:
       # Use a different export options plist based on branch:
       - name: Build IPA
         run: |
-          EXPORT_PLIST="ios/Runner/ExportOptions${{ github.ref == 'refs/heads/main' ? '' : 'STG' }}.plist"
+          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
+            EXPORT_PLIST="ios/Runner/ExportOptions.plist"
+          else
+            EXPORT_PLIST="ios/Runner/ExportOptionsSTG.plist"
+          fi
           flutter build ipa --export-options-plist=$EXPORT_PLIST
 
       # Upload the built IPA as an artifact for the deploy jobs to use:
