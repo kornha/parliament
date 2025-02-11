@@ -59,7 +59,7 @@ jobs:
 
       - run: flutter pub get
 
-      # Use a different export options plist based on branch:
+      # Use a different export options based on branch:
       - name: Build IPA
         run: |
           if [ "${{ github.ref }}" == "refs/heads/main" ]; then

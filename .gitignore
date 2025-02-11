@@ -59,6 +59,10 @@ functions/emulator/
 **/*.plist
 **/google-services.json
 
+# But do NOT ignore these specific plist files (they should be tracked)
+!**/ExportOptionsSTG.plist
+!**/ExportOptions.plist
+
 # unsupport platforms
 linux/
 macos/
