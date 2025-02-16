@@ -54,7 +54,7 @@ jobs:
       - name: Flutter get
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.27.1'
+          flutter-version: '3.27.4'
           channel: 'stable'
 
       - run: flutter pub get

@@ -62,6 +62,9 @@ class _ZListViewState extends State<ZListView> {
             padEnds: false,
             pageSnapping: false,
             enableInfiniteScroll: false,
+            scrollPhysics: context.isDesktopOS
+                ? const NeverScrollableScrollPhysics()
+                : null,
             onPageChanged: (index, reason) {
               setState(() {
                 _currentIndex = index;
@@ -99,7 +102,7 @@ class _ZListViewState extends State<ZListView> {
     if (kIsWeb) {
       return Stack(
         children: [
-          if (!context.isDesktop) carouselWithIndicators,
+          if (context.isMobileOS) carouselWithIndicators,
           Row(
             children: [
               ZTextButton(
@@ -113,12 +116,12 @@ class _ZListViewState extends State<ZListView> {
                 child: Icon(
                   Icons.chevron_left,
                   size: context.iconSizeLarge,
-                  color: !context.isDesktop
+                  color: context.isMobileOS
                       ? Colors.transparent
                       : context.primaryColorWithOpacity,
                 ),
               ),
-              !context.isDesktop
+              context.isMobileOS // to hide buttons on mobile OS
                   ? const Spacer()
                   : Expanded(child: carouselWithIndicators),
               ZTextButton(
@@ -132,7 +135,7 @@ class _ZListViewState extends State<ZListView> {
                 child: Icon(
                   Icons.chevron_right,
                   size: context.iconSizeLarge,
-                  color: !context.isDesktop
+                  color: context.isMobileOS
                       ? Colors.transparent
                       : context.primaryColorWithOpacity,
                 ),

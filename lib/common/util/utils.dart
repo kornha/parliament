@@ -50,4 +50,14 @@ class Utils {
       return number.toString();
     }
   }
+
+  static bool isURL(String? url) {
+    if (url == null) {
+      return false;
+    }
+
+    return url.startsWith("http://") ||
+        url.startsWith("https://") ||
+        url.startsWith("www.");
+  }
 }

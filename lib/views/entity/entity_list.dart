@@ -22,13 +22,13 @@ class _EntityListViewState extends ConsumerState<EntityListView> {
   @override
   Widget build(BuildContext context) {
     if (widget.eids.isEmpty) {
-      return const Center(child: Text("No items available"));
+      return const SizedBox.shrink();
     }
 
     // In separated listview, single item isnt centered
-    if (widget.eids.length == 1) {
-      return EntityItemView(eid: widget.eids.first);
-    }
+    // if (widget.eids.length == 1) {
+    //   return EntityItemView(eid: widget.eids.first);
+    // }
 
     // For multiple items, display the ListView as usual
     return ZListView(

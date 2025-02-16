@@ -10,12 +10,14 @@ class ZTextButton extends StatelessWidget {
   final Color? foregroundColor;
   final Color? backgroundColor;
   final ZButtonTypes type;
+  final Size? minimumSize;
 
   const ZTextButton({
     super.key,
     required this.child,
     this.foregroundColor,
     this.backgroundColor,
+    this.minimumSize,
     this.onPressed,
     this.type = ZButtonTypes.standard,
   });
@@ -31,7 +33,7 @@ class ZTextButton extends StatelessWidget {
           //     ? Alignment.bottomCenter
           //     : Alignment.center,
           padding: type == ZButtonTypes.area
-              ? context.blockPadding
+              ? const EdgeInsets.all(0.0)
               : type == ZButtonTypes.wide
                   ? context.blockPaddingSmall
                   : type == ZButtonTypes.icon || type == ZButtonTypes.iconSpace
@@ -54,19 +56,20 @@ class ZTextButton extends StatelessWidget {
               : backgroundColor != null && onPressed != null
                   ? backgroundColor
                   : Colors.transparent,
-          minimumSize: type == ZButtonTypes.area
-              ? null
-              : type == ZButtonTypes.wide
-                  ? Size(context.blockSize.width, context.sfh.height!)
-                  : type == ZButtonTypes.icon
-                      ? const Size(0, 0)
-                      : type == ZButtonTypes.iconSpace
-                          ? Size(
-                              context.isDesktop
-                                  ? context.sfh.width!
-                                  : context.sqt.width!,
-                              double.infinity)
-                          : null,
+          minimumSize: minimumSize ??
+              (type == ZButtonTypes.area
+                  ? null
+                  : type == ZButtonTypes.wide
+                      ? Size(context.blockSize.width, context.sfh.height!)
+                      : type == ZButtonTypes.icon
+                          ? Size(context.iconSizeLarge, context.iconSizeLarge)
+                          : type == ZButtonTypes.iconSpace
+                              ? Size(
+                                  context.isDesktop
+                                      ? context.sfh.width!
+                                      : context.sqd.width!,
+                                  double.infinity)
+                              : null),
         ),
         child: child,
       ),

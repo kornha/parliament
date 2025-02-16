@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:political_think/common/components/loading.dart';
-import 'package:political_think/common/components/ztextfield.dart';
+import 'package:political_think/common/components/ztext_field.dart';
 import 'package:political_think/common/constants.dart';
 import 'package:political_think/common/extensions.dart';
 import 'package:political_think/common/services/database.dart';
@@ -87,7 +87,7 @@ class _CreateUsernameComponentState
       children: [
         Text("@", style: context.h3),
         Expanded(
-          child: ZTextfield(
+          child: ZTextField(
             textCapitalization: TextCapitalization.none,
             focusNode: _focusNode,
             keyboardType: TextInputType.text,

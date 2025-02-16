@@ -7,7 +7,7 @@ import 'package:political_think/common/components/interactive/political_position
 import 'package:political_think/common/components/loading.dart';
 import 'package:political_think/common/components/zerror.dart';
 import 'package:political_think/common/components/ztext_button.dart';
-import 'package:political_think/common/components/ztextfield.dart';
+import 'package:political_think/common/components/ztext_field.dart';
 import 'package:political_think/common/extensions.dart';
 import 'package:political_think/common/models/vote.dart';
 import 'package:political_think/common/services/database.dart';
@@ -154,7 +154,7 @@ class _VoteViewState extends ConsumerState<VoteView> {
                               ),
                         context.sf,
                         Expanded(
-                          child: ZTextfield(
+                          child: ZTextField(
                             hintText: "Why?",
                             keyboardType: TextInputType.multiline,
                             textCapitalization: TextCapitalization.sentences,

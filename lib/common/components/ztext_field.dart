@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:political_think/common/extensions.dart';
 
-class ZTextfield extends StatelessWidget {
+class ZTextField extends StatelessWidget {
   final TextEditingController controller;
   final String hintText;
   final Function(String) onChanged;
@@ -13,8 +13,10 @@ class ZTextfield extends StatelessWidget {
   final FocusNode? focusNode;
   final bool enabled;
   final Function(PointerDownEvent)? onTapOutside;
+  final TextAlign? textAlign;
+  final bool autoCorrect;
 
-  const ZTextfield({
+  const ZTextField({
     super.key,
     required this.controller,
     required this.hintText,
@@ -27,11 +29,14 @@ class ZTextfield extends StatelessWidget {
     this.textCapitalization = TextCapitalization.sentences,
     this.enabled = true,
     this.onTapOutside,
+    this.textAlign,
+    this.autoCorrect = true,
   });
 
   @override
   Widget build(BuildContext context) {
     return TextField(
+      textAlign: textAlign ?? TextAlign.start,
       enabled: enabled,
       focusNode: focusNode,
       keyboardType: keyboardType,
@@ -39,17 +44,22 @@ class ZTextfield extends StatelessWidget {
       controller: controller,
       maxLines: maxLines,
       minLines: minLines,
+      autocorrect: autoCorrect,
       decoration: InputDecoration(
         hintText: hintText,
+        hintStyle: context.m.copyWith(color: context.surfaceColorBright),
         border: InputBorder.none,
         filled: true,
         fillColor: context.backgroundColor,
       ),
-      cursorColor: cursorColor,
+      cursorColor: cursorColor ?? context.secondaryColor,
       onChanged: onChanged,
       onTapOutside: onTapOutside ??
           (event) {
-            FocusScope.of(context).unfocus();
+            // Only unfocus if the current focus is on this TextField
+            if (focusNode?.hasFocus ?? true) {
+              FocusScope.of(context).unfocus();
+            }
           },
     );
   }

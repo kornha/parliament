@@ -115,6 +115,7 @@ extension ThemeExt on BuildContext {
   Color get primaryColorWithOpacity => primaryColor.withOpacity(0.2);
   Color get onPrimaryColor => Theme.of(this).colorScheme.onPrimary;
   Color get errorColor => Theme.of(this).colorScheme.error;
+  Color get errorColorWithOpacity => errorColor.withValues(alpha: 0.1);
   Color get onErrorColor => Theme.of(this).colorScheme.onError;
   Color get secondaryColor => Theme.of(this).colorScheme.secondary;
   Color get secondaryColorWithOpacity => secondaryColor.withValues(alpha: 0.1);
@@ -193,6 +194,8 @@ extension MediaQueryExt on BuildContext {
   bool get isWeb => kIsWeb;
   bool get isTrueMobile => isMobile && !isWeb;
   bool get isTrueTablet => isTablet && !isWeb;
+  bool get isMobileOS => isAndroid || isIOS;
+  bool get isDesktopOS => isMacOS || isWindows || isLinux;
   bool get isIosBrowser => isIOS && isWeb;
 
   /// True if the current device is Phone or Tablet
@@ -455,7 +458,7 @@ extension TextExt on BuildContext {
       color: primaryColor,
       fontFamily: "Minecart");
   TextStyle get as => TextStyle(
-      fontSize: Theme.of(this).textTheme.bodySmall!.fontSize,
+      fontSize: Theme.of(this).textTheme.bodySmall!.fontSize! - 2, // magic
       color: primaryColor,
       fontFamily: "Minecart");
 

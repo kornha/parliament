@@ -329,6 +329,26 @@ class Database {
       }
     });
   }
+
+  //search entities
+  Future<List<Entity>?> searchEntities(String query, {limit = 25}) {
+    return entityCollection
+        .where("handle", isGreaterThanOrEqualTo: query)
+        .where("handle", isLessThanOrEqualTo: '$query\uf8ff')
+        .limit(limit)
+        .get()
+        .then((querySnapshot) {
+      if (querySnapshot.docs.isNotEmpty) {
+        return querySnapshot.docs.map((doc) {
+          final data = doc.data() as Map<String, dynamic>;
+          return Entity.fromJson(data);
+        }).toList();
+      } else {
+        return null;
+      }
+    });
+  }
+
   //////////////////////////////////////////////////////////////
   /// Platforms
   //////////////////////////////////////////////////////////////

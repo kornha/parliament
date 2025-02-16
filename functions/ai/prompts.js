@@ -226,6 +226,7 @@ const findContextForTrainingText = function() {
     - All fields are optional and only included if you wish to create/update from the provided information.
     - If there is no existing 'headline', 'subHeadline', 'lede' you must create them, however an article is optional and only included if there is more information than fits in the 'lede'.
     - Write in an engaging, active voice, as if you are an NY Times author.
+    - Feel free to be creative and use humor, but always remain professional.
     - You must use the provided information to draft the Contextualization fields.
 
     **Guidelines for Contextualization Fields:**
@@ -237,7 +238,10 @@ const findContextForTrainingText = function() {
 
     **Field Specifications:**
 
-    - **Headline:** 2-6 words, engaging, active, reflects Newsworthiness. The headline must clearly show what the story is about. Eg., "Snoop Dogg, Nelly to perform" is incomplete, but "Snoop Dog, Nelly to perform at Trump's Inauguration" is more complete. "Debate on Climate Change" is too vague, but "Climate Change Bill Reaches Senate" is more specific. The user should know what the story is about from the headline.
+    - **Headline:** 2-6 words, engaging, active, reflects Newsworthiness. 
+    -- The headline must clearly show what the story is about. Eg., "Snoop Dogg, Nelly to perform" is incomplete, but "Snoop Dog, Nelly to perform at Trump's Inauguration" is more complete. 
+    -- Avoid phrases like "Stirs Controversy" or "Sparks Debate" unless the story is about the controversy or outrage. Instead specifically say what the story is about, similar to the Title but more engaging.
+    -- Eg., "FEMA Funds Misuse Sparks Political Firestorm" is incomplete if the story is about "FEMA Employee Fired for Misusing 59M".
     - **SubHeadline:** 1-2 sentences, provides key details.
     - **Lede:** Very straightforward "bullet point" style synopsis of what the story is about. Output in 1 string and separate sentences by 2 newlines each.
     - **Article:** Optional, 1-8 paragraphs, comprehensive, journalistic tone.

@@ -50,7 +50,9 @@ class _EntityItemViewState extends ConsumerState<EntityItemView> {
                     // otherwise we can allow default navigation from ProfileIcon
                     onPressed: () {
                       context.route("${EntityView.location}/${widget.eid}");
-                      context.pop();
+                      if (context.canPop()) {
+                        context.pop();
+                      }
                     },
                   ),
                   context.sh,
@@ -59,7 +61,9 @@ class _EntityItemViewState extends ConsumerState<EntityItemView> {
                     child: GestureDetector(
                       onTap: () {
                         context.route("${EntityView.location}/${widget.eid}");
-                        context.pop();
+                        if (context.canPop()) {
+                          context.pop();
+                        }
                       },
                       child: Text(
                         entity.handle,

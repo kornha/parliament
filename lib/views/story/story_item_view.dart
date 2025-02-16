@@ -4,6 +4,7 @@ import 'package:political_think/common/components/icon_grid.dart';
 import 'package:political_think/common/components/loading.dart';
 import 'package:political_think/common/components/location_map.dart';
 import 'package:political_think/common/components/political_position_component.dart';
+import 'package:political_think/common/components/time_component.dart';
 import 'package:political_think/common/components/zdivider.dart';
 import 'package:political_think/common/components/zlist_view.dart';
 import 'package:political_think/common/extensions.dart';
@@ -172,7 +173,12 @@ class _StoryItemViewState extends ConsumerState<StoryItemView> {
                           ),
                         )
                       : const SizedBox.shrink(),
-                  Visibility(visible: shouldShowPhotos, child: context.sh),
+                  Visibility(
+                      visible: story.happenedAt != null, child: context.sq),
+                  Visibility(
+                      visible: story.happenedAt != null,
+                      child: TimeComponent(time: story.happenedAt!)),
+                  Visibility(visible: shouldShowPhotos, child: context.sq),
                   Visibility(
                     visible: shouldShowPhotos,
                     child: Center(

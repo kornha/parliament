@@ -32,6 +32,9 @@ class _PostBuilderState extends ConsumerState<PostBuilder> {
   @override
   void initState() {
     super.initState();
+    if (widget.url != null) {
+      _onPaste();
+    }
     // todo: localstate
     // Database.instance().getFirstPostInDraft(ref.user().uid).then((post) {
     //   // Check if the widget is still mounted
@@ -132,44 +135,43 @@ class _PostBuilderState extends ConsumerState<PostBuilder> {
               loading: _loading,
               error: _isError,
               errorText: _errorText,
-              onPaste: _loading
-                  ? null
-                  : () async {
-                      ClipboardData? clipboardData =
-                          await Clipboard.getData(Clipboard.kTextPlain);
-                      String? url = clipboardData?.text;
-                      Uri? uri = url == null ? null : Uri.tryParse(url);
-                      if (uri == null ||
-                          uri.scheme != "http" && uri.scheme != "https") {
-                        setState(() {
-                          _isError = true;
-                          _errorText = "No url on clipboard";
-                        });
-                        return;
-                      }
-                      setState(() {
-                        _loading = true;
-                      });
-                      String? pid =
-                          await Functions.instance().pasteLink(uri.toString());
-                      if (pid == null) {
-                        setState(() {
-                          _isError = true;
-                          _errorText = "Can't unfurl";
-                          _loading = false;
-                        });
-                        return;
-                      }
-                      setState(() {
-                        _pid = pid;
-                      });
-                      // we don't need to set loading to false because the postRef will
-                    },
+              onPaste: _loading ? null : _onPaste,
             ),
           ),
         ],
       ),
     );
+  }
+
+  _onPaste() async {
+    ClipboardData? clipboardData =
+        await Clipboard.getData(Clipboard.kTextPlain);
+    String? url = clipboardData?.text;
+
+    Uri? uri = url == null ? null : Uri.tryParse(url);
+    if (uri == null || uri.scheme != "http" && uri.scheme != "https") {
+      setState(() {
+        _isError = true;
+        _errorText = "No url on clipboard";
+      });
+      return;
+    }
+    setState(() {
+      _loading = true;
+    });
+    String? pid = await Functions.instance().pasteLink(uri.toString());
+    if (pid == null) {
+      setState(() {
+        _isError = true;
+        _errorText = "Can't unfurl";
+        _loading = false;
+      });
+      return;
+    }
+    setState(() {
+      _pid = pid;
+    });
+    // we don't need to set loading to false because the postRef will
   }
 }
 

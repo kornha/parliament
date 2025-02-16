@@ -16,6 +16,7 @@ class ZScaffold extends StatelessWidget {
   final bool ignoreConstraints;
   final ScrollPhysics scrollPhysics;
   final bool? ignoreScrollView;
+  final bool pinAppBar;
 
   const ZScaffold({
     super.key,
@@ -31,6 +32,7 @@ class ZScaffold extends StatelessWidget {
     this.defaultMargin = true,
     this.defaultSafeArea = true,
     this.ignoreConstraints = false,
+    this.pinAppBar = false,
     this.ignoreScrollView, // whether or not include in scroll controller, defaults to scrollPhysics.allowUserScrolling
   });
 
@@ -67,7 +69,8 @@ class ZScaffold extends StatelessWidget {
                 centerTitle: true,
                 floating: true,
                 snap: true,
-                pinned: context.isDesktop, //limits buggyness on desktop browser
+                pinned: pinAppBar ||
+                    context.isDesktop, //limits buggyness on desktop browser
                 automaticallyImplyLeading: false,
                 forceElevated: innerBoxIsScrolled,
                 elevation: 0,
