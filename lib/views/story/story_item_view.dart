@@ -69,7 +69,7 @@ class _StoryItemViewState extends ConsumerState<StoryItemView> {
     bool shouldShowPhotos = (story?.photos.length ?? 0) >= 1;
     double newsworthiness = story?.newsworthiness?.value ?? 0.0;
     bool shouldShowSecondaryPosts =
-        (allPosts?.isNotEmpty ?? false) && newsworthiness >= 0.5;
+        (allPosts?.isNotEmpty ?? false) && newsworthiness >= 0.4;
 
     return storyRef.isLoading || allPostsRef.isLoading
         ? const Loading(type: LoadingType.post)

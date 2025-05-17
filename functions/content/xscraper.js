@@ -37,25 +37,25 @@ const _userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
  * REQUIRES LONGER TIMEOUT
  * Scrapes X feed for new posts and publishes the urls
  * @param {string} feedUrl to start from, if null does not renavigate
+ * @param {number} limit the number of feeds to include.
  * @return {Promise<void>}
  * */
-const scrapeXFeed = async function(feedUrl) {
-  logger.info(`Started scraping X feed. ${feedUrl}`);
+const scrapeXFeed = async function(feedUrl, limit = 5) {
+  logger.info(`Started scraping X feed. ${feedUrl} (limit=${limit})`);
 
-  const browser = await puppeteer.launch({headless: "new"});
+  const browser = await puppeteer.launch({headless: false});
   try {
     const page = await browser.newPage();
-
     await connectToX(page);
 
-    // Uses async generator to get links
+    let count = 0;
     for await (const link of autoScrollX(page, feedUrl, false, 12000)) {
-      await publishMessage(SHOULD_PROCESS_LINK, {link: link});
+      await publishMessage(SHOULD_PROCESS_LINK, {link});
+      if (++count >= limit) break; // ⬅️ stop after “limit” links
     }
 
-    logger.info("Finished scraping X feed.");
-
-    return Promise.resolve();
+    logger.info(`Finished scraping X feed after processing ${count} 
+      link${count !== 1 ? "s" : ""}.`);
   } catch (error) {
     logger.error("Error in scrapeXFeed:", error);
     throw error;
@@ -65,6 +65,7 @@ const scrapeXFeed = async function(feedUrl) {
 };
 
 /**
+ * DEPRECATED SINCE X CHANGED NEWS PAGE
  * REQUIRES 1GB TO RUN!
  * Scrapes X for top news feeds
  * @param {string} url the url to scrape from.
@@ -75,7 +76,7 @@ const scrapeXFeed = async function(feedUrl) {
 const scrapeXTopNews = async function(url = "https://x.com/explore/tabs/news", limit = 1) {
   logger.info("Started scraping top X news.");
 
-  const browser = await puppeteer.launch({headless: "new"});
+  const browser = await puppeteer.launch({headless: false});
   try {
     const page = await browser.newPage();
 
@@ -413,7 +414,7 @@ const processXLinks = async function(xLinks, poster = null) {
  * @return {string?} with photoURL
  */
 const getContentFromX = async function(url) {
-  const browser = await puppeteer.launch({headless: "new"});
+  const browser = await puppeteer.launch({headless: false});
   try {
     const page = await browser.newPage();
 
@@ -660,7 +661,7 @@ const getEntityImage = async function(handle, platform) {
  * @return {string} with photoURL
  * */
 const getEntityImageFromX = async function(handle) {
-  const browser = await puppeteer.launch({headless: "new"});
+  const browser = await puppeteer.launch({headless: false});
   try {
     const page = await browser.newPage();
 

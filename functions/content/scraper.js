@@ -4,11 +4,12 @@ const {scrapeXFeed, isXURL, scrapeXTopNews} = require("./xscraper");
  * REQUIRES LONGER TIMEOUT
  * Scrapes feed for new posts and publishes the urls
  * @param {string} feedUrl to start from, if null does not renavigate
+ * @param {number} limit - The number of feeds to fetch
  * @return {Promise<void>}
  * */
-const scrapeFeed = async function(feedUrl) {
+const scrapeFeed = async function(feedUrl, limit) {
   if (isXURL(feedUrl)) {
-    await scrapeXFeed(feedUrl);
+    await scrapeXFeed(feedUrl, limit);
     return;
   } else {
     throw new Error("Platform not supported for scraping.");
