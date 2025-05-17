@@ -43,7 +43,7 @@ const _userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
 const scrapeXFeed = async function(feedUrl, limit = 5) {
   logger.info(`Started scraping X feed. ${feedUrl} (limit=${limit})`);
 
-  const browser = await puppeteer.launch({headless: false});
+  const browser = await puppeteer.launch({headless: "new"});
   try {
     const page = await browser.newPage();
     await connectToX(page);
@@ -76,7 +76,7 @@ const scrapeXFeed = async function(feedUrl, limit = 5) {
 const scrapeXTopNews = async function(url = "https://x.com/explore/tabs/news", limit = 1) {
   logger.info("Started scraping top X news.");
 
-  const browser = await puppeteer.launch({headless: false});
+  const browser = await puppeteer.launch({headless: "new"});
   try {
     const page = await browser.newPage();
 
@@ -414,7 +414,7 @@ const processXLinks = async function(xLinks, poster = null) {
  * @return {string?} with photoURL
  */
 const getContentFromX = async function(url) {
-  const browser = await puppeteer.launch({headless: false});
+  const browser = await puppeteer.launch({headless: "new"});
   try {
     const page = await browser.newPage();
 
@@ -661,7 +661,7 @@ const getEntityImage = async function(handle, platform) {
  * @return {string} with photoURL
  * */
 const getEntityImageFromX = async function(handle) {
-  const browser = await puppeteer.launch({headless: false});
+  const browser = await puppeteer.launch({headless: "new"});
   try {
     const page = await browser.newPage();
 
