@@ -43,7 +43,7 @@ const _userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
 const scrapeXFeed = async function(feedUrl, limit) {
   logger.info(`Started scraping X feed. ${feedUrl} (limit=${limit})`);
 
-  const browser = await puppeteer.launch({headless: false});
+  const browser = await puppeteer.launch({headless: "new"});
   try {
     const page = await browser.newPage();
     await connectToX(page);
