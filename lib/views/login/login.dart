@@ -67,7 +67,7 @@ class _LoginState extends ConsumerState<Login> {
               backgroundColor: context.backgroundColor,
               foregroundColor: context.secondaryColor,
               onPressed: () {
-                context.route(Preview.location);
+                context.route(ZPreview.location);
               },
               child: const Text("Preview"),
             ),

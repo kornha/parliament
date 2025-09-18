@@ -32,7 +32,7 @@ void main() async {
   // Keep splash screen open until manually removed in zrouter
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
-  const bool local = false;
+  const bool local = true;
 
   if (local) {
     FirebaseFirestore.instance.useFirestoreEmulator("localhost", 8080);

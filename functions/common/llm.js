@@ -58,8 +58,9 @@ const generateCompletions = async function({
 
       ],
       // max_tokens: 300,
-      temperature: temperature,
-      model: "gpt-4.1",
+      // temperature: temperature,
+      model: "gpt-5",
+      reasoning_effort: "low",
       response_format: {"type": "json_object"},
     });
 

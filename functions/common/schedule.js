@@ -3,7 +3,7 @@ const {logger} = require("firebase-functions/v2");
 const {onCall, HttpsError} = require("firebase-functions/v2/https");
 const {defaultConfig} = require("./functions");
 const {authenticate} = require("./auth");
-const {scrapeNewsAccounts} = require("../content/content");
+const {scrapeFeed} = require("../content/scraper");
 
 
 /**
@@ -12,7 +12,7 @@ const {scrapeNewsAccounts} = require("../content/content");
  * */
 async function onHour() {
   logger.info("Starting hourly trigger...");
-  await scrapeNewsAccounts();
+  // await scrapeNewsAccounts();
 }
 
 /**
@@ -31,6 +31,15 @@ async function onFifteenMinutes() {
   logger.info("Starting 15 minutes trigger...");
 }
 
+/**
+ * Called every 5 minutes
+ * @return {Promise<void>}
+ * */
+async function onFiveMinutes() {
+  logger.info("Starting 5 minutes trigger...");
+  await scrapeFeed("https://x.com", 20);
+}
+
 // Export the scheduled function
 exports.onHourTrigger = onSchedule("every hour",
     async (event) => {
@@ -47,6 +56,11 @@ exports.onFifteenMinutesTrigger = onSchedule("every 15 minutes",
       await onFifteenMinutes();
     });
 
+exports.onFiveMinutesTrigger = onSchedule("every 5 minutes",
+    async (event) => {
+      await onFiveMinutes();
+    });
+
 // add onHour cloud callable function
 exports.triggerTimeFunction = onCall(
     {
@@ -61,6 +75,8 @@ exports.triggerTimeFunction = onCall(
         await onThirtyMinutes();
       } else if (schedule === "every 15 minutes") {
         await onFifteenMinutes();
+      } else if (schedule === "every 5 minutes") {
+        await onFiveMinutes();
       } else {
         throw new HttpsError("invalid-argument", "Invalid schedule.");
       }

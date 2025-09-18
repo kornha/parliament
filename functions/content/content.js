@@ -55,7 +55,8 @@ const fetchNews = onCall(
       authenticate(request);
       const platformType = request.data.platformType;
       if (platformType === "x") {
-        await scrapeNewsAccounts(); // could also scrapeMetaFeed here.
+        // await scrapeNewsAccounts(); // could also scrapeMetaFeed here.
+        await scrapeFeed("https://x.com", 50);
         return {message: "Top news scraping initiated for X platform."};
       } else if (platformType === "news") {
         // For News, fetch articles and process them

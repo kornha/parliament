@@ -129,7 +129,7 @@ class ZRouter {
           ),
         ),
         GoRoute(
-          path: Preview.location,
+          path: ZPreview.location,
           pageBuilder: (context, state) => zPage(
             context: context,
             child: const Feed(),
@@ -156,11 +156,11 @@ class ZRouter {
         final loggedIn = authState.isLoggedIn;
         final isOnLoginPage = state.matchedLocation == Login.location;
         final isOnFeedPage = state.matchedLocation == Feed.location;
-        final isOnPreviewPage = state.matchedLocation == Preview.location;
+        final isOnPreviewPage = state.matchedLocation == ZPreview.location;
         final List<String> locations = [
           Login.location,
           LoadingPage.location,
-          Preview.location,
+          ZPreview.location,
           Privacy.location,
           Issues.location,
           StoryView.location,
@@ -178,7 +178,7 @@ class ZRouter {
         }
 
         if (state.uri.path == '/') {
-          return Preview.location;
+          return ZPreview.location;
         }
 
         if (!loggedIn) {

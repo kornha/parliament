@@ -95,6 +95,10 @@ class _FeedState extends ConsumerState<Feed> {
                         value: 'every 15 minutes',
                         child: Text('every 15 minutes'),
                       ),
+                      const PopupMenuItem<String>(
+                        value: 'every 5 minutes',
+                        child: Text('every 5 minutes'),
+                      ),
                     ],
                   ),
                 ),
@@ -190,6 +194,6 @@ class _FeedState extends ConsumerState<Feed> {
 
 // exists only to provide a preview of the feed
 // we cannot use feed directly due to shell route issues
-class Preview {
+class ZPreview {
   static const location = "/preview";
 }

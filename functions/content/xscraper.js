@@ -40,10 +40,10 @@ const _userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
  * @param {number} limit the number of feeds to include.
  * @return {Promise<void>}
  * */
-const scrapeXFeed = async function(feedUrl, limit = 5) {
+const scrapeXFeed = async function(feedUrl, limit) {
   logger.info(`Started scraping X feed. ${feedUrl} (limit=${limit})`);
 
-  const browser = await puppeteer.launch({headless: "new"});
+  const browser = await puppeteer.launch({headless: false});
   try {
     const page = await browser.newPage();
     await connectToX(page);
@@ -167,7 +167,7 @@ const connectToX = async function(page) {
     await page.goto("https://x.com/home");
     await Promise.race([
       page.waitForNavigation({waitUntil: "networkidle2"}),
-      page.waitForNetworkIdle(1500),
+      page.waitForTimeout(2000),
     ]);
     if (!page.url().includes("login")) {
       logger.info("Already logged in.");
@@ -180,75 +180,83 @@ const connectToX = async function(page) {
   // login
   await page.goto("https://x.com/i/flow/login");
   await Promise.race([
-    page.waitForNavigation({waitUntil: "networkidle0"}),
-    page.waitForNetworkIdle(3000),
+    page.waitForNavigation({waitUntil: "domcontentloaded"}),
+    page.waitForTimeout(3000),
   ]);
-  await page.waitForNetworkIdle({idleTime: 1500});
 
-  // Select the user input
-  await page.waitForSelector("[autocomplete=username]");
-  await page.type("input[autocomplete=username]", email, {delay: 50});
-  // Press the Next button
-  await page.evaluate(() => {
-    // eslint-disable-next-line no-undef
-    const buttons = Array.from(document.querySelectorAll("button"));
-    const nextButton = buttons.find(
-        (button) => button.innerText.trim().toLowerCase() === "next",
+  // --- changed: target the visible username input and focus it ---
+  await page.waitForSelector("input[autocomplete=\"username\"]",
+      {visible: true});
+  await page.click("input[autocomplete=\"username\"]"); // ensure focus
+  await page.type("input[autocomplete=\"username\"]", email, {delay: 50});
+
+  // --- changed: click "Next" without using logger in page context ---
+  const clickedNextUser = await page.$$eval("button", (buttons) => {
+    const btn = buttons.find(
+        (b) => (b.innerText || "").trim().toLowerCase() === "next",
     );
-    if (nextButton) {
-      nextButton.click();
-    } else {
-      logger.error("Next button not found.");
+    if (btn) {
+      btn.click(); return true;
     }
+    return false;
   });
-  await page.waitForNetworkIdle({idleTime: 1500});
-  // ////////////////////////////////////////////////////
-  // Sometimes x suspect suspicious activties,
-  // so it ask for your handle/phone Number
-  const extractedText = await page.$eval("*", (el) => el.innerText);
-  if (extractedText.includes("Enter your phone number or username")) {
-    await page.waitForSelector("[autocomplete=on]");
-    await page.type("input[autocomplete=on]", handle, {delay: 50});
-    await page.evaluate(() => {
-      // eslint-disable-next-line no-undef
-      const buttons = Array.from(document.querySelectorAll("button"));
-      const nextButton = buttons.find(
-          (button) => button.innerText.trim().toLowerCase() === "next",
+  if (!clickedNextUser) logger.warn("Next button not found after username");
+
+  // --- changed: wait for either the handle prompt OR the password field ---
+  await Promise.race([
+    page.waitForSelector("input[autocomplete=\"on\"]",
+        {visible: true}), // handle/phone step
+    page.waitForSelector("input[autocomplete=\"current-password\"]",
+        {visible: true}), // password step
+  ]);
+
+  // If X asks for handle/phone
+  const needsHandleStep = await page.$("input[autocomplete=\"on\"]");
+  if (needsHandleStep) {
+    await page.click("input[autocomplete=\"on\"]");
+    await page.type("input[autocomplete=\"on\"]", handle, {delay: 50});
+
+    const clickedNextHandle = await page.$$eval("button", (buttons) => {
+      const btn = buttons.find(
+          (b) => (b.innerText || "").trim().toLowerCase() === "next",
       );
-      if (nextButton) {
-        nextButton.click();
-      } else {
-        logger.error("Next button not found.");
+      if (btn) {
+        btn.click(); return true;
       }
+      return false;
     });
-    await page.waitForNetworkIdle({idleTime: 1500});
+    if (!clickedNextHandle) logger.warn("Next button not found after handle");
+
+    // Wait for password field to appear
+    await page.waitForSelector("input[autocomplete=\"current-password\"]",
+        {visible: true});
   }
-  // ///////////////////////////////////////////////////
-  // if you need to manually log in, put this timeout in here to give you time
-  // await page.waitForTimeout(40000);
-  // Select the password input
-  await page.waitForSelector("[autocomplete=\"current-password\"]");
-  await page.type("[autocomplete=\"current-password\"]", password, {delay: 50});
-  // Press the Login button
-  await page.evaluate(() => {
-    // eslint-disable-next-line no-undef
-    const buttons = Array.from(document.querySelectorAll("button"));
-    const nextButton = buttons.find(
-        (button) => button.innerText.trim().toLowerCase() === "log in",
+
+  // --- changed: ensure visible, focus, type password ---
+  await page.click("input[autocomplete=\"current-password\"]");
+  await page.type("input[autocomplete=\"current-password\"]",
+      password, {delay: 50});
+
+  // --- changed: click "Log in" without logger in page context ---
+  const clickedLogin = await page.$$eval("button", (buttons) => {
+    const btn = buttons.find(
+        (b) => (b.innerText || "").trim().toLowerCase() === "log in",
     );
-    if (nextButton) {
-      nextButton.click();
-    } else {
-      logger.error("Log in button not found.");
+    if (btn) {
+      btn.click(); return true;
     }
+    return false;
   });
+  if (!clickedLogin) logger.warn("Log in button not found");
 
-  logger.info("Logged in to X.");
+  // Wait for redirect to home (or any non-login URL) rather than network idle
+  await Promise.race([
+    page.waitForNavigation({waitUntil: "domcontentloaded"}),
+    page.waitForSelector("[data-testid=\"AppTabBar_Home_Link\"]",
+        {timeout: 7000}).catch(() => null),
+  ]);
 
-  // needed?
-  await page.waitForNetworkIdle({idleTime: 1000});
-
-  // save cookies
+  // save cookies (unchanged)
   const cookies = await page.cookies();
   setContent("cookies/x.json", JSON.stringify(cookies));
 };
@@ -501,7 +509,7 @@ const getContentFromX = async function(url) {
 
               // Extract the tweet details
               tweetText = tweetData.legacy.full_text;
-              tweetAuthor = tweetData.core.user_results.result.legacy.name;
+              tweetAuthor = tweetData.core.user_results.result.core.screen_name;
               tweetTime = tweetData.legacy.created_at;
               tweetReplies = tweetData.legacy.reply_count;
               tweetReposts = tweetData.legacy.retweet_count;
