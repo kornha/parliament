@@ -17,7 +17,7 @@
 * **Parliament** is the open-source repo that anyone can contribute to.
 * See the hosted website (in pre-release) at [www.parliament.foundation](http://www.parliament.foundation).
 * Download the iOS app [here](https://apps.apple.com/us/app/parliament-foundation/id6479275256).
-* Parliament is based on the whitepaper [Credible News](#whitepaper).
+* Parliament is based on the whitepaper [Consensus News](#whitepaper).
 * Anyone can host a Parliament, provided there is compliance with the [LICENSE](LICENSE).
     
 *This project is in pre-release, and as such, is a preview. Many features are in development.*
@@ -34,7 +34,7 @@
 
 # Table of Contents
 1. [Whitepaper](#whitepaper)
-    1. [Credible News](#credible-news)
+    1. [Consensus News](#consensus-news)
     2. [Mission](#mission)
     3. [Confidence](#confidence)
         1. [Confidence Algorithm](#confidence-algorithm)
@@ -71,7 +71,7 @@
 
 # Whitepaper 
 
-### Credible News
+### Consensus News
 
 by [Alexander Kornhauser](https://www.linkedin.com/in/alexkornhauser/).
 
