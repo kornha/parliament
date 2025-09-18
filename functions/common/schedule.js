@@ -3,7 +3,7 @@ const {logger} = require("firebase-functions/v2");
 const {onCall, HttpsError} = require("firebase-functions/v2/https");
 const {defaultConfig} = require("./functions");
 const {authenticate} = require("./auth");
-const {scrapeFeed} = require("../content/scraper");
+const {publishMessage, SHOULD_SCRAPE_FEED} = require("./pubsub");
 
 
 /**
@@ -37,7 +37,11 @@ async function onFifteenMinutes() {
  * */
 async function onFiveMinutes() {
   logger.info("Starting 5 minutes trigger...");
-  await scrapeFeed("https://x.com", 20);
+  await publishMessage(SHOULD_SCRAPE_FEED, {
+    link: "https://x.com",
+    metaFeed: false,
+    limit: 20,
+  });
 }
 
 // Export the scheduled function
