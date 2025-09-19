@@ -36,42 +36,40 @@ jobs:
         run: |
           set -euo pipefail
 
+          # Minimal on-disk artifacts: p12 + mobileprovision (needed by tools)
           CERTIFICATE_PATH="$RUNNER_TEMP/build_certificate.p12"
           PP_RAW="$RUNNER_TEMP/build_pp.mobileprovision"
           KEYCHAIN_PATH="$RUNNER_TEMP/app-signing.keychain-db"
 
-          # 1) Decode files from secrets
+          # 1) Decode secrets straight to files
           echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode > "$CERTIFICATE_PATH"
           echo -n "$BUILD_PROVISION_PROFILE_BASE64" | base64 --decode > "$PP_RAW"
 
-          # 2) Create + unlock temp keychain, make it default, extend search list
+          # 2) Create + unlock temp keychain, set as default, keep login in search list
           security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
           security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
           security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
           security default-keychain -s "$KEYCHAIN_PATH"
 
-          # Keep login + the new one on the search list (login may be login.keychain-db)
           LOGIN_KC="login.keychain-db"
           if ! security list-keychain -d user | grep -q "$LOGIN_KC"; then
             LOGIN_KC="login.keychain"
           fi
           security list-keychain -d user -s "$KEYCHAIN_PATH" "$LOGIN_KC"
 
-          # 3) Import p12 (must be a .p12 exported WITH private key)
+          # 3) Import p12 (must include private key)
           security import "$CERTIFICATE_PATH" -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
 
-          # 4) Allow codesign/xcodebuild to access the key
+          # 4) Allow codesign/xcodebuild to access private key
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
 
-          # 5) Install provisioning profile using its UUID as filename
-          PP_UUID=$(/usr/libexec/PlistBuddy -c 'Print :UUID' /dev/stdin < "$PP_RAW")
+          # 5) Install provisioning profile; compute UUID without creating a temp plist
+          PP_UUID=$(/usr/libexec/PlistBuddy -c 'Print :UUID' /dev/stdin <<< "$(/usr/bin/security cms -D -i "$PP_RAW")")
           mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"
           cp "$PP_RAW" "$HOME/Library/MobileDevice/Provisioning Profiles/$PP_UUID.mobileprovision"
 
-          # 6) (Optional) Debug output
-          echo "Codesigning identities in $KEYCHAIN_PATH:"
+          # 6) Optional diagnostics (keep if you need debugging)
           security find-identity -v -p codesigning "$KEYCHAIN_PATH" || true
-
 
       - name: Flutter get
         uses: subosito/flutter-action@v2
