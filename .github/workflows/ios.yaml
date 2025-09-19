@@ -27,87 +27,29 @@ jobs:
 
       # Install the Apple certificate and provisioning profile.
       # We use different secrets depending on the branch:
-      - name: Install cert & profile (with validation)
+      - name: Install the Apple certificate and provisioning profile
         env:
           BUILD_CERTIFICATE_BASE64: ${{ github.ref == 'refs/heads/main' && secrets.APPSTORE_CERT_BASE64 || secrets.APPSTORE_CERT_BASE64_STG }}
           P12_PASSWORD: ${{ secrets.APPSTORE_CERT_PASSWORD }}
           BUILD_PROVISION_PROFILE_BASE64: ${{ github.ref == 'refs/heads/main' && secrets.MOBILEPROVISION_BASE64 || secrets.MOBILEPROVISION_BASE64_STG }}
           KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
         run: |
-          set -euo pipefail
-
-          CERTIFICATE_PATH="$RUNNER_TEMP/build_certificate.p12"
-          PP_RAW="$RUNNER_TEMP/build_pp.mobileprovision"
-          KEYCHAIN_PATH="$RUNNER_TEMP/app-signing.keychain-db"
-
-          # 1) Decode secrets -> files
-          echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode > "$CERTIFICATE_PATH"
-          echo -n "$BUILD_PROVISION_PROFILE_BASE64" | base64 --decode > "$PP_RAW"
-
-          # 2) Create + unlock temp keychain, make it default, keep login/system searchable
-          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
-          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
-          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
-          security default-keychain -s "$KEYCHAIN_PATH"
-
-          # Ensure login + System are on the list too (roots/intermediates)
-          LOGIN_KC="login.keychain-db"
-          if ! security list-keychain -d user | grep -q "$LOGIN_KC"; then LOGIN_KC="login.keychain"; fi
-          security list-keychain -d user -s "$KEYCHAIN_PATH" "$LOGIN_KC" /Library/Keychains/System.keychain
-
-          # 3) Import p12 (MUST contain private key)
-          security import "$CERTIFICATE_PATH" -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
-
-          # 4) Allow codesign/xcodebuild
-          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
-
-          echo "== VALIDATE P12 LOOKS CORRECT =="
-          if ! /usr/bin/openssl pkcs12 -in "$CERTIFICATE_PATH" -passin pass:"$P12_PASSWORD" -clcerts -nokeys >/dev/null 2>&1; then
-            echo "::error:: The APPSTORE_CERT_BASE64 secret is not a valid .p12 (or the P12 password is wrong)."
-            exit 1
-          fi
-          echo "P12 subject/issuer/dates:"
-          /usr/bin/openssl pkcs12 -in "$CERTIFICATE_PATH" -passin pass:"$P12_PASSWORD" -clcerts -nokeys \
-            | /usr/bin/openssl x509 -noout -subject -issuer -dates
-
-          echo "== VALIDATE IMPORTED CODESIGN IDENTITIES =="
-          ID_COUNT=$(security find-identity -v -p codesigning "$KEYCHAIN_PATH" | grep -E 'Apple (iPhone|Distribution):|Apple Distribution:' || true | wc -l | tr -d ' ')
-          security find-identity -v -p codesigning "$KEYCHAIN_PATH" || true
-          if [ "$ID_COUNT" -eq 0 ]; then
-            echo "::error:: No usable Apple Distribution identity with a PRIVATE KEY in $KEYCHAIN_PATH. Re-export a .p12 from Keychain (My Certificates) with the private key included."
-            exit 1
-          fi
-
-          echo "== VALIDATE PROVISIONING PROFILE (TEAM/BUNDLE/METHOD) =="
-          # Decode CMS -> plist (no temp file persisted)
-          PP_PLIST_CONTENT="$(/usr/bin/security cms -D -i "$PP_RAW")"
-          PP_UUID=$(/usr/libexec/PlistBuddy -c 'Print :UUID' /dev/stdin <<< "$PP_PLIST_CONTENT")
-          PP_NAME=$(/usr/libexec/PlistBuddy -c 'Print :Name' /dev/stdin <<< "$PP_PLIST_CONTENT")
-          PP_TEAM=$(/usr/libexec/PlistBuddy -c 'Print :TeamIdentifier:0' /dev/stdin <<< "$PP_PLIST_CONTENT")
-          PP_APPID=$(/usr/libexec/PlistBuddy -c 'Print :Entitlements:application-identifier' /dev/stdin <<< "$PP_PLIST_CONTENT") || true
-          PP_TYPE=$(/usr/libexec/PlistBuddy -c 'Print :ProvisionsAllDevices' /dev/stdin <<< "$PP_PLIST_CONTENT" 2>/dev/null || echo "false")
-
-          echo "Profile: $PP_NAME"
-          echo "UUID:    $PP_UUID"
-          echo "Team:    $PP_TEAM (expected: S8Y29AWZR2)"
-          echo "AppID:   ${PP_APPID:-unknown}"
-          echo "AllDevices(adhoc)? $PP_TYPE"
-
-          if [ "$PP_TEAM" != "S8Y29AWZR2" ]; then
-            echo "::error:: Provisioning profile TeamIdentifier ($PP_TEAM) does not match expected Team ID S8Y29AWZR2."
-            exit 1
-          fi
-
-          mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"
-          cp "$PP_RAW" "$HOME/Library/MobileDevice/Provisioning Profiles/$PP_UUID.mobileprovision"
-
-          echo "== SUMMARY =="
-          echo "Keychain default: $(security default-keychain)"
-          echo "Keychains: "
-          security list-keychain -d user
-          echo "Provisioning Profiles in place:"
-          ls -l "$HOME/Library/MobileDevice/Provisioning Profiles" || true
-
+          CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
+          PP_PATH=$RUNNER_TEMP/build_pp.mobileprovision
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+          # Decode and save certificate and provisioning profile
+          echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode --output $CERTIFICATE_PATH
+          echo -n "$BUILD_PROVISION_PROFILE_BASE64" | base64 --decode --output $PP_PATH
+          # Create and unlock a temporary keychain
+          security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          # Import certificate into the keychain
+          security import $CERTIFICATE_PATH -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security list-keychain -d user -s $KEYCHAIN_PATH
+          # Install the provisioning profile
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles
 
       - name: Flutter get
         uses: subosito/flutter-action@v2
