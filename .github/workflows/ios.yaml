@@ -34,22 +34,44 @@ jobs:
           BUILD_PROVISION_PROFILE_BASE64: ${{ github.ref == 'refs/heads/main' && secrets.MOBILEPROVISION_BASE64 || secrets.MOBILEPROVISION_BASE64_STG }}
           KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
         run: |
-          CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
-          PP_PATH=$RUNNER_TEMP/build_pp.mobileprovision
-          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
-          # Decode and save certificate and provisioning profile
-          echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode --output $CERTIFICATE_PATH
-          echo -n "$BUILD_PROVISION_PROFILE_BASE64" | base64 --decode --output $PP_PATH
-          # Create and unlock a temporary keychain
-          security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
-          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
-          security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
-          # Import certificate into the keychain
-          security import $CERTIFICATE_PATH -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
-          security list-keychain -d user -s $KEYCHAIN_PATH
-          # Install the provisioning profile
-          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles
+          set -euo pipefail
+
+          CERTIFICATE_PATH="$RUNNER_TEMP/build_certificate.p12"
+          PP_RAW="$RUNNER_TEMP/build_pp.mobileprovision"
+          KEYCHAIN_PATH="$RUNNER_TEMP/app-signing.keychain-db"
+
+          # 1) Decode files from secrets
+          echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode > "$CERTIFICATE_PATH"
+          echo -n "$BUILD_PROVISION_PROFILE_BASE64" | base64 --decode > "$PP_RAW"
+
+          # 2) Create + unlock temp keychain, make it default, extend search list
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security default-keychain -s "$KEYCHAIN_PATH"
+
+          # Keep login + the new one on the search list (login may be login.keychain-db)
+          LOGIN_KC="login.keychain-db"
+          if ! security list-keychain -d user | grep -q "$LOGIN_KC"; then
+            LOGIN_KC="login.keychain"
+          fi
+          security list-keychain -d user -s "$KEYCHAIN_PATH" "$LOGIN_KC"
+
+          # 3) Import p12 (must be a .p12 exported WITH private key)
+          security import "$CERTIFICATE_PATH" -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
+
+          # 4) Allow codesign/xcodebuild to access the key
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+
+          # 5) Install provisioning profile using its UUID as filename
+          PP_UUID=$(/usr/libexec/PlistBuddy -c 'Print :UUID' /dev/stdin < "$PP_RAW")
+          mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"
+          cp "$PP_RAW" "$HOME/Library/MobileDevice/Provisioning Profiles/$PP_UUID.mobileprovision"
+
+          # 6) (Optional) Debug output
+          echo "Codesigning identities in $KEYCHAIN_PATH:"
+          security find-identity -v -p codesigning "$KEYCHAIN_PATH" || true
+
 
       - name: Flutter get
         uses: subosito/flutter-action@v2
