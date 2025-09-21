@@ -65,6 +65,9 @@ class Story {
       toJson: Utils.timestampToJsonNullable)
   final Timestamp? newsworthyAt; // happened at scaled by newsworthiness
 
+  // DO NOT USE ON FRONTNED, QUERY CONVIENIENCE ONLY
+  final int? postCount;
+
   Story({
     required this.sid,
     required this.createdAt,
@@ -95,6 +98,7 @@ class Story {
     this.stids = const [],
     this.plids = const [],
     this.photos = const [],
+    this.postCount,
   });
 
   factory Story.fromJson(Map<String, dynamic> json) => _$StoryFromJson(json);

@@ -75,6 +75,9 @@ exports.onStoryUpdate = onDocumentWritten(
           await publishMessage(STORY_SHOULD_CHANGE_PLATFORMS,
               {story: after});
         }
+        // Convenience used only in DB queries
+        await updateStory(after?.sid || before?.sid,
+            {"postCount": after.pids?.length || 0}, 5);
       }
 
       if (

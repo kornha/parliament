@@ -131,7 +131,13 @@ class Database {
   Future<List<Story>?> getStoriesFiltered(
       int page, int limit, ZSettings? settings) {
     return storyCollection
+        .where('newsworthyAt', isGreaterThan: 0) // needed?
+        .where('newsworthiness',
+            isGreaterThanOrEqualTo: settings!.minNewsworthiness.value)
+        .where('postCount', isGreaterThanOrEqualTo: settings.minPosts)
         .orderBy('newsworthyAt', descending: true)
+        .orderBy('newsworthiness', descending: true)
+        .orderBy('postCount', descending: true)
         .startAfter([page == 0 ? double.maxFinite : page])
         .limit(limit)
         .get()
@@ -146,12 +152,12 @@ class Database {
                   .toList();
               // CLIENT SIDE FILTERING. HACKY NEED TO RECONSIDER
               // Cannot filter on server side since we are using a range query
-              stories = stories
-                  .where((story) =>
-                      (story.newsworthiness ?? Confidence.min()) >=
-                          settings!.minNewsworthiness &&
-                      story.pids.length >= settings!.minPosts)
-                  .toList();
+              // stories = stories
+              //     .where((story) =>
+              //         (story.newsworthiness ?? Confidence.min()) >=
+              //             settings!.minNewsworthiness &&
+              //         story.pids.length >= settings!.minPosts)
+              //     .toList();
 
               if (stories.isNotEmpty) {
                 return stories;

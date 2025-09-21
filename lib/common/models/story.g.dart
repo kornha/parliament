@@ -61,6 +61,7 @@ Story _$StoryFromJson(Map<String, dynamic> json) => Story(
               ?.map((e) => Photo.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
+      postCount: (json['postCount'] as num?)?.toInt(),
     );
 
 Map<String, dynamic> _$StoryToJson(Story instance) => <String, dynamic>{
@@ -93,6 +94,7 @@ Map<String, dynamic> _$StoryToJson(Story instance) => <String, dynamic>{
       'updatedAt': Utils.timestampToJson(instance.updatedAt),
       'happenedAt': Utils.timestampToJsonNullable(instance.happenedAt),
       'newsworthyAt': Utils.timestampToJsonNullable(instance.newsworthyAt),
+      'postCount': instance.postCount,
     };
 
 const _$StoryStatusEnumMap = {
