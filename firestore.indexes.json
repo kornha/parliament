@@ -212,11 +212,11 @@
           "order": "DESCENDING"
         },
         {
-          "fieldPath": "postCount",
+          "fieldPath": "newsworthiness",
           "order": "DESCENDING"
         },
         {
-          "fieldPath": "newsworthiness",
+          "fieldPath": "postCount",
           "order": "DESCENDING"
         }
       ]
