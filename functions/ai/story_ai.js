@@ -13,6 +13,7 @@ const {calculateMeanVector,
 const _ = require("lodash");
 const {writeTrainingData} = require("./trainer");
 const {findStoriesPrompt, findContextPrompt} = require("./prompts");
+const {storyOutputSchema, contextOutputSchema} = require("./prompt_schemas");
 
 /** FLAGSHIP FUNCTION
  * ***************************************************************
@@ -116,6 +117,7 @@ const findStories = async function(post) {
     resp = await retryAsyncFunction(() => {
       return generateCompletions({
         messages: _prompt,
+        responseSchema: storyOutputSchema(),
         loggingText: "findStories " + post.pid,
       });
     }, 2);
@@ -166,7 +168,7 @@ const findContext = async function(story, statements) {
 
   const resp = await generateCompletions({
     messages: _prompt,
-    temperature: 0.8,
+    responseSchema: contextOutputSchema(),
     loggingText: "findContext " + story.sid,
   });
 

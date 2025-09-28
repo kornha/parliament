@@ -7,104 +7,146 @@ const {millisToIso} = require("../common/utils");
 // ////////////////////////////////////////////////////////////////////////////
 
 const generateImageDescriptionPrompt = function(photoURL) {
-  const messages = [];
-  messages.push({
-    type: "text",
-    text: `Generate a detailed description for the following image.
-    This description will be used in vector search for similar content.`,
+  const input = [];
+  input.push({
+    role: "user",
+    content: [
+      {
+        type: "input_text",
+        text: "Generate a detailed description for the following image. This description will be used in vector search for similar content.",
+      },
+      {type: "input_image", image_url: photoURL},
+    ],
   });
-  messages.push({type: "image_url", image_url: {url: photoURL}});
-  messages.push({
-    type: "text", text: `
-    Output format:{ "description": "A detailed description of the image"}
-  `});
-  return messages;
+  return input;
 };
 
 // ////////////////////////////////////////////////////////////////////////////
 // Flagship Prompts
 // ////////////////////////////////////////////////////////////////////////////
 
+// Returns an `input` array ready for OpenAI Responses API
 const findStoriesPrompt = function({post, stories, training = false, includePhotos = true}) {
-  // Prepare the initial set of messages with description texts
-  const messages = training ? [
-    {type: "text", text: findStoriesForTrainingText()},
-  ] : [];
+  const userParts = [];
 
-  messages.push({type: "text", text: `Here is the Post: ${postToJSON(post, !includePhotos)}`});
-
-  messages.push({type: "text", text: "Note about photos; if you cannot process the image_url DO NOT throw an error, handle the case with the information you have."});
-
-  if (post.photo?.photoURL && post.photo?.llmCompatible != false && includePhotos) {
-    messages.push({type: "image_url", image_url: {url: post.photo?.photoURL}});
-  } else if (post.photo?.description) {
-    messages.push({type: "text", text: `Photo Description: ${post.photo.description}`});
+  const input = [];
+  if (training) {
+    input.push({
+      role: "system",
+      content: [{type: "input_text", text: findStoriesForTrainingText()}],
+    });
   }
 
-  // Add messages for stories
+  userParts.push({
+    type: "input_text",
+    text: `Here is the Post: ${postToJSON(post, !includePhotos)}`,
+  });
+
+  userParts.push({
+    type: "input_text",
+    text: "Note about photos; if you cannot process the image_url DO NOT throw an error, handle the case with the information you have.",
+  });
+
+  if (post.photo?.photoURL && post.photo?.llmCompatible !== false && includePhotos) {
+    userParts.push({type: "input_image", image_url: post.photo.photoURL});
+  } else if (post.photo?.description) {
+    userParts.push({type: "input_text", text: `Photo Description: ${post.photo.description}`});
+  }
+
+  // Stories (each as text + optional images)
   if (_.isEmpty(stories)) {
-    messages.push({type: "text", text: "Here are the Stories (if any): []"});
+    userParts.push({type: "input_text", text: "Here are the Stories (if any): []"});
   } else {
-    messages.push({type: "text", text: "Here are the Stories (if any): "});
+    userParts.push({type: "input_text", text: "Here are the Stories (if any):"});
     stories.forEach((story) => {
-      messages.push({type: "text", text: storyToJSON(story, !includePhotos, false)});
+      userParts.push({
+        type: "input_text",
+        text: storyToJSON(story, !includePhotos, false),
+      });
+
       if (!_.isEmpty(story.photos) && includePhotos) {
         story.photos.forEach((photo) => {
-          // we add this here to skip if the photo could not be processed earlier
-          // thus the completions will work and not error
-          if (photo?.llmCompatible != false) {
-            messages.push({type: "image_url", image_url: {url: photo.photoURL}});
+          // Skip non-compatible photos; fallback to description when available
+          if (photo?.llmCompatible !== false && photo?.photoURL) {
+            userParts.push({type: "input_image", image_url: photo.photoURL});
           } else if (photo?.description) {
-            messages.push({type: "text", text: `Photo Description: ${photo.description}`});
+            userParts.push({type: "input_text", text: `Photo Description: ${photo.description}`});
           }
         });
       }
     });
   }
 
-  messages.push({type: "text", text: `The current time is ${new Date().toISOString()} UTC`});
+  // Current time (UTC ISO 8601)
+  userParts.push({
+    type: "input_text",
+    text: `The current time is ${new Date().toISOString()} UTC`,
+  });
 
-  messages.push({type: "text", text: "Only output Stories that you are certain Post belongs to. The Post must either directly mention the content in the Story, or make a Statement about the Story. For any Stories that you output, order them by most to least relevant."});
-  messages.push({type: "text", text: storyJSONOutput()});
+  // Output constraint
+  userParts.push({
+    type: "input_text",
+    text:
+      "Only output Stories that you are certain Post belongs to. The Post must either directly mention the content in the Story, or make a Statement about the Story. For any Stories that you output, order them by most to least relevant.",
+  });
 
-  return messages;
+  // Final input array for Responses API
+  input.push({
+    role: "user",
+    content: userParts,
+  });
+
+  return input;
 };
+
 
 const findStatementsPrompt = function({
   post,
   statements,
   training = false,
   includePhotos = true}) {
-  // Assuming each post and story has an 'photoURL' property
-  const messages = training ? [
-    {type: "text", text: findStatementsForTrainingText()},
-  ] : [];
+  const input = [];
+  const userParts = [];
 
-  messages.push({type: "text", text: `Here is the Post: ${postToJSON(post, !includePhotos)}`});
-
-  messages.push({type: "text", text: "Note about photos; if you cannot process the image_url DO NOT throw an error, handle the case with the information you have."});
-
-  if (post.photo?.photoURL && post.photo?.llmCompatible != false && includePhotos) {
-    messages.push({type: "image_url", image_url: {url: post.photo?.photoURL}});
-  } else if (post.photo?.description) {
-    messages.push({type: "text", text: `Photo Description: ${post.photo.description}`});
-  }
-
-  if (_.isEmpty(statements)) {
-    messages.push({type: "text", text: "There are no statements associated with the stories/posts."});
-  } else {
-    messages.push({type: "text", text: `Here are the Candidate Statements:`});
-    statements.forEach((statement) => {
-      messages.push({type: "text", text: `${statementToJSON(statement)}`});
+  if (training) {
+    input.push({
+      role: "system",
+      content: [
+        {type: "input_text", text: findStatementsForTrainingText()},
+      ],
     });
   }
 
-  messages.push({type: "text", text: `The current time is ${new Date().toISOString()} UTC`});
+  userParts.push({
+    type: "input_text",
+    text: `Here is the Post: ${postToJSON(post, !includePhotos)}`,
+  });
 
-  messages.push({type: "text", text: "Output all Statements that a Post makes (new and/or candidate)."});
-  messages.push({type: "text", text: statementJSONOutput()});
+  userParts.push({
+    type: "input_text",
+    text: "Note about photos; if you cannot process the image_url DO NOT throw an error, handle the case with the information you have.",
+  });
 
-  return messages;
+  if (post.photo?.photoURL && post.photo?.llmCompatible != false && includePhotos) {
+    userParts.push({type: "input_image", image_url: post.photo.photoURL});
+  } else if (post.photo?.description) {
+    userParts.push({type: "input_text", text: `Photo Description: ${post.photo.description}`});
+  }
+
+  if (_.isEmpty(statements)) {
+    userParts.push({type: "input_text", text: "There are no statements associated with the stories/posts."});
+  } else {
+    userParts.push({type: "input_text", text: "Here are the Candidate Statements:"});
+    statements.forEach((statement) => {
+      userParts.push({type: "input_text", text: `${statementToJSON(statement)}`});
+    });
+  }
+
+  userParts.push({type: "input_text", text: `The current time is ${new Date().toISOString()} UTC`});
+  userParts.push({type: "input_text", text: "Output all Statements that a Post makes (new and/or candidate)."});
+
+  input.push({role: "user", content: userParts});
+  return input;
 };
 
 const findContextPrompt = function({
@@ -112,27 +154,32 @@ const findContextPrompt = function({
   statements,
   training = false,
   includePhotos = true}) {
-  const messages = training ? [
-    {type: "text", text: findContextForTrainingText()},
-  ] : [];
+  const input = [];
+  const userParts = [];
 
-  messages.push({type: "text", text: `Here is the Story: ${storyToJSON(story, !includePhotos, true)}`});
-
-  if (!_.isEmpty(statements)) {
-    messages.push({type: "text", text: `Here are the Statements:`});
-    statements.forEach((statement) => {
-      messages.push({type: "text", text: `${statementToJSON(statement)}`});
+  if (training) {
+    input.push({
+      role: "system",
+      content: [{type: "input_text", text: findContextForTrainingText()}],
     });
-  } else {
-    messages.push({type: "text", text: "There are no statements associated with this story."});
   }
 
-  messages.push({type: "text", text: `The current time is ${new Date().toISOString()} UTC`});
+  userParts.push({type: "input_text", text: `Here is the Story: ${storyToJSON(story, !includePhotos, true)}`});
 
-  messages.push({type: "text", text: "Output the updated context/article fields, as follows:"});
-  messages.push({type: "text", text: contextJSONOutput()});
+  if (!_.isEmpty(statements)) {
+    userParts.push({type: "input_text", text: "Here are the Statements:"});
+    statements.forEach((statement) => {
+      userParts.push({type: "input_text", text: `${statementToJSON(statement)}`});
+    });
+  } else {
+    userParts.push({type: "input_text", text: "There are no statements associated with this story."});
+  }
 
-  return messages;
+  userParts.push({type: "input_text", text: `The current time is ${new Date().toISOString()} UTC`});
+  userParts.push({type: "input_text", text: "Output the updated context/article fields."});
+
+  input.push({role: "user", content: userParts});
+  return input;
 };
 
 // ////////////////////////////////////////////////////////////////////////////
@@ -223,11 +270,12 @@ const findContextForTrainingText = function() {
     **Your Task:**
 
     - Output the Story's updated 'headline', 'subHeadline', 'lede', and 'article'.
-    - All fields are optional and only included if you wish to create/update from the provided information.
+    - All fields are optional (nullable) and only included if you wish to create/update from the provided information.
     - If there is no existing 'headline', 'subHeadline', 'lede' you must create them, however an article is optional and only included if there is more information than fits in the 'lede'.
     - Write in an engaging, active voice, as if you are an NY Times author.
     - Feel free to be creative and use humor, but always remain professional.
     - You must use the provided information to draft the Contextualization fields.
+    *NOTE ON WEB SEARCH:* ${webSearchPrompt()}
 
     **Guidelines for Contextualization Fields:**
 
@@ -261,6 +309,7 @@ const newStoryPrompt = function() {
   All of these fields need to use maximally neutral language. Posts often will used biased language, so steer clear of that.
   The Title should be 2-6 words categorical description of the Story.
   Description should be 1-many sentences, and completely describes every detail we know about the Story. It should be focused around the event, and provide all known details and call out opinions.
+  *NOTE ON WEB SEARCH:* ${webSearchPrompt()}
 
   HappenedAt:
   'happenedAt' is the time the event happened in the REAL WORLD, not the timestamp of the Posts. Determine when the Story "happenedAt" based on the time the Post(s) were created, as well as context in the Post(s). Eg., if a Post says "today Trump had a rally in the Bronx", and the Post 'sourceCreatedAt' is at 9PM Eastern, the "happenedAt" is the time of the rally, since 'day' is mentioned, our best guess would be 2PM ET (but outputted in ISO 8601 format). If there is a range of time, favor recency; e.g. if a post says "in 2024 X had its best year ever", the happenedAt is the very end of 2024 or the current date if it is in 2024.
@@ -288,10 +337,6 @@ const storyDescriptionPrompt = function() {
   A Story may have photos, which are images that are associated with the Story.
   A Story may have Statements, which are either Claims, or Opinions that are either supported or refuted by the Posts.
   `;
-};
-
-const storyJSONOutput = function() {
-  return `"stories":[{"sid": ID of the Story or null if Story is new, "title": "title of the story", "description": "the full description of the story; literally everything we possibly know, in a useful vector searchable description", "happenedAt": ISO 8601 time format that the event happened at, or null if it cannot be determined, "lat": latitude best estimate of the location of the Story, "long": longitude best estimate, "photos": [{"photoURL": photoURL field in the Post if any, "description": description of the photo}, {"photoURL": photo 2, "description": desc for photo 2}, ...list of ALL RELEVANT AND CLEARLY UNIQUE photos taken from the Posts ordered by most interesting], "removedStories":["sid1", "sid2", ...]`;
 };
 
 //
@@ -350,17 +395,13 @@ const newStatementPrompt = function() {
   `;
 };
 
-const statementJSONOutput = function() {
-  return `{"statements":[{"stid":ID of the Statement or null if the Statement is new, "value": "text of the statement", "side": "pro" or "against", "context": "contextual information that is used for vector search, and also for describing all details about the statement", "statedAt": "ISO 8601 time format that informs us what the Statement is valid for", "type": "claim" or "opinion"}, ...], "removedStatements":["stid1", "stid2", ...]}`;
-};
+// (Deprecated) JSON output templates are no longer used; schemas enforce structure.
 
 //
 // Contextualization
 //
 
-const contextJSONOutput = function() {
-  return `{"sid": ID of the Story, "headline": "headline of the story", "subHeadline": "subHeadline of the story", "lede": "lede of the story", "article": "article of the story, can be omitted if there is no more information than the lede"}`;
-};
+// (Deprecated)
 
 const confidenceDescriptionPrompt = function() {
   return `
@@ -684,6 +725,16 @@ const storiesToJSON = function(stories, includePhotosDescription = true, include
   return "[" + stories.map((story) => storyToJSON(story, includePhotosDescription, includeContext)) + "]";
 };
 
+const webSearchPrompt = function() {
+  return `
+    - You *must* use web search to fill in gaps that are not clear from the provided information.
+    -- Eg., if a post mentions POTUS, you must use web search to find out who POTUS is.
+    - HOWEVER: only information that is provided from our system can be used to make any claims or provide any opinions in the output. That is, the web helps you understand the overall picture, but our information (if any) is the only authority.
+    -- Eg., We do not trust the web!
+    - *NEVER* CITE THE WEB SEARCH IN THE OUTPUT.
+  `;
+};
+
 module.exports = {
   findStoriesPrompt,
   findStatementsPrompt,
@@ -695,7 +746,6 @@ module.exports = {
   //
   //
   storyDescriptionPrompt,
-  storyJSONOutput,
   confidenceDescriptionPrompt,
   biasDescriptionPrompt,
   //

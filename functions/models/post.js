@@ -46,6 +46,7 @@ const _ = require("lodash");
 const {xupdatePost} = require("../content/xscraper");
 const {generateCompletions} = require("../common/llm");
 const {generateImageDescriptionPrompt} = require("../ai/prompts");
+const {imageDescriptionSchema} = require("../ai/prompt_schemas");
 const {tryQueueTask,
   POST_SHOULD_FIND_STORIES_TASK,
   queueTask,
@@ -451,6 +452,7 @@ const postChangedContent = async function(before, after) {
      after.photo?.photoURL && !after.photo?.description) {
     const resp = await generateCompletions({
       messages: generateImageDescriptionPrompt(after.photo.photoURL),
+      responseSchema: imageDescriptionSchema(),
       loggingText: after.pid + " photoURL",
     });
     if (!resp?.description) {

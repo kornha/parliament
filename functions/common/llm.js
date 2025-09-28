@@ -24,13 +24,13 @@ const llm = function() {
 /**
  * Generates completions for the given prompt
  * @param {List<Message>} messages since images needs to be separated
+ * @param {ResponseFormatTextConfig} responseFormat optional responseFormat
  * @param {string} loggingText optional loggingText
- * @param {number} temperature optional temperature
  * @return {Promise<string>} completion response
  */
 const generateCompletions = async function({
   messages,
-  temperature = 0.00,
+  responseSchema,
   loggingText = null,
 }) {
   if (messages.length === 0) {
@@ -43,36 +43,18 @@ const generateCompletions = async function({
     loggingText : `${messages.length} messages`);
 
   try {
-    const completion = await llm().chat.completions.create({
-      messages: [
-        {
-          role: "system",
-          content: `You are a machine that only returns and replies with valid,
-              iterable RFC8259 compliant JSON in your responses 
-              with no leading or trailing characters`,
-        },
-        {
-          "role": "user",
-          "content": messages,
-        },
-
-      ],
-      // max_tokens: 300,
-      // temperature: temperature,
+    const response = await llm().responses.create({
       model: "gpt-5",
-      reasoning_effort: "low",
-      response_format: {"type": "json_object"},
+      input: messages,
+      reasoning: {effort: "low"},
+      text: {format: responseSchema},
+      tools: [{type: "web_search"}],
+      tool_choice: "auto",
     });
 
-    if (!completion.choices[0].message.content) {
-      // we warn not error to keep things tidy
-      // TODO: when o1-mini handles images we will add it as a retry option
-      logger.warn(`Invalid generation for ${loggingText}!`);
-      return null;
-    }
-    const generation = JSON.parse(completion.choices[0].message.content);
+    const generation = JSON.parse(response.output_text);
 
-    logger.info(`Tokens used: ${completion.usage.total_tokens}`);
+    logger.info(`Tokens used: ${response.usage.total_tokens}`);
 
     return generation;
   } catch (e) {

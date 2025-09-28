@@ -4,6 +4,7 @@ const {setVector, getStatement,
 const {generateEmbeddings, generateCompletions} = require("../common/llm");
 const {writeTrainingData} = require("./trainer");
 const {findStatementsPrompt} = require("./prompts");
+const {statementOutputSchema} = require("./prompt_schemas");
 const {logger} = require("firebase-functions/v2");
 const {isInvalidImageError,
   extractInvalidImageUrl,
@@ -29,6 +30,7 @@ const findStatements = async function(post, statements) {
     resp = await retryAsyncFunction(() => {
       return generateCompletions({
         messages: prompt,
+        responseSchema: statementOutputSchema(),
         loggingText: "findStatements " + post.pid,
       });
     }, 2);
