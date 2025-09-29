@@ -40,7 +40,7 @@ async function onFiveMinutes() {
   await publishMessage(SHOULD_SCRAPE_FEED, {
     link: "https://x.com",
     metaFeed: false,
-    limit: 20,
+    limit: 40,
   });
 }
 

@@ -44,7 +44,7 @@ const generateCompletions = async function({
 
   try {
     const response = await llm().responses.create({
-      model: "gpt-5",
+      model: "gpt-5-mini",
       input: messages,
       reasoning: {effort: "low"},
       text: {format: responseSchema},
