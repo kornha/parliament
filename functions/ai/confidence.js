@@ -204,58 +204,51 @@ async function onStatementShouldChangeConfidence(stid) {
 
 /**
  * Calculate the confidence of a statement based on its entities.
- * @param {Statement} statement The statement id object.
- * @param {Entity[]} entities The array of entity objects.
- * @return {number} The nullable confidence of the statement.
+ * Uses margin-from-0.5 weighting so near-neutral entities contribute little,
+ * but always returns a number (falls back to 0.5 if no signal).
+ *
+ * @param {Statement} statement
+ * @param {Entity[]} entities
+ * @return {number} Confidence in [0,1]
  */
 function calculateStatementConfidence(statement, entities) {
-  if (entities.length === 0) {
-    return null;
-  }
+  if (!entities || entities.length === 0) return 0.5; // no evidence → neutral
+
+  const GAMMA = 2.5; // steeper -> 0.55–0.65 counts much less
 
   let weightedSum = 0;
   let totalWeight = 0;
 
-  for (let i = 0; i < entities.length; i++) {
-    const entity = entities[i];
+  for (const entity of entities) {
+    const e = entity?.confidence;
+    if (e == null) continue;
 
     const pro =
-      statement.pro?.some((pid) => entity.pids.includes(pid)) ?? false;
+      statement.pro?.some((pid) => entity.pids?.includes(pid)) ?? false;
     const against =
-      statement.against?.some((pid) => entity.pids.includes(pid)) ?? false;
+      statement.against?.some((pid) => entity.pids?.includes(pid)) ?? false;
 
-    if (!pro && !against || !entity.confidence) {
-      continue;
-    }
+    if (!pro && !against) continue;
 
-    let confidence = entity.confidence;
+    // weight = distance from 0.5 in either direction
+    const margin = Math.abs(e - 0.5) / 0.5; // 0 at 0.5, 1 at 0 or 1
+    const w = Math.pow(margin, GAMMA);
 
-    // Reverse confidence if the entity is "anti" the statement
-    if (against) {
-      confidence = 1 - confidence;
-    }
+    // effective confidence: flip only value, not weight
+    const eff = pro ? e : (against ? (1 - e) : null);
+    if (eff == null) continue;
 
-    // Inverse Quadratic Weighting: weight = 1 - (1 - confidence)^exponent
-    // This is done to weight high/lows confidence more heavily
-    const EXPONENT = 2.65; // magic to grow faster
-    const weight = 1 - Math.pow(1 - confidence, EXPONENT);
-
-    // Add to weighted sum
-    weightedSum += weight * confidence;
-    totalWeight += weight;
+    weightedSum += w * eff;
+    totalWeight += w;
   }
 
-  // if no entities have confidence, don't update
-  if (totalWeight == 0) {
-    return null;
-  }
+  // if no non-neutral weights, just return 0.5
+  if (totalWeight === 0) return 0.5;
 
-  // Calculate new confidence
   const newConfidence = weightedSum / totalWeight;
-
-  // Ensure confidence is within [0, 1]
   return Math.max(0, Math.min(1, newConfidence));
 }
+
 
 /**
  * Check if a statement crossed the confidence threshold.
