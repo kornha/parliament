@@ -33,6 +33,20 @@ const _xEmailKey = defineSecret("X_EMAIL_KEY");
 const _userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.99 Safari/537.36";
 
 /**
+ * Common Puppeteer launch options.
+ * Uses system Chrome to avoid bundled-Chromium / macOS incompatibilities.
+ */
+const _launchOptions = {
+  headless: "new",
+  executablePath: process.env.PUPPETEER_EXECUTABLE_PATH ||
+    (process.platform === "darwin" ?
+      "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" :
+      undefined),
+  args: [
+  ],
+};
+
+/**
  * REQUIRES 1GB TO RUN!
  * REQUIRES LONGER TIMEOUT
  * Scrapes X feed for new posts and publishes the urls
@@ -43,7 +57,7 @@ const _userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
 const scrapeXFeed = async function(feedUrl, limit) {
   logger.info(`Started scraping X feed. ${feedUrl} (limit=${limit})`);
 
-  const browser = await puppeteer.launch({headless: "new"});
+  const browser = await puppeteer.launch(_launchOptions);
   try {
     const page = await browser.newPage();
     await connectToX(page);
@@ -76,7 +90,7 @@ const scrapeXFeed = async function(feedUrl, limit) {
 const scrapeXTopNews = async function(url = "https://x.com/explore/tabs/news", limit = 1) {
   logger.info("Started scraping top X news.");
 
-  const browser = await puppeteer.launch({headless: "new"});
+  const browser = await puppeteer.launch(_launchOptions);
   try {
     const page = await browser.newPage();
 
@@ -422,9 +436,20 @@ const processXLinks = async function(xLinks, poster = null) {
  * @return {string?} with photoURL
  */
 const getContentFromX = async function(url) {
-  const browser = await puppeteer.launch({headless: "new"});
+  const browser = await puppeteer.launch(_launchOptions);
   try {
     const page = await browser.newPage();
+
+    // Authenticate like connectToX: X blocks the automated browser with a
+    // login wall otherwise, so the tweet GraphQL response never loads.
+    await page.setUserAgent(_userAgent);
+    await page.setViewport({width: 1280, height: 720});
+    const cookiesString = await getContent("cookies/x.json");
+    if (cookiesString) {
+      await page.setCookie(...JSON.parse(cookiesString));
+    } else {
+      logger.warn("No X cookies found; tweet fetch will likely be blocked.");
+    }
 
     // Variables to store extracted data
     let tweetVideoURL = null;
@@ -669,7 +694,7 @@ const getEntityImage = async function(handle, platform) {
  * @return {string} with photoURL
  * */
 const getEntityImageFromX = async function(handle) {
-  const browser = await puppeteer.launch({headless: "new"});
+  const browser = await puppeteer.launch(_launchOptions);
   try {
     const page = await browser.newPage();
 

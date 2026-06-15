@@ -61,6 +61,9 @@ const PLATFORM_CHANGED_STATS = "onPlatformChangedStats";
 const SHOULD_SCRAPE_FEED = "onShouldScrapeFeed";
 const SHOULD_PROCESS_LINK = "onShouldProcessLink";
 
+// Maximum depth for ripple propagation (confidence/bias oscillation loops)
+const MAX_RIPPLE_DEPTH = 5;
+
 /**
  * Publishes a message to a Cloud Pub/Sub Topic.
  * @param {string} topic the topic to publish to.
@@ -74,8 +77,32 @@ async function publishMessage(topic, json) {
   }
 }
 
+/**
+ * Publishes a depth-aware message for ripple propagation chains
+ * that can oscillate (e.g. statement <-> entity confidence/bias).
+ * Automatically decrements depth before publishing.
+ * Stops publishing when depth is exhausted.
+ * @param {string} topic the topic to publish to.
+ * @param {json} json the value to publish.
+ * @param {number} depth the current ripple depth.
+ */
+async function publishRipple(topic, json, depth) {
+  const d = (depth ?? MAX_RIPPLE_DEPTH) - 1;
+  if (d <= 0) {
+    logger.warn(`Ripple depth exhausted for topic ${topic}, stopping.`);
+    return;
+  }
+  try {
+    await pubsub.topic(topic).publishMessage({json: {...json, depth: d}});
+  } catch (error) {
+    logger.error(`Error publishing ripple message: ${error}`);
+  }
+}
+
 module.exports = {
   publishMessage,
+  publishRipple,
+  MAX_RIPPLE_DEPTH,
   POST_CHANGED_STORIES,
   POST_CHANGED_STATEMENTS,
   POST_PUBLISHED,

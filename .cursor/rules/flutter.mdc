@@ -1,0 +1,195 @@
+---
+description: Flutter/Dart conventions for the political_think app
+globs: lib/**/*.dart
+alwaysApply: false
+---
+
+# Flutter Conventions
+
+## State Management -- Riverpod
+
+Use `hooks_riverpod` exclusively. The app is wrapped in `ProviderScope` in `main.dart`.
+
+### Widget types:
+- `ConsumerWidget` for stateless widgets that need providers
+- `ConsumerStatefulWidget` for stateful widgets that need providers
+
+### Provider types used:
+- `StreamProvider` -- for Firestore document/collection streams (most data)
+- `ChangeNotifierProvider` -- for `authProvider` (authentication state)
+- `StateNotifierProvider` -- for `storiesProvider` (paginated feed)
+- `StateProvider` -- for `pagingControllerProvider` (feed refresh)
+
+### Accessing providers via extensions (from `extensions.dart`):
+
+Use the `WidgetRef` extensions rather than raw `ref.watch`/`ref.read`:
+
+```dart
+// Stories, posts, statements, entities
+ref.storyWatch(sid)       // AsyncValue<Story?>
+ref.postWatch(pid)        // AsyncValue<Post?>
+ref.statementsWatch(stids) // AsyncValue<List<Statement>?>
+ref.entityWatch(eid)      // AsyncValue<Entity?>
+
+// Auth
+ref.authWatch             // Auth object
+ref.isAdmin               // bool
+ref.selfUserWatch()       // AsyncValue<ZUser?>
+ref.user()                // ZUser (assumes logged in)
+
+// Votes
+ref.voteWatch(pid, uid, type) // AsyncValue<Vote?>
+```
+
+## Theming
+
+Access colors via `BuildContext` extensions (from `extensions.dart`), NOT raw `Theme.of(context)`:
+
+```dart
+context.backgroundColor        // surface color
+context.primaryColor            // primary color
+context.secondaryColor          // green accent
+context.errorColor              // purple (used for errors)
+context.surfaceColor            // surfaceDim
+context.onBackgroundColor       // onSurface
+context.primaryColorWithOpacity // primary at 0.2 opacity
+```
+
+Color palette is in `constants.dart` (`Palette` class):
+- `Palette.black`, `Palette.white`, `Palette.green`, `Palette.purple`, `Palette.red`, etc.
+
+Two themes: `ZTheme.darkTheme` and `ZTheme.lightTheme`.
+Dark mode check: `context.isDarkMode`.
+
+## Spacing and Padding
+
+Use `BuildContext` extensions (from `extensions.dart`), NOT raw `EdgeInsets` or `SizedBox`:
+
+### Padding (EdgeInsets):
+```dart
+context.pf    // full padding (16 all sides)
+context.ph    // half padding (8 all sides)
+context.pq    // quarter padding (4 all sides)
+context.pfh   // full horizontal, half vertical
+context.pz    // zero padding
+context.blockMargin   // quarter all sides (standard block margin)
+context.blockPadding  // quarter all sides (standard block padding)
+```
+
+### SizedBox spacers:
+```dart
+context.sl    // least (2)
+context.sq    // quarter (4)
+context.sh    // half (8)
+context.stq   // three-quarter (12)
+context.sf    // full (16)
+context.sth   // 1.5x (24)
+context.sd    // double (32)
+context.sfh   // 2.5x (40)
+context.st    // triple (48)
+context.sqd   // quadruple (64)
+```
+
+### Margin constants (`Margins` class in `constants.dart`):
+- Base unit: `Margins.full = 16.0`
+- Scale: `least` (2), `quarter` (4), `half` (8), `threeQuarter` (12), `full` (16), `twice` (32), `triple` (48), up to `octuple` (128)
+
+## Typography
+
+Access text styles via `BuildContext` extensions:
+
+```dart
+context.h1, context.h2, context.h3  // headlines
+context.h4, context.h5, context.h6  // titles
+context.l, context.m, context.s      // body (large, medium, small)
+context.h1b, context.lb, context.mb  // bold variants
+context.d1, context.d2, context.d3   // display styles
+context.ah2, context.al, context.am  // "Minecart" font variants
+```
+
+Fonts: Georgia for display/headline, Avenir for body, Nunito as base.
+
+## Components
+
+All reusable components are prefixed with `Z` and live in `lib/common/components/`:
+
+- `ZScaffold` -- app scaffold with safe area handling
+- `ZAppBar` -- custom app bar
+- `ZTextButton` -- styled text button
+- `ZTextField` -- styled text input
+- `ZListView` -- styled list view
+- `ZDivider` -- styled divider
+- `ZIconText` -- icon + text combo
+- `ZTabBar` -- tab bar
+- `ZExpansionTile` -- expandable tile
+- `ZBackButton` -- back navigation
+- `ZNavigationScaffold` -- navigation wrapper
+- `ZError` -- error display
+
+Other components (no Z prefix): `Loading`, `LoadingShimmer`, `ProfileIcon`, `Logo`, `Branding`, `ConfidenceComponent`, `PoliticalPositionComponent`, `StatsTable`, `ModalContainer`, `InfoView`, `TimeComponent`, `IconGrid`, `CommentWidget`, `LocationMap`
+
+## Layout Constants
+
+```dart
+BRadius.standard  // 8px border radius (most common)
+BRadius.steep     // 32px border radius
+BRadius.circular  // 64px (fully rounded)
+BRadius.little    // 4px
+BRadius.least     // 2px
+
+Curvature.standard // Radius.circular(8.0)
+
+Thickness.least    // 0.25
+Thickness.small    // 1.0
+Thickness.standard // 1.5
+
+IconSize.small     // 12.5
+IconSize.standard  // 24.0
+IconSize.large     // 33
+```
+
+## Responsive Design
+
+Use `BuildContext` extensions:
+
+```dart
+context.isMobile         // width < 600
+context.isTablet         // 600-1000
+context.isDesktop        // width > 1000
+context.isMobileOrTablet // < 1000
+context.isWeb            // kIsWeb
+context.isTrueMobile     // mobile + not web
+context.blockSize        // responsive block size (max 800w, 16:9)
+context.screenBlock      // full screen block with safe area
+```
+
+## Navigation
+
+Use `GoRouter` via `BuildContext` extension:
+
+```dart
+context.route('/path')   // push if different from current
+context.router           // GoRouter instance
+context.currentLocation  // current path
+```
+
+## Modals and Toasts
+
+```dart
+context.showModal(widget)            // bottom sheet (mobile) or dialog (desktop)
+context.showFullScreenModal(widget)  // full screen dialog
+context.showToast('message')         // top toast notification
+context.showToast('error', isError: true) // error toast
+```
+
+## General Rules
+
+- Follow existing patterns rigorously
+- Use `context.` extensions for all theming, spacing, and sizing
+- Use `ref.` extensions for all provider access
+- Prefix new reusable components with `Z`
+- Place models in `lib/common/models/`
+- Place services in `lib/common/services/`
+- Place view screens in `lib/views/[feature]/`
+- Use `const` constructors wherever possible
+- Use FontAwesome icons (`FontAwesomeIcons.*`)

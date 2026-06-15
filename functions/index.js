@@ -95,11 +95,11 @@ if (process.env.FUNCTIONS_EMULATOR === "true") {
       if (message.task == POST_SHOULD_FIND_STORIES_TASK) {
         logger.info(
             `local onPostShouldFindStoriesTask: ${message.pid}`);
-        await shouldFindStories(message.pid);
+        await shouldFindStories(message.pid, message.depth);
       } else if (message.task == POST_SHOULD_FIND_STATEMENTS_TASK) {
         logger.info(
             `local onPostShouldFindStatementsTask: ${message.pid}`);
-        await shouldFindStatements(message.pid);
+        await shouldFindStatements(message.pid, message.depth);
       } else if (message.task == STORY_SHOULD_FIND_CONTEXT_TASK) {
         logger.info(
             `local onStoryShouldFindContextTask: ${message.sid}`);

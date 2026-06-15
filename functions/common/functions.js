@@ -16,12 +16,14 @@ exports.defaultConfig = {
   // we dont list memory since we still use this for v1 and v2
   // and they use dif formats MiB vs MB
   secrets: secretsList,
+  maxInstances: 10,
 };
 
 exports.gbConfig = {
   timeoutSeconds: 60,
   memory: "2GiB",
   secrets: secretsList,
+  maxInstances: 10,
 };
 
 /* puppeteer limitations
@@ -32,6 +34,7 @@ exports.gbConfig = {
 exports.scrapeConfig = {
   timeoutSeconds: 300,
   concurrency: 1,
+  maxInstances: 5,
   memory: "2GiB",
   secrets: secretsList,
 };

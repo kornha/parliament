@@ -86,7 +86,7 @@ class _AboutState extends State<About> {
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(FontAwesomeIcons.github),
+              Icon(FontAwesomeIcons.github.data),
               context.sh,
               const Text("View Repository"),
             ],
@@ -105,7 +105,7 @@ class _AboutState extends State<About> {
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(FontAwesomeIcons.discord),
+              Icon(FontAwesomeIcons.discord.data),
               context.sh,
               const Text("Join Our Discord"),
             ],

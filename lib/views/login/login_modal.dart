@@ -25,7 +25,7 @@ class LoginModal extends StatelessWidget {
             children: [
               Text("Sign in with  ",
                   style: context.m.copyWith(color: context.onSecondaryColor)),
-              Icon(FontAwesomeIcons.google, color: context.onSecondaryColor),
+              Icon(FontAwesomeIcons.google.data, color: context.onSecondaryColor),
             ],
           ),
           onPressed: () async {
@@ -50,7 +50,7 @@ class LoginModal extends StatelessWidget {
             children: [
               Text("Sign in with  ",
                   style: context.m.copyWith(color: context.onBackgroundColor)),
-              Icon(FontAwesomeIcons.apple, color: context.onBackgroundColor),
+              Icon(FontAwesomeIcons.apple.data, color: context.onBackgroundColor),
             ],
           ),
           onPressed: () async {
@@ -81,7 +81,7 @@ class LoginModal extends StatelessWidget {
         //     mainAxisSize: MainAxisSize.min,
         //     children: [
         //       Text("Sign in with  "),
-        //       Icon(FontAwesomeIcons.github),
+        //       Icon(FontAwesomeIcons.github.data),
         //     ],
         //   ),
         // ),

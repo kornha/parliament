@@ -1,7 +1,7 @@
 const {onDocumentWritten} = require("firebase-functions/v2/firestore");
 const {onMessagePublished} = require("firebase-functions/v2/pubsub");
 const {defaultConfig, scrapeConfig, gbConfig} = require("../common/functions");
-const {publishMessage,
+const {publishMessage, publishRipple,
   ENTITY_SHOULD_CHANGE_IMAGE,
   POST_CHANGED_ENTITY,
   ENTITY_CHANGED_POSTS,
@@ -212,9 +212,9 @@ exports.onEntityChangedConfidence = onMessagePublished(
       ...defaultConfig,
     },
     async (event) => {
-      const before = event.data.message.json.before;
-      const after = event.data.message.json.after;
-      logger.info(`onEntityChangedConfidence ${after?.eid || before?.eid}`);
+      const {before, after, depth} = event.data.message.json;
+      logger.info(`onEntityChangedConfidence ${after?.eid || before?.eid}` +
+          ` depth: ${depth}`);
       const eid = after?.eid || before?.eid;
       if (!eid) {
         return Promise.resolve();
@@ -228,8 +228,8 @@ exports.onEntityChangedConfidence = onMessagePublished(
 
       for (const statement of statements) {
         if (statement.type == "claim") {
-          await publishMessage(STATEMENT_SHOULD_CHANGE_CONFIDENCE,
-              {stid: statement.stid});
+          await publishRipple(STATEMENT_SHOULD_CHANGE_CONFIDENCE,
+              {stid: statement.stid}, depth);
         }
       }
 
@@ -265,9 +265,9 @@ exports.onEntityChangedBias = onMessagePublished(
       ...defaultConfig,
     },
     async (event) => {
-      const before = event.data.message.json.before;
-      const after = event.data.message.json.after;
-      logger.info(`onEntityChangedBias ${after?.eid || before?.eid}`);
+      const {before, after, depth} = event.data.message.json;
+      logger.info(`onEntityChangedBias ${after?.eid || before?.eid}` +
+          ` depth: ${depth}`);
       const eid = after?.eid || before?.eid;
       if (!eid) {
         return Promise.resolve();
@@ -281,8 +281,8 @@ exports.onEntityChangedBias = onMessagePublished(
 
       for (const statement of statements) {
         if (statement.type == "opinion") {
-          await publishMessage(STATEMENT_SHOULD_CHANGE_BIAS,
-              {stid: statement.stid});
+          await publishRipple(STATEMENT_SHOULD_CHANGE_BIAS,
+              {stid: statement.stid}, depth);
         }
       }
 

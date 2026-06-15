@@ -499,7 +499,8 @@ exports.onPostShouldFindStoriesTask = onTaskDispatched(
       logger.info(
           `onPostShouldFindStoriesTask: ${event.data.pid}`);
       const pid = event.data.pid;
-      await _shouldFindStories(pid);
+      const depth = event.data.depth;
+      await _shouldFindStories(pid, depth);
       return Promise.resolve();
     },
 );
@@ -523,9 +524,9 @@ exports.onPostShouldFindStories = onMessagePublished(
     },
 );
 
-const _shouldFindStories = async function(pid) {
+const _shouldFindStories = async function(pid, depth) {
   const post = await getPost(pid);
-  await onPostShouldFindStories(post);
+  await onPostShouldFindStories(post, depth);
 
   return Promise.resolve();
 };
@@ -545,14 +546,15 @@ exports.onPostShouldFindStatementsTask = onTaskDispatched(
       logger.info(
           `onPostShouldFindStatementsTask: ${event.data.pid}`);
       const pid = event.data.pid;
-      await _shouldFindStatements(pid);
+      const depth = event.data.depth;
+      await _shouldFindStatements(pid, depth);
       return Promise.resolve();
     },
 );
 
-const _shouldFindStatements = async function(pid) {
+const _shouldFindStatements = async function(pid, depth) {
   const post = await getPost(pid);
-  await onPostShouldFindStatements(post);
+  await onPostShouldFindStatements(post, depth);
 
   return Promise.resolve();
 };

@@ -1,0 +1,23 @@
+# Node modules
+node_modules/
+functions/node_modules/
+
+# Flutter/Dart build artifacts
+build/
+.dart_tool/
+.pub-cache/
+.pub/
+
+# Firebase
+.firebase/
+functions/.cache/
+functions/emulator/
+
+# Unsupported platforms
+linux/
+macos/
+windows/
+android/
+
+# Misc
+.mypy_cache/

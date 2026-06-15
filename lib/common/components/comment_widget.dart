@@ -30,7 +30,7 @@ class CommentWidget extends StatelessWidget {
         alignment: Alignment.center,
         children: [
           Icon(
-            FontAwesomeIcons.handFist,
+            FontAwesomeIcons.handFist.data,
             size: size ?? context.iconSizeLarge,
             color: position?.color.withOpacity(0.25) ??
                 context.primaryColorWithOpacity,

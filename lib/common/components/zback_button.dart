@@ -12,7 +12,7 @@ class ZBackButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return IconButton(
       iconSize: context.iconSizeStandard,
-      icon: const Icon(FontAwesomeIcons.chevronLeft),
+      icon: Icon(FontAwesomeIcons.chevronLeft.data),
       color: context.primaryColor,
       onPressed: () {
         if (context.canPop()) {

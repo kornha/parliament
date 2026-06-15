@@ -109,6 +109,6 @@ class DotsSize {
 }
 
 class ZIcons {
-  static const IconData error = FontAwesomeIcons.faceAngry;
-  static const IconData check = FontAwesomeIcons.check;
+  static final IconData error = FontAwesomeIcons.faceAngry.data;
+  static final IconData check = FontAwesomeIcons.check.data;
 }

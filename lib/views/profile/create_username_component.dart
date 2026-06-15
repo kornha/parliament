@@ -103,7 +103,7 @@ class _CreateUsernameComponentState
         Visibility(
           visible: showCheck,
           child: IconButton(
-            icon: const Icon(ZIcons.check),
+            icon: Icon(ZIcons.check),
             color: context.secondaryColor,
             onPressed: () {
               // update the user's username
@@ -126,7 +126,7 @@ class _CreateUsernameComponentState
         Visibility(
           visible: showClosed,
           child: IconButton(
-            icon: const Icon(FontAwesomeIcons.close),
+            icon: Icon(FontAwesomeIcons.close.data),
             color: context.surfaceColor,
             onPressed: () {
               if (widget.onClose != null) {

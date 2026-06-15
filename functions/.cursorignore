@@ -1,0 +1,8 @@
+# Node modules
+node_modules/
+
+# Puppeteer cache
+.cache/
+
+# Local emulator
+emulator/

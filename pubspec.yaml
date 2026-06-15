@@ -1,7 +1,7 @@
 name: political_think
 description: An open-source news project that organizes news into `Confidence`, `Bias`, `Newsworthiness`, and `Contextualization` to tell maximally truthful news in a clear and measurable way.
 
-version: 1.20.2+1
+version: 2.0.0+1
 
 environment:
   sdk: '>=3.0.0'
@@ -18,7 +18,7 @@ dependencies:
   firebase_auth: ^5.0.0
   google_sign_in_web: ^0.12.4+3 # specified since default version doesnt work with wasm
   google_sign_in: ^6.2.2
-  font_awesome_flutter: ^10.7.0
+  font_awesome_flutter: ^11.0.0
   cloud_firestore: ^5.0.0
   json_serializable: ^6.7.1
   flutter_spinkit: ^5.2.0
@@ -41,7 +41,7 @@ dependencies:
   date_count_down: ^3.0.0
   flutter_countdown_timer: ^4.1.0
   flutter_joystick: ^0.0.4
-  google_fonts: ^6.1.0
+  google_fonts: ^8.0.1
   countries_world_map: ^1.1.1
   google_maps_flutter: ^2.10.0
   http: ^1.1.2

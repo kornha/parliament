@@ -84,7 +84,7 @@ class ZTheme {
         const EdgeInsets.only(right: Margins.threeQuarter, left: Margins.half),
     sendButtonIcon: Icon(
       size: IconSize.standard,
-      FontAwesomeIcons.chevronRight,
+      FontAwesomeIcons.chevronRight.data,
       color: darkTheme.colorScheme.secondary,
     ),
     // inputPadding: const EdgeInsets.symmetric(
@@ -118,7 +118,7 @@ class ZTheme {
         const EdgeInsets.only(right: Margins.threeQuarter, left: Margins.half),
     sendButtonIcon: Icon(
       size: IconSize.standard,
-      FontAwesomeIcons.chevronRight,
+      FontAwesomeIcons.chevronRight.data,
       color: lightTheme.colorScheme.secondary,
     ),
     // inputPadding: const EdgeInsets.symmetric(

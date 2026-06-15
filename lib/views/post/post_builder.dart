@@ -232,7 +232,7 @@ class PasteArea extends StatelessWidget {
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  const Icon(FontAwesomeIcons.solidNewspaper),
+                                  Icon(FontAwesomeIcons.solidNewspaper.data),
                                   context.sq,
                                   Text(" Article", style: context.l),
                                 ],
@@ -241,7 +241,7 @@ class PasteArea extends StatelessWidget {
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  const Icon(FontAwesomeIcons.xTwitter),
+                                  Icon(FontAwesomeIcons.xTwitter.data),
                                   context.sq,
                                   Text(" X/Twitter", style: context.l),
                                 ],
@@ -252,15 +252,15 @@ class PasteArea extends StatelessWidget {
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  const Icon(FontAwesomeIcons.tiktok),
+                                  Icon(FontAwesomeIcons.tiktok.data),
                                   context.sq,
-                                  const Icon(FontAwesomeIcons.reddit),
+                                  Icon(FontAwesomeIcons.reddit.data),
                                   context.sq,
-                                  const Icon(FontAwesomeIcons.instagram),
+                                  Icon(FontAwesomeIcons.instagram.data),
                                   context.sq,
-                                  const Icon(FontAwesomeIcons.facebook),
+                                  Icon(FontAwesomeIcons.facebook.data),
                                   context.sq,
-                                  const Icon(FontAwesomeIcons.youtube),
+                                  Icon(FontAwesomeIcons.youtube.data),
                                 ],
                               ),
                               context.sq,

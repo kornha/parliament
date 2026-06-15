@@ -7,7 +7,7 @@ const {setStatement,
   deleteStatement,
   updateStatement} = require("../common/database");
 const _ = require("lodash");
-const {publishMessage,
+const {publishMessage, publishRipple,
   STATEMENT_CHANGED_POSTS, STATEMENT_CHANGED_STORIES,
   POST_CHANGED_STATEMENTS,
   STORY_CHANGED_STATEMENTS,
@@ -171,10 +171,9 @@ exports.onStatementChangedConfidence = onMessagePublished(
       ...defaultConfig,
     },
     async (event) => {
-      const before = event.data.message.json.before;
-      const after = event.data.message.json.after;
+      const {before, after, depth} = event.data.message.json;
       logger.info("onStatementChangedConfidence stid: ",
-          after?.stid || before?.stid);
+          after?.stid || before?.stid, " depth: ", depth);
 
       if (!confidenceDidCrossThreshold(before, after)) {
         return Promise.resolve();
@@ -182,17 +181,20 @@ exports.onStatementChangedConfidence = onMessagePublished(
 
       const eids = after?.eids ?? before?.eids;
       for (const eid of eids) {
-        await publishMessage(ENTITY_SHOULD_CHANGE_CONFIDENCE, {eid: eid});
+        await publishRipple(ENTITY_SHOULD_CHANGE_CONFIDENCE,
+            {eid: eid}, depth);
       }
 
       const pids = after?.pids ?? before?.pids;
       for (const pid of pids) {
-        await publishMessage(POST_SHOULD_CHANGE_CONFIDENCE, {pid: pid});
+        await publishRipple(POST_SHOULD_CHANGE_CONFIDENCE,
+            {pid: pid}, depth);
       }
 
       const sids = after?.sids ?? before?.sids;
       for (const sid of sids) {
-        await publishMessage(STORY_SHOULD_CHANGE_CONFIDENCE, {sid: sid});
+        await publishRipple(STORY_SHOULD_CHANGE_CONFIDENCE,
+            {sid: sid}, depth);
       }
 
       // TODO: also inform the story to update its description
@@ -230,26 +232,29 @@ exports.onStatementChangedBias = onMessagePublished(
       ...defaultConfig,
     },
     async (event) => {
-      const before = event.data.message.json.before;
-      const after = event.data.message.json.after;
-      logger.info("onStatementChangedBias stid: ", after?.stid || before?.stid);
+      const {before, after, depth} = event.data.message.json;
+      logger.info("onStatementChangedBias stid: ",
+          after?.stid || before?.stid, " depth: ", depth);
       if (!biasDidCrossThreshold(before, after)) {
         return Promise.resolve();
       }
 
       const eids = after?.eids ?? before?.eids;
       for (const eid of eids) {
-        await publishMessage(ENTITY_SHOULD_CHANGE_BIAS, {eid: eid});
+        await publishRipple(ENTITY_SHOULD_CHANGE_BIAS,
+            {eid: eid}, depth);
       }
 
       const pids = after?.pids ?? before?.pids;
       for (const pid of pids) {
-        await publishMessage(POST_SHOULD_CHANGE_BIAS, {pid: pid});
+        await publishRipple(POST_SHOULD_CHANGE_BIAS,
+            {pid: pid}, depth);
       }
 
       const sids = after?.sids ?? before?.sids;
       for (const sid of sids) {
-        await publishMessage(STORY_SHOULD_CHANGE_BIAS, {sid: sid});
+        await publishRipple(STORY_SHOULD_CHANGE_BIAS,
+            {sid: sid}, depth);
       }
 
       // TODO: also inform the story to update its description

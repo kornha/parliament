@@ -53,7 +53,7 @@ class DownloapApp extends StatelessWidget {
       },
       foregroundColor: context.secondaryColor,
       child: ZIconText(
-        icon: FontAwesomeIcons.apple,
+        icon: FontAwesomeIcons.apple.data,
         style: context.mb.copyWith(
           color: context.secondaryColor,
         ),

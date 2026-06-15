@@ -3,6 +3,7 @@ const {logger} = require("firebase-functions/v2");
 const {GoogleAuth} = require("google-auth-library");
 const {isLocal} = require("./utils");
 const {database} = require("./database");
+const {MAX_RIPPLE_DEPTH} = require("./pubsub");
 
 
 const POST_SHOULD_FIND_STORIES_TASK = "onPostShouldFindStoriesTask";
@@ -121,8 +122,27 @@ const getFunctionUrl = async (name, location = "us-central1") => {
   return uri;
 };
 
+/**
+ * Depth-aware task queuing for ripple chains that can loop.
+ * Auto-decrements depth and skips when exhausted.
+ * @param {String} queue - The name of the queue.
+ * @param {Object} message - The message to enqueue.
+ * @param {number} depth - The current ripple depth.
+ * @param {Number} [delaySeconds=1] - The delay in seconds before executing.
+ */
+const queueRippleTask = async function(queue, message, depth,
+    delaySeconds = 1) {
+  const d = (depth ?? MAX_RIPPLE_DEPTH) - 1;
+  if (d <= 0) {
+    logger.warn(`Ripple depth exhausted for task ${queue}, skipping.`);
+    return;
+  }
+  await queueTask(queue, {...message, depth: d}, delaySeconds);
+};
+
 module.exports = {
   queueTask,
+  queueRippleTask,
   tryQueueTask,
   POST_SHOULD_FIND_STORIES_TASK,
   POST_SHOULD_FIND_STATEMENTS_TASK,

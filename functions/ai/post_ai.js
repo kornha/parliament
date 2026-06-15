@@ -30,7 +30,7 @@ const {findStatements, resetStatementVector} = require("./statement_ai");
 // eslint-disable-next-line no-unused-vars
 const {publishMessage, POST_SHOULD_FIND_STORIES} =
 require("../common/pubsub");
-const {queueTask,
+const {queueRippleTask,
   POST_SHOULD_FIND_STORIES_TASK, POST_SHOULD_FIND_STATEMENTS_TASK} =
 require("../common/tasks");
 
@@ -40,10 +40,11 @@ require("../common/tasks");
  * sets posts to stories
  *
  * @param {Post} post
+ * @param {number} [depth] - ripple depth for re-queuing limit
  * @return {Promise<void>}
  * ***************************************************************
  * */
-const onPostShouldFindStories = async function(post) {
+const onPostShouldFindStories = async function(post, depth) {
   if (!post) {
     logger.error("Post is null");
     return;
@@ -156,10 +157,8 @@ const onPostShouldFindStories = async function(post) {
       logger.info(`Deleted stories ${removedSids}`);
 
       changedPosts.forEach(async (post) => {
-        // publishMessage(POST_SHOULD_FIND_STORIES,
-        // {pid: post.pid});
-        queueTask(POST_SHOULD_FIND_STORIES_TASK,
-            {pid: post.pid});
+        queueRippleTask(POST_SHOULD_FIND_STORIES_TASK,
+            {pid: post.pid}, depth);
       });
     }
   }
@@ -179,10 +178,11 @@ const onPostShouldFindStories = async function(post) {
  * sets statements to stories
  *
  * @param {Post} post
+ * @param {number} [depth] - ripple depth for re-queuing limit
  * @return {Promise<void>}
  * ***************************************************************
  * */
-const onPostShouldFindStatements = async function(post) {
+const onPostShouldFindStatements = async function(post, depth) {
   if (!post) {
     logger.error("Post is null");
     return;
@@ -305,7 +305,8 @@ const onPostShouldFindStatements = async function(post) {
       logger.info(`Deleted statements ${resp.removedStatements}`);
 
       changedPosts.forEach(async (post) => {
-        queueTask(POST_SHOULD_FIND_STATEMENTS_TASK, {pid: post.pid});
+        queueRippleTask(POST_SHOULD_FIND_STATEMENTS_TASK,
+            {pid: post.pid}, depth);
       });
     }
   }

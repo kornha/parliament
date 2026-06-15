@@ -170,6 +170,7 @@ const findContext = async function(story, statements) {
     messages: _prompt,
     responseSchema: contextOutputSchema(),
     loggingText: "findContext " + story.sid,
+    useWebSearch: true,
   });
 
   if (!resp || !resp.sid) {

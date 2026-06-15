@@ -1,0 +1,129 @@
+---
+description: Firebase Cloud Functions conventions for the political_think backend
+globs: functions/**/*.js, functions/**/*.ts
+alwaysApply: false
+---
+
+# Firebase Cloud Functions Conventions
+
+## Project Structure
+
+- `functions/models/` -- Firestore CDC triggers (`onDocumentWritten`) and Pub/Sub subscriber handlers
+- `functions/ai/` -- LLM-powered logic (prompts, completions, AI algorithms)
+- `functions/common/` -- Shared utilities:
+  - `pubsub.js` -- Pub/Sub topic constants, `publishMessage`, `publishRipple`
+  - `tasks.js` -- Task queue helpers (`queueTask`, `tryQueueTask`)
+  - `functions.js` -- Function configs (`defaultConfig`, `gbConfig`, `scrapeConfig`)
+  - `database.js` -- Firestore CRUD helpers
+  - `utils.js` -- General utilities (`handleChangedRelations`, `retryAsyncFunction`, etc.)
+- `functions/services/` -- External service integrations (Twilio, auth)
+- `functions/content/` -- Content scraping
+
+## CDC (Change Data Capture) Triggers
+
+Use `onDocumentWritten` with this standard pattern:
+
+```javascript
+exports.onEntityUpdate = onDocumentWritten(
+    {
+      document: "collection/{id}",
+      ...defaultConfig,
+    },
+    async (event) => {
+      const before = event.data.before.data();
+      const after = event.data.after.data();
+      if (!before && !after) return Promise.resolve();
+
+      const _create = !before && after;
+      const _delete = before && !after;
+      const _update = before && after;
+
+      // Guard each publish with change detection:
+      // - Use _.isEqual() for arrays (pids, sids, stids, eids)
+      // - Use != or !== for primitives
+      if (
+        _create && !_.isEmpty(after.pids) ||
+        _update && !_.isEqual(before.pids, after.pids) ||
+        _delete && !_.isEmpty(before.pids)
+      ) {
+        await publishMessage(TOPIC_NAME, {before, after});
+      }
+
+      return Promise.resolve();
+    },
+);
+```
+
+## Pub/Sub Pattern
+
+- All topic constants are defined in `functions/common/pubsub.js`
+- Topic names follow the convention: `on[Entity][Action]` (e.g., `onPostChangedStats`)
+- Naming: `CHANGED` = something did change, `SHOULD_CHANGE` = requesting a recalculation
+- Use `publishMessage(topic, json)` for standard (non-looping) messages
+- Message payloads are simple JSON: either `{id}` or `{before, after}`
+
+### Subscriber pattern:
+
+```javascript
+exports.onTopicHandler = onMessagePublished(
+    {
+      topic: TOPIC_CONSTANT,
+      ...defaultConfig,
+    },
+    async (event) => {
+      const data = event.data.message.json;
+      // Process...
+      return Promise.resolve();
+    },
+);
+```
+
+## Ripple Depth (Loop Prevention)
+
+For pub/sub chains that can oscillate (circular dependencies), use depth-limited ripple:
+
+- `publishRipple(topic, json, depth)` -- depth-aware publisher, auto-decrements depth and stops when exhausted
+- Thread depth: destructure `depth` from the message json, then pass it to `publishRipple` (decrement and default to `MAX_RIPPLE_DEPTH` are automatic):
+  ```javascript
+  const {before, after, depth} = event.data.message.json;
+  await publishRipple(TOPIC, {id}, depth);
+  ```
+
+**Known circular loops that MUST use `publishRipple`:**
+1. Statement <-> Entity confidence: `onStatementChangedConfidence` <-> `onEntityChangedConfidence`
+2. Statement <-> Entity bias: `onStatementChangedBias` <-> `onEntityChangedBias`
+
+**Known re-queuing loops that MUST use `_depth` in task messages:**
+3. `onPostShouldFindStories` re-queues `POST_SHOULD_FIND_STORIES_TASK` for affected posts (uses `queueRippleTask`)
+4. `onPostShouldFindStatements` re-queues `POST_SHOULD_FIND_STATEMENTS_TASK` for affected posts (uses `queueRippleTask`)
+
+If you create a new pub/sub chain that can cycle back to itself, use `publishRipple` instead of `publishMessage`. For task re-queuing loops, use `queueRippleTask` instead of `queueTask`.
+
+## Task Queues
+
+- Use `queueTask(queue, message, delaySeconds)` for direct queuing
+- Use `tryQueueTask(collection, id, conditionFn, updates, queue, message, delay)` for conditional queuing with transaction-based deduplication
+- Task queue constants are in `functions/common/tasks.js`
+- If re-queuing can loop, use `queueRippleTask(queue, message, depth)` -- auto-decrements and stops when exhausted, consistent with `publishRipple`
+
+## Bidirectional Relation Sync
+
+Use `handleChangedRelations(before, after, field, updateFn, idKey, relatedKey, extraUpdates, relationType)`:
+- `manyToMany` (default): arrays on both sides (e.g., statement.pids <-> post.stids)
+- `oneToMany`: single value on source, array on target (e.g., post.eid -> entity.pids)
+- `manyToOne`: array on source, single value on target
+
+## Function Configs
+
+- `defaultConfig` -- 60s timeout, standard memory, 10 max instances
+- `gbConfig` -- 60s timeout, 2GiB memory, 10 max instances
+- `scrapeConfig` -- 300s timeout, 1 concurrency, 5 max instances, 2GiB memory
+
+## General Rules
+
+- Always use `retryAsyncFunction(() => ...)` for Firestore writes
+- Use `lodash` for array comparisons (`_.isEqual`, `_.isEmpty`, `_.uniqBy`)
+- Use `FieldValue.arrayUnion` / `FieldValue.arrayRemove` for array field updates
+- Use `Timestamp.now().toMillis()` for timestamps
+- Return `Promise.resolve()` at the end of handlers
+- Log function entry with entity IDs for tracing

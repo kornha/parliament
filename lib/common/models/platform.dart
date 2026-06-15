@@ -58,7 +58,7 @@ class Platform {
   Widget getIcon(double size) {
     if (type == PlatformType.x) {
       return Icon(
-        FontAwesomeIcons.xTwitter,
+        FontAwesomeIcons.xTwitter.data,
         size: size,
         color: Palette.green,
       );

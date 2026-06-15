@@ -32,6 +32,7 @@ const generateCompletions = async function({
   messages,
   responseSchema,
   loggingText = null,
+  useWebSearch = false,
 }) {
   if (messages.length === 0) {
     logger.error("No messages provided");
@@ -48,8 +49,10 @@ const generateCompletions = async function({
       input: messages,
       reasoning: {effort: "low"},
       text: {format: responseSchema},
-      tools: [{type: "web_search"}],
-      tool_choice: "auto",
+      ...(useWebSearch && {
+        tools: [{type: "web_search"}],
+        tool_choice: "auto",
+      }),
     });
 
     const generation = JSON.parse(response.output_text);

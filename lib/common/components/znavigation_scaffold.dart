@@ -38,15 +38,15 @@ class _ZScaffoldState extends ConsumerState<ZNavigationScaffold> {
     // TODO: move tabs to initstate
     var tabs = [
       ZBottomBarNavigationItem(
-        icon: Icon(FontAwesomeIcons.rss, color: context.surfaceColor),
-        activeIcon: Icon(FontAwesomeIcons.rss, color: context.secondaryColor),
+        icon: Icon(FontAwesomeIcons.rss.data, color: context.surfaceColor),
+        activeIcon: Icon(FontAwesomeIcons.rss.data, color: context.secondaryColor),
         label: 'HOME',
         initialLocation: Feed.location,
       ),
       ZBottomBarNavigationItem(
-        icon: Icon(FontAwesomeIcons.searchengin, color: context.surfaceColor),
+        icon: Icon(FontAwesomeIcons.searchengin.data, color: context.surfaceColor),
         activeIcon:
-            Icon(FontAwesomeIcons.searchengin, color: context.secondaryColor),
+            Icon(FontAwesomeIcons.searchengin.data, color: context.secondaryColor),
         label: 'SEARCH',
         initialLocation: Search.location,
       ),

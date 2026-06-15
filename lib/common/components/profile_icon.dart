@@ -101,7 +101,7 @@ class _ZScaffoldState extends ConsumerState<ProfileIcon> {
                               ? context.iconSizeLarge / 2
                               : widget.radius!,
                           child: Icon(
-                            FontAwesomeIcons.faceFlushed,
+                            FontAwesomeIcons.faceFlushed.data,
                             size: context.iconSizeStandard,
                             color: context.surfaceColor,
                           ),

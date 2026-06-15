@@ -292,7 +292,7 @@ extension ModalExt on BuildContext {
           appBar: ZAppBar(
             leading: [
               IconButton(
-                icon: Icon(FontAwesomeIcons.xmark, color: context.primaryColor),
+                icon: Icon(FontAwesomeIcons.xmark.data, color: context.primaryColor),
                 onPressed: () {
                   context.pop();
                 },

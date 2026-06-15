@@ -58,7 +58,7 @@ class _FeedState extends ConsumerState<Feed> {
                 Visibility(
                   visible: ref.isAdmin,
                   child: IconButton(
-                    icon: const Icon(FontAwesomeIcons.newspaper),
+                    icon: Icon(FontAwesomeIcons.newspaper.data),
                     onPressed: () {
                       Functions.instance().fetchNews(PlatformType.news);
                     },
@@ -67,7 +67,7 @@ class _FeedState extends ConsumerState<Feed> {
                 Visibility(
                   visible: ref.isAdmin,
                   child: IconButton(
-                    icon: const Icon(FontAwesomeIcons.xTwitter),
+                    icon: Icon(FontAwesomeIcons.xTwitter.data),
                     onPressed: () {
                       Functions.instance().fetchNews(PlatformType.x);
                     },
@@ -118,7 +118,7 @@ class _FeedState extends ConsumerState<Feed> {
                   },
                 ),
                 IconButton(
-                  icon: const Icon(FontAwesomeIcons.plus),
+                  icon: Icon(FontAwesomeIcons.plus.data),
                   color: context.primaryColor,
                   onPressed: () {
                     context.showFullScreenModal(const PostBuilder());
