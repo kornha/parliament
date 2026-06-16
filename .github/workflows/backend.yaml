@@ -10,12 +10,20 @@ on:
 jobs:
   deploy_functions:
     runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+      id-token: 'write'
     steps:
       - uses: actions/checkout@v4
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
+
+      - id: 'auth'
+        uses: 'google-github-actions/auth@v2'
+        with:
+          credentials_json: '${{ secrets.GH_SA_GOOGLE_CREDENTIALS }}'
 
       - name: Install Firebase CLI and Functions dependencies
         run: |
@@ -24,7 +32,6 @@ jobs:
         working-directory: ./functions # Specify again if it's not a global setting
 
       - name: Deploy to Firebase
-        run: firebase deploy --except hosting # Hosting deployed separately
-        env:
-          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+        # Uses GOOGLE_APPLICATION_CREDENTIALS exported by the auth step above
+        run: firebase deploy --except hosting --project political-think # Hosting deployed separately
         working-directory: ./functions
