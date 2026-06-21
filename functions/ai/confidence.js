@@ -10,6 +10,7 @@ const {getStatement,
   getAllStatementsForPost,
   updatePost} = require("../common/database");
 const {retryAsyncFunction} = require("../common/utils");
+const {MAX_RIPPLE_DEPTH} = require("../common/pubsub");
 
 // Parameters
 const CORRECT_REWARD = 0.2;
@@ -18,6 +19,20 @@ const DECAY_FACTOR = 0.95; // Exp. decay (1 = slower decay, 0 = faster decay)
 const BASE_CONFIDENCE = 0.5;
 const DECIDED_THRESHOLD = 0.9;
 const LIKELY_THRESHOLD = 0.75;
+// Quantize confidence so the statement<->entity recompute reaches an exact
+// fixed point instead of oscillating forever on floating-point noise.
+const CONFIDENCE_PRECISION = 1000; // 3 decimal places
+
+/**
+ * Rounds a confidence value to a fixed precision. Without this the mutual
+ * statement<->entity computation never produces two identical floats, so the
+ * `!==` guards below never short-circuit and the ripple loops indefinitely.
+ * @param {number} c raw confidence in [0,1]
+ * @return {number} confidence rounded to CONFIDENCE_PRECISION
+ */
+function quantizeConfidence(c) {
+  return Math.round(c * CONFIDENCE_PRECISION) / CONFIDENCE_PRECISION;
+}
 
 // ////////////////////////////////////////////////////////////////////////////
 // Post
@@ -31,7 +46,8 @@ const LIKELY_THRESHOLD = 0.75;
 async function onPostShouldChangeConfidence(pid) {
   const statements = await getAllStatementsForPost(pid);
 
-  const avgConfidence = calculateAverageConfidence(statements);
+  const raw = calculateAverageConfidence(statements);
+  const avgConfidence = raw == null ? null : quantizeConfidence(raw);
 
   if (avgConfidence != null) {
     logger.info(`Updating Post confidence: ${pid} ${avgConfidence}`);
@@ -54,7 +70,8 @@ async function onPostShouldChangeConfidence(pid) {
 async function onStoryShouldChangeConfidence(sid) {
   const statements = await getAllStatementsForStory(sid);
 
-  const avgConfidence = calculateAverageConfidence(statements);
+  const raw = calculateAverageConfidence(statements);
+  const avgConfidence = raw == null ? null : quantizeConfidence(raw);
 
   if (avgConfidence != null) {
     logger.info(`Updating Story confidence: ${sid} ${avgConfidence}`);
@@ -70,9 +87,10 @@ async function onStoryShouldChangeConfidence(sid) {
 /**
  * E2E Logic onEntity for setting confidence
  * @param {String} eid
+ * @param {number} [depth] current ripple depth (threads the loop guard)
  * @return {Promise<void>}
  */
-async function onEntityShouldChangeConfidence(eid) {
+async function onEntityShouldChangeConfidence(eid, depth) {
   const entity = await getEntity(eid);
 
   if (!entity ||
@@ -81,22 +99,28 @@ async function onEntityShouldChangeConfidence(eid) {
     return;
   }
 
+  // confidenceDepth is persisted so the onEntityUpdate document trigger can
+  // re-emit the ripple with a decremented depth (the depth otherwise dies at
+  // the Firestore trigger boundary). Fresh triggers reset to MAX_RIPPLE_DEPTH.
+  const confidenceDepth = depth ?? MAX_RIPPLE_DEPTH;
+
   // If admin has set confidence, use that always
   if (entity.adminConfidence != null) {
     logger.info(`Updating Entity confidence: ${eid} ${entity.adminConfidence}`);
     await retryAsyncFunction(() =>
-      updateEntity(eid, {confidence: entity.adminConfidence}));
+      updateEntity(eid, {confidence: entity.adminConfidence, confidenceDepth}));
     return;
   }
 
   const statements = await getAllStatementsForEntity(eid);
 
-  const newConfidence = calculateEntityConfidence(entity, statements);
+  const raw = calculateEntityConfidence(entity, statements);
+  const newConfidence = raw == null ? null : quantizeConfidence(raw);
 
   if (newConfidence != null && entity.confidence !== newConfidence) {
     logger.info(`Updating entity confidence: ${eid} ${newConfidence}`);
     await retryAsyncFunction(() =>
-      updateEntity(eid, {confidence: newConfidence}));
+      updateEntity(eid, {confidence: newConfidence, confidenceDepth}));
   }
 }
 
@@ -170,8 +194,9 @@ function calculateEntityConfidence(entity, statements) {
 /**
  * E2E Logic onStatement for setting confidence
  * @param {String} stid
+ * @param {number} [depth] current ripple depth (threads the loop guard)
  */
-async function onStatementShouldChangeConfidence(stid) {
+async function onStatementShouldChangeConfidence(stid, depth) {
   const statement = await getStatement(stid);
 
   if (!statement ||
@@ -180,23 +205,29 @@ async function onStatementShouldChangeConfidence(stid) {
     return;
   }
 
+  // confidenceDepth is persisted so the onStatementUpdate document trigger can
+  // re-emit the ripple with a decremented depth (the depth otherwise dies at
+  // the Firestore trigger boundary). Fresh triggers reset to MAX_RIPPLE_DEPTH.
+  const confidenceDepth = depth ?? MAX_RIPPLE_DEPTH;
+
   // If admin has set confidence, use that always
   if (statement.adminConfidence != null) {
     logger.info(
         `Updating statement confidence: ${stid} ${statement.adminConfidence}`);
     await retryAsyncFunction(() => updateStatement(stid,
-        {confidence: statement.adminConfidence}));
+        {confidence: statement.adminConfidence, confidenceDepth}));
     return;
   }
 
   const entities = await getAllEntitiesForStatement(stid);
 
-  const newConfidence = calculateStatementConfidence(statement, entities);
+  const raw = calculateStatementConfidence(statement, entities);
+  const newConfidence = raw == null ? null : quantizeConfidence(raw);
 
   if (newConfidence != null && statement.confidence !== newConfidence) {
     logger.info(`Updating statement confidence: ${stid} ${newConfidence}`);
     await retryAsyncFunction(() =>
-      updateStatement(stid, {confidence: newConfidence}));
+      updateStatement(stid, {confidence: newConfidence, confidenceDepth}));
   }
 
   return;

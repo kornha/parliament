@@ -100,8 +100,10 @@ exports.onEntityUpdate = onDocumentWritten(
         _update && before.confidence !== after.confidence ||
         _delete && before.confidence
       ) {
+        // forward the persisted ripple depth so the guard survives this
+        // document-trigger boundary (see confidence.js confidenceDepth)
         await publishMessage(ENTITY_CHANGED_CONFIDENCE,
-            {before: before, after: after});
+            {before: before, after: after, depth: after?.confidenceDepth});
       }
 
       if (
@@ -194,13 +196,13 @@ exports.onEntityShouldChangeConfidence = onMessagePublished(
       ...defaultConfig,
     },
     async (event) => {
-      const eid = event.data.message.json.eid;
-      logger.info(`onEntityShouldChangeConfidence ${eid}`);
+      const {eid, depth} = event.data.message.json;
+      logger.info(`onEntityShouldChangeConfidence ${eid} depth: ${depth}`);
       if (!eid) {
         return Promise.resolve();
       }
 
-      await onEntityShouldChangeConfidence(eid);
+      await onEntityShouldChangeConfidence(eid, depth);
 
       return Promise.resolve();
     },

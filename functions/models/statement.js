@@ -94,8 +94,10 @@ exports.onStatementUpdate = onDocumentWritten(
         _update && before.confidence != after.confidence ||
         _delete && before.confidence
       ) {
+        // forward the persisted ripple depth so the guard survives this
+        // document-trigger boundary (see confidence.js confidenceDepth)
         await publishMessage(STATEMENT_CHANGED_CONFIDENCE,
-            {before: before, after: after});
+            {before: before, after: after, depth: after?.confidenceDepth});
       }
 
       if (
@@ -151,15 +153,16 @@ exports.onStatementShouldChangeConfidence = onMessagePublished(
       ...defaultConfig,
     },
     async (event) => {
-      const stid = event.data.message.json.stid;
-      logger.info("onStatementShouldChangeConfidence stid: ", stid);
+      const {stid, depth} = event.data.message.json;
+      logger.info("onStatementShouldChangeConfidence stid: ", stid,
+          " depth: ", depth);
 
       if (!stid) {
         return Promise.resolve();
       }
 
-      // compute new confidence via algorithm
-      await onStatementShouldChangeConfidence(stid);
+      // compute new confidence via algorithm (depth threads the ripple guard)
+      await onStatementShouldChangeConfidence(stid, depth);
 
       return Promise.resolve();
     },
