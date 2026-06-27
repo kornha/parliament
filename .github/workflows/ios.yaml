@@ -63,6 +63,10 @@ jobs:
 
       - run: flutter pub get
 
+      # Refresh CocoaPods specs so Firebase pods resolve on a fresh runner
+      # (avoids "could not find compatible versions / out-of-date source repos").
+      - run: pod install --repo-update --project-directory=ios
+
       # Use a different export options based on branch:
       - name: Build IPA
         run: |
