@@ -9,6 +9,7 @@ import 'package:political_think/common/constants.dart';
 import 'package:political_think/common/extensions.dart';
 import 'package:political_think/common/services/zprovider.dart';
 import 'package:political_think/views/feed/feed.dart';
+import 'package:political_think/views/game/game_view.dart';
 import 'package:political_think/views/profile/profile.dart';
 import 'package:political_think/views/search/search.dart';
 
@@ -49,6 +50,13 @@ class _ZScaffoldState extends ConsumerState<ZNavigationScaffold> {
             Icon(FontAwesomeIcons.searchengin.data, color: context.secondaryColor),
         label: 'SEARCH',
         initialLocation: Search.location,
+      ),
+      ZBottomBarNavigationItem(
+        icon: Icon(FontAwesomeIcons.gamepad.data, color: context.surfaceColor),
+        activeIcon:
+            Icon(FontAwesomeIcons.gamepad.data, color: context.secondaryColor),
+        label: 'GAME',
+        initialLocation: GameView.location,
       ),
       const ZBottomBarNavigationItem(
         icon: ProfileIcon(
@@ -97,7 +105,8 @@ class _ZScaffoldState extends ConsumerState<ZNavigationScaffold> {
           Expanded(child: widget.child),
         ]),
       ),
-      bottomNavigationBar: context.isDesktop
+      bottomNavigationBar: context.isDesktop ||
+              widget.location == GameView.location
           ? const SizedBox.shrink()
           : BottomNavigationBar(
               selectedFontSize: 0, // removes padding
@@ -133,6 +142,8 @@ class _ZScaffoldState extends ConsumerState<ZNavigationScaffold> {
   int _getCurrentIndex(String path) {
     switch (path) {
       case Profile.location:
+        return 3;
+      case GameView.location:
         return 2;
       case Search.location:
         return 1;

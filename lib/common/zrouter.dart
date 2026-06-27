@@ -11,6 +11,7 @@ import 'package:political_think/common/services/zprovider.dart';
 import 'package:political_think/views/common/issues.dart';
 import 'package:political_think/views/entity/entity_view.dart';
 import 'package:political_think/views/feed/feed.dart';
+import 'package:political_think/views/game/game_view.dart';
 import 'package:political_think/views/login/login.dart';
 import 'package:political_think/views/message/message.dart';
 import 'package:political_think/views/post/post_view.dart';
@@ -71,6 +72,14 @@ class ZRouter {
               pageBuilder: (context, state) => zPage(
                 context: context,
                 child: const Messages(),
+              ),
+            ),
+            GoRoute(
+              parentNavigatorKey: _shellNavigatorKey,
+              path: GameView.location,
+              pageBuilder: (context, state) => zPage(
+                context: context,
+                child: const GameView(),
               ),
             ),
             GoRoute(
