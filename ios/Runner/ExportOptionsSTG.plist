@@ -11,7 +11,7 @@
     <key>provisioningProfiles</key>
     <dict>
         <key>app.TheParliament</key>
-        <string>Development App Distribution Profile</string>
+        <string>app.TheParliament Development</string>
     </dict>
     <key>signingCertificate</key>
     <string>Apple Development</string>
