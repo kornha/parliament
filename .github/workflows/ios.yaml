@@ -57,6 +57,10 @@ jobs:
           flutter-version: '3.44.1'
           channel: 'stable'
 
+      # Build with CocoaPods, not Swift Package Manager — avoids the Firebase
+      # flutterfire SPM version conflict on fresh CI checkouts.
+      - run: flutter config --no-enable-swift-package-manager
+
       - run: flutter pub get
 
       # Use a different export options based on branch:
