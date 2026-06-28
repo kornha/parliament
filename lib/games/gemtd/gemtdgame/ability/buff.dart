@@ -76,6 +76,9 @@ abstract class Buff {
   //
   RenderType renderType = RenderType.NONE;
 
+  // Size of the on-board buff indicator glyph (override per-buff if needed).
+  double get iconFontSize => 9;
+
   //
   void render(Canvas c, Offset o, [GameComponent? component]) {
     TextPainter textPainter = TextPainter(textDirection: TextDirection.ltr);
@@ -84,7 +87,7 @@ abstract class Buff {
       style: TextStyle(
         color: color,
         fontFamily: icon.fontFamily,
-        fontSize: 15,
+        fontSize: iconFontSize,
         package:
             icon.fontPackage, // This line is mandatory for external icon packs
       ),
@@ -392,6 +395,35 @@ class Poison extends Buff {
 
   @override
   double? baseDuration = 3;
+}
+
+// Addis Ababa (Africa) — a pure poison DoT (no slow; the region already has
+// plenty of slows).
+class VenomBuff extends Buff {
+  VenomBuff({required super.caster, required super.level});
+
+  @override
+  String name = "Venom";
+
+  @override
+  String description = "Poisoned — taking damage over time.";
+
+  static var damagePerLevel = [2.0, 3.0, 4.0, 5.0, 6.0, 12.0];
+
+  @override
+  double? get damage => damagePerLevel.getByLevel(level);
+
+  @override
+  IconData icon = Icons.sick_outlined;
+
+  @override
+  CityType gemType = CityType.AFRICA;
+
+  @override
+  double? baseDuration = 4;
+
+  @override
+  RenderType get renderType => RenderType.GRID;
 }
 
 class Petronas extends Buff {

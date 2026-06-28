@@ -37,19 +37,34 @@ class Socialism extends Ability {
     required super.caster,
     required super.level,
     this.numTargets = const [2, 3, 4, 5, 6, 7],
-  });
+  }) {
+    // "Share the wealth": spreading the attack across many enemies costs damage,
+    // so every shared hit lands softer (applied to self via worksOnSelf).
+    buff = bf.DamageMultiple(
+      caster: caster,
+      level: level,
+      multipliersPerLevel: damageMultiplePerLevel,
+    )..name = "Socialism";
+  }
 
   final List<int> numTargets;
+
+  static const damageMultiplePerLevel = [0.5, 0.55, 0.6, 0.65, 0.7, 0.75];
+
+  @override
+  bool get worksOnSelf => true;
 
   @override
   String name = "Socialism";
 
   @override
   String description =
-      "Shares each attack across multiple enemies — every one takes the full hit.";
+      "Shares each attack across multiple enemies — but each hit lands for reduced damage.";
 
   @override
-  String get subDescription => "${numTargets.join("/")} targets.";
+  String get subDescription =>
+      "${numTargets.join("/")} targets at "
+      "${damageMultiplePerLevel.map((e) => "${(e * 100).round()}%").join("/")} damage.";
 
   @override
   IconData icon = FontAwesomeIcons.peopleGroup.data;

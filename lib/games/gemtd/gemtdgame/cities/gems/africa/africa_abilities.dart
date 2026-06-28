@@ -1,12 +1,12 @@
 part of 'africa.dart';
 
 // Africa — "The Wild": each city IS an animal/icon; there is no shared ability.
-// Addis Ababa(Vultures) -> Kinshasa(Cobalt) -> Lagos(Afrobeat) ->
+// Addis Ababa(Venom) -> Kinshasa(Cobalt) -> Lagos(Afrobeat) ->
 // Johannesburg(Hex) -> Nairobi(Stampede) -> Cape Town(Great White).
 Set<Ability> africa_abilities(AfricaSettings settings, int level,
         GemComponent caster, CityConfig config) =>
     switch (config) {
-      addis_ababa => {Vultures(level: level, caster: caster)},
+      addis_ababa => {Venom(level: level, caster: caster)},
       kinshasa => {Cobalt(level: level, caster: caster)},
       lagos => {Afrobeat(level: level, caster: caster)},
       johannesburg => {AfricanHex(level: level, caster: caster)},
@@ -198,66 +198,28 @@ class Cobalt extends Ability {
   CityType gemType = CityType.AFRICA;
 }
 
-// Addis Ababa — Vultures: birds that orbit the tower, damaging enemies they
-// pass through (spawns OrbitComponents on build; cleaned up on destroy/convert).
-class Vultures extends Ability {
-  Vultures({required super.caster, required super.level});
-
-  static const countPerLevel = [2, 2, 3, 3, 4, 4];
-
-  final List<OrbitComponent> _birds = [];
+// Addis Ababa — Venom: every shot poisons the enemy, dealing damage over time.
+class Venom extends Ability {
+  Venom({required super.caster, required super.level});
 
   @override
-  bool get canAttack => false;
+  bool get worksOnEnemies => true;
 
   @override
-  void onGemBuilt(GemComponent gem) {
-    final n = countPerLevel.getByLevel(level);
-    for (int i = 0; i < n; i++) {
-      final bird = OrbitComponent(
-        gem: gem,
-        orbitRadius: gem.radarRange,
-        angularSpeed: 2.5,
-        startAngle: (2 * pi / n) * i,
-        size: gem.size * 0.4,
-      );
-      _birds.add(bird);
-      gem.parent?.add(bird);
-    }
-  }
-
-  void _clear() {
-    for (final b in _birds) {
-      b.removeFromParent();
-    }
-    _birds.clear();
-  }
+  bf.Buff? get buff => bf.VenomBuff(caster: caster, level: level);
 
   @override
-  void onGemDestroyed(GemComponent gem) {
-    _clear();
-    super.onGemDestroyed(gem);
-  }
+  String name = "Venom";
 
   @override
-  void onGemConverted(GemComponent gem) {
-    _clear();
-    super.onGemConverted(gem);
-  }
-
-  @override
-  String name = "Vultures";
-
-  @override
-  String description =
-      "Birds circle the tower, damaging enemies they pass through.";
+  String description = "Each shot poisons the enemy, damaging it over time.";
 
   @override
   String get subDescription =>
-      "${countPerLevel.getByLevel(level)} circling birds.";
+      "${bf.VenomBuff.damagePerLevel.join("/")} damage per second.";
 
   @override
-  IconData icon = FontAwesomeIcons.crow.data;
+  IconData icon = Icons.sick_outlined;
 
   @override
   CityType gemType = CityType.AFRICA;

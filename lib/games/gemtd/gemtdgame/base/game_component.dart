@@ -29,11 +29,25 @@ class GameComponent extends SpriteAnimationComponent with GameRef<GameMain> {
 
   @override
   void render(Canvas canvas) {
-    sprite?.render(
-      canvas,
-      size: size,
-      overridePaint: paint,
-    );
+    final s = sprite;
+    if (s != null) {
+      // Preserve the image's aspect ratio inside the (square) tile: center it
+      // and leave the surrounding space empty rather than stretching it. This
+      // avoids distorting non-square city art (e.g. wide/tall skylines).
+      final src = s.srcSize;
+      if (src.x > 0 && src.y > 0) {
+        final scale = min(size.x / src.x, size.y / src.y);
+        final renderSize = Vector2(src.x * scale, src.y * scale);
+        s.render(
+          canvas,
+          position: (size - renderSize) / 2,
+          size: renderSize,
+          overridePaint: paint,
+        );
+      } else {
+        s.render(canvas, size: size, overridePaint: paint);
+      }
+    }
     super.render(canvas);
   }
 

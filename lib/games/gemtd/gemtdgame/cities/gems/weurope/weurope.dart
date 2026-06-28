@@ -40,23 +40,16 @@ class WEuropeSettings extends GemAttributes {
   @override
   List<String> countryCodes(int level) => [cityConfig.countryCode];
 
+  // Bullet/explosion type swapped with E. Europe (spine swap): chevron +
+  // auto explosion across all cities.
   @override
-  String get projectilePath => switch (cityConfig) {
-        manchester || london => "weapon/gb_navi_bullet.png",
-        rome => "weapon/it_red_bullet.png",
-        dublin => "weapon/ie_green_bullet.png",
-        barcelona => "weapon/es_yellow_bullet.png",
-        _ => "weapon/tech_bullet.png",
-      };
+  String get projectilePath => "weapon/chevron.png";
 
   @override
-  String get explosionImage => switch (cityConfig) {
-        manchester || london => "weapon/gb_navi_explosion.png",
-        rome => "weapon/it_red_explosion.png",
-        dublin => "weapon/ie_green_explosion.png",
-        barcelona => "weapon/es_yellow_explosion.png",
-        _ => "weapon/tech_explosion.png",
-      };
+  bool get projectLoop => false;
+
+  @override
+  String get explosionImage => "weapon/auto_explosion.png";
 
   @override
   double baseDamage(int level) => 0.56 + level * 0.3;
@@ -72,13 +65,13 @@ class WEuropeSettings extends GemAttributes {
       (cityConfig == brussels || cityConfig == london) ? 15.0 : 3.0;
 
   @override
-  double projectileSizeX = 0.2;
+  double projectileSizeX = 0.5;
 
   @override
-  double projectileSizeY = 0.48;
+  double projectileSizeY = 0.5;
 
   @override
-  int projectileRows(level) => 1;
+  int projectileRows(level) => 6;
 
   @override
   int projectileColumns(level) => 1;
@@ -90,13 +83,13 @@ class WEuropeSettings extends GemAttributes {
   int get explosionRows => 1;
 
   @override
-  double get explosionSizeX => 1.6;
+  double get explosionSizeX => 0.9;
 
   @override
-  double get explosionSizeY => 1.6;
+  double get explosionSizeY => 0.9;
 
   @override
-  double get explosionStepTime => 0.04;
+  double get explosionStepTime => 0.06;
 
   @override
   bool get canHitIntermediateTargets => false;

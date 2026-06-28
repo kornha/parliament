@@ -12,6 +12,7 @@ import 'package:political_think/games/gemtd/gemtdgame/view/ability_view.dart';
 import 'package:political_think/games/gemtd/gemtdgame/view/enemy_view.dart';
 import 'package:political_think/games/gemtd/gemtdgame/view/game_stats.dart';
 import 'package:political_think/games/gemtd/gemtdgame/view/gem_view.dart';
+import 'package:political_think/games/gemtd/gemtdgame/view/recipes_view.dart';
 import 'package:separated_column/separated_column.dart';
 import 'package:separated_row/separated_row.dart';
 
@@ -145,7 +146,12 @@ class _DashboardState extends State<Dashboard> {
                       children: [
                         Text(
                           Dashboard.selectedGem?.name ?? "",
-                          style: TextConstants.hackneySmall,
+                          textAlign: TextAlign.center,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextConstants.hackneySmall.copyWith(
+                            fontSize: 13,
+                          ),
                         ),
                         Image.asset(
                           "assets/images/" +
@@ -196,7 +202,8 @@ class _DashboardState extends State<Dashboard> {
                                           2,
                                       onPressed: () {
                                         AbilityView.show(
-                                            Dashboard.selectedGem!);
+                                            Dashboard.selectedGem!,
+                                            showBuffs: true);
                                       },
                                       text: "Buffs",
                                       sub: iconGrid(Dashboard.selectedGem!.buffs
@@ -208,7 +215,19 @@ class _DashboardState extends State<Dashboard> {
                                   ? const SizedBox.shrink()
                                   : StatsTagButton(
                                       row: false,
-                                      onPressed: () {},
+                                      onPressed: () {
+                                        RecipesView.show(
+                                          context,
+                                          GameConstants.specialRecipes,
+                                          highlight: Dashboard.getRecipes()
+                                                  .keys
+                                                  .isEmpty
+                                              ? null
+                                              : Dashboard.getRecipes()
+                                                  .keys
+                                                  .first,
+                                        );
+                                      },
                                       text: "Recipes",
                                       sub: recipeView(Dashboard.getRecipes()),
                                     ),
@@ -232,29 +251,34 @@ class _DashboardState extends State<Dashboard> {
           shrinkWrap: true,
         );
 
-  // so hacky....
-  // assumes Dashboard._recipes map is size 1 as it doesnt render others
-  // assumes recipes are size 3 -> 1
-  // assumes asset image path
-  recipeView(Map<List<String>, GemComponent> recipes) => Row(
-        mainAxisSize: MainAxisSize.max,
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          for (var i = 0; i < 3; i++) ...[
-            Image.asset(
-              "assets/images/city/${recipes.keys.first.elementAt(i).toLowerCase()}.png",
-              width: 15,
-              height: 15,
-            ),
-            if (i < 2) const Text("+"),
-          ],
-          //
-          const Text("="),
+  // Small inline preview shown on the "Recipes" button. Handles recipes of any
+  // ingredient count (e.g. Volgograd has 2) — tapping opens the full browser.
+  recipeView(Map<List<String>, GemComponent> recipes) {
+    final cities = recipes.keys.first;
+    return Row(
+      mainAxisSize: MainAxisSize.max,
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        for (var i = 0; i < cities.length; i++) ...[
           Image.asset(
-            "assets/images/" + recipes.values.first.currentImagePath,
+            "assets/images/city/${cities[i].toLowerCase()}.png",
             width: 15,
             height: 15,
+            fit: BoxFit.contain,
+            errorBuilder: (_, __, ___) => const SizedBox(width: 15, height: 15),
           ),
+          if (i < cities.length - 1) const Text("+"),
         ],
-      );
+        //
+        const Text("="),
+        Image.asset(
+          "assets/images/${recipes.values.first.currentImagePath}",
+          width: 15,
+          height: 15,
+          fit: BoxFit.contain,
+          errorBuilder: (_, __, ___) => const SizedBox(width: 15, height: 15),
+        ),
+      ],
+    );
+  }
 }

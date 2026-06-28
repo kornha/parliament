@@ -49,26 +49,28 @@ class EEuropeSettings extends GemAttributes {
   @override
   double baseDamage(int level) => level * 0.225 + 0.625;
 
+  // Bullet/explosion type swapped with W. Europe (spine swap): tech bullet +
+  // big tech explosion.
   @override
   double get projectileSpeed => 4.5;
 
   @override
-  bool get projectLoop => false;
+  bool get projectLoop => true;
 
   @override
   int projectileColumns(level) => 1;
 
   @override
-  int projectileRows(level) => 6;
+  int projectileRows(level) => 1;
 
   @override
-  String get projectilePath => "weapon/chevron.png";
+  String get projectilePath => "weapon/tech_bullet.png";
 
   @override
-  double get projectileSizeX => 0.5;
+  double get projectileSizeX => 0.2;
 
   @override
-  double get projectileSizeY => 0.5;
+  double get projectileSizeY => 0.48;
 
   @override
   int get explosionColumns => 1;
@@ -77,13 +79,16 @@ class EEuropeSettings extends GemAttributes {
   int get explosionRows => 1;
 
   @override
-  double get explosionSizeX => 0.9;
+  double get explosionSizeX => 1.6;
 
   @override
-  double get explosionSizeY => 0.9;
+  double get explosionSizeY => 1.6;
 
   @override
-  String get explosionImage => "weapon/auto_explosion.png";
+  double get explosionStepTime => 0.04;
+
+  @override
+  String get explosionImage => "weapon/tech_explosion.png";
 
   @override
   Set<Ability> abilities(int level, covariant EEurope caster) {

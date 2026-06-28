@@ -2,11 +2,9 @@ import 'package:flame/components.dart';
 import 'package:flame/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:political_think/games/gemtd/common/components/buttons/gtext_button.dart';
 import 'package:political_think/games/gemtd/common/components/gem_view_container.dart';
 import 'package:political_think/games/gemtd/common/components/stats_row.dart';
 import 'package:political_think/games/gemtd/common/components/tag.dart';
-import 'package:political_think/games/gemtd/common/constants.dart';
 import 'package:political_think/games/gemtd/common/extensions.dart';
 import 'package:political_think/games/gemtd/common/utils/update_component.dart';
 import 'package:political_think/games/gemtd/gemtdgame/ability/ability.dart';
@@ -84,61 +82,10 @@ class _GemViewState extends State<GemView> {
       top: mapSize.y,
       child: Container(
         width: screenSize.x,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              mainAxisSize: MainAxisSize.max,
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: const [
-                GTextButton(
-                  color: Palette.green,
-                  icon: Icons.abc,
-                  small: true,
-                ),
-                GTextButton(
-                  color: Palette.orange,
-                  icon: Icons.abc,
-                  small: true,
-                ),
-                GTextButton(
-                  color: Palette.navy,
-                  icon: Icons.abc,
-                  small: true,
-                ),
-                GTextButton(
-                  color: Palette.eAsiaRed,
-                  icon: Icons.abc,
-                  small: true,
-                ),
-                GTextButton(
-                  color: Palette.darkGreen,
-                  icon: Icons.abc,
-                  small: true,
-                ),
-                GTextButton(
-                  color: Palette.black,
-                  icon: Icons.abc,
-                  small: true,
-                ),
-                GTextButton(
-                  color: Palette.white,
-                  icon: Icons.abc,
-                  small: true,
-                ),
-                GTextButton(
-                  color: Palette.lightSlate,
-                  icon: Icons.abc,
-                  small: true,
-                ),
-              ],
-            ),
-            GemViewContainer(
-              width: size.x,
-              height: size.y,
-              child: widget.child,
-            ),
-          ],
+        child: GemViewContainer(
+          width: size.x,
+          height: size.y,
+          child: widget.child,
         ),
       ),
     );

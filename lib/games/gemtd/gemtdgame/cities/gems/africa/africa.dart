@@ -8,7 +8,6 @@ import 'package:political_think/games/gemtd/gemtdgame/ability/ability.dart';
 import 'package:political_think/games/gemtd/gemtdgame/ability/buff.dart' as bf;
 import 'package:political_think/games/gemtd/gemtdgame/base/game_component.dart';
 import 'package:political_think/games/gemtd/gemtdgame/cities/gem_component.dart';
-import 'package:political_think/games/gemtd/gemtdgame/cities/orbit_component.dart';
 import 'package:political_think/games/gemtd/gemtdgame/cities/weapon_settings.dart';
 import 'package:political_think/games/gemtd/gemtdgame/enemy/enemy_component.dart';
 
@@ -93,7 +92,7 @@ class AfricaSettings extends GemAttributes {
   double baseRange(int level) => switch (cityConfig) {
         nairobi => 4.0, // long lane for the charge
         kinshasa => 2.5, // electrocute aura
-        addis_ababa => 2.5, // orbit radius
+        addis_ababa => 3.0, // poison range
         _ => 3.0, // lagos / johannesburg / cape town
       };
 
@@ -102,7 +101,7 @@ class AfricaSettings extends GemAttributes {
         lagos => 3.5, // machine-gun
         nairobi => 0.4, // slow heavy charge
         kinshasa => 0.0, // aura, no attack
-        addis_ababa => 0.0, // orbit, no attack
+        addis_ababa => 1.2, // steady poison shots
         _ => 1.0, // johannesburg / cape town
       };
 
@@ -111,7 +110,7 @@ class AfricaSettings extends GemAttributes {
         lagos => 0.6 + level * 0.2, // low (machine-gun)
         nairobi => 4.0 + level * 2.0, // heavy charge
         kinshasa => 0.0, // damage comes from the Cobalt aura buff
-        addis_ababa => 1.5 + level * 0.5, // orbit-bird damage
+        addis_ababa => 1.5 + level * 0.5, // light hit; Venom DoT does the rest
         cape_town => 1.0, // the bite (% current HP) is the real damage
         _ => 2.0 + level * 0.8, // johannesburg
       };
