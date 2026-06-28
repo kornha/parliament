@@ -15,6 +15,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # App Store now requires the iOS 26 SDK (Xcode 26+); the runner defaults
+      # to an older Xcode, so select the latest stable Xcode available.
+      - name: Select latest Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
       - name: Fetch config.env file from secret
         env:
           FLUTTER_DOT_ENV: ${{ secrets.FLUTTER_DOT_ENV }}
