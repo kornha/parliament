@@ -1,0 +1,34 @@
+[
+  {
+    "life": 80.0,
+    "speed": 50,
+    "scale": 0.8,
+    "image": "enemy/enemyA.png",
+    "columns": 2,
+    "rows": 3
+  },
+  {
+    "life": 150,
+    "speed": 60,
+    "scale": 1.0,
+    "image": "enemy/enemyB.png",
+    "columns": 2,
+    "rows": 3
+  },
+  {
+    "life": 80,
+    "speed": 100,
+    "scale": 1.1,
+    "image": "enemy/enemyC.png",
+    "columns": 2,
+    "rows": 3
+  },
+  {
+    "life": 300,
+    "speed": 50,
+    "scale": 0.8,
+    "image": "enemy/enemyD.png",
+    "columns": 2,
+    "rows": 3
+  }
+]
