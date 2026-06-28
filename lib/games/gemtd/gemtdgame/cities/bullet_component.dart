@@ -8,6 +8,7 @@ import 'package:flame/sprite.dart';
 import 'package:flutter/material.dart';
 import 'package:political_think/games/gemtd/common/constants.dart';
 import 'package:political_think/games/gemtd/gemtdgame/ability/buff.dart';
+import 'package:political_think/games/gemtd/gemtdgame/base/fx.dart';
 import 'package:political_think/games/gemtd/gemtdgame/base/game_component.dart';
 import 'package:political_think/games/gemtd/gemtdgame/base/movable.dart';
 import 'package:political_think/games/gemtd/gemtdgame/base/radar.dart';
@@ -91,6 +92,13 @@ class BulletComponent extends GameComponent
     super.update(dt);
   }
 
+  @override
+  void render(Canvas canvas) {
+    // Glowing projectile core, drawn behind the bullet sprite.
+    Fx.glow(canvas, size, source.color);
+    super.render(canvas);
+  }
+
   void setAnimation() {
     List<Sprite> sprites = [];
 
@@ -119,6 +127,12 @@ class BulletComponent extends GameComponent
           loop: false,
         ),
     );
+    // Procedural flash + sparks layered over the sprite explosion.
+    final p = parent;
+    if (p != null) {
+      Fx.explosion(
+          p, enemy.position.clone(), source.color, settings.explosionSize.x);
+    }
     bool finish = buffs
         .every((buff) => buff.bulletDidHitEnemy(this, enemy as EnemyComponent));
     (enemy as EnemyComponent).receiveDamage(damage, buffs, source);

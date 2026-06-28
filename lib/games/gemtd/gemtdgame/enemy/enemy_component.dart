@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:political_think/games/gemtd/common/constants.dart';
 import 'package:political_think/games/gemtd/gemtdgame/ability/status_manager.dart';
 import 'package:political_think/games/gemtd/gemtdgame/astar/astarnode.dart';
+import 'package:political_think/games/gemtd/gemtdgame/base/fx.dart';
 import 'package:political_think/games/gemtd/gemtdgame/base/game_component.dart';
 import 'package:political_think/games/gemtd/gemtdgame/base/life_indicator.dart';
 import 'package:political_think/games/gemtd/gemtdgame/base/movable.dart';
@@ -29,6 +30,9 @@ class EnemyComponent extends GameComponent
   bool dead = false;
   int level = 1;
   GemComponent? lastDamageProc;
+
+  // White flash on taking a real hit (0..1, fades out in update()).
+  double _hitFlash = 0;
 
   // @override
   // bool get updateAngle => false;
@@ -84,6 +88,17 @@ class EnemyComponent extends GameComponent
     super.update(dt);
 
     StatusManager.tickEnemy(dt, this, buffs);
+
+    // Fade the hit-flash and tint the sprite toward white while it's active.
+    if (_hitFlash > 0) {
+      _hitFlash = (_hitFlash - dt / 0.12).clamp(0.0, 1.0);
+      paint.colorFilter = _hitFlash > 0
+          ? ColorFilter.mode(
+              Colors.white.withOpacity((_hitFlash * 0.7).clamp(0.0, 1.0)),
+              BlendMode.srcATop,
+            )
+          : null;
+    }
 
     final hasHex = buffs.any((b) => b is Hex);
     if (hasHex && !_isHexed) {
@@ -161,6 +176,8 @@ class EnemyComponent extends GameComponent
         (maxLife / (maxLife + armor * 0.05 * maxLife));
     if (damageAfterArmor > 0) {
       lastDamageProc = attacker;
+      // Flash only on a meaningful hit, so per-frame DoT ticks don't keep it lit.
+      if (damageAfterArmor > maxLife * 0.012) _hitFlash = 1.0;
       final lifeAfterDamage = life - damageAfterArmor;
       if (lifeAfterDamage > maxLife) {
         // A very rare case (reproduced just few times during my game experience).
@@ -189,6 +206,12 @@ class EnemyComponent extends GameComponent
   }
 
   void onKilled() {
+    // Burst of sparks in the enemy's color as it dies.
+    final p = parent;
+    if (p != null) {
+      Fx.explosion(p, position.clone(), settings.gemType.color(), size.x * 0.7,
+          sparks: 10);
+    }
     setDeadAnimation();
     onKilledCallback?.call();
     active = false;
