@@ -23,7 +23,7 @@ class WEurope extends GemComponent {
       cityConfig: weurope_cities.getCityConfigByLevelOrLast(level));
 
   @override
-  get currentImagePath => "city/${name.toLowerCase()}.png";
+  get currentImagePath => "flags/${countryCodes.first.toLowerCase()}.png";
 }
 
 class WEuropeSettings extends GemAttributes {
@@ -54,15 +54,13 @@ class WEuropeSettings extends GemAttributes {
   @override
   double baseDamage(int level) => 0.56 + level * 0.3;
 
-  // Brussels is the slow board-wide bureaucrat; everyone else fires fast.
   @override
-  double baseAttackSpeed(int level) =>
-      cityConfig == brussels ? 0.35 : 2.85 + level * 0.28;
+  double baseAttackSpeed(int level) => 2.85 + level * 0.28;
 
-  // Brussels & London reach the entire board (hit-all); the rest are local.
+  // Portugal & the UK reach the entire board (hit-all); the rest are local.
   @override
   double baseRange(int level) =>
-      (cityConfig == brussels || cityConfig == london) ? 15.0 : 3.0;
+      (cityConfig == portugal || cityConfig == uk) ? 15.0 : 3.0;
 
   @override
   double projectileSizeX = 0.5;

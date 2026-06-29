@@ -21,11 +21,12 @@ import 'package:political_think/games/gemtd/gemtdgame/cities/gems/special_compan
 import 'package:political_think/games/gemtd/gemtdgame/cities/gems/special_companies/nba.dart';
 import 'package:political_think/games/gemtd/gemtdgame/cities/gems/special_companies/nfl.dart';
 import 'package:political_think/games/gemtd/gemtdgame/cities/gems/special_companies/tinder.dart';
-import 'package:political_think/games/gemtd/gemtdgame/cities/gems/special_companies/volgograd.dart';
-import 'package:political_think/games/gemtd/gemtdgame/cities/gems/special_companies/jerusalem.dart';
-import 'package:political_think/games/gemtd/gemtdgame/cities/gems/special_companies/hongkong.dart';
-import 'package:political_think/games/gemtd/gemtdgame/cities/gems/special_companies/paris.dart';
-import 'package:political_think/games/gemtd/gemtdgame/cities/gems/special_companies/washington_dc.dart';
+import 'package:political_think/games/gemtd/gemtdgame/cities/gems/special_companies/croatia.dart';
+import 'package:political_think/games/gemtd/gemtdgame/cities/gems/special_companies/belgium.dart';
+import 'package:political_think/games/gemtd/gemtdgame/cities/gems/special_companies/north_korea.dart';
+import 'package:political_think/games/gemtd/gemtdgame/cities/gems/special_companies/qatar.dart';
+import 'package:political_think/games/gemtd/gemtdgame/cities/gems/special_companies/el_salvador.dart';
+import 'package:political_think/games/gemtd/gemtdgame/cities/gems/special_companies/singapore.dart';
 import 'package:political_think/games/gemtd/gemtdgame/cities/gems/special_companies/sierra_leone.dart';
 import 'package:political_think/games/gemtd/gemtdgame/cities/gems/special_companies/galapagos.dart';
 import 'package:political_think/games/gemtd/gemtdgame/cities/weapon_settings.dart';
@@ -33,7 +34,6 @@ import 'package:political_think/games/gemtd/gemtdgame/enemy/enemy_component.dart
 import 'package:political_think/games/gemtd/gemtdgame/game/game_constants.dart';
 import 'package:political_think/games/gemtd/gemtdgame/game/game_controller.dart';
 
-import 'gems/asean/hanoi.dart';
 import 'gems/special_companies/blackrock.dart';
 import 'gems/special_companies/coinbase.dart';
 import 'gems/special_companies/fifa.dart';
@@ -490,14 +490,14 @@ abstract class GemComponent extends GameComponent
     if (name == "BlackRock") return BlackRock();
     if (name == "Tinder") return Tinder();
     if (name == "NFL") return NFL();
-    if (name == "Volgograd") return Volgograd();
 
-    // Special cities
-    if (name == "Hanoi") return Hanoi();
-    if (name == "Jerusalem") return Jerusalem();
-    if (name == "Hong Kong") return HongKong();
-    if (name == "Paris") return Paris();
-    if (name == "Washington DC") return WashingtonDC();
+    // Special cities (cross-region recipes)
+    if (name == "Croatia") return Croatia();
+    if (name == "Belgium") return Belgium();
+    if (name == "North Korea") return NorthKorea();
+    if (name == "Qatar") return Qatar();
+    if (name == "El Salvador") return ElSalvador();
+    if (name == "Singapore") return Singapore();
     if (name == "Sierra Leone") return SierraLeone();
     if (name == "Galapagos") return Galapagos();
 

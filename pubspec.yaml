@@ -1,7 +1,7 @@
 name: political_think
 description: An open-source news project that organizes news into `Confidence`, `Bias`, `Newsworthiness`, and `Contextualization` to tell maximally truthful news in a clear and measurable way.
 
-version: 2.0.5+5
+version: 2.1.0+6
 
 environment:
   sdk: '>=3.0.0'
@@ -88,6 +88,7 @@ flutter:
     - config.env
     # --- gemtd game assets ---
     - assets/images/city/
+    - assets/images/flags/
     - assets/images/enemy/
     - assets/images/explosion/
     - assets/images/innovation/

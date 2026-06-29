@@ -3,30 +3,38 @@ part of 'asean.dart';
 Set<Ability> asean_abilities(AseanSettings settings, int level,
         GemComponent caster, CityConfig config) =>
     switch (config) {
-      phnom_penh => {
+      // Cambodia (1) — spine only: pure Allure (reduces enemy armor).
+      cambodia => {
           Allure(level: level, caster: caster),
         },
-      ho_chi_minh => {
+      // Vietnam (2) — sequential combo attack, on top of the spine.
+      vietnam => {
           Allure(level: level, caster: caster),
           SouthAndNorth(level: level, caster: caster),
         },
-      manila => {
+      // Philippines (3) — Thousand Islands: attack speed up, range down.
+      philippines => {
           Allure(level: level, caster: caster),
           ThousandIslands(level: level, caster: caster),
         },
-      jakarta => {
+      // Indonesia (4) — Thousand Islands (archipelago twin of the Philippines).
+      indonesia => {
           Allure(level: level, caster: caster),
           ThousandIslands(level: level, caster: caster),
         },
-      kuala_lumpur => {
-          // Petronas: slow aura, cannot attack, no Allure (applies the slow "Oiled").
+      // Malaysia (5) — Petronas oil aura: slows AND amplifies damage taken,
+      // cannot fire a projectile (no Allure). The slow comes from Petronas; the
+      // damage amplification is layered on by OilSlick alongside it.
+      malaysia => {
           Petronas(level: level, caster: caster),
+          OilSlick(level: level, caster: caster),
         },
-      bangkok => {
-          // Beautiful Chaos: huge range + random target + fast hidden projectile
-          // (BangkokSettings sets empty_bullet + coinbase explosion + AoE-less single hit).
+      // Thailand (6, capstone) — Beautiful Chaos: huge range + random target +
+      // fast hidden projectile (ThailandSettings sets empty_bullet + coin
+      // explosion + AoE-less single hit).
+      thailand => {
           Allure(level: level, caster: caster),
-          FullMoon(level: level, caster: caster),
+          BeautifulChaos(level: level, caster: caster),
         },
       _ => throw UnimplementedError(
           'Unknown ability for level $level and config $config'),
@@ -60,7 +68,7 @@ class SouthAndNorth extends SequentialAttack {
     SouthAndNorthType.south =>
       "If the city is in range of ${hanoi.city} (North & South ability), this city fires a sequential attack.",
     SouthAndNorthType.north =>
-      "If the city is in range of ${ho_chi_minh.city} (South & North ability), this city fires a sequential attack.",
+      "If the city is in range of ${vietnam.city} (South & North ability), this city fires a sequential attack.",
   };
 
   @override
@@ -75,13 +83,13 @@ class SouthAndNorth extends SequentialAttack {
   bool checkIsPairCity(GemComponent gem) => switch (type) {
         SouthAndNorthType.south => gem is Hanoi,
         SouthAndNorthType.north => gem.settings is AseanSettings &&
-            (gem.settings as AseanSettings).cityConfig == ho_chi_minh,
+            (gem.settings as AseanSettings).cityConfig == vietnam,
       };
 
   @override
   bf.SequentialAttack createBuff() => bf.SequentialAttack(
         caster: caster,
-        // hardcode level to 1 (as Alex wanted) for Hanoi and Ho Chi Minh
+        // hardcode level to 1 (as Alex wanted) for Hanoi and Vietnam
         level: 1,
       );
 }
@@ -164,4 +172,62 @@ class ThousandIslands extends Ability {
 
   @override
   IconData icon = FontAwesomeIcons.arrowUpRightDots.data;
+}
+
+// Malaysia — the oil half of Petronas. Petronas itself supplies the slow; this
+// layers the "Oiled" damage amplification on top so the aura both slows AND
+// amplifies the damage struck enemies take. Runs alongside Petronas through the
+// same aura firing path, matching its 3s duration so the two expire together.
+class OilSlick extends Ability {
+  OilSlick({required super.caster, required super.level});
+
+  @override
+  bool get worksOnEnemies => true;
+
+  @override
+  bf.Buff? get buff => bf.ReceiveDamageMultiple(
+        caster: caster,
+        level: level,
+        overrideBaseDuration: 3,
+      )
+        ..name = name
+        ..icon = icon
+        ..gemType = gemType;
+
+  @override
+  String name = "Oil Slick";
+
+  @override
+  String description =
+      "Coats enemies in oil, amplifying the damage they take.";
+
+  @override
+  String get subDescription =>
+      "+${bf.ReceiveDamageMultiple.defaultMultipliers.map((e) => "${(e * 100).toStringAsFixed(0)}%").join("/")} damage taken.";
+
+  @override
+  IconData icon = Icons.oil_barrel;
+
+  @override
+  CityType gemType = CityType.ASEAN;
+}
+
+// Thailand (capstone) — Beautiful Chaos: keeps Full Moon's huge range + random
+// target, rebranded for ASEAN. (FullMoon is left intact in ability.dart for the
+// Coinbase / Washington DC specials that also use it.)
+class BeautifulChaos extends FullMoon {
+  BeautifulChaos({required super.caster, required super.level});
+
+  @override
+  String name = "Beautiful Chaos";
+
+  @override
+  String description =
+      "Greatly increases attack range, but attacks a random target.";
+
+  @override
+  CityType gemType = CityType.ASEAN;
+
+  @override
+  IconData icon = FontAwesomeIcons.dice.data;
 }

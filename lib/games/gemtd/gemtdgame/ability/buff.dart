@@ -73,6 +73,10 @@ abstract class Buff {
   double? chanceMultiplier;
   double? bountyDamageScalar;
 
+  // Propaganda (Qatar): overrides the gem's effective tier (level) used to
+  // compute its base stats. null = no override.
+  int? get levelOverride => null;
+
   //
   RenderType renderType = RenderType.NONE;
 
@@ -365,6 +369,38 @@ class BountyMultiple extends Buff {
 
   @override
   double? get baseDuration => overrideBaseDuration;
+}
+
+// Qatar (Propaganda): homogenizes a nearby allied tower to Qatar's effective
+// tier — StatusManager.computeGemStatus reads levelOverride to recompute the
+// ally's base stats at this level (up OR down).
+class PropagandaBuff extends Buff {
+  PropagandaBuff({
+    required super.caster,
+    required super.level,
+    required this.targetLevel,
+  });
+
+  final int targetLevel;
+
+  @override
+  int? get levelOverride => targetLevel;
+
+  @override
+  String name = "Propaganda";
+
+  @override
+  String description =
+      "Sets a nearby allied tower to Qatar's tier — its stats scale to that level.";
+
+  @override
+  IconData icon = FontAwesomeIcons.bullhorn.data;
+
+  @override
+  CityType gemType = CityType.MENA;
+
+  @override
+  double? get baseDuration => 1.0;
 }
 
 class Poison extends Buff {

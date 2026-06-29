@@ -1,22 +1,22 @@
 part of 'africa.dart';
 
-// Africa — "The Wild": each city IS an animal/icon; there is no shared ability.
-// Addis Ababa(Venom) -> Kinshasa(Cobalt) -> Lagos(Afrobeat) ->
-// Johannesburg(Hex) -> Nairobi(Stampede) -> Cape Town(Great White).
+// Africa — "The Wild": no shared spine; each country IS its own African icon.
+// Ghana(Juju) -> Ethiopia(Caffeination) -> DR Congo(Cobalt) ->
+// Kenya(Stampede) -> Nigeria(Afrobeat) -> South Africa(Great White).
 Set<Ability> africa_abilities(AfricaSettings settings, int level,
         GemComponent caster, CityConfig config) =>
     switch (config) {
-      addis_ababa => {Venom(level: level, caster: caster)},
-      kinshasa => {Cobalt(level: level, caster: caster)},
-      lagos => {Afrobeat(level: level, caster: caster)},
-      johannesburg => {AfricanHex(level: level, caster: caster)},
-      nairobi => {Stampede(level: level, caster: caster)},
-      cape_town => {GreatWhite(level: level, caster: caster)},
+      ghana => {Juju(level: level, caster: caster)},
+      ethiopia => {Caffeination(level: level, caster: caster)},
+      drCongo => {Cobalt(level: level, caster: caster)},
+      kenya => {Stampede(level: level, caster: caster)},
+      nigeria => {Afrobeat(level: level, caster: caster)},
+      southAfrica => {GreatWhite(level: level, caster: caster)},
       _ => throw UnimplementedError(
           'Unknown ability for level $level and config $config'),
     };
 
-// Cape Town — Great White: each hit tears away a % of the enemy's CURRENT HP.
+// South Africa — Great White: each hit tears away a % of the enemy's CURRENT HP.
 // Huge bites on fresh enemies, diminishing as they drop; it can't quite kill.
 class GreatWhite extends Ability {
   GreatWhite({required super.caster, required super.level});
@@ -49,7 +49,7 @@ class GreatWhite extends Ability {
   CityType gemType = CityType.AFRICA;
 }
 
-// Nairobi — Stampede: a heavy, slow, piercing charge that tramples the line.
+// Kenya — Stampede: a heavy, slow, piercing charge that tramples the line.
 class Stampede extends Ability {
   Stampede({required super.caster, required super.level});
 
@@ -77,9 +77,9 @@ class Stampede extends Ability {
   CityType gemType = CityType.AFRICA;
 }
 
-// Johannesburg — Hex: chance to turn an enemy into a harmless critter.
-class AfricanHex extends Ability {
-  AfricanHex({required super.caster, required super.level});
+// Ghana — Juju: chance to hex an enemy into a harmless critter.
+class Juju extends Ability {
+  Juju({required super.caster, required super.level});
 
   static var chancePerLevel = [0.10, 0.13, 0.16, 0.19, 0.22, 0.25];
 
@@ -95,7 +95,7 @@ class AfricanHex extends Ability {
       : null;
 
   @override
-  String name = "Hex";
+  String name = "Juju";
 
   @override
   String description = "Chance to turn an enemy into a harmless critter.";
@@ -112,7 +112,7 @@ class AfricanHex extends Ability {
   CityType gemType = CityType.AFRICA;
 }
 
-// Lagos — Afrobeat: a fast machine-gun whose tempo (attack speed) randomly
+// Nigeria — Afrobeat: a fast machine-gun whose tempo (attack speed) randomly
 // re-rolls every 1.5s, with invisible fast projectiles and low damage.
 class Afrobeat extends Ability {
   Afrobeat({required super.caster, required super.level}) {
@@ -166,7 +166,7 @@ class Afrobeat extends Ability {
   CityType gemType = CityType.AFRICA;
 }
 
-// Kinshasa — Cobalt: a no-attack electrocution aura that damages all nearby
+// DR Congo — Cobalt: a no-attack electrocution aura that damages all nearby
 // enemies but the jolt SPEEDS THEM UP.
 class Cobalt extends Ability {
   Cobalt({required super.caster, required super.level});
@@ -198,28 +198,65 @@ class Cobalt extends Ability {
   CityType gemType = CityType.AFRICA;
 }
 
-// Addis Ababa — Venom: every shot poisons the enemy, dealing damage over time.
-class Venom extends Ability {
-  Venom({required super.caster, required super.level});
+// Ethiopia — Caffeination: coffee burst-then-crash (birthplace of coffee). The
+// first few attacks on an enemy fire at a big attack-speed surge, then the
+// tower crashes to the inverse speed for the rest of the engagement.
+// Local Africa implementation (distinct from the shared N. America one) so it
+// carries CityType.AFRICA and lives in this region's files.
+class Caffeination extends Ability {
+  Caffeination({required super.caster, required super.level});
+
+  static const increasePerLevel = [2.3, 2.6, 2.9, 3.2, 3.5, 3.8];
+
+  int count = 0;
+  late int numberOfAttacks = level + 1;
 
   @override
-  bool get worksOnEnemies => true;
+  GameComponent? onEnemyAttack(GemComponent gem, EnemyComponent primaryTarget,
+      Set<GameComponent> targets) {
+    if (gem.lastEnemy != primaryTarget) {
+      count = 0;
+    }
+    final surge = increasePerLevel.getByLevel(level);
+    if (count < numberOfAttacks - 1) {
+      // Burst: ride the surge for the opening attacks.
+      count++;
+      gem.buffs.add(bf.AttackSpeedMultiple(
+        caster: caster,
+        level: level,
+        overrideDurationType: bf.DurationType.ATTACK,
+        overrideMultiplier: surge,
+      )
+        ..name = name
+        ..gemType = gemType);
+    } else {
+      // Crash: slump to the inverse of the surge once the buzz wears off.
+      gem.buffs.add(bf.AttackSpeedMultiple(
+        caster: caster,
+        level: level,
+        overrideDurationType: bf.DurationType.ATTACK,
+        overrideMultiplier: 1 / surge,
+      )
+        ..name = name
+        ..gemType = gemType);
+    }
+    return null;
+  }
 
   @override
-  bf.Buff? get buff => bf.VenomBuff(caster: caster, level: level);
+  String name = "Caffeination";
 
   @override
-  String name = "Venom";
-
-  @override
-  String description = "Each shot poisons the enemy, damaging it over time.";
+  String description =
+      "A coffee rush: a burst of fast attacks, then a sluggish crash.";
 
   @override
   String get subDescription =>
-      "${bf.VenomBuff.damagePerLevel.join("/")} damage per second.";
+      "First $numberOfAttacks attacks at ${increasePerLevel.join("/")}x speed, "
+      "then ${increasePerLevel.map((e) => "1/$e").join("/")}x speed.";
 
   @override
-  IconData icon = Icons.sick_outlined;
+  IconData icon = Icons.coffee;
 
   @override
   CityType gemType = CityType.AFRICA;

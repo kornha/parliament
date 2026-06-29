@@ -28,7 +28,7 @@ class Hanoi extends GemComponent {
   GemAttributes settings = HanoiSettings();
 
   @override
-  get currentImagePath => "city/${name.toLowerCase()}.png";
+  get currentImagePath => "flags/${countryCodes.first.toLowerCase()}.png";
 
   @override
   int get level => hanoi.level;

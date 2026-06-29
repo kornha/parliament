@@ -1,17 +1,17 @@
 part of 'eeurope.dart';
 
 const eeurope_cities = <CityConfig>{
-  kyiv,
-  budapest,
-  stPetersburg,
-  prague,
-  warsaw,
-  moscow,
+  latvia,
+  hungary,
+  czechia,
+  ukraine,
+  poland,
+  russia,
 };
 
-const kyiv = (level: 1, city: "Kyiv", countryCode: "UA");
-const budapest = (level: 2, city: "Budapest", countryCode: "HU");
-const stPetersburg = (level: 3, city: "St Petersburg", countryCode: "RU");
-const prague = (level: 4, city: "Prague", countryCode: "CZ");
-const warsaw = (level: 5, city: "Warsaw", countryCode: "PL");
-const moscow = (level: 6, city: "Moscow", countryCode: "RU");
+const latvia = (level: 1, city: "Latvia", countryCode: "LV");
+const hungary = (level: 2, city: "Hungary", countryCode: "HU");
+const czechia = (level: 3, city: "Czechia", countryCode: "CZ");
+const ukraine = (level: 4, city: "Ukraine", countryCode: "UA");
+const poland = (level: 5, city: "Poland", countryCode: "PL");
+const russia = (level: 6, city: "Russia", countryCode: "RU");

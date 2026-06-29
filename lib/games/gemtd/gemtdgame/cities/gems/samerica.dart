@@ -1,8 +1,20 @@
+import 'dart:math';
+
 import 'package:flame/components.dart';
+import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:political_think/games/gemtd/common/extensions.dart';
 import 'package:political_think/games/gemtd/gemtdgame/ability/ability.dart';
+import 'package:political_think/games/gemtd/gemtdgame/ability/buff.dart' as bf;
+import 'package:political_think/games/gemtd/gemtdgame/base/game_component.dart';
 import 'package:political_think/games/gemtd/gemtdgame/cities/gem_component.dart';
 import 'package:political_think/games/gemtd/gemtdgame/cities/weapon_settings.dart';
+import 'package:political_think/games/gemtd/gemtdgame/enemy/enemy_component.dart';
+
+import '../city_config.dart';
+
+part 'samerica_abilities.dart';
+part 'samerica_cities.dart';
 
 class SAmerica extends GemComponent {
   SAmerica({Vector2? position, bool hidden = false})
@@ -12,7 +24,7 @@ class SAmerica extends GemComponent {
   GemAttributes settings = SAmericaSettings();
 
   @override
-  get currentImagePath => "city/${name.toLowerCase()}.png";
+  get currentImagePath => "flags/${countryCodes.first.toLowerCase()}.png";
 
   @override
   Future<void>? onLoad() async {
@@ -21,36 +33,21 @@ class SAmerica extends GemComponent {
 }
 
 class SAmericaSettings extends GemAttributes {
+  SAmericaSettings({CityConfig? cityConfig})
+      : cityConfig =
+            cityConfig ?? samerica_cities.getCityConfigByLevelOrLast(1);
+
+  CityConfig cityConfig;
+
   @override
   CityType gemType = CityType.SAMERICA;
 
   @override
-  List<String> names = [
-    "Lima",
-    "Medellin",
-    "Caracas",
-    "Rio de Janeiro",
-    "Buenos Aires",
-    "Sao Paulo",
-  ];
+  late List<String> names = [...samerica_cities.map((e) => e.city)];
 
   @override
-  List<String> countryCodes(int level) {
-    switch (level) {
-      case 1:
-        return ["PE"];
-      case 2:
-        return ["CO"];
-      case 3:
-        return ["VE"];
-      case 4:
-        return ["BR"];
-      case 5:
-        return ["AR"];
-      default:
-        return ["BR"];
-    }
-  }
+  List<String> countryCodes(int level) =>
+      [samerica_cities.getCityConfigByLevelOrLast(level).countryCode];
 
   @override
   double get projectileSpeed => 2.75;
@@ -100,40 +97,14 @@ class SAmericaSettings extends GemAttributes {
   @override
   double baseDamage(int level) => 1.75 + level * 0.8;
 
-  // Spine: Burn (DoT) shared. Lima(Burn only) -> Medellín(Cartel) ->
-  // Caracas(Crude/Oiled) -> Rio(Redeemer) -> Buenos Aires(Tango) ->
-  // São Paulo(Inferno — burn aura, cannot attack).
   @override
   Set<Ability> abilities(int level, GemComponent caster) {
-    switch (level) {
-      case 1:
-        return {
-          Burn(level: level, caster: caster),
-        };
-      case 2:
-        return {
-          Burn(level: level, caster: caster),
-          Cartel(level: level, caster: caster),
-        };
-      case 3:
-        return {
-          Burn(level: level, caster: caster),
-          Crude(level: level, caster: caster),
-        };
-      case 4:
-        return {
-          Burn(level: level, caster: caster),
-          Redeemer(level: level, caster: caster),
-        };
-      case 5:
-        return {
-          Burn(level: level, caster: caster),
-          Tango(level: level, caster: caster),
-        };
-      default:
-        return {
-          Inferno(level: level, caster: caster),
-        };
-    }
+    final config = samerica_cities.getCityConfigByLevelOrLast(level);
+    final abilities = {...samerica_abilities(this, level, caster, config)};
+    abilities.forEach((a) {
+      a.gemType = gemType;
+      a.buff?.gemType = gemType;
+    });
+    return abilities;
   }
 }

@@ -15,7 +15,7 @@ class Galapagos extends GemComponent {
   GemAttributes settings = GalapagosSettings();
 
   @override
-  get currentImagePath => "city/${name.toLowerCase()}.png";
+  get currentImagePath => "flags/${countryCodes.first.toLowerCase()}.png";
 
   @override
   int get level => 6;

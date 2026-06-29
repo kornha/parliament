@@ -54,9 +54,16 @@ class StatusManager {
     Set<Buff> buffs,
     GemComponent gem,
   ) {
-    var tempRange = gem.settings.baseRange(gem.level);
-    var tempDamage = gem.settings.baseDamage(gem.level);
-    var tempAttackSpeed = gem.settings.baseAttackSpeed(gem.level);
+    // Propaganda (Qatar): a buff may override the effective tier used to scale
+    // base stats (homogenizing nearby allies up or down to Qatar's level).
+    var effectiveLevel = gem.level;
+    for (var buff in buffs) {
+      final lvl = buff.levelOverride;
+      if (lvl != null) effectiveLevel = lvl;
+    }
+    var tempRange = gem.settings.baseRange(effectiveLevel);
+    var tempDamage = gem.settings.baseDamage(effectiveLevel);
+    var tempAttackSpeed = gem.settings.baseAttackSpeed(effectiveLevel);
     var tempBountyMultiplier = 1.0;
     var tempBuffMultiplier = 1.0;
     var tempChanceMultiplier = 1.0;

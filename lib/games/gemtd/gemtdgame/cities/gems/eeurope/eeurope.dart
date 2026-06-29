@@ -23,7 +23,7 @@ class EEurope extends GemComponent {
       cityConfig: eeurope_cities.getCityConfigByLevelOrLast(level));
 
   @override
-  get currentImagePath => "city/${name.toLowerCase()}.png";
+  get currentImagePath => "flags/${countryCodes.first.toLowerCase()}.png";
 }
 
 class EEuropeSettings extends GemAttributes {

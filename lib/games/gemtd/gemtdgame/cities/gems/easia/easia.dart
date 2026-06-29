@@ -1,17 +1,28 @@
+import 'dart:math';
+
 import 'package:flame/components.dart';
+import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:political_think/games/gemtd/common/extensions.dart';
 import 'package:political_think/games/gemtd/gemtdgame/ability/ability.dart';
+import 'package:political_think/games/gemtd/gemtdgame/ability/buff.dart' as bf;
 import 'package:political_think/games/gemtd/gemtdgame/cities/gem_component.dart';
 import 'package:political_think/games/gemtd/gemtdgame/cities/weapon_settings.dart';
+
+import '../../city_config.dart';
+
+part 'easia_abilities.dart';
+part 'easia_cities.dart';
 
 class EAsia extends GemComponent {
   EAsia({Vector2? position}) : super(position: position);
 
   @override
-  get currentImagePath => "city/${name.toLowerCase()}.png";
+  get currentImagePath => "flags/${countryCodes.first.toLowerCase()}.png";
 
   @override
-  GemAttributes settings = EAsiaSettings();
+  GemAttributes get settings =>
+      EAsiaSettings(cityConfig: easia_cities.getCityConfigByLevelOrLast(level));
 
   @override
   Future<void>? onLoad() async {
@@ -20,36 +31,19 @@ class EAsia extends GemComponent {
 }
 
 class EAsiaSettings extends GemAttributes {
-  @override
-  List<String> names = [
-    "Osaka",
-    "Shenzhen",
-    "Seoul",
-    "Beijing",
-    "Shanghai",
-    "Tokyo",
-  ];
+  EAsiaSettings({CityConfig? cityConfig})
+      : cityConfig = cityConfig ?? easia_cities.first;
 
-  @override
-  List<String> countryCodes(int level) {
-    switch (level) {
-      case 1:
-        return ["JP"];
-      case 2:
-        return ["CN"];
-      case 3:
-        return ["KR"];
-      case 4:
-        return ["CN"];
-      case 5:
-        return ["CN"];
-      default:
-        return ["JP"];
-    }
-  }
+  final CityConfig cityConfig;
 
   @override
   CityType gemType = CityType.EASIA;
+
+  @override
+  late List<String> names = [...easia_cities.map((e) => e.city)];
+
+  @override
+  List<String> countryCodes(int level) => [cityConfig.countryCode];
 
   @override
   double baseAttackSpeed(int level) => 0.4 + level * 0.05;
@@ -98,51 +92,21 @@ class EAsiaSettings extends GemAttributes {
   int get explosionRows => 1;
 
   @override
-  // TODO: implement explosionSizeX
   double get explosionSizeX => 1.2;
 
   @override
-  // TODO: implement explosionSizeX
   double get explosionSizeY => 1.2;
 
   @override
   double get explosionStepTime => 0.06;
 
-  // Spine: Balance (chance to stun) is shared on every city.
-  // Osaka(Balance only) -> Shenzhen(Manufactured Technology) -> Seoul(K-Pop)
-  // -> Beijing(People's Republic) -> Shanghai(Red Capitalism) -> Tokyo(Kaizen).
   @override
-  Set<Ability> abilities(int level, GemComponent caster) {
-    switch (level) {
-      case 1:
-        return {
-          Balance(level: level, caster: caster),
-        };
-      case 2:
-        return {
-          Balance(level: level, caster: caster),
-          ManufacturedTechnology(level: level, caster: caster),
-        };
-      case 3:
-        return {
-          Balance(level: level, caster: caster),
-          KPOP(level: level, caster: caster),
-        };
-      case 4:
-        return {
-          Balance(level: level, caster: caster),
-          PeoplesRepublic(level: level, caster: caster),
-        };
-      case 5:
-        return {
-          Balance(level: level, caster: caster),
-          RedCapitalism(level: level, caster: caster),
-        };
-      default:
-        return {
-          Balance(level: level, caster: caster),
-          Kaizen(level: level, caster: caster),
-        };
-    }
+  Set<Ability> abilities(int level, covariant EAsia caster) {
+    final abilities = {...easia_abilities(this, level, caster, cityConfig)};
+    abilities.forEach((a) {
+      a.gemType = gemType;
+      a.buff?.gemType = gemType;
+    });
+    return abilities;
   }
 }

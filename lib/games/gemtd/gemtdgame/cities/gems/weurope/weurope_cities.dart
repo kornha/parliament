@@ -1,17 +1,17 @@
 part of 'weurope.dart';
 
 const weurope_cities = <CityConfig>{
-  manchester,
-  dublin,
-  brussels,
-  barcelona,
-  rome,
-  london,
+  ireland,
+  spain,
+  italy,
+  portugal,
+  france,
+  uk,
 };
 
-const manchester = (level: 1, city: "Manchester", countryCode: "GB");
-const dublin = (level: 2, city: "Dublin", countryCode: "IE");
-const brussels = (level: 3, city: "Brussels", countryCode: "BE");
-const barcelona = (level: 4, city: "Barcelona", countryCode: "ES");
-const rome = (level: 5, city: "Rome", countryCode: "IT");
-const london = (level: 6, city: "London", countryCode: "GB");
+const ireland = (level: 1, city: "Ireland", countryCode: "IE");
+const spain = (level: 2, city: "Spain", countryCode: "ES");
+const italy = (level: 3, city: "Italy", countryCode: "IT");
+const portugal = (level: 4, city: "Portugal", countryCode: "PT");
+const france = (level: 5, city: "France", countryCode: "FR");
+const uk = (level: 6, city: "UK", countryCode: "GB");

@@ -1,4 +1,4 @@
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:political_think/games/gemtd/common/extensions.dart';
 import 'package:political_think/games/gemtd/gemtdgame/ability/ability.dart';
@@ -16,17 +16,17 @@ class Asean extends GemComponent {
   Asean({super.position});
 
   @override
-  GemAttributes get settings => level == bangkok.level
-      ? BangkokSettings(cityConfig: bangkok)
+  GemAttributes get settings => level == thailand.level
+      ? ThailandSettings(cityConfig: thailand)
       : AseanSettings(
           cityConfig: asean_cities.getCityConfigByLevelOrLast(level));
 
   @override
-  get currentImagePath => "city/${name.toLowerCase()}.png";
+  get currentImagePath => "flags/${countryCodes.first.toLowerCase()}.png";
 }
 
 const _isAura = {
-  kuala_lumpur,
+  malaysia,
 };
 
 class AseanSettings extends GemAttributes {
@@ -135,8 +135,10 @@ class AseanSettings extends GemAttributes {
   }
 }
 
-class BangkokSettings extends AseanSettings {
-  BangkokSettings({required super.cityConfig});
+// Thailand (capstone) — Beautiful Chaos: hidden fast projectile + single-hit
+// (no AoE) coin explosion, paired with the huge-range random-target ability.
+class ThailandSettings extends AseanSettings {
+  ThailandSettings({required super.cityConfig});
 
   @override
   bool get canHitIntermediateTargets => false;

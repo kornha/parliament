@@ -12,7 +12,7 @@ class SAsia extends GemComponent {
   GemAttributes settings = SAsiaSettings();
 
   @override
-  get currentImagePath => "city/${name.toLowerCase()}.png";
+  get currentImagePath => "flags/${countryCodes.first.toLowerCase()}.png";
 
   @override
   Future<void>? onLoad() async {

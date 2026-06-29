@@ -1,35 +1,60 @@
 part of 'weurope.dart';
 
 // Western Europe — Socialism / "share the attack".
-// Manchester(Socialism) -> Dublin(Drunken Socialism) -> Brussels(Bureaucracy)
-// -> Barcelona(Tiki-taka bounce) -> Rome(Gladiator execute) -> London(Seat of the Empire).
+// Socialism (each attack is shared across multiple enemies) is the shared spine.
+// Each tier adds its own twist on top.
+// Ireland(Drunken Socialism: random share count) -> Spain(Tiki-taka bounce)
+// -> Italy(Gladiator execute) -> Portugal(Age of Discovery: global range, weak)
+// -> France(Revolution: more enemies = more damage) -> UK(Seat of the Empire).
+// Belgium (Bureaucracy: whole board, slow) is a separate special.
 Set<Ability> weurope_abilities(WEuropeSettings settings, int level,
         GemComponent caster, CityConfig config) =>
     switch (config) {
-      manchester => {
-          Socialism(level: level, caster: caster),
-        },
-      dublin => {
+      ireland => {
           DrunkenSocialism(level: level, caster: caster),
         },
-      brussels => {
-          Bureaucracy(level: level, caster: caster),
-        },
-      barcelona => {
+      spain => {
           Socialism(level: level, caster: caster),
           TikiTaka(
               level: level, caster: caster, range: settings.baseRange(level)),
         },
-      rome => {
+      italy => {
           Socialism(level: level, caster: caster),
           Gladiator(level: level, caster: caster),
         },
-      london => {
+      portugal => {
+          AgeOfDiscovery(level: level, caster: caster),
+        },
+      france => {
+          Socialism(level: level, caster: caster),
+          Revolution(level: level, caster: caster),
+        },
+      uk => {
           SeatOfTheEmpire(level: level, caster: caster),
         },
       _ => throw UnimplementedError(
           'Unknown ability for level $level and config $config'),
     };
+
+// Applies/refreshes a self damage multiplier on the casting gem.
+void _applyDamageMultiplier(GemComponent gem, Ability ability, double mult) {
+  final cs = bf.CriticalStrike(
+      caster: gem, level: ability.level, overrideDamageMultiplier: mult)
+    ..name = ability.name
+    ..icon = ability.icon
+    ..gemType = ability.gemType;
+  if (gem.buffs.contains(cs)) {
+    for (final b in gem.buffs) {
+      if (b == cs) {
+        b.duration = cs.duration;
+        (b as bf.CriticalStrike).overrideDamageMultiplier =
+            cs.overrideDamageMultiplier;
+      }
+    }
+  } else {
+    gem.buffs.add(cs);
+  }
+}
 
 // Shared spine: each attack is shared across multiple enemies (each takes the full hit).
 class Socialism extends Ability {
@@ -89,7 +114,7 @@ class Socialism extends Ability {
   CityType gemType = CityType.WEUROPE;
 }
 
-// Dublin — shares the attack across a RANDOM number of enemies.
+// Ireland — Drunken Socialism: shares the attack across a RANDOM number of enemies.
 class DrunkenSocialism extends Ability {
   DrunkenSocialism({required super.caster, required super.level});
 
@@ -130,7 +155,7 @@ class DrunkenSocialism extends Ability {
   CityType gemType = CityType.WEUROPE;
 }
 
-// Brussels — attacks every enemy on the board (global range via settings), but very slowly.
+// Belgium (special) — Bureaucracy: attacks every enemy on the board, but very slowly.
 class Bureaucracy extends Ability {
   Bureaucracy({required super.caster, required super.level});
 
@@ -162,7 +187,82 @@ class Bureaucracy extends Ability {
   CityType gemType = CityType.WEUROPE;
 }
 
-// Barcelona — Tiki-taka: attacks bounce between nearby enemies.
+// Portugal — Age of Discovery: fires the whole board, but every hit lands weakly.
+// The third "whole-board" tower (Portugal weak dmg, Belgium slow, UK full).
+class AgeOfDiscovery extends Ability {
+  AgeOfDiscovery({required super.caster, required super.level}) {
+    // Reaching the entire map at once comes at the cost of damage.
+    buff = bf.DamageMultiple(
+      caster: caster,
+      level: level,
+      multipliersPerLevel: const [0.4, 0.45, 0.5, 0.55, 0.6, 0.65],
+    )..name = "Age of Discovery";
+  }
+
+  @override
+  bool get canAttack => false;
+
+  @override
+  bool get worksOnSelf => true;
+
+  @override
+  String name = "Age of Discovery";
+
+  @override
+  String description =
+      "Charts the entire board, attacking every enemy at once — but each hit lands weakly.";
+
+  @override
+  String get subDescription => "Global range; reduced damage.";
+
+  @override
+  IconData icon = FontAwesomeIcons.compass.data;
+
+  @override
+  GameComponent? onEnemyAttack(GemComponent gem, EnemyComponent primaryTarget,
+      Set<GameComponent> targets) {
+    for (var e in targets) {
+      gem.fire(e as EnemyComponent);
+    }
+    return null;
+  }
+
+  @override
+  CityType gemType = CityType.WEUROPE;
+}
+
+// France — Revolution: the more enemies on the field, the more damage.
+class Revolution extends Ability {
+  Revolution({required super.caster, required super.level});
+
+  static const perEnemy = [0.10, 0.13, 0.16, 0.19, 0.22, 0.25];
+
+  @override
+  GameComponent? onEnemyAttack(GemComponent gem, EnemyComponent primaryTarget,
+      Set<GameComponent> targets) {
+    final mult = 1.0 + targets.length * perEnemy.getByLevel(level);
+    _applyDamageMultiplier(gem, this, mult);
+    return null;
+  }
+
+  @override
+  String name = "Revolution";
+
+  @override
+  String description = "The more enemies on the field, the more damage.";
+
+  @override
+  String get subDescription =>
+      "+${perEnemy.map((e) => "${(e * 100).toStringAsFixed(0)}%").join("/")} damage per enemy.";
+
+  @override
+  IconData icon = FontAwesomeIcons.flag.data;
+
+  @override
+  CityType gemType = CityType.WEUROPE;
+}
+
+// Spain — Tiki-taka: attacks bounce between nearby enemies.
 class TikiTaka extends Ability {
   TikiTaka({
     required super.caster,
@@ -199,7 +299,7 @@ class TikiTaka extends Ability {
   CityType gemType = CityType.WEUROPE;
 }
 
-// Rome — Gladiator: chance to execute a wounded enemy outright.
+// Italy — Gladiator: chance to execute a wounded enemy outright.
 class Gladiator extends Ability {
   Gladiator({required super.caster, required super.level});
 
@@ -241,7 +341,7 @@ class Gladiator extends Ability {
   CityType gemType = CityType.WEUROPE;
 }
 
-// London — Seat of the Empire: attacks all enemies (global range); ramps attack speed.
+// UK — Seat of the Empire: attacks all enemies (global range); ramps attack speed.
 class SeatOfTheEmpire extends Ability {
   static const increasePerLevelDefault = [0.2, 0.3, 0.4, 0.5, 0.6];
   static const inactiveDelay = Duration(seconds: 1);

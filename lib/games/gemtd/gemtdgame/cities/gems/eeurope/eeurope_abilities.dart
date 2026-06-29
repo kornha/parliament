@@ -2,35 +2,34 @@ part of 'eeurope.dart';
 
 // Eastern Europe — Oligarchy / compounding.
 // Oligarchy (each consecutive hit on the same enemy compounds attack speed) is
-// the shared spine. Each city adds its own compounding debuff (the enemy
-// auto-stacks the buff on repeated hits, and StatusManager multiplies by stacks).
-// Kyiv(Oligarchy) -> Budapest(Thermal Baths: compound slow)
-// -> St Petersburg(Leningrad: compound bounty) -> Prague(Defenestration: compound armor shred)
-// -> Warsaw(Uprising: compound vulnerability) -> Moscow(Kremlin: compounding never resets).
+// the shared spine on every tower. Each tier adds its own twist.
+// Latvia(spine only) -> Hungary(Thermal Baths: compound slow)
+// -> Czechia(Defenestration: compound armor shred) -> Ukraine(Wheat & Sky: gold/attack)
+// -> Poland(Uprising: compound vulnerability) -> Russia(Mother Russia: resets only on kill).
 Set<Ability> eeurope_abilities(EEuropeSettings settings, int level,
         GemComponent caster, CityConfig config) =>
     switch (config) {
-      kyiv => {
+      latvia => {
           Oligarchy(level: level, caster: caster),
         },
-      budapest => {
+      hungary => {
           Oligarchy(level: level, caster: caster),
           ThermalBaths(level: level, caster: caster),
         },
-      stPetersburg => {
-          Oligarchy(level: level, caster: caster),
-          Leningrad(level: level, caster: caster),
-        },
-      prague => {
+      czechia => {
           Oligarchy(level: level, caster: caster),
           Defenestration(level: level, caster: caster),
         },
-      warsaw => {
+      ukraine => {
+          Oligarchy(level: level, caster: caster),
+          WheatAndSky(level: level, caster: caster),
+        },
+      poland => {
           Oligarchy(level: level, caster: caster),
           Uprising(level: level, caster: caster),
         },
-      moscow => {
-          Kremlin(level: level, caster: caster),
+      russia => {
+          MotherRussia(level: level, caster: caster),
         },
       _ => throw UnimplementedError(
           'Unknown ability for level $level and config $config'),
@@ -42,12 +41,15 @@ class Oligarchy extends Ability {
     required super.caster,
     required super.level,
     this.neverResets = false,
+    this.resetOnKillOnly = false,
   });
 
   static const increasePerLevel = [0.15, 0.2, 0.25, 0.3, 0.35, 0.4];
   static const _max = 50;
 
   final bool neverResets;
+  // Mother Russia: persists across target-switches, resets only when it kills.
+  final bool resetOnKillOnly;
   int count = 0;
 
   @override
@@ -67,7 +69,15 @@ class Oligarchy extends Ability {
   @override
   GameComponent? onEnemyAttack(GemComponent gem, EnemyComponent primaryTarget,
       Set<GameComponent> targets) {
-    if (neverResets || caster.lastEnemy == primaryTarget) {
+    if (resetOnKillOnly) {
+      // Reset only when the previous target died (a kill); persist otherwise.
+      if (caster.lastEnemy != null &&
+          caster.lastEnemy != primaryTarget &&
+          (caster.lastEnemy?.dead ?? false)) {
+        count = 0;
+      }
+      if (count < _max) count++;
+    } else if (neverResets || caster.lastEnemy == primaryTarget) {
       if (count < _max) count++;
     } else {
       count = 0;
@@ -85,22 +95,53 @@ class Oligarchy extends Ability {
   CityType gemType = CityType.EEUROPE;
 }
 
-// Moscow — Kremlin: the compounding attack speed never resets.
-class Kremlin extends Oligarchy {
-  Kremlin({required super.caster, required super.level})
-      : super(neverResets: true);
+// Russia — Mother Russia: the compounding attack speed only resets on a kill.
+class MotherRussia extends Oligarchy {
+  MotherRussia({required super.caster, required super.level})
+      : super(resetOnKillOnly: true);
 
   @override
-  String name = "Kremlin";
+  String name = "Mother Russia";
 
   @override
-  String description = "Compounding attack speed that never resets.";
+  String description =
+      "Compounding attack speed that only resets when it gets a kill.";
 
   @override
   IconData icon = FontAwesomeIcons.chessRook.data;
 }
 
-// Budapest — Thermal Baths: each consecutive hit compounds a slow.
+// Ukraine — Wheat & Sky: a small flat amount of gold on every attack (Europe's
+// breadbasket). Doesn't compound; just scales with how fast it fires.
+class WheatAndSky extends Ability {
+  WheatAndSky({required super.caster, required super.level});
+
+  static const goldPerLevel = [0.2, 0.25, 0.3, 0.35, 0.4, 0.5];
+
+  @override
+  GameComponent? onEnemyAttack(GemComponent gem, EnemyComponent primaryTarget,
+      Set<GameComponent> targets) {
+    gem.gameRef.gameStats.capital += goldPerLevel.getByLevel(level);
+    return null;
+  }
+
+  @override
+  String name = "Wheat & Sky";
+
+  @override
+  String description = "Generates a little gold with every attack.";
+
+  @override
+  String get subDescription => "+${goldPerLevel.join("/")} gold per attack.";
+
+  @override
+  IconData icon = Icons.attach_money;
+
+  @override
+  CityType gemType = CityType.EEUROPE;
+}
+
+// Hungary — Thermal Baths: each consecutive hit compounds a slow.
 class ThermalBaths extends Ability {
   ThermalBaths({required super.caster, required super.level});
 
@@ -139,46 +180,7 @@ class ThermalBaths extends Ability {
   CityType gemType = CityType.EEUROPE;
 }
 
-// St Petersburg — Leningrad: each consecutive hit compounds the enemy's bounty.
-class Leningrad extends Ability {
-  Leningrad({required super.caster, required super.level});
-
-  static const bountyPerStack = [0.10, 0.13, 0.16, 0.19, 0.22, 0.25];
-
-  @override
-  bool get worksOnEnemies => true;
-
-  @override
-  bf.Buff? get buff => bf.BountyMultiple(
-        caster: caster,
-        level: level,
-        overrideMultiplier: bountyPerStack.getByLevel(level),
-        overrideBaseDuration: 3,
-      )
-        ..name = name
-        ..icon = icon
-        ..gemType = gemType
-        ..stacks = 1
-        ..renderType = bf.RenderType.GRID;
-
-  @override
-  String name = "Leningrad";
-
-  @override
-  String description = "Each consecutive hit compounds the enemy's bounty.";
-
-  @override
-  String get subDescription =>
-      "+${bountyPerStack.map((e) => "${(e * 100).toStringAsFixed(0)}%").join("/")} bounty per stack.";
-
-  @override
-  IconData icon = FontAwesomeIcons.moneyBillWave.data;
-
-  @override
-  CityType gemType = CityType.EEUROPE;
-}
-
-// Prague — Defenestration: each consecutive hit compounds armor shred.
+// Czechia — Defenestration: each consecutive hit compounds armor shred.
 class Defenestration extends Ability {
   Defenestration({required super.caster, required super.level});
 
@@ -216,7 +218,7 @@ class Defenestration extends Ability {
   CityType gemType = CityType.EEUROPE;
 }
 
-// Warsaw — Uprising: each consecutive hit compounds the enemy's vulnerability.
+// Poland — Uprising: each consecutive hit compounds the enemy's vulnerability.
 class Uprising extends Ability {
   Uprising({required super.caster, required super.level});
 

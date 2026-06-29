@@ -3,7 +3,6 @@ import 'dart:math' as math;
 import 'package:flame/components.dart';
 import 'package:political_think/games/gemtd/common/extensions.dart';
 import 'package:political_think/games/gemtd/gemtdgame/cities/gem_component.dart';
-import 'package:political_think/games/gemtd/gemtdgame/cities/gems/asean/hanoi.dart';
 import 'package:political_think/games/gemtd/gemtdgame/cities/gems/sasia.dart';
 import 'package:political_think/games/gemtd/gemtdgame/cities/gems/easia/easia.dart';
 import 'package:political_think/games/gemtd/gemtdgame/cities/gems/samerica.dart';
@@ -15,11 +14,12 @@ import 'package:political_think/games/gemtd/gemtdgame/cities/gems/weurope/weurop
 import '../cities/gems/asean/asean.dart';
 import '../cities/gems/eeurope/eeurope.dart';
 import '../cities/gems/rock.dart';
-import '../cities/gems/special_companies/volgograd.dart';
-import '../cities/gems/special_companies/jerusalem.dart';
-import '../cities/gems/special_companies/hongkong.dart';
-import '../cities/gems/special_companies/paris.dart';
-import '../cities/gems/special_companies/washington_dc.dart';
+import '../cities/gems/special_companies/croatia.dart';
+import '../cities/gems/special_companies/belgium.dart';
+import '../cities/gems/special_companies/north_korea.dart';
+import '../cities/gems/special_companies/qatar.dart';
+import '../cities/gems/special_companies/el_salvador.dart';
+import '../cities/gems/special_companies/singapore.dart';
 import '../cities/gems/special_companies/sierra_leone.dart';
 import '../cities/gems/special_companies/galapagos.dart';
 import '../neutral/neutral_settings.dart';
@@ -326,14 +326,54 @@ class GameConstants {
   };
 
   static Map<List<String>, GemComponent> specialRecipes = {
-    hanoi_recipe.cities: hanoi_recipe.gem,
-    volgograd_recipe.cities: volgograd_recipe.gem,
-    jerusalem_recipe.cities: jerusalem_recipe.gem,
-    hongkong_recipe.cities: hongkong_recipe.gem,
-    paris_recipe.cities: paris_recipe.gem,
-    washington_dc_recipe.cities: washington_dc_recipe.gem,
-    sierra_leone_recipe.cities: sierra_leone_recipe.gem,
-    galapagos_recipe.cities: galapagos_recipe.gem,
+    // Croatia (E. Europe) = Italy + Hungary + Egypt
+    [
+      (WEurope()..level = 3).name,
+      (EEurope()..level = 2).name,
+      (Mena()..level = 3).name,
+    ]: Croatia(),
+    // Belgium (W. Europe) = France + DR Congo + Czechia
+    [
+      (WEurope()..level = 5).name,
+      (Africa()..level = 3).name,
+      (EEurope()..level = 3).name,
+    ]: Belgium(),
+    // North Korea (E. Asia) = S. Korea + Cuba + Vietnam
+    [
+      (EAsia()..level = 4).name,
+      (NAmerica()..level = 1).name,
+      (Asean()..level = 2).name,
+    ]: NorthKorea(),
+    // Qatar (MENA) = Saudi Arabia + USA + Spain
+    [
+      (Mena()..level = 4).name,
+      (NAmerica()..level = 6).name,
+      (WEurope()..level = 2).name,
+    ]: Qatar(),
+    // El Salvador (N. America) = Mexico + Colombia + Philippines
+    [
+      (NAmerica()..level = 5).name,
+      (SAmerica()..level = 3).name,
+      (Asean()..level = 3).name,
+    ]: ElSalvador(),
+    // Galapagos (S. America) = Peru + Indonesia + Kenya
+    [
+      (SAmerica()..level = 1).name,
+      (Asean()..level = 4).name,
+      (Africa()..level = 4).name,
+    ]: Galapagos(),
+    // Singapore (ASEAN) = China + Malaysia + UK
+    [
+      (EAsia()..level = 6).name,
+      (Asean()..level = 5).name,
+      (WEurope()..level = 6).name,
+    ]: Singapore(),
+    // Sierra Leone (Africa) = South Africa + Russia + Panama
+    [
+      (Africa()..level = 6).name,
+      (EEurope()..level = 6).name,
+      (NAmerica()..level = 3).name,
+    ]: SierraLeone(),
     // [
     //   (Finance()..level = 1).name, // robinhood
     //   (Mena()..level = 2).name, // reddit

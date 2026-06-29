@@ -24,7 +24,7 @@ class Africa extends GemComponent {
       cityConfig: africa_cities.getCityConfigByLevelOrLast(level));
 
   @override
-  get currentImagePath => "city/${name.toLowerCase()}.png";
+  get currentImagePath => "flags/${countryCodes.first.toLowerCase()}.png";
 }
 
 class AfricaSettings extends GemAttributes {
@@ -41,20 +41,20 @@ class AfricaSettings extends GemAttributes {
   @override
   List<String> countryCodes(int level) => [cityConfig.countryCode];
 
-  // Lagos (Afrobeat) fires invisible, fast, frequent, low-damage shots.
+  // Nigeria (Afrobeat) fires invisible, fast, frequent, low-damage shots.
   @override
   String get projectilePath =>
-      cityConfig == lagos ? "weapon/empty_bullet.png" : "weapon/chevron.png";
+      cityConfig == nigeria ? "weapon/empty_bullet.png" : "weapon/chevron.png";
 
-  // Nairobi's Stampede pierces a column of enemies.
+  // Kenya's Stampede pierces a column of enemies.
   @override
-  bool get canHitIntermediateTargets => cityConfig == nairobi;
+  bool get canHitIntermediateTargets => cityConfig == kenya;
 
   @override
   int projectileColumns(level) => 1;
 
   @override
-  int projectileRows(level) => cityConfig == lagos ? 1 : 6;
+  int projectileRows(level) => cityConfig == nigeria ? 1 : 6;
 
   @override
   double get projectileSizeX => 0.5;
@@ -67,17 +67,17 @@ class AfricaSettings extends GemAttributes {
 
   @override
   double get projectileSpeed => switch (cityConfig) {
-        lagos => 9.0,
-        nairobi => 6.0,
+        nigeria => 9.0,
+        kenya => 6.0,
         _ => 4.5,
       };
 
   @override
   String get explosionImage =>
-      cityConfig == lagos ? "weapon/coinbase_explosion.png" : "weapon/auto_explosion.png";
+      cityConfig == nigeria ? "weapon/coinbase_explosion.png" : "weapon/auto_explosion.png";
 
   @override
-  int get explosionColumns => cityConfig == lagos ? 6 : 1;
+  int get explosionColumns => cityConfig == nigeria ? 6 : 1;
 
   @override
   int get explosionRows => 1;
@@ -90,29 +90,29 @@ class AfricaSettings extends GemAttributes {
 
   @override
   double baseRange(int level) => switch (cityConfig) {
-        nairobi => 4.0, // long lane for the charge
-        kinshasa => 2.5, // electrocute aura
-        addis_ababa => 3.0, // poison range
-        _ => 3.0, // lagos / johannesburg / cape town
+        kenya => 4.0, // long lane for the charge
+        drCongo => 2.5, // electrocute aura
+        ethiopia => 3.0, // coffee range
+        _ => 3.0, // nigeria / ghana / south africa
       };
 
   @override
   double baseAttackSpeed(int level) => switch (cityConfig) {
-        lagos => 3.5, // machine-gun
-        nairobi => 0.4, // slow heavy charge
-        kinshasa => 0.0, // aura, no attack
-        addis_ababa => 1.2, // steady poison shots
-        _ => 1.0, // johannesburg / cape town
+        nigeria => 3.5, // machine-gun
+        kenya => 0.4, // slow heavy charge
+        drCongo => 0.0, // aura, no attack
+        ethiopia => 1.2, // steady coffee shots (before the burst/crash)
+        _ => 1.0, // ghana / south africa
       };
 
   @override
   double baseDamage(int level) => switch (cityConfig) {
-        lagos => 0.6 + level * 0.2, // low (machine-gun)
-        nairobi => 4.0 + level * 2.0, // heavy charge
-        kinshasa => 0.0, // damage comes from the Cobalt aura buff
-        addis_ababa => 1.5 + level * 0.5, // light hit; Venom DoT does the rest
-        cape_town => 1.0, // the bite (% current HP) is the real damage
-        _ => 2.0 + level * 0.8, // johannesburg
+        nigeria => 0.6 + level * 0.2, // low (machine-gun)
+        kenya => 4.0 + level * 2.0, // heavy charge
+        drCongo => 0.0, // damage comes from the Cobalt aura buff
+        ethiopia => 1.5 + level * 0.5, // light hit; the burst/crash does the rest
+        southAfrica => 1.0, // the bite (% current HP) is the real damage
+        _ => 2.0 + level * 0.8, // ghana
       };
 
   @override
