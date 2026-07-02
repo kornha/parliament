@@ -266,6 +266,7 @@ abstract class GemComponent extends GameComponent
 
   @override
   double _auraPhase = 0;
+  double _timeSinceEnemy = 999;
 
   @override
   void update(double dt) {
@@ -273,27 +274,52 @@ abstract class GemComponent extends GameComponent
 
     StatusManager.tickGem(dt, this, buffs);
 
+    _timeSinceEnemy += dt;
     if (settings.auraRing(level)) {
-      _auraPhase = (_auraPhase + dt / 1.2) % 1.0;
+      _auraPhase = (_auraPhase + dt / 1.6) % 1.0;
     }
   }
 
   @override
   void render(Canvas canvas) {
-    // Aura towers emanate a continuous pulsing ring (flag-colored) out to range.
-    if (buildDone && settings.auraRing(level)) {
+    // Aura towers emit a soft, flag-colored ripple out to their range — but
+    // only while an enemy is nearby (radiate on demand, not constantly). Each
+    // ring undulates like rippling fabric, and the waves travel as it spreads.
+    if (buildDone && settings.auraRing(level) && _timeSinceEnemy < 0.8) {
       final center = (size / 2).toOffset();
-      for (final off in const [0.0, 0.5]) {
+      // Fade the whole ripple out over ~0.8s once enemies leave range.
+      final presence = (1.0 - _timeSinceEnemy / 0.8).clamp(0.0, 1.0);
+      final maxR = radarRange;
+      const waves = 7;
+      const steps = 56;
+      for (final off in const [0.0, 0.33, 0.66]) {
         final p = (_auraPhase + off) % 1.0;
-        final r = radarRange * p;
-        if (r <= 0.5) continue;
-        canvas.drawCircle(
-          center,
-          r,
+        final r = maxR * p;
+        if (r <= 1.0) continue;
+        // Wobble amplitude grows as the ripple loosens outward (fabric slack).
+        final amp = maxR * 0.06 * p;
+        final phase = _auraPhase * 2 * pi + off * 2 * pi;
+        final path = Path();
+        for (int i = 0; i <= steps; i++) {
+          final a = (i / steps) * 2 * pi;
+          final rr = r + amp * sin(waves * a + phase);
+          final px = center.dx + cos(a) * rr;
+          final py = center.dy + sin(a) * rr;
+          if (i == 0) {
+            path.moveTo(px, py);
+          } else {
+            path.lineTo(px, py);
+          }
+        }
+        path.close();
+        canvas.drawPath(
+          path,
           Paint()
             ..style = PaintingStyle.stroke
-            ..strokeWidth = 2.5
-            ..color = color.withOpacity(0.5 * (1.0 - p)),
+            ..strokeWidth = 1.4
+            ..strokeJoin = StrokeJoin.round
+            ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 1.5)
+            ..color = color.withOpacity(0.24 * (1.0 - p) * presence),
         );
       }
     }
@@ -493,6 +519,7 @@ abstract class GemComponent extends GameComponent
   }
 
   void onEnemyAttack(GameComponent target, Set<GameComponent> targets) {
+    _timeSinceEnemy = 0;
     bool shouldAttack = true;
     GameComponent? targetEnemy = target;
     abilities.forEach((ability) {

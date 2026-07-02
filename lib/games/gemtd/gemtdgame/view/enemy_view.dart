@@ -128,7 +128,7 @@ class _EnemyViewState extends State<EnemyView> {
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
                       Text(
-                        EnemyView.selected?.settings.gemType.name ?? "",
+                        EnemyView.selected?.settings.name ?? "",
                         style: TextConstants.hackneySmall,
                       ),
                       context.sq,
@@ -160,10 +160,6 @@ class _EnemyViewState extends State<EnemyView> {
                                     .color(),
                               ),
                             ),
-                      context.sq,
-                      EnemyView.selected == null
-                          ? const SizedBox.shrink()
-                          : Tag(type: EnemyView.selected!.settings.gemType),
                     ],
                   ),
                 ),

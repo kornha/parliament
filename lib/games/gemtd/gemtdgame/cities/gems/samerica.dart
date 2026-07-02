@@ -97,6 +97,10 @@ class SAmericaSettings extends GemAttributes {
   @override
   double baseDamage(int level) => 1.75 + level * 0.8;
 
+  // Chile (Inferno) is a no-attack burn aura — show the pulsing ring.
+  @override
+  bool auraRing(int level) => level == chile.level;
+
   @override
   Set<Ability> abilities(int level, GemComponent caster) {
     final config = samerica_cities.getCityConfigByLevelOrLast(level);

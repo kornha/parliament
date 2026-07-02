@@ -1,6 +1,6 @@
 import 'dart:collection';
+import 'dart:math';
 
-import 'package:flame/cache.dart';
 import 'package:flame/components.dart';
 import 'package:political_think/games/gemtd/common/constants.dart';
 import 'package:political_think/games/gemtd/gemtdgame/base/game_component.dart';
@@ -109,52 +109,70 @@ class GameController extends GameComponent {
   }
 
   void loadGates() async {
-    Vector2 start = Vector2(0, 0);
-    Vector2 end = Vector2(0, gameConst.mapGrid.y - 1);
+    // Randomize the start / waypoints / end each match to keep layouts fresh.
+    // All four sit on the map perimeter (interior stays open for the maze); the
+    // only rule is that start must not be adjacent to end (pathing rules — a
+    // valid route — are still enforced by the build system during play).
+    final rand = Random();
+    final maxX = (gameConst.mapGrid.x - 1).toInt();
+    final maxY = (gameConst.mapGrid.y - 1).toInt();
 
-    start = gameConst.dotMultiple(start, gameConst.mapTileSize) +
-        (gameConst.mapTileSize / 2);
-    end = gameConst.dotMultiple(end, gameConst.mapTileSize) +
+    Vector2 randomPerimeterCell() {
+      if (rand.nextBool()) {
+        // Left or right edge.
+        final gx = rand.nextBool() ? 0 : maxX;
+        return Vector2(gx.toDouble(), rand.nextInt(maxY + 1).toDouble());
+      } else {
+        // Top or bottom edge.
+        final gy = rand.nextBool() ? 0 : maxY;
+        return Vector2(rand.nextInt(maxX + 1).toDouble(), gy.toDouble());
+      }
+    }
+
+    bool adjacent(Vector2 a, Vector2 b) =>
+        (a.x - b.x).abs() <= 1 && (a.y - b.y).abs() <= 1;
+
+    var sCell = randomPerimeterCell();
+    var t1Cell = randomPerimeterCell();
+    var t2Cell = randomPerimeterCell();
+    var eCell = randomPerimeterCell();
+    for (var tries = 0; tries < 500; tries++) {
+      final distinct = {
+        "${sCell.x},${sCell.y}",
+        "${t1Cell.x},${t1Cell.y}",
+        "${t2Cell.x},${t2Cell.y}",
+        "${eCell.x},${eCell.y}",
+      }.length == 4;
+      if (distinct && !adjacent(sCell, eCell)) break;
+      sCell = randomPerimeterCell();
+      t1Cell = randomPerimeterCell();
+      t2Cell = randomPerimeterCell();
+      eCell = randomPerimeterCell();
+    }
+
+    Vector2 toPixel(Vector2 cell) =>
+        gameConst.dotMultiple(cell, gameConst.mapTileSize) +
         (gameConst.mapTileSize / 2);
 
-    final images = Images();
     gateStart = NeutralComponent(
-        position: gameConst.dotMultiple(Vector2(0, 0), gameConst.mapTileSize) +
-            (gameConst.mapTileSize / 2),
+        position: toPixel(sCell),
         size: gameConst.mapTileSize,
-        neutralType: NeutralType.GATE_START)
-      ..sprite = Sprite(
-        await images.load('weapon/right.png'),
-      );
+        neutralType: NeutralType.GATE_START);
 
     touchPoint = NeutralComponent(
-        position: gameConst.dotMultiple(
-                Vector2((gameConst.mapGrid.x - 1), 0), gameConst.mapTileSize) +
-            (gameConst.mapTileSize / 2),
+        position: toPixel(t1Cell),
         size: gameConst.mapTileSize,
-        neutralType: NeutralType.TOUCH)
-      ..sprite = Sprite(
-        await images.load('weapon/down.png'),
-      );
+        neutralType: NeutralType.TOUCH);
 
     touchPoint2 = NeutralComponent(
-        position: gameConst.dotMultiple(
-                Vector2(gameConst.mapGrid.x - 1, gameConst.mapGrid.y - 1),
-                gameConst.mapTileSize) +
-            (gameConst.mapTileSize / 2),
+        position: toPixel(t2Cell),
         size: gameConst.mapTileSize,
-        neutralType: NeutralType.TOUCH)
-      ..sprite = Sprite(
-        await images.load('weapon/left.png'),
-      );
+        neutralType: NeutralType.TOUCH);
 
     gateEnd = NeutralComponent(
-        position: end,
+        position: toPixel(eCell),
         size: gameConst.mapTileSize,
-        neutralType: NeutralType.GATE_END)
-      ..sprite = Sprite(
-        await images.load('weapon/cross.png'),
-      );
+        neutralType: NeutralType.GATE_END);
 
     add(gateStart);
     add(touchPoint);

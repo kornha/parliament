@@ -99,8 +99,7 @@ class FeelGoodMan extends Ability {
   FeelGoodMan({required super.caster, required super.level});
 
   static const enemySlowPerLevel = [0.15, 0.18, 0.21, 0.24, 0.27, 0.30];
-  // Attack-speed multiplier applied to nearby allies (< 1 = slower).
-  static const allySlowPerLevel = [0.9, 0.88, 0.86, 0.84, 0.82, 0.8];
+  static const armorShredPerLevel = [1.0, 1.5, 2.0, 2.5, 3.0, 4.0];
 
   @override
   bool get enemiesAura => true;
@@ -118,27 +117,25 @@ class FeelGoodMan extends Ability {
         ..gemType = gemType
         ..renderType = bf.RenderType.GRID;
 
-  // Allies in range get a relaxed (slower) attack speed.
+  // Also strip the armor of every nearby enemy (no allied downside).
   @override
-  void onAuraScan(Set<GemComponent> gems) {
-    for (final g in gems) {
-      if (g == caster || g.gemType == CityType.ROCK) continue;
-      final chill = bf.AttackSpeedMultiple(
-        caster: caster,
-        level: level,
-        overrideMultiplier: allySlowPerLevel.getByLevel(level),
-      )
-        ..name = name
-        ..icon = icon
-        ..gemType = gemType;
-      if (g.buffs.contains(chill)) {
-        for (final b in g.buffs) {
-          if (b == chill) b.duration = chill.duration;
-        }
-      } else {
-        g.buffs.add(chill);
+  GameComponent? onEnemyAttack(GemComponent gem, EnemyComponent primaryTarget,
+      Set<GameComponent> targets) {
+    super.onEnemyAttack(gem, primaryTarget, targets); // applies the slow aura
+    for (final t in targets) {
+      if (t is EnemyComponent) {
+        t.buffs.add(bf.ArmorModify(
+          caster: caster,
+          level: level,
+          modifier: armorShredPerLevel.getByLevel(level),
+          overrideBaseDuration: 1.5,
+        )
+          ..name = name
+          ..icon = icon
+          ..gemType = gemType);
       }
     }
+    return null;
   }
 
   @override
@@ -146,13 +143,12 @@ class FeelGoodMan extends Ability {
 
   @override
   String description =
-      "Chills the area: nearby enemies are slowed and nearby allied towers "
-      "attack more slowly.";
+      "Chills the area: nearby enemies are slowed and their armor is stripped.";
 
   @override
   String get subDescription =>
-      "${enemySlowPerLevel.map((e) => "${(e * 100).toStringAsFixed(0)}%").join("/")} enemy slow; "
-      "allies attack at ${allySlowPerLevel.map((e) => "${(e * 100).toStringAsFixed(0)}%").join("/")} speed.";
+      "${enemySlowPerLevel.map((e) => "${(e * 100).toStringAsFixed(0)}%").join("/")} slow; "
+      "-${armorShredPerLevel.join("/")} armor to nearby enemies.";
 
   @override
   IconData icon = Icons.self_improvement;

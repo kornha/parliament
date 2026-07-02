@@ -15,6 +15,9 @@ class EnemySettings {
   final int spriteColumns = 12;
   final CityType gemType = CityType.EEUROPE;
 
+  // Enemies are named for how they end the world, themed to their stat profile.
+  String get name => "Cataclysm";
+
   double baseLife(int level) => 8.5 * pow(1.30, level - 1);
   double baseSpeed(int level) => 1.5 * pow(1.015, level - 1);
   double baseArmor(int level) => 1.0 * pow(1.05, level - 1);
@@ -79,6 +82,10 @@ class HospitalitySettings extends EnemySettings {
   @override
   double spawnInterval(int level) => 1.6;
 
+  // Fast, few, and ever more virulent (steep life growth).
+  @override
+  String get name => "Pandemic";
+
   HospitalitySettings();
 }
 
@@ -100,6 +107,10 @@ class SAmericaEnemySettings extends EnemySettings {
   @override
   double spawnInterval(int level) => 0.3;
 
+  // Slow, armored, and endless — a grinding wave of attrition.
+  @override
+  String get name => "Famine";
+
   SAmericaEnemySettings();
 }
 
@@ -115,6 +126,10 @@ class TechSettings extends EnemySettings {
   double baseSpeed(int level) => 1.0 * pow(1.01, level - 1);
 
   int spawnCount(int level) => 1;
+
+  // A single, catastrophic blast — one colossal, near-unkillable threat.
+  @override
+  String get name => "Nuclear War";
 }
 
 class SAsiaSettings extends EnemySettings {
@@ -134,6 +149,10 @@ class SAsiaSettings extends EnemySettings {
   double baseArmor(int level) => 3.2 * pow(1.25, level - 1);
 
   double spawnInterval(int level) => 1.2;
+
+  // The fastest heavy wave — a surge that overruns before you can react.
+  @override
+  String get name => "Environmental Collapse";
 
   SAsiaSettings();
 }
@@ -156,6 +175,10 @@ class EntertainmentSettings extends EnemySettings {
 
   double spawnInterval(int level) => 0.2;
 
+  // A dense, fast, armored swarm — individually weak, together overwhelming.
+  @override
+  String get name => "Pestilence";
+
   EntertainmentSettings();
 }
 
@@ -172,6 +195,10 @@ class FinanceSettings extends EnemySettings {
 
   @override
   final CityType gemType = CityType.NAMERICA;
+
+  // A handful of heavy, high-value threats — a demographic implosion.
+  @override
+  String get name => "Population Collapse";
 
   FinanceSettings();
 }
@@ -192,6 +219,10 @@ class MenaEnemySettings extends EnemySettings {
   double spawnInterval(int level) => 0.6;
   @override
   final CityType gemType = CityType.MENA;
+
+  // A vast, hardened horde that keeps coming — a relentless, building crisis.
+  @override
+  String get name => "Climate Change";
 
   MenaEnemySettings();
 }
@@ -214,6 +245,10 @@ class EEuropeEnemySettings extends EnemySettings {
 
   double spawnInterval(int level) => 0.45;
 
+  // Fragile, unarmored, but the fastest — an all-out, expendable onslaught.
+  @override
+  String get name => "War";
+
   EEuropeEnemySettings();
 }
 
@@ -234,6 +269,10 @@ class AfricaEnemySettings extends EnemySettings {
   double baseArmor(int level) => 2.0 * pow(1.2, level - 1);
 
   double spawnInterval(int level) => 0.5;
+
+  // A balanced, ever-multiplying, self-replicating swarm.
+  @override
+  String get name => "AI";
 
   AfricaEnemySettings();
 }
