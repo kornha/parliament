@@ -41,6 +41,10 @@ class AfricaSettings extends GemAttributes {
   @override
   List<String> countryCodes(int level) => [cityConfig.countryCode];
 
+  // DR Congo (Cobalt) is a no-attack electrocution aura.
+  @override
+  bool auraRing(int level) => cityConfig == drCongo;
+
   // Nigeria (Afrobeat) fires invisible, fast, frequent, low-damage shots.
   @override
   String get projectilePath =>

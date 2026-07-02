@@ -4,7 +4,7 @@ part of 'easia.dart';
 // Fortune (every tower has a chance to stun on hit) is the shared spine. The
 // region's identity is manipulating those odds: guarantee them (Taiwan),
 // multiply them (China). K-Pop/Kaizen sit off the spine.
-// Mongolia(Khan: the bare chance-to-stun) -> Taiwan(Semiconductors: all chance
+// Mongolia(Khan: the bare chance-to-stun) -> Taiwan(Semiconductor: all chance
 // abilities proc 100%) -> Hong Kong(Already Tomorrow: every attack strikes twice)
 // -> South Korea(K-Pop: armor down + speeds enemy up) -> Japan(Kaizen: permanent
 // damage per kill) -> China(People's Republic: aura multiplies proc chance).
@@ -16,7 +16,7 @@ Set<Ability> easia_abilities(EAsiaSettings settings, int level,
         },
       taiwan => {
           Khan(level: level, caster: caster),
-          Semiconductors(level: level, caster: caster),
+          Semiconductor(level: level, caster: caster),
         },
       hongKong => {
           Khan(level: level, caster: caster),
@@ -72,35 +72,56 @@ class Khan extends Ability {
   CityType gemType = CityType.EASIA;
 }
 
-// Taiwan — Semiconductors: increases range and causes all chance abilities to
-// cast 100% of the time, at the cost of damage and debuff durations.
-class Semiconductors extends Ability {
-  Semiconductors({required super.caster, required super.level});
+// Taiwan — Semiconductor: causes all of this tower's chance abilities to cast
+// 100% of the time. Nothing else.
+class Semiconductor extends Ability {
+  Semiconductor({required super.caster, required super.level});
 
   @override
-  String name = "Semiconductors";
+  String name = "Semiconductor";
 
   @override
   String description =
-      "Increases attack range and causes all chance abilities to cast 100% of the time."
-      "\nReduces attack damage, and all debuff durations by 95%.";
+      "Causes all of this tower's chance abilities to cast 100% of the time.";
 
   @override
-  String get subDescription =>
-      "${bf.ManufacturedTechnology.fraction.join("/")}x attack speed"
-      "\n${bf.ManufacturedTechnology.fraction.map((e) => "1/$e").join("/")}x damage";
+  String get subDescription => "All chance abilities proc at 100%.";
 
   @override
   bool get worksOnSelf => true;
 
   @override
-  bf.Buff? get buff => bf.ManufacturedTechnology(caster: caster, level: level);
+  bf.Buff? get buff => SemiconductorBuff(caster: caster, level: level);
 
   @override
   IconData icon = Icons.copy_all;
 
   @override
   CityType gemType = CityType.EASIA;
+}
+
+// Forces every chance-based ability on the caster to proc 100% of the time —
+// and nothing else (no damage / attack-speed / duration changes).
+class SemiconductorBuff extends bf.Buff {
+  SemiconductorBuff({required super.caster, required super.level});
+
+  @override
+  String name = "Semiconductor";
+
+  @override
+  String description = "Causes all chance abilities to cast 100% of the time.";
+
+  @override
+  IconData icon = Icons.copy_all;
+
+  @override
+  CityType gemType = CityType.EASIA;
+
+  @override
+  double? baseDuration = 1.0;
+
+  @override
+  double? get chanceMultiplier => 100.0;
 }
 
 // Hong Kong — Already Tomorrow: every attack strikes twice.

@@ -162,7 +162,8 @@ class EnemyComponent extends GameComponent
         if (buffs.contains(buff)) {
           buff.resetDuration();
           //
-          if (buff.stacks != null) {
+          if (buff.stacks != null &&
+              (buff.maxStacks == null || buff.stacks! < buff.maxStacks!)) {
             buff.stacks = buff.stacks! + 1;
           }
         }

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui' show Canvas;
 
 import 'package:flame/components.dart';
 import 'package:flame/sprite.dart';
@@ -66,6 +67,14 @@ class AuraComponent extends GameComponent with Radar<EnemyComponent> {
 
     animationTicker?.onComplete = removeFromParent;
   }
+
+  // The aura's visual is now the tower's flag-colored pulsing ring (drawn in
+  // GemComponent); this component stays invisible and only applies its scan
+  // effect. The animation ticker still advances in update(), so onComplete
+  // still removes it on schedule.
+  // ignore: must_call_super
+  @override
+  void render(Canvas canvas) {}
 
   Set<GameComponent> hit = {};
   void onHitEnemy(GameComponent enemy, Set<GameComponent> targets) {

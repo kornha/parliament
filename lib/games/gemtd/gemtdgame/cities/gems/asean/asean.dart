@@ -105,6 +105,9 @@ class AseanSettings extends GemAttributes {
   @override
   bool isAura(int level) => _isAura.any((e) => e.level == level);
 
+  @override
+  bool auraRing(int level) => isAura(level);
+
   //standard
   final attackRange = [3.0, 3.2, 3.4, 3.6, 3.8, 4.0];
 

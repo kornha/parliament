@@ -343,42 +343,16 @@ class Gladiator extends Ability {
 
 // UK — Seat of the Empire: attacks all enemies (global range); ramps attack speed.
 class SeatOfTheEmpire extends Ability {
-  static const increasePerLevelDefault = [0.2, 0.3, 0.4, 0.5, 0.6];
-  static const inactiveDelay = Duration(seconds: 1);
-
-  SeatOfTheEmpire({
-    required super.caster,
-    required super.level,
-    this.increasePerLevel = increasePerLevelDefault,
-  });
-
-  final List<double> increasePerLevel;
-
-  var count = 0;
-  var lastAttack = DateTime.timestamp();
-
-  @override
-  bool get worksOnSelf => true;
+  SeatOfTheEmpire({required super.caster, required super.level});
 
   @override
   bool get canAttack => false;
 
   @override
   onEnemyAttack(gem, primaryTarget, targets) {
-    final diff = DateTime.timestamp().difference(lastAttack);
-    if (diff > inactiveDelay) {
-      count = 0;
-    }
-    count++;
-    buff = bf.AttackSpeedMultiple(
-        caster: caster,
-        level: level,
-        overrideDurationType: bf.DurationType.ATTACK,
-        overrideMultiplier: 1 + count * increasePerLevel.getByLevel(level));
     for (var e in targets) {
       gem.fire(e as EnemyComponent);
     }
-    lastAttack = DateTime.timestamp();
     return null;
   }
 
@@ -387,7 +361,7 @@ class SeatOfTheEmpire extends Ability {
 
   @override
   String description =
-      "Attacks all units. Each subsequent attack on any target increases attack speed.";
+      "Attacks every enemy on the board at full speed.";
 
   @override
   String get subDescription => "";

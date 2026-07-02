@@ -61,6 +61,10 @@ abstract class Buff {
 
   int? stacks;
 
+  // Optional ceiling on `stacks` so compounding debuffs (e.g. E. Europe's
+  // Thermal Baths slow) stop growing once they hit this many stacks.
+  int? maxStacks;
+
   // both
   double? bountyMultiplier;
 

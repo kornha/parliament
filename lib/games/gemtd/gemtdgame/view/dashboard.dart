@@ -153,13 +153,20 @@ class _DashboardState extends State<Dashboard> {
                             fontSize: 13,
                           ),
                         ),
-                        Image.asset(
-                          "assets/images/" +
-                              (Dashboard.selectedGem?.currentImagePath ??
-                                  'innovation/rock.png'),
-                          width: 75,
-                          height: 75,
-                        ),
+                        (Dashboard.selectedGem?.countryCodes.isNotEmpty ??
+                                false)
+                            ? Utils.gFlag(
+                                Dashboard.selectedGem!.countryCodes.first,
+                                width: 100,
+                                height: 75,
+                              )
+                            : Image.asset(
+                                "assets/images/" +
+                                    (Dashboard.selectedGem?.currentImagePath ??
+                                        'innovation/rock.png'),
+                                width: 75,
+                                height: 75,
+                              ),
                         Dashboard.selectedGem == null
                             ? SizedBox.shrink()
                             : Tag(type: Dashboard.selectedGem!.gemType),
@@ -260,24 +267,22 @@ class _DashboardState extends State<Dashboard> {
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
         for (var i = 0; i < cities.length; i++) ...[
-          Image.asset(
-            "assets/images/city/${cities[i].toLowerCase()}.png",
-            width: 15,
-            height: 15,
-            fit: BoxFit.contain,
-            errorBuilder: (_, __, ___) => const SizedBox(width: 15, height: 15),
-          ),
+          () {
+            final code = GameConstants.countryCodeForName(cities[i]);
+            return code != null
+                ? Utils.gFlag(code, width: 20, height: 15)
+                : const SizedBox(width: 20, height: 15);
+          }(),
           if (i < cities.length - 1) const Text("+"),
         ],
         //
         const Text("="),
-        Image.asset(
-          "assets/images/${recipes.values.first.currentImagePath}",
-          width: 15,
-          height: 15,
-          fit: BoxFit.contain,
-          errorBuilder: (_, __, ___) => const SizedBox(width: 15, height: 15),
-        ),
+        () {
+          final codes = recipes.values.first.countryCodes;
+          return codes.isNotEmpty
+              ? Utils.gFlag(codes.first, width: 20, height: 15)
+              : const SizedBox(width: 20, height: 15);
+        }(),
       ],
     );
   }

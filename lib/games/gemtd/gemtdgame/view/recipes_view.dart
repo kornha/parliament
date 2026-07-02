@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:political_think/games/gemtd/common/constants.dart';
+import 'package:political_think/games/gemtd/common/utils/utils.dart';
 import 'package:political_think/games/gemtd/gemtdgame/cities/gem_component.dart';
+import 'package:political_think/games/gemtd/gemtdgame/game/game_constants.dart';
 
 // A scrollable browser of every special recipe. Opened from the "Recipes"
 // button; explains each recipe (ingredient cities -> special + what it does)
@@ -137,16 +139,18 @@ class _RecipeCard extends StatelessWidget {
   final GemComponent special;
   final bool highlighted;
 
-  Widget _chip(String label, String assetPath, {double size = 34}) {
+  Widget _chip(String label, String? code, {double size = 34}) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Image.asset(
-          assetPath,
+        SizedBox(
           width: size,
           height: size,
-          fit: BoxFit.contain,
-          errorBuilder: (_, __, ___) => SizedBox(width: size, height: size),
+          child: Center(
+            child: code == null
+                ? const SizedBox.shrink()
+                : Utils.gFlag(code, width: size, height: size * 3 / 4),
+          ),
         ),
         const SizedBox(height: 2),
         SizedBox(
@@ -176,16 +180,13 @@ class _RecipeCard extends StatelessWidget {
 
     final row = <Widget>[];
     for (var i = 0; i < cities.length; i++) {
-      row.add(_chip(
-        cities[i],
-        "assets/images/city/${cities[i].toLowerCase()}.png",
-      ));
+      row.add(_chip(cities[i], GameConstants.countryCodeForName(cities[i])));
       if (i < cities.length - 1) row.add(_op("+", 14));
     }
     row.add(_op("=", 16));
     row.add(_chip(
       special.name,
-      "assets/images/${special.currentImagePath}",
+      special.countryCodes.isNotEmpty ? special.countryCodes.first : null,
       size: 42,
     ));
 

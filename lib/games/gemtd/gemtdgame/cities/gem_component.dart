@@ -111,6 +111,39 @@ enum CityType {
   }
 }
 
+// Each country's signature flag color, used to tint its attacks/explosions and
+// aura ring. Keyed by lowercase ISO code (matches the flag asset codes).
+const Map<String, int> flagColors = {
+  // Eastern Europe
+  'lv': 0xFF9E1B32, 'hu': 0xFFCD2A3E, 'cz': 0xFF11457E,
+  'ua': 0xFF0057B7, 'pl': 0xFFDC143C, 'ru': 0xFFD52B1E,
+  // Western Europe
+  'ie': 0xFF169B62, 'es': 0xFFAA151B, 'it': 0xFF008C45,
+  'pt': 0xFF006600, 'fr': 0xFF0055A4, 'gb': 0xFF012169,
+  // East Asia
+  'mn': 0xFFC4272E, 'tw': 0xFFFE0000, 'hk': 0xFFDE2910,
+  'kr': 0xFFCD2E3A, 'jp': 0xFFBC002D, 'cn': 0xFFDE2910,
+  // MENA
+  'lb': 0xFFED1C24, 'ma': 0xFFC1272D, 'eg': 0xFFCE1126,
+  'sa': 0xFF006C35, 'ae': 0xFF00732F, 'il': 0xFF0038B8,
+  // North America
+  'cu': 0xFF002A8F, 'jm': 0xFF009B3A, 'pa': 0xFF005293,
+  'ca': 0xFFFF0000, 'mx': 0xFF006847, 'us': 0xFF0A3161,
+  // South America
+  'pe': 0xFFD91023, 'cl': 0xFFD52B1E, 'co': 0xFFFCD116,
+  've': 0xFFFFCC00, 'ar': 0xFF74ACDF, 'br': 0xFF009C3B,
+  // ASEAN
+  'kh': 0xFF032EA1, 'vn': 0xFFDA251D, 'ph': 0xFF0038A8,
+  'id': 0xFFFF0000, 'my': 0xFF010066, 'th': 0xFF241D4F,
+  // Africa
+  'gh': 0xFFFCD116, 'et': 0xFF078930, 'cd': 0xFF007FFF,
+  'ke': 0xFF006600, 'ng': 0xFF008751, 'za': 0xFF007A4D,
+  // Specials
+  'hr': 0xFFFF0000, 'be': 0xFFFDDA24, 'kp': 0xFFED1C27,
+  'qa': 0xFF8A1538, 'sv': 0xFF0F47AF, 'ec': 0xFFFFDD00,
+  'sg': 0xFFEF3340, 'sl': 0xFF1EB53A,
+};
+
 abstract class GemComponent extends GameComponent
     with TapCallbacks, Radar<GameComponent>, LifeIndicator, Scanable {
   // attribute stats
@@ -182,7 +215,14 @@ abstract class GemComponent extends GameComponent
 
   get name => settings.name(level);
 
-  get color => gemType.color();
+  // A country's attacks + explosions are tinted to its flag's signature color
+  // (falls back to the region color for rocks / unmapped codes).
+  Color get color {
+    final code =
+        countryCodes.isNotEmpty ? countryCodes.first.toLowerCase() : null;
+    final hex = code == null ? null : flagColors[code];
+    return hex != null ? Color(hex) : gemType.color();
+  }
 
   List<String> get countryCodes => settings.countryCodes(level);
 
@@ -225,14 +265,39 @@ abstract class GemComponent extends GameComponent
   }
 
   @override
+  double _auraPhase = 0;
+
+  @override
   void update(double dt) {
     super.update(dt);
 
     StatusManager.tickGem(dt, this, buffs);
+
+    if (settings.auraRing(level)) {
+      _auraPhase = (_auraPhase + dt / 1.2) % 1.0;
+    }
   }
 
   @override
   void render(Canvas canvas) {
+    // Aura towers emanate a continuous pulsing ring (flag-colored) out to range.
+    if (buildDone && settings.auraRing(level)) {
+      final center = (size / 2).toOffset();
+      for (final off in const [0.0, 0.5]) {
+        final p = (_auraPhase + off) % 1.0;
+        final r = radarRange * p;
+        if (r <= 0.5) continue;
+        canvas.drawCircle(
+          center,
+          r,
+          Paint()
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 2.5
+            ..color = color.withOpacity(0.5 * (1.0 - p)),
+        );
+      }
+    }
+
     super.render(canvas);
 
     if (!buildDone || dialogVisible == true) {

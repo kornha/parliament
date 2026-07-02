@@ -19,6 +19,10 @@ abstract class GemAttributes {
   double baseAttackSpeed(int level) => 0.9 * 1 + level / 10;
   bool isAura(int level) => false;
 
+  // Towers that project a continuous pulsing aura ring (enemy-affecting auras:
+  // damage/debuff casters). Purely cosmetic; rendered in GemComponent.
+  bool auraRing(int level) => false;
+
   // DO NOT CHANGE OR CAN CLICK THROUGH!
   // TODO: Stop clickthrough bug with map
   double sizeX = 1;

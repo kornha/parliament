@@ -22,11 +22,11 @@ class Utils {
     return ((value * mod).ceil().toDouble() / mod);
   }
 
-  static Flag gFlag(String code) {
+  static Flag gFlag(String code, {double width = 20, double height = 15}) {
     return Flag.fromString(
       code,
-      width: 20,
-      height: 15,
+      width: width,
+      height: height,
       flagSize: FlagSize.size_4x3,
     );
   }

@@ -154,6 +154,29 @@ class GameConstants {
     }
   }
 
+  // Resolves a country (tower) name to its flag asset path (e.g. "flags/it.png"),
+  // used by the recipes browser to show each ingredient. Returns null if no
+  // base-region tower matches the name.
+  static final Map<String, String> _flagByName = {
+    for (final type in CityType.activeValues)
+      for (var lvl = 1; lvl <= 6; lvl++)
+        (gemByType(type)..level = lvl).name:
+            (gemByType(type)..level = lvl).currentImagePath,
+  };
+
+  static String? flagAssetForName(String name) => _flagByName[name];
+
+  // Resolves a country (tower) name to its 2-letter flag code (e.g. "it"), used
+  // by the Flutter UI to render the flag via the flag package.
+  static final Map<String, String> _codeByName = {
+    for (final type in CityType.activeValues)
+      for (var lvl = 1; lvl <= 6; lvl++)
+        (gemByType(type)..level = lvl).name:
+            (gemByType(type)..level = lvl).countryCodes.first,
+  };
+
+  static String? countryCodeForName(String name) => _codeByName[name];
+
   static List<Map<int, double>> odds = [
     {
       1: 1.0,

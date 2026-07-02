@@ -62,16 +62,16 @@ class MenaSettings extends GemAttributes {
   @override
   int projectileColumns(level) => 1;
 
-  // Support region: pure auras (no attack). Morocco (level 2 — Sandstorm) is the
-  // lone attacker, firing its periodic AoE damage. Israel (level 6) reaches far.
+  // Support region: pure auras, no projectile attacks. Morocco (Sandstorm) deals
+  // its AoE damage as an enemy aura (DoT), like DR Congo. Israel reaches far.
   @override
   double baseRange(int level) => level == 6 ? 3.5 : 2.5;
 
   @override
-  double baseDamage(int level) => level == 2 ? 3.0 + level * 1.5 : 0.0;
+  double baseDamage(int level) => 0.0;
 
   @override
-  double baseAttackSpeed(int level) => level == 2 ? 1.0 : 0.0;
+  double baseAttackSpeed(int level) => 0.0;
 
   @override
   int projectileRows(level) => 6;
@@ -90,6 +90,15 @@ class MenaSettings extends GemAttributes {
 
   @override
   List<String> countryCodes(int level) => [cityConfig.countryCode];
+
+  // Enemy-affecting auras (damage/debuff casters) show a pulsing aura ring.
+  // Lebanon/Israel are ally-buff auras, so they don't.
+  @override
+  bool auraRing(int level) =>
+      cityConfig == morocco ||
+      cityConfig == egypt ||
+      cityConfig == saudiArabia ||
+      cityConfig == uae;
 
   @override
   Set<Ability> abilities(int level, GemComponent caster) {
@@ -132,8 +141,8 @@ Set<Ability> mena_abilities(MenaSettings settings, int level,
         },
     };
 
-// Morocco — Sandstorm: a periodic AoE that fires at every enemy in range. Pure
-// area damage, no slow — MENA's area-damage tower.
+// Morocco — Sandstorm: a no-attack aura that scours all nearby enemies for
+// damage over time (no projectiles, no slow) — MENA's area-damage tower.
 class Sandstorm extends Ability {
   Sandstorm({required super.caster, required super.level});
 
@@ -141,13 +150,24 @@ class Sandstorm extends Ability {
   String name = "Sandstorm";
 
   @override
-  String description = "Periodically scours all enemies in range for damage.";
+  String description =
+      "Scours all nearby enemies, dealing continuous area damage.";
 
   @override
-  String get subDescription => "Hits every enemy in range.";
+  String get subDescription =>
+      "Continuous area damage to every enemy in range.";
 
   @override
   bool get canAttack => false;
+
+  @override
+  bool get enemiesAura => true;
+
+  @override
+  bf.Buff? get buff => bf.Burn(caster: caster, level: level)
+    ..name = name
+    ..icon = icon
+    ..gemType = gemType;
 
   @override
   IconData icon = FontAwesomeIcons.wind.data;
@@ -158,10 +178,8 @@ class Sandstorm extends Ability {
   @override
   GameComponent? onEnemyAttack(GemComponent gem, EnemyComponent primaryTarget,
       Set<GameComponent> targets) {
-    for (var e in targets) {
-      gem.fire(e as EnemyComponent);
-    }
-    return null;
+    // enemiesAura application is handled by the base Ability.onEnemyAttack.
+    return super.onEnemyAttack(gem, primaryTarget, targets);
   }
 }
 

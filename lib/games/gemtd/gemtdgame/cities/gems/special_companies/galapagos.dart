@@ -45,6 +45,8 @@ class GalapagosSettings extends GemAttributes {
   @override
   bool isAura(int level) => _base.settings.isAura(level);
   @override
+  bool auraRing(int level) => _base.settings.auraRing(level);
+  @override
   double get projectileSpeed => _base.settings.projectileSpeed;
   @override
   String get projectilePath => _base.settings.projectilePath;

@@ -161,6 +161,7 @@ class ThermalBaths extends Ability {
         ..icon = icon
         ..gemType = gemType
         ..stacks = 1
+        ..maxStacks = 8
         ..renderType = bf.RenderType.GRID;
 
   @override
@@ -200,6 +201,7 @@ class Defenestration extends Ability {
         ..icon = icon
         ..gemType = gemType
         ..stacks = 1
+        ..maxStacks = 12
         ..renderType = bf.RenderType.GRID;
 
   @override
@@ -237,7 +239,8 @@ class Uprising extends Ability {
         ..name = name
         ..icon = icon
         ..gemType = gemType
-        ..stacks = 1;
+        ..stacks = 1
+        ..maxStacks = 10;
 
   @override
   String name = "Uprising";
