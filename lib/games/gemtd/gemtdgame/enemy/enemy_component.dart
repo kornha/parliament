@@ -61,6 +61,9 @@ class EnemyComponent extends GameComponent
 
   Set<Buff> buffs = {};
 
+  // Recent world positions, used to draw the colored motion tail.
+  final List<Vector2> _trail = [];
+
   EnemySettings settings = EnemySettings();
 
   final images = Images();
@@ -129,12 +132,48 @@ class EnemyComponent extends GameComponent
     if (active) {
       updateMovable(dt);
     }
+
+    // Record a short position history for the motion tail.
+    _trail.add(position.clone());
+    if (_trail.length > 10) _trail.removeAt(0);
   }
 
   @override
   void render(Canvas c) {
+    _renderTail(c);
     super.render(c);
     renderLifIndicator(c, buffs, this);
+  }
+
+  // The tail's color reflects the enemy's active abilities (combined) — debuffs
+  // read as color instead of icons. No abilities => the enemy's own theme color.
+  Color _tailColor() {
+    if (buffs.isEmpty) return settings.gemType.color();
+    double r = 0, g = 0, b = 0;
+    for (final buff in buffs) {
+      final col = buff.color;
+      r += col.red;
+      g += col.green;
+      b += col.blue;
+    }
+    final n = buffs.length;
+    return Color.fromARGB(
+        255, (r / n).round(), (g / n).round(), (b / n).round());
+  }
+
+  // A motion-blur tail: fading colored blobs along the enemy's recent path.
+  void _renderTail(Canvas c) {
+    if (_trail.length < 2) return;
+    final col = _tailColor();
+    final len = _trail.length;
+    for (int j = 0; j < len; j++) {
+      final local = (_trail[j] - position) + size / 2;
+      final t = j / (len - 1); // 0 = oldest, 1 = newest
+      final radius = size.x * (0.12 + 0.28 * t);
+      final alpha = (0.38 * t).clamp(0.0, 1.0);
+      c.drawCircle(
+          local.toOffset(), radius, Paint()..color = col.withOpacity(alpha));
+    }
   }
 
   @override

@@ -1222,77 +1222,58 @@ class CityOfJasmine extends Ability {
   IconData icon = FontAwesomeIcons.fan.data;
 }
 
-// Cairo — Sphinx: chance to afflict nearby enemies with a random curse.
+// Cairo — Sphinx: stuns enemies as they cross Egypt's border — both on the way
+// in and on the way out of its range.
 class Sphinx extends Ability {
   Sphinx({required super.caster, required super.level});
 
-  static var chancePerLevel = [0.15, 0.20, 0.25, 0.30, 0.35, 0.40];
+  @override
+  bool get canAttack => false;
+
+  // Enemies currently within range, to detect boundary crossings.
+  final Set<EnemyComponent> _inRange = {};
+
+  void _stun(EnemyComponent e) {
+    e.buffs.add(bf.Stun(caster: caster, level: level)..gemType = gemType);
+  }
 
   @override
-  double? get baseChance => chancePerLevel.getByLevel(level);
-
-  final Random _r = Random();
+  GameComponent? onEnemyAttack(GemComponent gem, EnemyComponent primaryTarget,
+      Set<GameComponent> targets) {
+    final current = <EnemyComponent>{
+      for (final t in targets)
+        if (t is EnemyComponent) t
+    };
+    // Stun anything that just entered the range...
+    for (final e in current) {
+      if (!_inRange.contains(e)) _stun(e);
+    }
+    // ...and anything that just left it (still alive).
+    for (final e in _inRange) {
+      if (!current.contains(e) && !e.dead) _stun(e);
+    }
+    _inRange
+      ..clear()
+      ..addAll(current);
+    return null;
+  }
 
   @override
   String name = "Sphinx";
 
   @override
-  String description = "Chance to afflict nearby enemies with a random curse.";
+  String description =
+      "Stuns enemies as they enter and as they leave Egypt's range.";
 
   @override
   String get subDescription =>
-      "${chancePerLevel.map((e) => "${(e * 100).toStringAsFixed(0)}%").join("/")} chance per enemy.";
-
-  @override
-  bool get canAttack => false;
+      "Stun on entering and exiting, for ${bf.Stun.durationPerLevel.join("/")}s.";
 
   @override
   CityType gemType = CityType.MENA;
 
   @override
   IconData icon = FontAwesomeIcons.cat.data;
-
-  bf.Buff _randomCurse() {
-    switch (_r.nextInt(4)) {
-      case 0:
-        return bf.SpeedModify(
-            caster: caster,
-            level: level,
-            modifier: 0.3,
-            overrideBaseDuration: 2)
-          ..name = "Curse: Slow"
-          ..icon = icon
-          ..gemType = gemType;
-      case 1:
-        return bf.ArmorModify(
-            caster: caster, level: level, modifier: 6, overrideBaseDuration: 2)
-          ..name = "Curse: Exposed"
-          ..icon = icon
-          ..gemType = gemType;
-      case 2:
-        return bf.ReceiveDamageMultiple(
-            caster: caster,
-            level: level,
-            overrideMultiplier: 0.3,
-            overrideBaseDuration: 2)
-          ..name = "Curse: Vulnerable"
-          ..icon = icon
-          ..gemType = gemType;
-      default:
-        return bf.Stun(caster: caster, level: level)..gemType = gemType;
-    }
-  }
-
-  @override
-  GameComponent? onEnemyAttack(GemComponent gem, EnemyComponent primaryTarget,
-      Set<GameComponent> targets) {
-    for (var t in targets) {
-      if (t is EnemyComponent && _r.nextDouble() < (currentChance ?? 0)) {
-        t.buffs.add(_randomCurse());
-      }
-    }
-    return null;
-  }
 }
 
 // Riyadh — Black Gold: coats nearby enemies in Oiled (slow + amplified damage).

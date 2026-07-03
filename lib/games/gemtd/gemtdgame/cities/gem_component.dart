@@ -285,10 +285,11 @@ abstract class GemComponent extends GameComponent
     // Aura towers emit a soft, flag-colored ripple out to their range — but
     // only while an enemy is nearby (radiate on demand, not constantly). Each
     // ring undulates like rippling fabric, and the waves travel as it spreads.
-    if (buildDone && settings.auraRing(level) && _timeSinceEnemy < 0.8) {
+    if (buildDone && settings.auraRing(level) && _timeSinceEnemy < 1.2) {
       final center = (size / 2).toOffset();
-      // Fade the whole ripple out over ~0.8s once enemies leave range.
-      final presence = (1.0 - _timeSinceEnemy / 0.8).clamp(0.0, 1.0);
+      // Fade out over ~1.2s once enemies leave range (also covers slow-firing
+      // aura towers whose radar cycles off between pulses).
+      final presence = (1.0 - _timeSinceEnemy / 1.2).clamp(0.0, 1.0);
       final maxR = radarRange;
       const waves = 7;
       const steps = 56;
@@ -316,10 +317,11 @@ abstract class GemComponent extends GameComponent
           path,
           Paint()
             ..style = PaintingStyle.stroke
-            ..strokeWidth = 1.4
+            ..strokeWidth = 2.5
             ..strokeJoin = StrokeJoin.round
             ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 1.5)
-            ..color = color.withOpacity(0.24 * (1.0 - p) * presence),
+            ..color = color.withOpacity(
+                (0.55 * presence * (1.0 - 0.5 * p)).clamp(0.0, 1.0)),
         );
       }
     }

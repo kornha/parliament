@@ -51,7 +51,9 @@ mixin LifeIndicator on GameComponent {
 
   void renderLifIndicator(Canvas c, Set<Buff> buffs,
       [GameComponent? component]) {
-    renderBuffs(c, buffs, component);
+    // Enemies no longer show buff icons — their active abilities are conveyed by
+    // the color of their motion tail (see EnemyComponent). Gems still draw icons
+    // via renderBuffs() directly.
     if (maxLife == 0) return;
     Vector2 start = Vector2.zero();
     Vector2 mid = Vector2((life / maxLife) * size.x, 0);
