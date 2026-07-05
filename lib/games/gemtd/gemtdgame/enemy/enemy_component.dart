@@ -136,6 +136,41 @@ class EnemyComponent extends GameComponent
     // Record a short position history for the motion tail.
     _trail.add(position.clone());
     if (_trail.length > 10) _trail.removeAt(0);
+
+    // Emit periodic DoT particles (embers / sparks / poison) while afflicted.
+    _dotFxTimer += dt;
+    if (active && _dotFxTimer >= 0.25) {
+      _dotFxTimer = 0;
+      _emitDotFx();
+    }
+  }
+
+  double _dotFxTimer = 0;
+
+  // Sparks only for damage-over-time spells (where a particle effect really
+  // suits and the count stays bounded). Every other debuff is conveyed by the
+  // colored motion tail — keeping the board readable and cheap during swarms.
+  void _emitDotFx() {
+    final p = parent;
+    if (p == null || buffs.isEmpty) return;
+    final seen = <String>{};
+    for (final b in buffs) {
+      final fx = _fxFor(b);
+      if (fx == null) continue;
+      if (!seen.add("${fx.$1.value}-${fx.$2.index}")) continue;
+      Fx.dot(p, position, fx.$1, fx.$2);
+    }
+  }
+
+  (Color, DotStyle)? _fxFor(Buff b) {
+    if (b is Burn || b is ColombianRoast || b is Asado) {
+      return (Colors.deepOrange, DotStyle.fire);
+    }
+    if (b is CobaltBuff) return (Colors.lightBlueAccent, DotStyle.spark);
+    if (b is Poison || b is VenomBuff) {
+      return (Colors.greenAccent, DotStyle.poison);
+    }
+    return null;
   }
 
   @override
@@ -166,6 +201,13 @@ class EnemyComponent extends GameComponent
     if (_trail.length < 2) return;
     final col = _tailColor();
     final len = _trail.length;
+    c.save();
+    // The enemy's canvas is rotated to face its direction of travel; undo that
+    // rotation (about the center) so the tail lays out along the real path.
+    final cx = size.x / 2, cy = size.y / 2;
+    c.translate(cx, cy);
+    c.rotate(-transform.angle);
+    c.translate(-cx, -cy);
     for (int j = 0; j < len; j++) {
       final local = (_trail[j] - position) + size / 2;
       final t = j / (len - 1); // 0 = oldest, 1 = newest
@@ -174,6 +216,7 @@ class EnemyComponent extends GameComponent
       c.drawCircle(
           local.toOffset(), radius, Paint()..color = col.withOpacity(alpha));
     }
+    c.restore();
   }
 
   @override

@@ -558,7 +558,7 @@ class CriticalStrike extends Buff {
     TextPainter textPainter = TextPainter(textDirection: TextDirection.ltr);
     textPainter.text = TextSpan(
       text: "${damageMultiplier!.toStringAsFixed(1)}x",
-      style: TextConstants.hackney,
+      style: TextConstants.hackney.copyWith(fontSize: 11),
     );
     textPainter.layout();
 

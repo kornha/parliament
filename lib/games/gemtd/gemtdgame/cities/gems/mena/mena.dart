@@ -65,7 +65,7 @@ class MenaSettings extends GemAttributes {
   // Support region: pure auras, no projectile attacks. Morocco (Sandstorm) deals
   // its AoE damage as an enemy aura (DoT), like DR Congo. Israel reaches far.
   @override
-  double baseRange(int level) => level == 6 ? 3.5 : 2.5;
+  double baseRange(int level) => level == 6 ? 3.5 : 1.8;
 
   @override
   double baseDamage(int level) => 0.0;

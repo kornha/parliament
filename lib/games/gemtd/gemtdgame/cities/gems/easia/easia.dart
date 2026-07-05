@@ -59,7 +59,7 @@ class EAsiaSettings extends GemAttributes {
   double baseRange(int level) => attackRange.getByLevel(level);
 
   @override
-  double baseDamage(int level) => 5.5 + level * 0.5;
+  double baseDamage(int level) => 7.0 + level * 1.2;
 
   @override
   String get projectilePath => "projectile/easia_projectile.png";

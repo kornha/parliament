@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flame/components.dart';
+import 'package:flame/events.dart';
 import 'package:political_think/games/gemtd/common/constants.dart';
 import 'package:political_think/games/gemtd/gemtdgame/base/game_component.dart';
 import 'package:political_think/games/gemtd/gemtdgame/cities/barrel_component.dart';
@@ -8,7 +9,7 @@ import 'package:political_think/games/gemtd/gemtdgame/cities/bullet_component.da
 import 'package:political_think/games/gemtd/gemtdgame/cities/gem_component.dart';
 import 'package:political_think/games/gemtd/gemtdgame/cities/weapon_settings.dart';
 
-class Rock extends GemComponent {
+class Rock extends GemComponent with DoubleTapCallbacks {
   Rock({Vector2? position, bool autobuild = false})
       : super(
             position: position,
@@ -17,6 +18,17 @@ class Rock extends GemComponent {
 
   @override
   GemAttributes settings = RockAttributes();
+
+  // Rocks aren't selectable on a single tap; a double tap builds over them.
+  @override
+  bool onTapDown(TapDownEvent event) => false;
+
+  @override
+  void onDoubleTapDown(DoubleTapDownEvent event) {
+    if (gameRef.placeController.placing) {
+      gameRef.weaponFactory.tryPlaceGem(position);
+    }
+  }
 
   @override
   bool get active => false;

@@ -85,6 +85,8 @@ class SAmericaSettings extends GemAttributes {
   final attackRange = [2.5, 2.6, 2.7, 2.8, 2.9];
   @override
   double baseRange(int level) {
+    // Chile (Inferno) is a tight burn aura — far shorter than the attackers.
+    if (level == chile.level) return 1.4;
     return attackRange.getByLevel(level);
   }
 

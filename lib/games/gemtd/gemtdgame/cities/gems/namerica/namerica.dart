@@ -45,6 +45,11 @@ class NAmericaSettings extends GemAttributes {
   @override
   List<String> countryCodes(int level) => [cityConfig.countryCode];
 
+  // Jamaica (Feel Good Man) is an enemy debuff aura — it radiates even though
+  // it also attacks.
+  @override
+  bool auraRing(int level) => level == jamaica.level;
+
   // USA's Deep State fires invisible shots that detonate in a bomb burst.
   @override
   String get projectilePath => cityConfig == usa

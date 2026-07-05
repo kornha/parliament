@@ -82,32 +82,48 @@ class CroatiaSettings extends GemAttributes {
   }
 }
 
-// Checkered Past: a permanent attack-speed snowball — every kill makes Croatia
-// fire faster, forever, up to a soft cap.
+// Checkered Past: the damage twin of Oligarchy — each consecutive hit on the
+// same enemy compounds attack DAMAGE (resets on target switch, caps at 50 like
+// Oligarchy). Damage is the one compounding type the game didn't have.
 class CheckeredPast extends Ability {
   CheckeredPast({required super.caster, required super.level});
 
-  static const incPerKill = [0.04, 0.05, 0.06, 0.07, 0.08, 0.10];
-  static const _softCapStacks = 25;
+  static const _max = 50; // same stack cap as Oligarchy
+  static const increasePerLevel = [0.03, 0.04, 0.05, 0.06, 0.08, 0.10];
 
-  int kills = 0;
-  final Set<EnemyComponent> _counted = {};
+  int count = 0;
 
   @override
   GameComponent? onEnemyAttack(GemComponent gem, EnemyComponent primaryTarget,
       Set<GameComponent> targets) {
-    // The previous target dying counts as a kill (lastEnemy is set after this).
-    final last = caster.lastEnemy;
-    if (last != null && last.dead && !_counted.contains(last)) {
-      _counted.add(last);
-      if (kills < _softCapStacks) kills++;
+    // Compounds per consecutive hit on the same enemy; resets when the target
+    // changes — exactly like Oligarchy, but stacking damage instead of speed.
+    if (caster.lastEnemy == primaryTarget) {
+      if (count < _max) count++;
+    } else {
+      count = 0;
     }
-    gem.buffs.add(bf.AttackSpeedMultiple(
+    // Re-apply the compounded damage multiplier each attack (a CriticalStrike
+    // with a growing multiplier, refreshed like Capitalism's).
+    final cs = bf.CriticalStrike(
       caster: caster,
       level: level,
-      overrideDurationType: bf.DurationType.ATTACK,
-      overrideMultiplier: 1 + kills * incPerKill.getByLevel(level),
-    ));
+      overrideDamageMultiplier: 1 + count * increasePerLevel.getByLevel(level),
+    )
+      ..name = name
+      ..icon = icon
+      ..gemType = gemType;
+    if (gem.buffs.contains(cs)) {
+      for (final b in gem.buffs) {
+        if (b == cs) {
+          b.duration = cs.duration;
+          (b as bf.CriticalStrike).overrideDamageMultiplier =
+              cs.overrideDamageMultiplier;
+        }
+      }
+    } else {
+      gem.buffs.add(cs);
+    }
     return null;
   }
 
@@ -116,11 +132,11 @@ class CheckeredPast extends Ability {
 
   @override
   String description =
-      "Permanently gains attack speed for every kill (up to a soft cap).";
+      "Each consecutive hit on the same enemy compounds attack damage.";
 
   @override
   String get subDescription =>
-      "+${incPerKill.map((e) => "${(e * 100).toStringAsFixed(0)}%").join("/")} attack speed per kill.";
+      "+${increasePerLevel.map((e) => "${(e * 100).toStringAsFixed(0)}%").join("/")} damage per hit.";
 
   @override
   IconData icon = FontAwesomeIcons.chessBoard.data;

@@ -522,7 +522,10 @@ class GameConstants {
     Map<List<String>, GemComponent> result = {};
 
     for (List<String> ingredients in recipes.keys) {
-      if (ingredients.contains(gem.name)) {
+      // Match when the gem is an ingredient OR is the special result itself, so
+      // selecting a special tower still shows what it's built from (its buildup).
+      if (ingredients.contains(gem.name) ||
+          recipes[ingredients]!.name == gem.name) {
         result = {ingredients: recipes[ingredients]!};
         break;
       }

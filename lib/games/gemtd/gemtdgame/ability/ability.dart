@@ -1234,7 +1234,11 @@ class Sphinx extends Ability {
   final Set<EnemyComponent> _inRange = {};
 
   void _stun(EnemyComponent e) {
-    e.buffs.add(bf.Stun(caster: caster, level: level)..gemType = gemType);
+    e.buffs.add(bf.Stun(
+      caster: caster,
+      level: level,
+      overrideDuration: bf.Stun.durationPerLevel.getByLevel(level) * 0.5,
+    )..gemType = gemType);
   }
 
   @override
@@ -1387,6 +1391,8 @@ class FullMoon extends Ability {
   @override
   GameComponent? onEnemyAttack(GemComponent gem, EnemyComponent primaryTarget,
       Set<GameComponent> targets) {
+    // Guard: Random().nextInt(0) throws — never pick from an empty target set.
+    if (targets.isEmpty) return null;
     int i = Random().nextInt(targets.length);
 
     return targets.elementAt(i);

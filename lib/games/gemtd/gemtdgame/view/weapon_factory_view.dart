@@ -68,24 +68,34 @@ class WeaponFactoryView extends GameComponent {
   }
 
   tryPlaceGem(Vector2 anchor) {
-    if (gameRef.placeController.placing) {
-      // Before adding a new unconfirmed gem ensure that the position is free.
-      // Sometimes it's possible to tap on a cell for placing a gem too fast,
-      // and without the check at the same position could be added 2 unconfirmed
-      // gems that will cause an error when start a new wave and game won't play.
-      if (!hasGemAtPosition(anchor)) {
-        GemComponent component = getNextGem()
-          ..position = anchor
-          ..hideSprite = true;
-        placeUnconfirmedGem(component);
-      }
+    if (!gameRef.placeController.placing) return;
+    // Let the player build over a white block: clear any rock on this tile
+    // first, freeing its A* obstacle immediately so the cell reads as open.
+    for (final rock in gameRef.gameController.children
+        .whereType<GemComponent>()
+        .where((c) =>
+            c.position == anchor && c.settings.gemType == CityType.ROCK)
+        .toList()) {
+      rock.destroy();
+      gameRef.mapController.astarMapRemoveObstacle(anchor);
+    }
+    // Before adding a new unconfirmed gem ensure that the position is free.
+    // Sometimes it's possible to tap on a cell for placing a gem too fast,
+    // and without the check at the same position could be added 2 unconfirmed
+    // gems that will cause an error when start a new wave and game won't play.
+    if (!hasGemAtPosition(anchor)) {
+      GemComponent component = getNextGem()
+        ..position = anchor
+        ..hideSprite = true;
+      placeUnconfirmedGem(component);
     }
   }
 
+  // Rocks don't count — the player may build over them (see tryPlaceGem).
   bool hasGemAtPosition(Vector2 anchor) =>
-      gameRef.gameController.children
-          .whereType<GemComponent>()
-          .any((child) => child.position == anchor);
+      gameRef.gameController.children.whereType<GemComponent>().any((child) =>
+          child.position == anchor &&
+          child.settings.gemType != CityType.ROCK);
 
 
   placeUnconfirmedGem(GemComponent component) {
