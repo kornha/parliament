@@ -473,13 +473,18 @@ class Petronas extends Buff {
   String name = "Petronas";
 
   @override
-  String description = "Slows enemies.";
+  String description = "Oiled — slowed and taking amplified damage.";
 
-  static var slowPerLevel = [0.20, 0.25, 0.3, 0.35, 0.4, 0.45];
+  static var slowPerLevel = [0.25, 0.33, 0.41, 0.49, 0.57, 0.65];
+  static const dmgAmpPerLevel = <double>[0.05, 0.075, 0.1, 0.125, 0.15, 0.2];
 
   @override
   double? speedModifier(EnemyComponent enemy) =>
       slowPerLevel.getByLevel(level);
+
+  @override
+  double? receiveDamageMultiplier(EnemyComponent enemy) =>
+      dmgAmpPerLevel.getByLevel(level);
 
   @override
   double? baseDuration = 3;
@@ -558,7 +563,7 @@ class CriticalStrike extends Buff {
     TextPainter textPainter = TextPainter(textDirection: TextDirection.ltr);
     textPainter.text = TextSpan(
       text: "${damageMultiplier!.toStringAsFixed(1)}x",
-      style: TextConstants.hackney.copyWith(fontSize: 11),
+      style: TextConstants.hackney.copyWith(fontSize: 14),
     );
     textPainter.layout();
 

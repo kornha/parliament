@@ -14,7 +14,6 @@ import 'package:political_think/games/gemtd/gemtdgame/view/game_stats.dart';
 import 'package:political_think/games/gemtd/gemtdgame/view/gem_view.dart';
 import 'package:political_think/games/gemtd/gemtdgame/view/recipes_view.dart';
 import 'package:separated_column/separated_column.dart';
-import 'package:separated_row/separated_row.dart';
 
 class Dashboard extends StatefulWidget {
   const Dashboard({
@@ -94,26 +93,6 @@ class _DashboardState extends State<Dashboard> {
                             mainAxisSize: MainAxisSize.max,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Visibility(
-                                visible: Dashboard.selectedGem!.settings
-                                    .countryCodes(Dashboard.selectedGem!.level)
-                                    .isNotEmpty,
-                                child: SeparatedRow(
-                                  separatorBuilder:
-                                      (BuildContext context, int index) =>
-                                          context.sl,
-                                  children: [
-                                    ...Dashboard.selectedGem!.countryCodes
-                                        .map((e) => Utils.gFlag(e))
-                                  ],
-                                ),
-                              ),
-                              Visibility(
-                                  visible: Dashboard.selectedGem!.settings
-                                      .countryCodes(
-                                          Dashboard.selectedGem!.level)
-                                      .isNotEmpty,
-                                  child: context.sl),
                               StatsTag(
                                   text: "Level",
                                   subtext:
@@ -202,10 +181,11 @@ class _DashboardState extends State<Dashboard> {
                                               Icon(e.icon, color: e.color))
                                           .toList()),
                                     ),
-                              Dashboard.selectedGem!.buffs.isEmpty
+                              Dashboard.selectedGem!.displayBuffs.isEmpty
                                   ? const SizedBox.shrink()
                                   : StatsTagButton(
-                                      row: Dashboard.selectedGem!.buffs.length <
+                                      row: Dashboard.selectedGem!.displayBuffs
+                                              .length <
                                           2,
                                       onPressed: () {
                                         AbilityView.show(
@@ -213,7 +193,8 @@ class _DashboardState extends State<Dashboard> {
                                             showBuffs: true);
                                       },
                                       text: "Buffs",
-                                      sub: iconGrid(Dashboard.selectedGem!.buffs
+                                      sub: iconGrid(Dashboard
+                                          .selectedGem!.displayBuffs
                                           .map((e) =>
                                               Icon(e.icon, color: e.color))
                                           .toList()),

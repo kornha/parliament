@@ -527,10 +527,13 @@ class Petronas extends Ability {
   String name = "Petronas";
 
   @override
-  String description = "Slows enemies.";
+  String description =
+      "Coats enemies in oil — slowing them and amplifying the damage they take.";
 
   @override
-  String get subDescription => "${bf.Petronas.slowPerLevel.join("/")} slow.";
+  String get subDescription =>
+      "${bf.Petronas.slowPerLevel.map((e) => "${(e * 100).toStringAsFixed(0)}%").join("/")} slow.\n"
+      "+${bf.Petronas.dmgAmpPerLevel.map((e) => "${(e * 100).toStringAsFixed(0)}%").join("/")} damage taken.";
 
   @override
   IconData icon = Icons.oil_barrel;

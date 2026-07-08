@@ -2,8 +2,9 @@ part of 'namerica.dart';
 
 // North America — Capitalism (RNG damage swings) is the shared spine on every
 // tower. Each tier adds its own twist.
-// Cuba(Viva la Revolución) -> Jamaica(Feel Good Man) -> Panama(Tax Haven: spine
-// only) -> Canada(Immigration) -> Mexico(Cartel) -> USA(Deep State: capstone).
+// Cuba(Viva la Revolución) -> Jamaica(Feel Good Man) -> Panama(Tax Haven:
+// tagged enemies pay extra capital) -> Canada(Immigration) -> Mexico(Cartel)
+// -> USA(Deep State: capstone).
 Set<Ability> namerica_abilities(NAmericaSettings settings, int level,
         GemComponent caster, CityConfig config) =>
     switch (config) {
@@ -17,6 +18,7 @@ Set<Ability> namerica_abilities(NAmericaSettings settings, int level,
         },
       panama => {
           Capitalism(level: level, caster: caster),
+          TaxHaven(level: level, caster: caster),
         },
       canada => {
           Capitalism(level: level, caster: caster),
@@ -88,6 +90,46 @@ class VivaLaRevolucion extends Ability {
 
   @override
   IconData icon = FontAwesomeIcons.recycle.data;
+
+  @override
+  CityType gemType = CityType.NAMERICA;
+}
+
+// Panama — Tax Haven: struck enemies route their wealth offshore — they pay
+// extra capital when killed while the tag lasts.
+class TaxHaven extends Ability {
+  TaxHaven({required super.caster, required super.level});
+
+  static const taxPerLevel = [0.25, 0.30, 0.35, 0.40, 0.45, 0.50];
+
+  @override
+  bool get worksOnEnemies => true;
+
+  @override
+  bf.Buff? get buff => bf.BountyMultiple(
+        caster: caster,
+        level: level,
+        overrideMultiplier: taxPerLevel.getByLevel(level),
+        overrideBaseDuration: 4,
+      )
+        ..name = name
+        ..icon = icon
+        ..gemType = gemType;
+
+  @override
+  String name = "Tax Haven";
+
+  @override
+  String description =
+      "Struck enemies route their wealth through Panama — they pay extra "
+      "capital when killed.";
+
+  @override
+  String get subDescription =>
+      "+${taxPerLevel.map((e) => "${(e * 100).toStringAsFixed(0)}%").join("/")} capital from tagged enemies.";
+
+  @override
+  IconData icon = FontAwesomeIcons.buildingColumns.data;
 
   @override
   CityType gemType = CityType.NAMERICA;

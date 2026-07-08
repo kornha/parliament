@@ -186,6 +186,16 @@ abstract class GemComponent extends GameComponent
   Set<bf.Buff> buffs = {};
   late Set<ab.Ability> abilities = settings.abilities(level, this);
 
+  // Buffs that come and go on a fast cycle (per-attack compounders, aura pulses)
+  // are re-applied moments after they expire — technically absent for a frame or
+  // two, which made their icons blink. For display purposes a buff keeps showing
+  // until it has been absent this long.
+  static const _buffLingerSecs = 1.0;
+  final Map<bf.Buff, double> _buffLastSeen = {};
+
+  // The stable, non-blinking view of this tower's buffs (for icons/panels).
+  Set<bf.Buff> get displayBuffs => _buffLastSeen.keys.toSet();
+
   EnemyComponent? lastEnemy;
   int fireCount = 0;
 
@@ -274,6 +284,16 @@ abstract class GemComponent extends GameComponent
 
     StatusManager.tickGem(dt, this, buffs);
 
+    // Age the display linger and refresh it with the currently active buffs.
+    // Remove-then-add so the map holds the LIVE instance (a re-applied buff is
+    // == its predecessor but may carry new state, e.g. a fresh crit multiplier).
+    _buffLastSeen.updateAll((b, t) => t + dt);
+    _buffLastSeen.removeWhere((b, t) => t > _buffLingerSecs);
+    for (final b in buffs) {
+      _buffLastSeen.remove(b);
+      _buffLastSeen[b] = 0;
+    }
+
     _timeSinceEnemy += dt;
     if (settings.auraRing(level)) {
       _auraPhase = (_auraPhase + dt / 1.6) % 1.0;
@@ -350,7 +370,7 @@ abstract class GemComponent extends GameComponent
       }
     }
 
-    renderBuffs(canvas, buffs);
+    renderBuffs(canvas, displayBuffs);
   }
 
   @override

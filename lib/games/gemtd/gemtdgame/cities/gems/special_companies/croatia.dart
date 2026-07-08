@@ -10,8 +10,9 @@ import 'package:political_think/games/gemtd/gemtdgame/cities/gems/eeurope/eeurop
 import 'package:political_think/games/gemtd/gemtdgame/cities/weapon_settings.dart';
 import 'package:political_think/games/gemtd/gemtdgame/enemy/enemy_component.dart';
 
-// Eastern Europe special — Checkered Past: permanently gains attack speed for
-// every kill (soft-capped). A relentless, ever-accelerating snowball.
+// Eastern Europe special — carries the region's Oligarchy spine (compounding
+// attack speed) plus Checkered Past, its damage twin: consecutive hits on the
+// same enemy compound BOTH attack speed and damage.
 class Croatia extends GemComponent {
   Croatia({Vector2? position}) : super(position: position);
 
@@ -73,7 +74,10 @@ class CroatiaSettings extends GemAttributes {
 
   @override
   Set<Ability> abilities(int level, GemComponent caster) {
-    final a = {CheckeredPast(level: level, caster: caster)};
+    final a = {
+      Oligarchy(level: level, caster: caster),
+      CheckeredPast(level: level, caster: caster),
+    };
     for (final ab in a) {
       ab.gemType = gemType;
       ab.buff?.gemType = gemType;

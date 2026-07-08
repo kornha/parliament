@@ -77,8 +77,14 @@ class AseanSettings extends GemAttributes {
   @override
   int projectileRows(level) => 1;
 
+  // Thousand Islands towers (Philippines, Indonesia) fire so fast that a drawn
+  // projectile reads as noise — use the hidden bullet (like Thailand / Deep
+  // State); the explosion still marks the hit.
   @override
-  String get projectilePath => "projectile/asean_projectile.png";
+  String get projectilePath =>
+      cityConfig == philippines || cityConfig == indonesia
+          ? "weapon/empty_bullet.png"
+          : "projectile/asean_projectile.png";
 
   @override
   String get explosionImage => "explosion/asean_explosion.png";

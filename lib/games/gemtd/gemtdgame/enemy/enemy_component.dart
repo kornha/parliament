@@ -133,9 +133,13 @@ class EnemyComponent extends GameComponent
       updateMovable(dt);
     }
 
-    // Record a short position history for the motion tail.
-    _trail.add(position.clone());
-    if (_trail.length > 10) _trail.removeAt(0);
+    // Record spaced samples of the recent path for the motion tail. Distance-
+    // based (not per-frame) so the tail reaches well beyond the sprite instead
+    // of collapsing under it at high frame rates.
+    if (_trail.isEmpty || _trail.last.distanceTo(position) > size.x * 0.25) {
+      _trail.add(position.clone());
+      if (_trail.length > 8) _trail.removeAt(0);
+    }
 
     // Emit periodic DoT particles (embers / sparks / poison) while afflicted.
     _dotFxTimer += dt;

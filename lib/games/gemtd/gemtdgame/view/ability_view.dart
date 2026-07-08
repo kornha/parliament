@@ -41,7 +41,7 @@ class AbilityView {
     if (_selected == null) return const SizedBox.shrink();
 
     final cards = _showBuffs
-        ? _selected!.buffs
+        ? _selected!.displayBuffs
             .map((b) => _DetailCard(
                   icon: b.icon,
                   color: b.color,

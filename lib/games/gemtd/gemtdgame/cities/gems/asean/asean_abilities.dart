@@ -22,12 +22,10 @@ Set<Ability> asean_abilities(AseanSettings settings, int level,
           Allure(level: level, caster: caster),
           ThousandIslands(level: level, caster: caster),
         },
-      // Malaysia (5) — Petronas oil aura: slows AND amplifies damage taken,
-      // cannot fire a projectile (no Allure). The slow comes from Petronas; the
-      // damage amplification is layered on by OilSlick alongside it.
+      // Malaysia (5) — Petronas oil aura: one spell that coats enemies in oil
+      // (slow + amplified damage taken), cannot fire a projectile (no Allure).
       malaysia => {
           Petronas(level: level, caster: caster),
-          OilSlick(level: level, caster: caster),
         },
       // Thailand (6, capstone) — Beautiful Chaos: huge range + random target +
       // fast hidden projectile (ThailandSettings sets empty_bullet + coin
@@ -172,44 +170,6 @@ class ThousandIslands extends Ability {
 
   @override
   IconData icon = FontAwesomeIcons.arrowUpRightDots.data;
-}
-
-// Malaysia — the oil half of Petronas. Petronas itself supplies the slow; this
-// layers the "Oiled" damage amplification on top so the aura both slows AND
-// amplifies the damage struck enemies take. Runs alongside Petronas through the
-// same aura firing path, matching its 3s duration so the two expire together.
-class OilSlick extends Ability {
-  OilSlick({required super.caster, required super.level});
-
-  @override
-  bool get worksOnEnemies => true;
-
-  @override
-  bf.Buff? get buff => bf.ReceiveDamageMultiple(
-        caster: caster,
-        level: level,
-        overrideBaseDuration: 3,
-      )
-        ..name = name
-        ..icon = icon
-        ..gemType = gemType;
-
-  @override
-  String name = "Oil Slick";
-
-  @override
-  String description =
-      "Coats enemies in oil, amplifying the damage they take.";
-
-  @override
-  String get subDescription =>
-      "+${bf.ReceiveDamageMultiple.defaultMultipliers.map((e) => "${(e * 100).toStringAsFixed(0)}%").join("/")} damage taken.";
-
-  @override
-  IconData icon = Icons.oil_barrel;
-
-  @override
-  CityType gemType = CityType.ASEAN;
 }
 
 // Thailand (capstone) — Beautiful Chaos: keeps Full Moon's huge range + random

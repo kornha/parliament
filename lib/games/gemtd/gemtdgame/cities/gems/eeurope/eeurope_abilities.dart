@@ -185,7 +185,7 @@ class ThermalBaths extends Ability {
 class Defenestration extends Ability {
   Defenestration({required super.caster, required super.level});
 
-  static const armorPerStack = [1.0, 1.5, 2.0, 2.5, 3.0, 4.0];
+  static const armorPerStack = [1.0, 1.2, 1.4, 1.6, 1.8, 2.2];
 
   @override
   bool get worksOnEnemies => true;
