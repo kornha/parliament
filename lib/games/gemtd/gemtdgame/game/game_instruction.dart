@@ -89,8 +89,10 @@ class GameInstruction {
         break;
       case GameControl.WAVE_COMPLETE:
         controller.gameRef.gameStats.isWaveActive = false;
+        // Endless until the world ends — the MAX_WAVE backstop only exists so
+        // exponential enemy scaling can't run away numerically.
         if (controller.gameRef.gameStats.wave >=
-            controller.gameRef.gameStats.MAX_LEVEL) {
+            controller.gameRef.gameStats.MAX_WAVE) {
           controller.queue(null, GameControl.GAME_WON);
           break;
         }

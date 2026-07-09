@@ -18,6 +18,11 @@ class EnemySettings {
   // Enemies are named for how they end the world, themed to their stat profile.
   String get name => "Cataclysm";
 
+  // Waves are endless, so horde sizes must not grow unbounded — past this the
+  // entity count (and per-frame radar scans) tanks the frame rate. Difficulty
+  // keeps scaling through life/armor/speed instead.
+  static const int maxSpawnCount = 60;
+
   double baseLife(int level) => 8.5 * pow(1.30, level - 1);
   double baseSpeed(int level) => 1.5 * pow(1.015, level - 1);
   double baseArmor(int level) => 1.0 * pow(1.05, level - 1);
@@ -212,7 +217,7 @@ class MenaEnemySettings extends EnemySettings {
   @override
   double baseSpeed(int level) => 1.75 * pow(1.013, level - 1);
   @override
-  int spawnCount(int level) => 10 + level * 2;
+  int spawnCount(int level) => min(10 + level * 2, EnemySettings.maxSpawnCount);
   @override
   double baseArmor(int level) => 4.75 * pow(1.40, level - 1);
 
@@ -239,7 +244,7 @@ class EEuropeEnemySettings extends EnemySettings {
   @override
   double baseSpeed(int level) => 4.0 * pow(1.013, level - 1);
   @override
-  int spawnCount(int level) => 10 + level * 2;
+  int spawnCount(int level) => min(10 + level * 2, EnemySettings.maxSpawnCount);
   @override
   double baseArmor(int level) => 0;
 
@@ -264,7 +269,7 @@ class AfricaEnemySettings extends EnemySettings {
   @override
   double baseSpeed(int level) => 2.0 * pow(1.013, level - 1);
   @override
-  int spawnCount(int level) => 10 + level * 2;
+  int spawnCount(int level) => min(10 + level * 2, EnemySettings.maxSpawnCount);
   @override
   double baseArmor(int level) => 2.0 * pow(1.2, level - 1);
 

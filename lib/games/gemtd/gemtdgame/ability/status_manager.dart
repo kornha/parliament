@@ -202,17 +202,10 @@ class StatusManager {
       }
     }
 
-    //TODO(max, alex) consider to clamp next values to not break UI/UX:
-    // for instance if the speed will be 6.5 or higher it will cause
-    // some UI lags (just check by hardcoding here), or if the speed will be
-    // negative like -6 the enemy will move out of the game grid and it will
-    // take some time (usually buffer.duration) to see it again.
-    // Just when we combine different buffs' multipliers it can cause big values
-    // that could lead to some unexpected "surprises" or even break the game.
-    // So, we definitely have to set some realistic boundaries here.
-    // Guard: compounding / over-stacked slows must never push speed below 0,
-    // which would make enemies walk backwards off the map. Clamp to a full stop.
-    enemy.speed = tempSpeed < 0 ? 0 : tempSpeed;
+    // Clamp speed to realistic boundaries: below 0 an enemy walks backwards
+    // off the map (over-stacked slows); above ~6.5 movement visibly breaks
+    // (relevant now that waves are endless and base speed grows exponentially).
+    enemy.speed = tempSpeed.clamp(0.0, 6.5);
     enemy.armor = tempArmor;
     enemy.capital = tempCapital;
     enemy.receiveDamageMultiplier = tempReceiveDamageMultiplier;

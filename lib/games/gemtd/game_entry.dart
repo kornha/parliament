@@ -1,6 +1,7 @@
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:political_think/games/gemtd/common/constants.dart';
+import 'package:political_think/games/gemtd/common/utils/utils.dart';
 import 'package:political_think/games/gemtd/gemtdgame/ability/buff.dart';
 import 'package:political_think/games/gemtd/gemtdgame/game/game_main.dart';
 import 'package:political_think/games/gemtd/gemtdgame/view/ability_view.dart';
@@ -95,49 +96,71 @@ class _GemTDGameState extends State<GemTDGame> {
     ));
   }
 
-  Widget _gameOverBuilder(BuildContext buildContext, GameMain game) {
-    return Center(
-        child: Container(
-      width: 100,
-      height: 100,
-      color: Colors.red,
-      child: Center(
-          child: TextButton(
-        style: TextButton.styleFrom(
-          padding: const EdgeInsets.all(16.0),
-          foregroundColor: Colors.white,
-          textStyle: const TextStyle(fontSize: 20),
-        ),
-        onPressed: () {
-          game.overlays.remove('gameover');
-          game.resumeEngine();
-          _restartGame();
-        },
-        child: const Text('Restart'),
-      )),
-    ));
-  }
+  Widget _gameOverBuilder(BuildContext buildContext, GameMain game) =>
+      _endScreen(
+        game: game,
+        overlayName: 'gameover',
+        color: Colors.red,
+        title: 'The World Ended',
+      );
 
-  Widget _gameWonBuilder(BuildContext buildContext, GameMain game) {
+  Widget _gameWonBuilder(BuildContext buildContext, GameMain game) =>
+      _endScreen(
+        game: game,
+        overlayName: 'gamewon',
+        color: Colors.green,
+        title: 'You Outlasted the Apocalypse',
+      );
+
+  // Shared end-of-run screen: the score is the highest capital held during the
+  // run, alongside the wave reached.
+  Widget _endScreen({
+    required GameMain game,
+    required String overlayName,
+    required Color color,
+    required String title,
+  }) {
+    final stats = game.gameStats;
     return Center(
         child: Container(
-      width: 100,
-      height: 100,
-      color: Colors.green,
-      child: Center(
-          child: TextButton(
-        style: TextButton.styleFrom(
-          foregroundColor: Colors.white,
-          padding: const EdgeInsets.all(16.0),
-          textStyle: const TextStyle(fontSize: 20),
-        ),
-        onPressed: () {
-          game.overlays.remove('gamewon');
-          game.resumeEngine();
-          _restartGame();
-        },
-        child: const Text('Restart'),
-      )),
+      padding: const EdgeInsets.all(16.0),
+      color: color,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            title,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Score: ${Utils.getFormattedCapital(stats.maxCapital)}',
+            style: const TextStyle(color: Colors.white, fontSize: 16),
+          ),
+          Text(
+            'Wave: ${stats.wave}',
+            style: const TextStyle(color: Colors.white, fontSize: 16),
+          ),
+          TextButton(
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.all(16.0),
+              textStyle: const TextStyle(fontSize: 20),
+            ),
+            onPressed: () {
+              game.overlays.remove(overlayName);
+              game.resumeEngine();
+              _restartGame();
+            },
+            child: const Text('Restart'),
+          ),
+        ],
+      ),
     ));
   }
 }

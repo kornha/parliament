@@ -22,6 +22,14 @@ class StatsRow extends StatelessWidget {
           text: "Capital",
           subtext: Utils.getFormattedCapital(stats.capital),
         ),
+        StatsTag(
+          text: "Wave",
+          subtext: stats.wave.toString(),
+        ),
+        StatsTag(
+          text: "Score",
+          subtext: Utils.getFormattedCapital(stats.maxCapital),
+        ),
         const Spacer(),
       ],
     );

@@ -25,7 +25,10 @@ class GameStats extends GameComponent with DragCallbacks {
   late TextComponent killedStatus;
   late TextComponent waveStatus;
 
-  final int MAX_LEVEL = 18;
+  // The run is effectively endless — you play until the world ends (capital
+  // hits 0). The hard stop exists only as a backstop so late-wave numbers
+  // can't run away; reaching it means you outlasted the apocalypse.
+  final int MAX_WAVE = 100;
 
   int wave = 1;
   var isWaveActive = false;
@@ -33,9 +36,16 @@ class GameStats extends GameComponent with DragCallbacks {
   int _killedEnemy = 0;
   int _missedEnemy = 0;
 
-  double capital = 10;
+  double _capital = 10;
 
-  final double MAX_CAPITAL = 1000000;
+  // Score: the highest capital held at any point in the run.
+  double maxCapital = 10;
+
+  double get capital => _capital;
+  set capital(double v) {
+    _capital = v;
+    if (v > maxCapital) maxCapital = v;
+  }
 
   @override
   FutureOr<void>? onLoad() {
@@ -72,9 +82,6 @@ class GameStats extends GameComponent with DragCallbacks {
   void onEnemyKilled(EnemyComponent enemy) {
     _killedEnemy++;
     capital += enemy.capital;
-    // if (capital >= MAX_CAPITAL) {
-    //   gameRef.gameController.queue(this, GameControl.GAME_WON);
-    // }
   }
 
   onEnemyMissed(EnemyComponent enemy) {

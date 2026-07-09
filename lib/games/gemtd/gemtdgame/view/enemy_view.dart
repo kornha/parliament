@@ -11,6 +11,7 @@ import 'package:political_think/games/gemtd/common/components/tag.dart';
 import 'package:political_think/games/gemtd/common/constants.dart';
 import 'package:political_think/games/gemtd/common/extensions.dart';
 import 'package:political_think/games/gemtd/common/utils/update_component.dart';
+import 'package:political_think/games/gemtd/common/utils/utils.dart';
 import 'package:political_think/games/gemtd/gemtdgame/enemy/enemy_component.dart';
 import 'package:political_think/games/gemtd/gemtdgame/game/game_main.dart';
 import 'package:political_think/games/gemtd/gemtdgame/view/dashboard.dart';
@@ -105,8 +106,8 @@ class _EnemyViewState extends State<EnemyView> {
                                     .toStringAsFixed(1)),
                             StatsTag(
                               text: "Max",
-                              subtext: EnemyView.selected!.maxLife
-                                  .toStringAsFixed(1),
+                              subtext:
+                                  Utils.compact(EnemyView.selected!.maxLife),
                             ),
                             StatsTag(
                               text: "Capital",
@@ -116,7 +117,7 @@ class _EnemyViewState extends State<EnemyView> {
                             StatsTag(
                               text: "Armor",
                               subtext:
-                                  EnemyView.selected!.armor.toStringAsFixed(1),
+                                  Utils.compact(EnemyView.selected!.armor),
                             ),
                           ],
                         ),
