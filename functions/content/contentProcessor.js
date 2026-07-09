@@ -120,6 +120,11 @@ async function processItem(data, platformType, poster = null) {
       ...(bookmarks && {bookmarks}),
       ...(views && {views}),
       ...(replies && {replies}),
+      // precomputed when the source exposes engagement (e.g. Reddit); omitted
+      // (null) for sources without it so they sit out the virality mean
+      ...(data.socialScore != null && {socialScore: data.socialScore}),
+      // ripple/gather depth, when ingested via the gather path
+      ...(data.depth != null && {depth: data.depth}),
     };
 
     // skips on duplicate error, in race condition

@@ -14,6 +14,17 @@ const _ = require("lodash");
 const {writeTrainingData} = require("./trainer");
 const {findStoriesPrompt, findContextPrompt} = require("./prompts");
 const {storyOutputSchema, contextOutputSchema} = require("./prompt_schemas");
+const {processWebLinks} = require("../content/webscraper");
+const {MAX_RIPPLE_DEPTH} = require("../common/pubsub");
+
+// Source gathering is scaffolded but switched OFF for now: the first story's
+// context pass does not web-search for or ingest additional sources. Flip this
+// to re-enable one-hop gathering (the depth budget still applies).
+const GATHER_SOURCES = false;
+
+// Max source URLs ingested per single gather (breadth/cost cap of one gather).
+// Distinct from MAX_RIPPLE_DEPTH, which caps how many gathers can chain.
+const MAX_SOURCE_URLS = 4;
 
 /** FLAGSHIP FUNCTION
  * ***************************************************************
@@ -45,7 +56,13 @@ const onStoryShouldFindContext = async function(story) {
     logger.warn(`Story ${story.sid} does not have statements`);
   }
 
-  const resp = await findContext(story, statements);
+  // Recursion gate (depth only): a gathered Story carries a lower budget so
+  // gathering goes one hop and dies. Spending a point also self-limits
+  // re-gathering the same Story. The AI decides whether it's "thin".
+  const d = (story.depth ?? MAX_RIPPLE_DEPTH) - 1;
+  const canGather = GATHER_SOURCES && d > 0;
+
+  const resp = await findContext(story, statements, canGather);
 
   if (resp == null) {
     // we don't change the status here since other posts
@@ -64,6 +81,18 @@ const onStoryShouldFindContext = async function(story) {
       status: "foundContext",
     }),
   );
+
+  // Gather: ingest the AI-surfaced source URLs as real Posts. They re-enter the
+  // normal pipeline and cluster into this Story; the math scores them.
+  if (canGather && !_.isEmpty(gcontext.sourceUrls)) {
+    // Spend a depth point first so concurrent/re-fired context passes can't
+    // re-gather this Story (replaces a separate latch).
+    await retryAsyncFunction(() => updateStory(story.sid, {depth: d}));
+    const pids = await processWebLinks(
+        gcontext.sourceUrls.slice(0, MAX_SOURCE_URLS), null, d);
+    logger.info(
+        `Gathered ${pids.length} posts for story ${story.sid} at depth ${d}`);
+  }
 
   logger.info(`Done onPostShouldFindStories for post ${story.sid}`);
 
@@ -150,10 +179,11 @@ const findStories = async function(post) {
  * the statements
  * @param {Story} story
  * @param {Array<Statement>} statements
+ * @param {boolean} [canGather] enable web search + sourceUrls gathering
  * @return {Promise<Gstories,Removed>}
  * ***************************************************************
  */
-const findContext = async function(story, statements) {
+const findContext = async function(story, statements, canGather = false) {
   if (!story) {
     logger.error("Story is null");
     return;
@@ -164,13 +194,15 @@ const findContext = async function(story, statements) {
     statements: statements,
     training: true,
     includePhotos: true,
+    canGather: canGather,
   });
 
   const resp = await generateCompletions({
     messages: _prompt,
     responseSchema: contextOutputSchema(),
     loggingText: "findContext " + story.sid,
-    useWebSearch: true,
+    // Web search is only worth its cost when we can act on what it finds.
+    useWebSearch: canGather,
   });
 
   if (!resp || !resp.sid) {

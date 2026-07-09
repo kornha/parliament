@@ -153,7 +153,8 @@ const findContextPrompt = function({
   story,
   statements,
   training = false,
-  includePhotos = true}) {
+  includePhotos = true,
+  canGather = false}) {
   const input = [];
   const userParts = [];
 
@@ -177,6 +178,14 @@ const findContextPrompt = function({
 
   userParts.push({type: "input_text", text: `The current time is ${new Date().toISOString()} UTC`});
   userParts.push({type: "input_text", text: "Output the updated context/article fields."});
+
+  if (canGather) {
+    userParts.push({type: "input_text", text:
+      "GATHER SOURCES: If this Story is thin or one-sided, use web search to find additional real, directly-relevant sources covering THIS exact event, and output their URLs in 'sourceUrls'. Choose politically neutral, cross-spectrum sources; do not favor any lean. Prefer primary news articles. If the Story is already well-sourced, return an empty 'sourceUrls'."});
+  } else {
+    userParts.push({type: "input_text", text:
+      "Do NOT search for additional sources. Return an empty 'sourceUrls' array."});
+  }
 
   input.push({role: "user", content: userParts});
   return input;
@@ -293,6 +302,7 @@ const findContextForTrainingText = function() {
     - **SubHeadline:** 1-2 sentences, provides key details.
     - **Lede:** Very straightforward "bullet point" style synopsis of what the story is about. Output in 1 string and separate sentences by 2 newlines each.
     - **Article:** Optional, 1-8 paragraphs, comprehensive, journalistic tone.
+    - **sourceUrls:** A list of real, directly-relevant source URLs found via web search that should be ingested as new Posts for this Story (only when gathering is enabled; otherwise empty). These become first-class Posts that the system scores independently — you are NOT writing their content, only surfacing the links. Keep selection politically neutral and cross-spectrum.
   `;
 };
 
@@ -731,7 +741,8 @@ const webSearchPrompt = function() {
     -- Eg., if a post mentions POTUS, you must use web search to find out who POTUS is.
     - HOWEVER: only information that is provided from our system can be used to make any claims or provide any opinions in the output. That is, the web helps you understand the overall picture, but our information (if any) is the only authority.
     -- Eg., We do not trust the web!
-    - *NEVER* CITE THE WEB SEARCH IN THE OUTPUT.
+    - *NEVER* CITE THE WEB SEARCH IN THE PROSE OUTPUT (headline/subHeadline/lede/article).
+    -- The ONLY exception: source URLs you find may be placed in the 'sourceUrls' field (when gathering is enabled), so the system can ingest them as Posts. Never weave web claims into the prose itself.
   `;
 };
 

@@ -28,7 +28,7 @@ const geo = require("geofire-common");
 const {findStories, resetStoryVector} = require("./story_ai");
 const {findStatements, resetStatementVector} = require("./statement_ai");
 // eslint-disable-next-line no-unused-vars
-const {publishMessage, POST_SHOULD_FIND_STORIES} =
+const {publishMessage, POST_SHOULD_FIND_STORIES, MAX_RIPPLE_DEPTH} =
 require("../common/pubsub");
 const {queueRippleTask,
   POST_SHOULD_FIND_STORIES_TASK, POST_SHOULD_FIND_STATEMENTS_TASK} =
@@ -128,6 +128,9 @@ const onPostShouldFindStories = async function(post, depth) {
           ...storyData,
           status: "draft",
           pids: [post.pid],
+          // Inherit the seeding post's gather budget so gathered posts spawn
+          // gather-exhausted stories (one-hop recursion guard).
+          depth: post.depth ?? MAX_RIPPLE_DEPTH,
         }),
       );
     }

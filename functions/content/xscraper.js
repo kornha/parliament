@@ -32,12 +32,18 @@ const _xEmailKey = defineSecret("X_EMAIL_KEY");
 // eslint-disable-next-line max-len
 const _userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.99 Safari/537.36";
 
+// Toggle to observe the browser. Currently defaulted to VISIBLE (non-headless)
+// so you can watch scraping. Set env PUPPETEER_HEADLESS=true to force headless.
+// REVERT this default before deploying (Cloud Functions has no display).
+// Applies to ALL puppeteer launches, since they share _launchOptions below.
+const HEADLESS = process.env.PUPPETEER_HEADLESS === "true";
+
 /**
  * Common Puppeteer launch options.
  * Uses system Chrome to avoid bundled-Chromium / macOS incompatibilities.
  */
 const _launchOptions = {
-  headless: "new",
+  headless: HEADLESS ? "new" : false,
   executablePath: process.env.PUPPETEER_EXECUTABLE_PATH ||
     (process.platform === "darwin" ?
       "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" :
@@ -63,7 +69,7 @@ const scrapeXFeed = async function(feedUrl, limit) {
     await connectToX(page);
 
     let count = 0;
-    for await (const link of autoScrollX(page, feedUrl, false, 12000)) {
+    for await (const link of autoScrollX(page, feedUrl, false, 12000, true)) {
       await publishMessage(SHOULD_PROCESS_LINK, {link});
       if (++count >= limit) break; // ⬅️ stop after “limit” links
     }
@@ -276,6 +282,38 @@ const connectToX = async function(page) {
 };
 
 /**
+ * Switches the home timeline from "For you" to "Following".
+ * X has no distinct URL for the Following feed — it's a tab on /home — so we
+ * click it by visible text. Falls back silently to the current timeline.
+ * @param {page} page the page instance, already on the home feed
+ * @return {Promise<void>}
+ */
+const selectFollowingTab = async function(page) {
+  try {
+    const clicked = await page.evaluate(() => {
+      // eslint-disable-next-line no-undef
+      const tabs = Array.from(document.querySelectorAll(
+          "[role='tab'], [role='tablist'] a"));
+      const tab = tabs.find(
+          (t) => (t.textContent || "").trim() === "Following");
+      if (tab) {
+        tab.click();
+        return true;
+      }
+      return false;
+    });
+    if (clicked) {
+      await page.waitForTimeout(3000); // let the Following timeline load
+      logger.info("Selected 'Following' timeline.");
+    } else {
+      logger.warn("'Following' tab not found; scraping current timeline.");
+    }
+  } catch (error) {
+    logger.warn(`Could not select 'Following' tab: ${error.message}`);
+  }
+};
+
+/**
  * Scrolls an X page yielding links or responses
  * Dedups links, not responses
  * THIS IS AN *ASYNC GENERATOR* FUNCTION,
@@ -284,6 +322,7 @@ const connectToX = async function(page) {
  * @param {string} url the url to scrape from
  * @param {bool} yieldResponses whether to yield responses or links
  * @param {number} maxDuration the maximum duration to scroll
+ * @param {bool} selectFollowing click the "Following" tab before scrolling
  * @return {AsyncGenerator<string>} with response json or link urls
  */
 const autoScrollX = async function* (
@@ -291,6 +330,7 @@ const autoScrollX = async function* (
     url,
     yieldResponses = false,
     maxDuration = 10000,
+    selectFollowing = false,
 ) {
   const uniqueLinksSeen = new Set();
   const responses = [];
@@ -317,6 +357,11 @@ const autoScrollX = async function* (
 
   await page.goto(url);
   await page.waitForTimeout(4000);
+
+  // Switch from the default "For you" timeline to "Following" if requested.
+  if (selectFollowing) {
+    await selectFollowingTab(page);
+  }
 
   const startTime = Date.now();
   // eslint-disable-next-line no-undef

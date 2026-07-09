@@ -162,8 +162,13 @@ const contextOutputSchema = function() {
         subHeadline: {type: ["string", "null"], description: "1-2 sentence subheadline"},
         lede: {type: ["string", "null"], description: "Bullet-style synopsis; sentences separated by two newlines"},
         article: {type: ["string", "null"], description: "Optional 1-8 paragraph article"},
+        sourceUrls: {
+          type: "array",
+          items: {type: "string"},
+          description: "Real source URLs found via web search that are about THIS exact Story and should be ingested as new Posts. Politically neutral / cross-spectrum. Empty array if the Story is already well-sourced or if gathering is disabled.",
+        },
       },
-      required: ["sid", "headline", "subHeadline", "lede", "article"],
+      required: ["sid", "headline", "subHeadline", "lede", "article", "sourceUrls"],
       additionalProperties: false,
     },
   };

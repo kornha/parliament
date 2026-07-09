@@ -45,9 +45,9 @@ const generateCompletions = async function({
 
   try {
     const response = await llm().responses.create({
-      model: "gpt-5-mini",
+      model: "gpt-5.4-nano",
       input: messages,
-      reasoning: {effort: "low"},
+      reasoning: {effort: "medium"},
       text: {format: responseSchema},
       ...(useWebSearch && {
         tools: [{type: "web_search"}],
