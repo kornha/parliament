@@ -32,11 +32,11 @@ const _xEmailKey = defineSecret("X_EMAIL_KEY");
 // eslint-disable-next-line max-len
 const _userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.99 Safari/537.36";
 
-// Toggle to observe the browser. Currently defaulted to VISIBLE (non-headless)
-// so you can watch scraping. Set env PUPPETEER_HEADLESS=true to force headless.
-// REVERT this default before deploying (Cloud Functions has no display).
-// Applies to ALL puppeteer launches, since they share _launchOptions below.
-const HEADLESS = process.env.PUPPETEER_HEADLESS === "true";
+// Headless by default — REQUIRED in Cloud Functions, which has no display
+// (non-headless there fails with "Missing X server or $DISPLAY"). To watch the
+// browser locally, set env PUPPETEER_HEADLESS=false. Applies to ALL puppeteer
+// launches, since they share _launchOptions below.
+const HEADLESS = process.env.PUPPETEER_HEADLESS !== "false";
 
 /**
  * Common Puppeteer launch options.
