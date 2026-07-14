@@ -74,7 +74,12 @@ const scrapeXFeed = async function(feedUrl, limit) {
       if (++count >= limit) break; // ⬅️ stop after “limit” links
     }
 
-    logger.info(`Finished scraping X feed after processing ${count} 
+    // An empty scrape means X served something unexpected — capture what.
+    if (count === 0) {
+      await logXPageDiagnostics(page, feedUrl);
+    }
+
+    logger.info(`Finished scraping X feed after processing ${count}
       link${count !== 1 ? "s" : ""}.`);
   } catch (error) {
     logger.error("Error in scrapeXFeed:", error);
@@ -290,7 +295,7 @@ const connectToX = async function(page) {
  */
 const selectFollowingTab = async function(page) {
   try {
-    const clicked = await page.evaluate(() => {
+    const result = await page.evaluate(() => {
       // eslint-disable-next-line no-undef
       const tabs = Array.from(document.querySelectorAll(
           "[role='tab'], [role='tablist'] a"));
@@ -298,18 +303,56 @@ const selectFollowingTab = async function(page) {
           (t) => (t.textContent || "").trim() === "Following");
       if (tab) {
         tab.click();
-        return true;
+        return {clicked: true, tabCount: tabs.length};
       }
-      return false;
+      return {clicked: false, tabCount: tabs.length};
     });
-    if (clicked) {
+    if (result.clicked) {
       await page.waitForTimeout(3000); // let the Following timeline load
       logger.info("Selected 'Following' timeline.");
     } else {
-      logger.warn("'Following' tab not found; scraping current timeline.");
+      // tabCount 0 = the timeline chrome never rendered (slow hydration or a
+      // bot wall); tabCount > 0 = tabs exist but none read "Following".
+      logger.warn(`'Following' tab not found (${result.tabCount} tabs on ` +
+          `page); scraping current timeline.`);
     }
   } catch (error) {
     logger.warn(`Could not select 'Following' tab: ${error.message}`);
+  }
+};
+
+/**
+ * Logs what X actually served when a scrape comes up empty: page title,
+ * article/tab counts, a text preview, and a screenshot saved to Storage.
+ * Distinguishes "page never rendered / bot wall" from "selectors missed".
+ * @param {page} page the page instance, after the scroll loop
+ * @param {string} url the url that was scraped
+ * @return {Promise<void>}
+ */
+const logXPageDiagnostics = async function(page, url) {
+  try {
+    const diag = await page.evaluate(() => ({
+      // eslint-disable-next-line no-undef
+      title: document.title,
+      // eslint-disable-next-line no-undef
+      articles: document.querySelectorAll("article").length,
+      // eslint-disable-next-line no-undef
+      links: document.querySelectorAll("article [role='link']").length,
+      // eslint-disable-next-line no-undef
+      tabs: document.querySelectorAll("[role='tab']").length,
+      // eslint-disable-next-line no-undef
+      bodyPreview: (document.body?.innerText || "").slice(0, 300),
+    }));
+    logger.warn(`X scrape diagnostics for ${url}: title="${diag.title}" ` +
+        `articles=${diag.articles} articleLinks=${diag.links} ` +
+        `tabs=${diag.tabs} ` +
+        `bodyPreview="${diag.bodyPreview.replace(/\s+/g, " ")}"`);
+    const shot = await page.screenshot();
+    const path = `debug/xscrape-${Date.now()}.png`;
+    await setContent(path, shot, "image/png");
+    logger.warn(`X scrape screenshot saved to storage: ${path}`);
+  } catch (error) {
+    logger.warn(`Could not capture X scrape diagnostics: ${error.message}`);
   }
 };
 
@@ -363,9 +406,25 @@ const autoScrollX = async function* (
     await selectFollowingTab(page);
   }
 
+  // Harvests all status links currently on the page, minus ones already seen.
+  const harvestLinks = async () => {
+    const links = await page.evaluate(() => {
+      // eslint-disable-next-line no-undef
+      const items = document.querySelectorAll("article [role='link']");
+      const xRegex = /^https:\/\/x\.com\/\w+\/status\/\d+$/;
+      return Array.from(items)
+          .map((item) => item.href)
+          .filter((href) => xRegex.test(href));
+    });
+    const newLinks = links.filter((link) => !uniqueLinksSeen.has(link));
+    newLinks.forEach((link) => uniqueLinksSeen.add(link));
+    return newLinks;
+  };
+
   const startTime = Date.now();
   // eslint-disable-next-line no-undef
   let lastHeight = await page.evaluate(() => document.body.scrollHeight);
+  let heightGrowths = 0;
 
   while (Date.now() - startTime < maxDuration) {
     // eslint-disable-next-line no-undef
@@ -376,25 +435,10 @@ const autoScrollX = async function* (
 
     if (newHeight > lastHeight) {
       lastHeight = newHeight;
+      heightGrowths++;
 
       if (!yieldResponses) {
-        // Fetch links and ensure they are fully
-        // loaded by checking the absence of placeholders
-        const links = await page.evaluate(() => {
-          // eslint-disable-next-line no-undef
-          const items = document.querySelectorAll("article [role='link']");
-          const xRegex = /^https:\/\/x\.com\/\w+\/status\/\d+$/;
-          return Array.from(items)
-              .map((item) => item.href)
-              .filter((href) => xRegex.test(href));
-        });
-
-        // Filter out any duplicates seen in this session
-        const newLinks = links.filter((link) => !uniqueLinksSeen.has(link));
-        newLinks.forEach((link) => uniqueLinksSeen.add(link));
-
-        // Yield each new link found that does not include placeholders
-        for (const link of newLinks) {
+        for (const link of await harvestLinks()) {
           yield link;
         }
       }
@@ -402,6 +446,17 @@ const autoScrollX = async function* (
       // If no new height is detected, wait before the next scroll attempt
       await page.waitForTimeout(2000);
     }
+  }
+
+  if (!yieldResponses) {
+    // Final harvest regardless of height: on slow cold-start renders the page
+    // height may never grow inside the window, and the in-loop harvest above
+    // (gated on growth) would collect nothing even with articles on screen.
+    for (const link of await harvestLinks()) {
+      yield link;
+    }
+    logger.info(`autoScrollX: ${uniqueLinksSeen.size} unique links, ` +
+        `${heightGrowths} height growths over ${maxDuration}ms.`);
   }
   if (yieldResponses && responses.length > 0) {
     // Fixed wait of 1.5 seconds to allow pending responses to be processed
