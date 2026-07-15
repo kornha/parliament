@@ -68,8 +68,14 @@ const scrapeXFeed = async function(feedUrl, limit) {
     const page = await browser.newPage();
     await connectToX(page);
 
+    // Only the home feed has a "Following" tab — don't hunt for it on
+    // account/trending pages (it just logs misleading warnings there).
+    const isHomeFeed = /^https:\/\/(x|twitter)\.com\/?(home\/?)?$/
+        .test(feedUrl ?? "");
+
     let count = 0;
-    for await (const link of autoScrollX(page, feedUrl, false, 12000, true)) {
+    for await (const link of autoScrollX(page, feedUrl, false, 20000,
+        isHomeFeed)) {
       await publishMessage(SHOULD_PROCESS_LINK, {link});
       if (++count >= limit) break; // ⬅️ stop after “limit” links
     }
@@ -295,6 +301,11 @@ const connectToX = async function(page) {
  */
 const selectFollowingTab = async function(page) {
   try {
+    // The tabs hydrate late on cold starts — wait for the tablist itself
+    // instead of hoping the page settled already. Throws into the catch
+    // below (graceful fallback) if it never appears.
+    await page.waitForSelector("[role='tablist'] [role='tab']",
+        {timeout: 15000});
     const result = await page.evaluate(() => {
       // eslint-disable-next-line no-undef
       const tabs = Array.from(document.querySelectorAll(
@@ -399,7 +410,30 @@ const autoScrollX = async function* (
   }
 
   await page.goto(url);
-  await page.waitForTimeout(4000);
+
+  if (yieldResponses) {
+    // Response mode (trends/explore) has no timeline articles to await.
+    await page.waitForTimeout(4000);
+  } else {
+    // Wait for the timeline to actually render instead of trusting a fixed
+    // delay — cold containers hydrate X slowly and a 4s sleep often lost the
+    // race. One reload retry covers X's occasional empty-shell serve.
+    const timelineReady = async () => {
+      try {
+        await page.waitForSelector("article", {timeout: 20000});
+        return true;
+      } catch (e) {
+        return false;
+      }
+    };
+    if (!(await timelineReady())) {
+      logger.warn(`Timeline did not render for ${url}; reloading once.`);
+      await page.reload();
+      if (!(await timelineReady())) {
+        logger.warn(`Timeline still empty after reload for ${url}.`);
+      }
+    }
+  }
 
   // Switch from the default "For you" timeline to "Following" if requested.
   if (selectFollowing) {
