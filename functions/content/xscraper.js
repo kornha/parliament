@@ -19,6 +19,7 @@ const {isoToMillis, getPlatformType,
 const {defineSecret} = require("firebase-functions/params");
 const {
   publishMessage,
+  publishRipple,
   SHOULD_SCRAPE_FEED,
   SHOULD_PROCESS_LINK,
 } = require("../common/pubsub");
@@ -569,6 +570,85 @@ const processXLinks = async function(xLinks, poster = null) {
  * @return {string} with creator
  * @return {string?} with photoURL
  */
+// Matches an X/Twitter status URL; captures [1] screen name, [2] status id.
+// Tolerates www., twitter.com, and trailing segments like /photo/1.
+const _xStatusRegex =
+    /^https?:\/\/(?:www\.)?(?:x|twitter)\.com\/([^/]+)\/status\/(\d+)/;
+
+// Max external (non-X) urls recorded from one tweet (record-only field).
+const MAX_LINKED_URLS = 10;
+
+/**
+ * Extracts post-to-post link data from a tweet's GraphQL payload: the quoted
+ * tweet, the reply-to parent, x.com status links in the body, and external
+ * urls. Null-safe — returns empty results on partial/odd payloads.
+ * @param {Object} tweetData the unwrapped tweet object
+ * @return {Object} {restId, quoted, replyTo, xLinks, externalUrls} where
+ * quoted/replyTo/xLinks entries are {xid, screenName, url}
+ */
+const extractTweetLinks = function(tweetData) {
+  const restId = tweetData.rest_id ?? null;
+
+  const toLink = (xid, screenName) => xid ? {
+    xid: xid,
+    screenName: screenName ?? null,
+    url: `https://x.com/${screenName ?? "i"}/status/${xid}`,
+  } : null;
+
+  // Quoted tweet: prefer the embedded result; fall back to the permalink
+  // when the quoted tweet is deleted/withheld (tombstoned).
+  let quoted = null;
+  let quotedResult = tweetData.quoted_status_result?.result;
+  if (quotedResult?.__typename === "TweetWithVisibilityResults") {
+    quotedResult = quotedResult.tweet;
+  }
+  if (quotedResult?.rest_id) {
+    quoted = toLink(
+        quotedResult.rest_id,
+        quotedResult.core?.user_results?.result?.core?.screen_name,
+    );
+    // Carry the quoted text so the AI pipeline can read what is being
+    // quoted directly from this post (see buildLinkedFields -> body).
+    if (quoted) {
+      quoted.text = quotedResult.legacy?.full_text ?? null;
+    }
+  } else {
+    const permalink = tweetData.legacy?.quoted_status_permalink?.expanded;
+    const match = permalink?.match(_xStatusRegex);
+    if (match) quoted = toLink(match[2], match[1]);
+  }
+
+  const replyTo = toLink(
+      tweetData.legacy?.in_reply_to_status_id_str,
+      tweetData.legacy?.in_reply_to_screen_name,
+  );
+
+  const xLinks = [];
+  const externalUrls = [];
+  for (const u of tweetData.legacy?.entities?.urls ?? []) {
+    const expanded = u?.expanded_url;
+    if (!expanded) continue;
+    const match = expanded.match(_xStatusRegex);
+    if (match) {
+      xLinks.push(toLink(match[2], match[1]));
+    } else if (!/(?:x|twitter)\.com/.test(expanded)) {
+      // non-status x.com urls (profiles, lists, media) are dropped entirely
+      if (externalUrls.length < MAX_LINKED_URLS) {
+        externalUrls.push(expanded);
+      }
+    }
+  }
+
+  // Exclude self-references (t.co cards/media pointing back at this tweet).
+  return {
+    restId: restId,
+    quoted: quoted?.xid === restId ? null : quoted,
+    replyTo: replyTo,
+    xLinks: restId ? xLinks.filter((l) => l.xid !== restId) : xLinks,
+    externalUrls: externalUrls,
+  };
+};
+
 const getContentFromX = async function(url) {
   const browser = await puppeteer.launch(_launchOptions);
   try {
@@ -596,6 +676,7 @@ const getContentFromX = async function(url) {
     let tweetBookmarks = null;
     let tweetViews = null;
     let tweetReplies = null;
+    let tweetLinks = null;
 
     // Set up a promise to capture media URLs
     const mediaPromise = new Promise((resolve) => {
@@ -676,6 +757,14 @@ const getContentFromX = async function(url) {
               tweetBookmarks = tweetData.legacy.bookmark_count;
               tweetViews = parseInt(tweetData.views?.count || "0", 10);
 
+              // Post-to-post links — own guard so a payload oddity here
+              // never breaks the text/stats extraction above.
+              try {
+                tweetLinks = extractTweetLinks(tweetData);
+              } catch (e) {
+                logger.warn(`Could not extract tweet links: ${e.message}`);
+              }
+
               resolve();
             }
           } catch (error) {
@@ -717,6 +806,12 @@ const getContentFromX = async function(url) {
       likes: tweetLikes,
       bookmarks: tweetBookmarks,
       views: tweetViews,
+      // post-to-post links (quotes, reply parent, embedded status links)
+      restId: tweetLinks?.restId ?? null,
+      quoted: tweetLinks?.quoted ?? null,
+      replyTo: tweetLinks?.replyTo ?? null,
+      xLinks: tweetLinks?.xLinks ?? [],
+      externalUrls: tweetLinks?.externalUrls ?? [],
     };
   } catch (error) {
     logger.error(`Error in getContentFromX url: ${url}, error`, error);
@@ -726,6 +821,101 @@ const getContentFromX = async function(url) {
   }
 };
 
+
+/**
+ * Gathers all x-status links (quote, reply parent, body status links) from
+ * scraped metadata as {xid, screenName, url, pid}, deduped by pid and
+ * excluding the post itself. pid is deterministic (v5(xid, plid)) so it can
+ * be recorded before the target post exists.
+ * @param {Post} post the post being enriched (pid, plid)
+ * @param {Object} xMetaData result of getContentFromX
+ * @return {Array<Object>} linked posts as {xid, screenName, url, pid}
+ */
+const collectXLinks = function(post, xMetaData) {
+  const all = [
+    xMetaData.quoted,
+    xMetaData.replyTo,
+    ...(xMetaData.xLinks ?? []),
+  ].filter(Boolean);
+  const seen = new Set();
+  const links = [];
+  for (const link of all) {
+    const pid = v5(link.xid, post.plid);
+    if (pid === post.pid || seen.has(pid)) continue;
+    seen.add(pid);
+    links.push({...link, pid: pid});
+  }
+  return links;
+};
+
+/**
+ * Builds the linked-post fields to persist on a post from scraped X
+ * metadata: quotedPid/replyPid scalars, union-merged linkedPids/linkedUrls,
+ * and — for quote tweets — the quoted text surfaced into the body so the AI
+ * pipeline (findStories/findStatements/findContext) can read what is being
+ * quoted without joining the linked post.
+ * Never clobbers: arrays union with existing values, body only set if empty.
+ * @param {Post} post the post being enriched
+ * @param {Object} xMetaData result of getContentFromX
+ * @return {Object} partial post update ({} when nothing to record)
+ */
+const buildLinkedFields = function(post, xMetaData) {
+  const fields = {};
+  const quoted = xMetaData.quoted;
+  const replyTo = xMetaData.replyTo;
+
+  if (quoted?.xid) {
+    fields.quotedPid = v5(quoted.xid, post.plid);
+  }
+  if (replyTo?.xid) {
+    fields.replyPid = v5(replyTo.xid, post.plid);
+  }
+
+  const newPids = collectXLinks(post, xMetaData).map((l) => l.pid);
+  const mergedPids = [...new Set([...(post.linkedPids ?? []), ...newPids])];
+  if (mergedPids.length) {
+    fields.linkedPids = mergedPids;
+  }
+
+  const mergedUrls = [...new Set([
+    ...(post.linkedUrls ?? []),
+    ...(xMetaData.externalUrls ?? []),
+  ])];
+  if (mergedUrls.length) {
+    fields.linkedUrls = mergedUrls;
+  }
+
+  if (quoted?.text && !post.body) {
+    fields.body =
+      `Quoting @${quoted.screenName ?? "unknown"}: "${quoted.text}"`;
+  }
+
+  return fields;
+};
+
+/**
+ * Publishes newly discovered linked X posts (quotes, reply parents, body
+ * status links) for ingestion through the normal pipeline. Depth-gated via
+ * publishRipple so quote/reply chains terminate; skips links already
+ * recorded on this post, already in the DB, or without a usable handle.
+ * @param {Post} post the enriched post (pid, plid, depth, linkedPids)
+ * @param {Object} xMetaData result of getContentFromX
+ * @return {Promise<void>}
+ */
+const publishNewLinkedPosts = async function(post, xMetaData) {
+  for (const link of collectXLinks(post, xMetaData)) {
+    // already recorded on a prior enrichment -> already published once
+    if ((post.linkedPids ?? []).includes(link.pid)) continue;
+    // extractDataFromXLink cannot resolve "i" handles; the pid is still
+    // recorded via buildLinkedFields, we just don't scrape it
+    if (!link.screenName || link.screenName === "i") continue;
+    const existing = await getPostByXid(link.xid, post.plid);
+    if (existing) continue;
+    await publishRipple(SHOULD_PROCESS_LINK, {link: link.url}, post.depth);
+    logger.info(`Queued linked post ${link.url} from ${post.pid} ` +
+        `(depth ${post.depth ?? "max"}).`);
+  }
+};
 
 /**
  * REQUIRES 1GB TO RUN!
@@ -797,10 +987,16 @@ const xupdatePost = async function(post) {
     bookmarks: xMetaData.bookmarks,
     views: xMetaData.views,
     socialScore: socialScore,
+    // post-to-post links (quotes, replies, embedded status links)
+    ...buildLinkedFields(post, xMetaData),
   };
 
   await updatePost(post.pid, _post);
   logger.info(`Updated post: ${post.pid} with X metadata.`);
+
+  // Publish after the write so concurrent enrichments see linkedPids and
+  // don't re-publish; the consumer is idempotent regardless.
+  await publishNewLinkedPosts(post, xMetaData);
 };
 
 /**
@@ -872,6 +1068,9 @@ module.exports = {
   processXLinks,
   //
   getContentFromX,
+  extractTweetLinks,
+  buildLinkedFields,
+  publishNewLinkedPosts,
   //
   getEntityImageFromX,
   getEntityImage,

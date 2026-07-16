@@ -90,8 +90,10 @@ const onShouldProcessLink = onMessagePublished(
 
       const platformType = getPlatformType(platform);
 
+      // depth: remaining ripple budget when this link was discovered inside
+      // another post (quote/reply chains) — absent for feed/user links.
       await processLinks([message.json.link],
-          platformType, message.json.poster);
+          platformType, message.json.poster, message.json.depth);
 
       return;
     },

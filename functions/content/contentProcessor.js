@@ -10,7 +10,8 @@ const {
 const {v5} = require("uuid");
 const {Timestamp} = require("firebase-admin/firestore");
 const {logger} = require("firebase-functions/v2");
-const {getContentFromX} = require("./xscraper");
+const {getContentFromX, buildLinkedFields, publishNewLinkedPosts} =
+  require("./xscraper");
 const {isoToMillis, getStatus, getSocialScore} = require("../common/utils");
 const {getArticleFromLink, getPostFromArticle} = require("./news");
 const {HttpsError} = require("firebase-functions/https");
@@ -38,12 +39,13 @@ async function processItems(items, platformType, poster = null) {
    * @param {Array<string>} links - The array of links to process.
    * @param {string} platformType - The type of source ('x' or 'news').
    * @param {string|null} poster - UID of the poster, if applicable.
+   * @param {number|null} depth - remaining ripple budget for chained ingestion
    * @return {Promise<Array<string>>} - Array of post IDs.
    */
-async function processLinks(links, platformType, poster = null) {
+async function processLinks(links, platformType, poster = null, depth = null) {
   const pids = [];
   for (const link of links) {
-    const pid = await processLink(link, platformType, poster);
+    const pid = await processLink(link, platformType, poster, depth);
     if (pid) {
       pids.push(pid);
     }
@@ -149,9 +151,10 @@ async function processItem(data, platformType, poster = null) {
    * @param {string} link - The link to process.
    * @param {string} platformType - The type of source ('x' or 'news').
    * @param {string|null} poster - UID of the poster, if applicable.
+   * @param {number|null} depth - remaining ripple budget for chained ingestion
    * @return {Promise<string|null>} - Post ID if processed successfully
    */
-async function processLink(link, platformType, poster = null) {
+async function processLink(link, platformType, poster = null, depth = null) {
   logger.info(`Processing link: ${link}`);
   let data;
   try {
@@ -164,6 +167,12 @@ async function processLink(link, platformType, poster = null) {
   if (!data) {
     logger.warn(`No data extracted from link: ${link}`);
     return null;
+  }
+
+  // Thread the ripple budget onto the post (processItem persists depth) so
+  // this post's own linked-post discovery decrements instead of restarting.
+  if (depth != null) {
+    data.depth = depth;
   }
 
   return await processItem(data, platformType, poster);
@@ -277,6 +286,8 @@ async function updatePostWithXData(post) {
     socialScore: socialScore,
     views: xData.views,
     updatedAt: Timestamp.now().toMillis(),
+    // post-to-post links (quotes, replies, embedded status links)
+    ...buildLinkedFields(post, xData),
   };
 
   const status = getStatus(updateData, post.status);
@@ -284,6 +295,8 @@ async function updatePostWithXData(post) {
 
   await updatePost(post.pid, updateData);
   logger.info(`Updated post: ${post.pid} with X data.`);
+
+  await publishNewLinkedPosts(post, xData);
 }
 
 /**
