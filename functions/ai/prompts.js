@@ -295,11 +295,15 @@ const findContextForTrainingText = function() {
 
     **Field Specifications:**
 
-    - **Headline:** 2-6 words, engaging, active, reflects Newsworthiness. 
-    -- The headline must clearly show what the story is about. Eg., "Snoop Dogg, Nelly to perform" is incomplete, but "Snoop Dog, Nelly to perform at Trump's Inauguration" is more complete. 
-    -- Avoid phrases like "Stirs Controversy" or "Sparks Debate" unless the story is about the controversy or outrage. Instead specifically say what the story is about, similar to the Title but more engaging.
-    -- Eg., "FEMA Funds Misuse Sparks Political Firestorm" is incomplete if the story is about "FEMA Employee Fired for Misusing 59M".
-    - **SubHeadline:** 1-2 sentences, provides key details.
+    NOTE: The Headline and SubHeadline are displayed together, headline on top. Write them as one unit: the SubHeadline continues the Headline, it never restates it.
+
+    - **Headline:** 4-10 words, engaging, active voice, reflects Newsworthiness.
+    -- Clarity first: a reader with zero context should learn WHO and WHAT (and where/when, if that is the point) from the headline alone. Prefer a couple of extra words over any ambiguity. Eg., "Snoop Dogg, Nelly to Perform" is incomplete, but "Snoop Dogg, Nelly to Perform at Trump's Inauguration" is right.
+    -- When the story is simple and self-evident, shorter is better — do not pad. Eg., "Earthquake Hits Tokyo" needs nothing more.
+    -- Avoid phrases like "Stirs Controversy" or "Sparks Debate" unless the story is about the controversy or outrage itself. Instead specifically say what happened, similar to the Title but more engaging.
+    -- Eg., "FEMA Funds Misuse Sparks Political Firestorm" is wrong if the story is about "FEMA Employee Fired for Misusing 59M".
+    - **SubHeadline:** 1-2 sentences with the key details.
+    -- Do not repeat the Headline's words or facts — it sits directly under the Headline, so spend it on the next most important details (numbers, names, consequences, what happens next).
     - **Lede:** Very straightforward "bullet point" style synopsis of what the story is about. Output in 1 string and separate sentences by 2 newlines each.
     - **Article:** Optional, 1-8 paragraphs, comprehensive, journalistic tone.
     - **sourceUrls:** A list of real, directly-relevant source URLs found via web search that should be ingested as new Posts for this Story (only when gathering is enabled; otherwise empty). These become first-class Posts that the system scores independently — you are NOT writing their content, only surfacing the links. Keep selection politically neutral and cross-spectrum.
