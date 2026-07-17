@@ -6,8 +6,10 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:political_think/games/gemtd/common/extensions.dart';
 import 'package:political_think/games/gemtd/gemtdgame/ability/ability.dart';
 import 'package:political_think/games/gemtd/gemtdgame/ability/buff.dart' as bf;
+import 'package:political_think/games/gemtd/gemtdgame/base/game_component.dart';
 import 'package:political_think/games/gemtd/gemtdgame/cities/gem_component.dart';
 import 'package:political_think/games/gemtd/gemtdgame/cities/weapon_settings.dart';
+import 'package:political_think/games/gemtd/gemtdgame/enemy/enemy_component.dart';
 
 import '../../city_config.dart';
 

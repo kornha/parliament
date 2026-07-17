@@ -44,7 +44,7 @@ class EEuropeSettings extends GemAttributes {
   double baseRange(int level) => 2.25 + level * 0.25;
 
   @override
-  double baseAttackSpeed(int level) => level * 0.7 + 2.0;
+  double baseAttackSpeed(int level) => level * 0.65 + 1.8;
 
   @override
   double baseDamage(int level) => level * 0.225 + 0.625;
@@ -79,10 +79,10 @@ class EEuropeSettings extends GemAttributes {
   int get explosionRows => 1;
 
   @override
-  double get explosionSizeX => 1.6;
+  double get explosionSizeX => 1.35;
 
   @override
-  double get explosionSizeY => 1.6;
+  double get explosionSizeY => 1.35;
 
   @override
   double get explosionStepTime => 0.04;

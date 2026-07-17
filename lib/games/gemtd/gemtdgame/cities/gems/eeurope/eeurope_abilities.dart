@@ -11,6 +11,7 @@ Set<Ability> eeurope_abilities(EEuropeSettings settings, int level,
     switch (config) {
       latvia => {
           Oligarchy(level: level, caster: caster),
+          SongFestival(level: level, caster: caster),
         },
       hungary => {
           Oligarchy(level: level, caster: caster),
@@ -90,6 +91,45 @@ class Oligarchy extends Ability {
     ));
     return null;
   }
+
+  @override
+  CityType gemType = CityType.EEUROPE;
+}
+
+// Latvia — Song Festival: the whole neighborhood sings along — nearby allied
+// towers gain a small attack speed boost.
+class SongFestival extends Ability {
+  SongFestival({required super.caster, required super.level});
+
+  static const multipliersPerLevel = <double>[
+    1.05, 1.07, 1.09, 1.11, 1.13, 1.15,
+  ];
+
+  @override
+  String name = "Song Festival";
+
+  @override
+  String description = "Nearby allied towers gain attack speed.";
+
+  @override
+  String get subDescription =>
+      "${multipliersPerLevel.join("/")}x attack speed to nearby allies.";
+
+  @override
+  bf.Buff? get buff => bf.AttackSpeedMultiple(
+        caster: caster,
+        level: level,
+        multipliersPerLevel: multipliersPerLevel,
+      )
+        ..name = name
+        ..icon = icon
+        ..gemType = gemType;
+
+  @override
+  bool get alliesAura => true;
+
+  @override
+  IconData icon = FontAwesomeIcons.microphone.data;
 
   @override
   CityType gemType = CityType.EEUROPE;

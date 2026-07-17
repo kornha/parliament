@@ -35,8 +35,10 @@ class EnemyFactory extends GameComponent {
   }
 
   int _spawnCount = 0;
+  int _spawnTotal = 0;
   int _enemiesRemaining = 0;
   double _interval = 1;
+  EnemySettings? _spawnSettings;
 
   late List<NeutralComponent> objectives = [
     gameRef.gameController.gateStart,
@@ -57,95 +59,50 @@ class EnemyFactory extends GameComponent {
   }
 
   void spawnWave(CityType gemType) {
-    switch (gemType) {
-      case CityType.EASIA:
-        spawnEnemy(
-            EnemySettings.getEnemy(gemType).spawnCount(gameRef.gameStats.wave),
-            EnemySettings.getEnemy(gemType)
-                .spawnInterval(gameRef.gameStats.wave),
-            spawnEnemyHospitality);
-        break;
-      case CityType.EEUROPE:
-        spawnEnemy(
-            EnemySettings.getEnemy(gemType).spawnCount(gameRef.gameStats.wave),
-            EnemySettings.getEnemy(gemType)
-                .spawnInterval(gameRef.gameStats.wave),
-            spawnEnemyEEurope);
-        break;
-      case CityType.NAMERICA:
-        spawnEnemy(
-            EnemySettings.getEnemy(gemType).spawnCount(gameRef.gameStats.wave),
-            EnemySettings.getEnemy(gemType)
-                .spawnInterval(gameRef.gameStats.wave),
-            spawnEnemyFinance);
-        break;
-      case CityType.SASIA:
-        spawnEnemy(
-            EnemySettings.getEnemy(gemType).spawnCount(gameRef.gameStats.wave),
-            EnemySettings.getEnemy(gemType)
-                .spawnInterval(gameRef.gameStats.wave),
-            spawnEnemySAsia);
-        break;
-      case CityType.ASEAN:
-        spawnEnemy(
-            EnemySettings.getEnemy(gemType).spawnCount(gameRef.gameStats.wave),
-            EnemySettings.getEnemy(gemType)
-                .spawnInterval(gameRef.gameStats.wave),
-            spawnEnemyEntertainment);
-        break;
-      case CityType.SAMERICA:
-        spawnEnemy(
-            EnemySettings.getEnemy(gemType).spawnCount(gameRef.gameStats.wave),
-            EnemySettings.getEnemy(gemType)
-                .spawnInterval(gameRef.gameStats.wave),
-            spawnEnemySAmerica);
-        break;
-      case CityType.MENA:
-        spawnEnemy(
-            EnemySettings.getEnemy(gemType).spawnCount(gameRef.gameStats.wave),
-            EnemySettings.getEnemy(gemType)
-                .spawnInterval(gameRef.gameStats.wave),
-            spawnEnemyMena);
-        break;
-      case CityType.WEUROPE:
-        spawnEnemy(
-            EnemySettings.getEnemy(gemType).spawnCount(gameRef.gameStats.wave),
-            EnemySettings.getEnemy(gemType)
-                .spawnInterval(gameRef.gameStats.wave),
-            spawnEnemyTech);
-        break;
-      case CityType.AFRICA:
-        spawnEnemy(
-            EnemySettings.getEnemy(gemType).spawnCount(gameRef.gameStats.wave),
-            EnemySettings.getEnemy(gemType)
-                .spawnInterval(gameRef.gameStats.wave),
-            spawnEnemyAfrica);
-        break;
-      case CityType.ROCK:
-        // TODO: Handle this case.
-        break;
-    }
+    final Function? spawnF = switch (gemType) {
+      CityType.EASIA => spawnEnemyHospitality,
+      CityType.EEUROPE => spawnEnemyEEurope,
+      CityType.NAMERICA => spawnEnemyFinance,
+      CityType.SASIA => spawnEnemySAsia,
+      CityType.ASEAN => spawnEnemyEntertainment,
+      CityType.SAMERICA => spawnEnemySAmerica,
+      CityType.MENA => spawnEnemyMena,
+      CityType.WEUROPE => spawnEnemyTech,
+      CityType.AFRICA => spawnEnemyAfrica,
+      CityType.ROCK => null,
+    };
+    if (spawnF == null) return;
+
+    final settings = EnemySettings.getEnemy(gemType);
+    final wave = gameRef.gameStats.wave;
+    spawnEnemy(
+        settings.spawnCount(wave), settings.spawnInterval(wave), spawnF,
+        settings);
   }
 
-  void spawnEnemy(int number, double interval, Function spawnF) {
+  void spawnEnemy(int number, double interval, Function spawnF,
+      [EnemySettings? settings]) {
     _spawnCount = number;
+    _spawnTotal = number;
     _enemiesRemaining = number;
     _interval = interval;
+    _spawnSettings = settings;
     spawnEnemyLoop(spawnF);
   }
 
   void spawnEnemyLoop(Function spawnF) {
     if (_spawnCount <= 0) {
-      // add(TimerComponent(
-      //     period: _interval,
-      //     repeat: false,
-      //     removeOnFinish: true,
-      //     onTick: () => nextWave()));
       // ON SPAWN COMPLETE
     } else {
       spawnF();
+      // Per-spawn interval hook: lets a wave change density as it comes
+      // (e.g. Environment starts sparse and gets denser).
+      final spawned = _spawnTotal - _spawnCount;
+      final interval = _spawnSettings?.spawnIntervalAt(
+              gameRef.gameStats.wave, spawned, _spawnTotal) ??
+          _interval;
       add(TimerComponent(
-          period: _interval,
+          period: interval,
           repeat: false,
           removeOnFinish: true,
           onTick: () => spawnEnemyLoop(spawnF)));

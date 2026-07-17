@@ -13,6 +13,7 @@ Set<Ability> easia_abilities(EAsiaSettings settings, int level,
     switch (config) {
       mongolia => {
           Khan(level: level, caster: caster),
+          GoldenHorde(level: level, caster: caster),
         },
       taiwan => {
           Khan(level: level, caster: caster),
@@ -70,6 +71,51 @@ class Khan extends Ability {
 
   @override
   CityType gemType = CityType.EASIA;
+}
+
+// Mongolia — Golden Horde: the horde rides wide — chance to loose an arrow
+// at a second enemy alongside the primary attack.
+class GoldenHorde extends Ability {
+  GoldenHorde({required super.caster, required super.level});
+
+  static var chancePerLevel = [0.20, 0.24, 0.28, 0.32, 0.36, 0.40];
+
+  @override
+  double? get baseChance => chancePerLevel.getByLevel(level);
+
+  @override
+  String name = "Golden Horde";
+
+  @override
+  String description = "Chance to attack a second enemy.";
+
+  @override
+  String get subDescription =>
+      "${chancePerLevel.map((e) => "${(e * 100).toStringAsFixed(0)}%").join("/")} chance to strike a second target.";
+
+  @override
+  bool get canAttack => false;
+
+  @override
+  IconData icon = FontAwesomeIcons.horse.data;
+
+  @override
+  CityType gemType = CityType.EASIA;
+
+  @override
+  GameComponent? onEnemyAttack(GemComponent gem, EnemyComponent primaryTarget,
+      Set<GameComponent> targets) {
+    gem.fire(primaryTarget);
+    if (Random().nextDouble() < currentChance!) {
+      final second = targets.firstWhere(
+          (t) => t != primaryTarget && t is EnemyComponent,
+          orElse: () => primaryTarget);
+      if (second != primaryTarget) {
+        gem.fire(second as EnemyComponent);
+      }
+    }
+    return null;
+  }
 }
 
 // Taiwan — Semiconductor: causes all of this tower's chance abilities to cast
@@ -145,7 +191,9 @@ class AlreadyTomorrow extends SequentialAttack {
       );
 }
 
-// South Korea — K-Pop: attacks reduce enemy armor but speed the enemy up.
+// South Korea — K-Pop (reworked): idol-grade tempo. Drastically increased
+// attack speed and every chance ability procs 100%, but each hit is weak and
+// debuffs are short — with the Khan spine this reads as a stream of ministuns.
 class KPop extends Ability {
   KPop({required super.caster, required super.level});
 
@@ -154,27 +202,66 @@ class KPop extends Ability {
 
   @override
   String description =
-      "Attacks reduce enemy armor, but also increase enemy movement speed.";
+      "Idol-grade tempo: attacks drastically faster and every chance ability "
+      "procs 100% of the time, but hits are weak and debuffs are short — a "
+      "stream of ministuns.";
 
   @override
   String get subDescription =>
-      "${bf.KPOP.reductionPerLevel.join("/")} minus armor."
-      "\n${bf.KPOP.slowPerLevel.join("/")} movement speed.";
+      "${KPopBuff.fraction.join("/")}x attack speed, damage divided by "
+      "the same.\n"
+      "All chance abilities proc 100%; debuff durations reduced 75%.";
 
   @override
-  bf.Buff? get buff => bf.KPOP(
-        caster: caster,
-        level: level,
-      );
+  bool get worksOnSelf => true;
 
   @override
-  bool get worksOnEnemies => true;
+  bf.Buff? get buff => KPopBuff(caster: caster, level: level);
+
+  @override
+  IconData icon = FontAwesomeIcons.music.data;
+
+  @override
+  CityType gemType = CityType.EASIA;
+}
+
+// The self-buff behind K-Pop: speed for damage, certainty for duration.
+class KPopBuff extends bf.Buff {
+  KPopBuff({required super.caster, required super.level});
+
+  static const fraction = <double>[6.0, 6.5, 7.0, 7.5, 8.0, 8.5];
+
+  @override
+  String name = "K-Pop";
+
+  @override
+  String description =
+      "Attacking drastically faster with weak hits; all chance abilities "
+      "proc, debuffs are short.";
+
+  @override
+  IconData icon = FontAwesomeIcons.music.data;
 
   @override
   CityType gemType = CityType.EASIA;
 
   @override
-  IconData icon = FontAwesomeIcons.music.data;
+  double? get attackSpeedMultiplier => fraction.getByLevel(level);
+
+  @override
+  double? get damageMultiplier => 1 / fraction.getByLevel(level);
+
+  @override
+  double? get chanceMultiplier => 100.0;
+
+  @override
+  double? get buffMultiplier => 0.25;
+
+  @override
+  double? baseDuration = 1.0;
+
+  @override
+  bf.RenderType get renderType => bf.RenderType.NONE;
 }
 
 // Japan — Kaizen: permanent damage gain per bounty (continuous improvement).

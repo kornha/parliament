@@ -97,7 +97,7 @@ class SAmericaSettings extends GemAttributes {
   }
 
   @override
-  double baseDamage(int level) => 1.75 + level * 0.8;
+  double baseDamage(int level) => 2.5 + level * 1.0;
 
   // Chile (Inferno) is a no-attack burn aura — show the pulsing ring.
   @override

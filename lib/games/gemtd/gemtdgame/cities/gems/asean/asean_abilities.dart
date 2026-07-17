@@ -3,9 +3,10 @@ part of 'asean.dart';
 Set<Ability> asean_abilities(AseanSettings settings, int level,
         GemComponent caster, CityConfig config) =>
     switch (config) {
-      // Cambodia (1) — spine only: pure Allure (reduces enemy armor).
+      // Cambodia (1) — Allure spine + Angkor Wat (extended range).
       cambodia => {
           Allure(level: level, caster: caster),
+          AngkorWat(level: level, caster: caster),
         },
       // Vietnam (2) — sequential combo attack, on top of the spine.
       vietnam => {
@@ -131,6 +132,45 @@ class SinkingCity extends Ability {
   @override
   //TODO(find out which icon is appropriate for this ability)
   IconData icon = FontAwesomeIcons.toggleOff.data;
+}
+
+// Cambodia — Angkor Wat: the great temple sees far — increased attack range.
+class AngkorWat extends Ability {
+  AngkorWat({required super.caster, required super.level});
+
+  static const rangeMultiplierPerLevel = <double>[
+    1.3, 1.34, 1.38, 1.42, 1.46, 1.5,
+  ];
+
+  @override
+  String name = "Angkor Wat";
+
+  @override
+  String description = "The great temple sees far — increased attack range.";
+
+  @override
+  String get subDescription =>
+      "${rangeMultiplierPerLevel.join("/")}x attack range.";
+
+  @override
+  bool get worksOnSelf => true;
+
+  @override
+  bf.Buff? get buff => bf.AttackSpeedMultiple(
+        caster: caster,
+        level: level,
+        overrideMultiplier: 1.0,
+      )
+        ..rangeMultiplier = rangeMultiplierPerLevel.getByLevel(level)
+        ..name = name
+        ..icon = icon
+        ..gemType = gemType;
+
+  @override
+  IconData icon = FontAwesomeIcons.vihara.data;
+
+  @override
+  CityType gemType = CityType.ASEAN;
 }
 
 // Thousand Islands: Greatly reduces attack range, while increasing attack speed.

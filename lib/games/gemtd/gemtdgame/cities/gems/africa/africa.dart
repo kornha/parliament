@@ -46,22 +46,25 @@ class AfricaSettings extends GemAttributes {
   bool auraRing(int level) => cityConfig == drCongo;
 
   // Nigeria (Afrobeat) fires invisible, fast, frequent, low-damage shots.
+  // Everyone else fires a green tracer (E.Europe-style bullet, kit green).
   @override
-  String get projectilePath =>
-      cityConfig == nigeria ? "weapon/empty_bullet.png" : "weapon/chevron.png";
+  String get projectilePath => cityConfig == nigeria ?
+      "weapon/empty_bullet.png" : "weapon/ie_green_bullet.png";
 
-  // Kenya's Stampede pierces a column of enemies.
+  // Kenya's Stampede and Ghana's Gold Road pierce a column of enemies.
   @override
-  bool get canHitIntermediateTargets => cityConfig == kenya;
+  bool get canHitIntermediateTargets =>
+      cityConfig == kenya || cityConfig == ghana;
 
   @override
   int projectileColumns(level) => 1;
 
+  // Single-frame tracer (the old chevron sheet had 6 rows).
   @override
-  int projectileRows(level) => cityConfig == nigeria ? 1 : 6;
+  int projectileRows(level) => 1;
 
   @override
-  double get projectileSizeX => 0.5;
+  double get projectileSizeX => 0.22;
 
   @override
   double get projectileSizeY => 0.5;
@@ -111,12 +114,12 @@ class AfricaSettings extends GemAttributes {
 
   @override
   double baseDamage(int level) => switch (cityConfig) {
-        nigeria => 0.6 + level * 0.2, // low (machine-gun)
-        kenya => 4.0 + level * 2.0, // heavy charge
+        nigeria => 1.0 + level * 0.35, // low (machine-gun)
+        kenya => 6.5 + level * 3.0, // heavy charge
         drCongo => 0.0, // damage comes from the Cobalt aura buff
-        ethiopia => 1.5 + level * 0.5, // light hit; the burst/crash does the rest
-        southAfrica => 1.0, // the bite (% current HP) is the real damage
-        _ => 2.0 + level * 0.8, // ghana
+        ethiopia => 2.5 + level * 0.9, // light hit; the burst/crash does the rest
+        southAfrica => 2.0, // the bite (% current HP) is the real damage
+        _ => 3.5 + level * 1.4, // ghana
       };
 
   @override

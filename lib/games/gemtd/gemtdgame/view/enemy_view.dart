@@ -119,6 +119,18 @@ class _EnemyViewState extends State<EnemyView> {
                               subtext:
                                   Utils.compact(EnemyView.selected!.armor),
                             ),
+                            if (EnemyView.selected!.settings
+                                    .baseDebuffResistance(
+                                        EnemyView.selected!.level) >
+                                0)
+                              StatsTag(
+                                text: "Resist",
+                                subtext: "${(EnemyView.selected!.settings
+                                            .baseDebuffResistance(
+                                                EnemyView.selected!.level) *
+                                        100)
+                                    .toStringAsFixed(0)}%",
+                              ),
                           ],
                         ),
                       ),

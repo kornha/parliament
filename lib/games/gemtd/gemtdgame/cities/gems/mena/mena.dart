@@ -1,6 +1,7 @@
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:political_think/games/gemtd/common/extensions.dart';
 import 'package:political_think/games/gemtd/gemtdgame/ability/ability.dart';
 import 'package:political_think/games/gemtd/gemtdgame/ability/buff.dart' as bf;
 import 'package:political_think/games/gemtd/gemtdgame/base/game_component.dart';
@@ -116,6 +117,7 @@ Set<Ability> mena_abilities(MenaSettings settings, int level,
     switch (config) {
       lebanon => {
           Religion(level: level, caster: caster),
+          Phoenicia(level: level, caster: caster),
         },
       morocco => {
           Religion(level: level, caster: caster),
@@ -140,6 +142,44 @@ Set<Ability> mena_abilities(MenaSettings settings, int level,
           Religion(level: level, caster: caster),
         },
     };
+
+// Lebanon — Phoenicia: ancient trade routes erode every defense — enemies in
+// range lose armor while the aura touches them.
+class Phoenicia extends Ability {
+  Phoenicia({required super.caster, required super.level});
+
+  static const reductionPerLevel = <double>[2.0, 2.5, 3.0, 3.5, 4.0, 5.0];
+
+  @override
+  bool get worksOnEnemies => true;
+
+  @override
+  bf.Buff? get buff => bf.ArmorModify(
+        caster: caster,
+        level: level,
+        modifier: reductionPerLevel.getByLevel(level),
+        overrideBaseDuration: 3,
+      )
+        ..name = name
+        ..icon = icon
+        ..gemType = gemType
+        ..renderType = bf.RenderType.GRID;
+
+  @override
+  String name = "Phoenicia";
+
+  @override
+  String description = "Strips armor from enemies in range.";
+
+  @override
+  String get subDescription => "-${reductionPerLevel.join("/")} armor.";
+
+  @override
+  IconData icon = FontAwesomeIcons.ship.data;
+
+  @override
+  CityType gemType = CityType.MENA;
+}
 
 // Morocco — Sandstorm: a no-attack aura that scours all nearby enemies for
 // damage over time (no projectiles, no slow) — MENA's area-damage tower.

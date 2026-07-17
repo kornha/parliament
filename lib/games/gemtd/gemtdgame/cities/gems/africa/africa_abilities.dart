@@ -6,7 +6,10 @@ part of 'africa.dart';
 Set<Ability> africa_abilities(AfricaSettings settings, int level,
         GemComponent caster, CityConfig config) =>
     switch (config) {
-      ghana => {Juju(level: level, caster: caster)},
+      ghana => {
+          Juju(level: level, caster: caster),
+          GoldRoad(level: level, caster: caster),
+        },
       ethiopia => {Caffeination(level: level, caster: caster)},
       drCongo => {Cobalt(level: level, caster: caster)},
       kenya => {Stampede(level: level, caster: caster)},
@@ -72,6 +75,36 @@ class Stampede extends Ability {
 
   @override
   IconData icon = FontAwesomeIcons.hippo.data;
+
+  @override
+  CityType gemType = CityType.AFRICA;
+}
+
+// Ghana — Gold Road: the trans-Saharan trade route — shots travel the whole
+// line, piercing every enemy in their path (the region's pierce, at tier 1).
+class GoldRoad extends Ability {
+  GoldRoad({required super.caster, required super.level});
+
+  @override
+  bool get worksOnEnemies => true;
+
+  @override
+  bf.Buff? get buff => bf.Pierce(caster: caster, level: level)
+    ..name = name
+    ..icon = icon
+    ..gemType = gemType;
+
+  @override
+  String name = "Gold Road";
+
+  @override
+  String description = "Shots pierce through every enemy in their path.";
+
+  @override
+  String get subDescription => "Projectiles never stop at the first target.";
+
+  @override
+  IconData icon = FontAwesomeIcons.road.data;
 
   @override
   CityType gemType = CityType.AFRICA;

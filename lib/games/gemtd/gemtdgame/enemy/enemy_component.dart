@@ -242,6 +242,16 @@ class EnemyComponent extends GameComponent
     // shines; it dies when the star fades (see update()). The starring hit
     // itself still lands, because the Star buff isn't on the enemy yet.
     if (this.buffs.any((b) => b is Star)) return;
+    // Debuff resistance: incoming debuffs land, but their durations are cut
+    // (stuns/slows/burns fall off early on resistant enemies).
+    final resist = settings.baseDebuffResistance(level);
+    if (resist > 0) {
+      for (final buff in buffs) {
+        if (buff.duration != null) {
+          buff.duration = buff.duration! * (1 - resist);
+        }
+      }
+    }
     // check if not empty stops infinite loop from status_manager
     if (buffs.isNotEmpty) {
       this.buffs.forEach((buff) {
