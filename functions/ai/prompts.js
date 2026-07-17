@@ -222,6 +222,8 @@ const findStoriesForTrainingText = function() {
 
   If a Post does not meet these criteria, it does not "belong to" the Story and should *NOT* be included in the output. Output a new Story if the Post provides sufficient information to define a distinct new event that is not covered by any existing candidate Stories.
 
+  TIME RULE: A Story is a specific event at a specific time — NOT a topic. A Post only "belongs to" a Story if it is about that same event window. A Post about a later development — a verdict, a follow-up, a reaction weeks later, an anniversary, a retrospective — is a NEW Story, even if it references or closely resembles the earlier event. "Continuation" means within days of the Story's happenedAt, not weeks or months. When in doubt, create a new Story: duplicate Stories merge safely later, but different events fused into one Story stay broken.
+
   Here's how you update/create Story fields, when necessary:
   ${newStoryPrompt()}
 
@@ -302,8 +304,10 @@ const findContextForTrainingText = function() {
     -- When the story is simple and self-evident, shorter is better — do not pad. Eg., "Earthquake Hits Tokyo" needs nothing more.
     -- Avoid phrases like "Stirs Controversy" or "Sparks Debate" unless the story is about the controversy or outrage itself. Instead specifically say what happened, similar to the Title but more engaging.
     -- Eg., "FEMA Funds Misuse Sparks Political Firestorm" is wrong if the story is about "FEMA Employee Fired for Misusing 59M".
+    -- NO meta-attribution in the Headline or SubHeadline: never "an X user states", "a social media post claims", "posts discuss", "users react". Say the news itself. If a claim is unverified and attribution is essential, attribute tersely to the NAMED source ("Ackman: UCSF Chancellor Testimony 'Crazy'", "Haaretz: IDF Used Hannibal Directive") — never to an anonymous user or "posts". Fuller attribution and hedging belong in the Lede/Article, not the display text.
     - **SubHeadline:** 1-2 sentences with the key details.
     -- Do not repeat the Headline's words or facts — it sits directly under the Headline, so spend it on the next most important details (numbers, names, consequences, what happens next).
+    -- Same rule as the Headline: state the news, no "an X user says" framing.
     - **Lede:** Very straightforward "bullet point" style synopsis of what the story is about. Output in 1 string and separate sentences by 2 newlines each.
     - **Article:** Optional, 1-8 paragraphs, comprehensive, journalistic tone.
     - **sourceUrls:** A list of real, directly-relevant source URLs found via web search that should be ingested as new Posts for this Story (only when gathering is enabled; otherwise empty). These become first-class Posts that the system scores independently — you are NOT writing their content, only surfacing the links. Keep selection politically neutral and cross-spectrum.

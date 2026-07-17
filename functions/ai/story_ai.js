@@ -26,6 +26,17 @@ const GATHER_SOURCES = false;
 // Distinct from MAX_RIPPLE_DEPTH, which caps how many gathers can chain.
 const MAX_SOURCE_URLS = 4;
 
+// A Story is an event at a specific time, not a topic — but vector search is
+// time-blind, so recurring topics keep surfacing months-old stories as
+// candidates and posts accrete onto them forever. Candidates are only
+// eligible when the post is within this window of the story's happenedAt
+// (the event is recent relative to the post) OR the story's createdAt (the
+// escape hatch: coverage began recently — keeps retrospective waves about
+// old events clustering instead of spawning one story per post; createdAt is
+// immutable, so ongoing drift can't keep a story eligible the way an
+// activity-based field would). Boundary over-splits self-heal via merge.
+const STORY_TIME_WINDOW_MILLIS = 14 * 24 * 60 * 60 * 1000;
+
 /** FLAGSHIP FUNCTION
  * ***************************************************************
  * Finds context (headline, subheadline, lead) for stories
@@ -124,7 +135,40 @@ const findStories = async function(post) {
     return;
   }
 
-  const candidateStories = await searchVectors(vector, "stories");
+  // Retrieval is deeper than the prompt: the time lock below discards stale
+  // lookalikes, so fetch extra neighbors to keep eligible recent stories from
+  // being crowded out of the top slots — but still cap what the LLM sees
+  // (each candidate costs prompt tokens AND its photos as input images).
+  const CANDIDATE_RETRIEVAL_K = 21;
+  const CANDIDATE_PROMPT_K = 7;
+
+  const allCandidates =
+    (await searchVectors(vector, "stories", CANDIDATE_RETRIEVAL_K)) ?? [];
+
+  // Time lock (see STORY_TIME_WINDOW_MILLIS): drop topical look-alikes whose
+  // event AND coverage start are both far from the post's own timestamp.
+  const postAt = post.sourceCreatedAt ?? post.createdAt;
+  const eligible = postAt == null ? allCandidates :
+    allCandidates.filter((story) => {
+      const eventGap = story.happenedAt != null ?
+        Math.abs(postAt - story.happenedAt) : Infinity;
+      const coverageGap = story.createdAt != null ?
+        Math.abs(postAt - story.createdAt) : Infinity;
+      // keep stories with no time data at all rather than orphaning them
+      if (eventGap === Infinity && coverageGap === Infinity) return true;
+      return eventGap <= STORY_TIME_WINDOW_MILLIS ||
+        coverageGap <= STORY_TIME_WINDOW_MILLIS;
+    });
+
+  // findNearest returns similarity-ordered docs, so this keeps the closest
+  // eligible stories.
+  const candidateStories = eligible.slice(0, CANDIDATE_PROMPT_K);
+
+  if (eligible.length !== allCandidates.length) {
+    logger.info(`Time lock filtered ${
+      allCandidates.length - eligible.length} of ${allCandidates.length} ` +
+      `candidate stories for post ${post.pid}`);
+  }
 
   logger.info("Found " +
      candidateStories.length + " candidate stories for post " + post.pid);
