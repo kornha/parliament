@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:math';
+import 'dart:ui';
 
 import 'package:flame/cache.dart';
 import 'package:flame/sprite.dart';
@@ -29,6 +30,10 @@ class EnemySettings {
   // Enemies are named for how they end the world, themed to their stat profile.
   String get name => "Cataclysm";
 
+  // Tail / death-burst color, matched to the body sprite's dominant hue
+  // (green globe -> green tail, etc). Base = opal pearl.
+  Color get color => const Color(0xFFCFC5CE);
+
   // Fraction of incoming debuff DURATION resisted (0 = none). Applied when
   // buffs land on the enemy — stuns/slows/burns fall off early.
   double baseDebuffResistance(int level) => 0.0;
@@ -39,7 +44,7 @@ class EnemySettings {
   static const int maxSpawnCount = 60;
 
   double baseLife(int level) => 8.5 * pow(1.30, level - 1);
-  double baseSpeed(int level) => 1.5 * pow(1.015, level - 1);
+  double baseSpeed(int level) => 1.6 * pow(1.015, level - 1);
   double baseArmor(int level) => 1.0 * pow(1.05, level - 1);
   double baseReceiveDamageMultiplier(int level) => 1.0;
   int spawnCount(int level) => 5 + (level / 8.0).round();
@@ -101,11 +106,13 @@ class HospitalitySettings extends EnemySettings {
   @override
   final String spritePath = "enemy/earth_topaz.png";
   @override
+  Color get color => const Color(0xFFE8A34B); // topaz gold
+  @override
   final CityType gemType = CityType.EASIA;
   @override
   double baseLife(int level) => 7.0 * pow(1.30, level - 1);
   @override
-  double baseSpeed(int level) => 3.0 * pow(1.013, level - 1);
+  double baseSpeed(int level) => 3.2 * pow(1.013, level - 1);
   @override
   double baseArmor(int level) => -2.0;
   @override
@@ -126,12 +133,15 @@ class SAmericaEnemySettings extends EnemySettings {
   final String spritePath = "enemy/earth_emerald.png";
 
   @override
+  Color get color => const Color(0xFF4BD97A); // emerald green
+
+  @override
   final CityType gemType = CityType.SAMERICA;
 
   @override
   double baseLife(int level) => 10.0 * pow(1.33, level - 1);
   @override
-  double baseSpeed(int level) => 1.8 * pow(1.01, level - 1);
+  double baseSpeed(int level) => 1.9 * pow(1.01, level - 1);
   @override
   int spawnCount(int level) => min(10 + level * 2, EnemySettings.maxSpawnCount);
   @override
@@ -156,11 +166,14 @@ class TechSettings extends EnemySettings {
   final String spritePath = "enemy/earth_ruby.png";
 
   @override
+  Color get color => const Color(0xFFE04545); // ruby red
+
+  @override
   final CityType gemType = CityType.WEUROPE;
   @override
   double baseLife(int level) => 40.0 * pow(1.60, level - 1);
   @override
-  double baseSpeed(int level) => 2.6 * pow(1.01, level - 1);
+  double baseSpeed(int level) => 2.8 * pow(1.01, level - 1);
 
   @override
   int spawnCount(int level) => 1;
@@ -174,12 +187,15 @@ class SAsiaSettings extends EnemySettings {
   final String spritePath = "enemy/earth_emerald.png";
 
   @override
+  Color get color => const Color(0xFF4BD97A); // emerald green
+
+  @override
   final CityType gemType = CityType.SASIA;
 
   @override
   double baseLife(int level) => super.baseLife(level);
   @override
-  double baseSpeed(int level) => 2.5 * pow(1.013, level - 1);
+  double baseSpeed(int level) => 2.6 * pow(1.013, level - 1);
   @override
   int spawnCount(int level) => (super.spawnCount(level) / 1.5).ceil();
   @override
@@ -202,12 +218,15 @@ class EntertainmentSettings extends EnemySettings {
   final String spritePath = "enemy/earth_aquamarine.png";
 
   @override
+  Color get color => const Color(0xFF6FE3D4); // aquamarine
+
+  @override
   final CityType gemType = CityType.ASEAN;
 
   @override
   double baseLife(int level) => 70.0 * pow(1.70, level - 1);
   @override
-  double baseSpeed(int level) => 0.6 * pow(1.01, level - 1);
+  double baseSpeed(int level) => 0.65 * pow(1.01, level - 1);
   @override
   int spawnCount(int level) => 1;
   @override
@@ -224,9 +243,12 @@ class FinanceSettings extends EnemySettings {
   final String spritePath = "enemy/earth_opal.png";
 
   @override
+  Color get color => const Color(0xFFCFC5CE); // opal pearl
+
+  @override
   double baseLife(int level) => 20.0 * pow(1.50, level - 1);
   @override
-  double baseSpeed(int level) => 1.25 * pow(1.015, level - 1);
+  double baseSpeed(int level) => 1.35 * pow(1.015, level - 1);
 
   @override
   int spawnCount(int level) => 3;
@@ -248,9 +270,12 @@ class MenaEnemySettings extends EnemySettings {
   final String spritePath = "enemy/earth_sapphire.png";
 
   @override
+  Color get color => const Color(0xFF4D7CF0); // sapphire blue
+
+  @override
   double baseLife(int level) => super.baseLife(level) * 0.8;
   @override
-  double baseSpeed(int level) => 1.3 * pow(1.013, level - 1);
+  double baseSpeed(int level) => 1.4 * pow(1.013, level - 1);
   @override
   int spawnCount(int level) => min(12 + level * 2, EnemySettings.maxSpawnCount);
   @override
@@ -279,12 +304,15 @@ class EEuropeEnemySettings extends EnemySettings {
   final String spritePath = "enemy/earth_amethyst.png";
 
   @override
+  Color get color => const Color(0xFFB577E6); // amethyst violet
+
+  @override
   final CityType gemType = CityType.EEUROPE;
 
   @override
   double baseLife(int level) => super.baseLife(level) * 0.5;
   @override
-  double baseSpeed(int level) => 2.4 * pow(1.013, level - 1);
+  double baseSpeed(int level) => 2.55 * pow(1.013, level - 1);
   @override
   int spawnCount(int level) => min(14 + level * 3, EnemySettings.maxSpawnCount);
   @override
@@ -306,12 +334,15 @@ class AfricaEnemySettings extends EnemySettings {
   final String spritePath = "enemy/earth_diamond.png";
 
   @override
+  Color get color => const Color(0xFFEAF4FF); // diamond ice
+
+  @override
   final CityType gemType = CityType.AFRICA;
 
   @override
   double baseLife(int level) => super.baseLife(level) * 0.6;
   @override
-  double baseSpeed(int level) => 3.6 * pow(1.013, level - 1);
+  double baseSpeed(int level) => 3.8 * pow(1.013, level - 1);
   @override
   int spawnCount(int level) => min(8 + level * 2, EnemySettings.maxSpawnCount);
   @override

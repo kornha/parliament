@@ -185,9 +185,10 @@ class EnemyComponent extends GameComponent
   }
 
   // The tail's color reflects the enemy's active abilities (combined) — debuffs
-  // read as color instead of icons. No abilities => the enemy's own theme color.
+  // read as color instead of icons. No abilities => the enemy's own body color
+  // (green globe -> green tail).
   Color _tailColor() {
-    if (buffs.isEmpty) return settings.gemType.color();
+    if (buffs.isEmpty) return settings.color;
     double r = 0, g = 0, b = 0;
     for (final buff in buffs) {
       final col = buff.color;
@@ -303,10 +304,10 @@ class EnemyComponent extends GameComponent
   }
 
   void onKilled() {
-    // Burst of sparks in the enemy's color as it dies.
+    // Burst of sparks in the enemy's body color as it dies.
     final p = parent;
     if (p != null) {
-      Fx.explosion(p, position.clone(), settings.gemType.color(), size.x * 0.7,
+      Fx.explosion(p, position.clone(), settings.color, size.x * 0.7,
           sparks: 10);
     }
     setDeadAnimation();
