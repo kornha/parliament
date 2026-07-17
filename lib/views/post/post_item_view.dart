@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:political_think/common/components/labeled_score.dart';
 import 'package:political_think/common/components/loading.dart';
 import 'package:political_think/common/components/profile_icon.dart';
 import 'package:political_think/common/components/time_component.dart';
@@ -36,27 +35,19 @@ class PostItemView extends ConsumerStatefulWidget {
 }
 
 class _PostViewState extends ConsumerState<PostItemView> {
-  // A dark pill with an icon and a dot-matrix number — engagement stats in
-  // the product's terminal language.
+  // Borderless icon + count, muted — an X-style action-bar stat.
   Widget _statChip(BuildContext context, IconData icon, int? value) {
     if (value == null) return const SizedBox.shrink();
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: Margins.half,
-        vertical: Margins.quarter,
-      ),
-      decoration: BoxDecoration(
-        color: context.surfaceColor,
-        borderRadius: BRadius.standard,
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: IconSize.small, color: Palette.lightSlate),
-          context.sq,
-          Text(Utils.numToReadableString(value), style: context.am),
-        ],
-      ),
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: IconSize.small, color: Palette.lightSlate),
+        context.sq,
+        Text(
+          Utils.numToReadableString(value),
+          style: context.s.copyWith(color: Palette.lightSlate),
+        ),
+      ],
     );
   }
 
@@ -136,14 +127,15 @@ class _PostViewState extends ConsumerState<PostItemView> {
                             visible: post?.body != null &&
                                 (post!.body?.isNotEmpty ?? false),
                             child: context.sf),
-                        // Engagement as a terminal chip row instead of a
-                        // label/value table.
+                        // Engagement as a quiet action-bar row, then one
+                        // tight centered footer — no floating elements.
                         Visibility(
                           visible: post != null,
                           child: Wrap(
                             alignment: WrapAlignment.center,
-                            spacing: Margins.quarter,
-                            runSpacing: Margins.quarter,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            spacing: Margins.threeHalf,
+                            runSpacing: Margins.half,
                             children: [
                               _statChip(context, FontAwesomeIcons.comment.data,
                                   post?.replies),
@@ -161,18 +153,17 @@ class _PostViewState extends ConsumerState<PostItemView> {
                         context.sf,
                         Visibility(
                           visible: post != null,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            crossAxisAlignment: CrossAxisAlignment.center,
+                          child: Wrap(
+                            alignment: WrapAlignment.center,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            spacing: Margins.twice,
+                            runSpacing: Margins.half,
                             children: [
                               if (post?.virality != null)
-                                LabeledScore(
-                                  label: "viral",
-                                  child: ConfidenceWidget(
-                                    confidence: post?.virality,
-                                    viral: true,
-                                    enabled: false,
-                                  ),
+                                ConfidenceWidget(
+                                  confidence: post?.virality,
+                                  viral: true,
+                                  enabled: false,
                                 ),
                               if (post?.sourceCreatedAt != null)
                                 TimeComponent(time: post!.sourceCreatedAt!),
@@ -184,9 +175,21 @@ class _PostViewState extends ConsumerState<PostItemView> {
                                             Uri.parse(post?.url ?? "");
                                         launchUrl(url);
                                       },
-                                child: Text("source",
-                                    style: context.am.copyWith(
-                                        color: context.secondaryColor)),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      FontAwesomeIcons
+                                          .arrowUpRightFromSquare.data,
+                                      size: IconSize.small,
+                                      color: context.secondaryColor,
+                                    ),
+                                    context.sq,
+                                    Text("source",
+                                        style: context.s.copyWith(
+                                            color: context.secondaryColor)),
+                                  ],
+                                ),
                               ),
                             ],
                           ),

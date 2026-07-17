@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:political_think/common/components/icon_grid.dart';
-import 'package:political_think/common/components/labeled_score.dart';
 import 'package:political_think/common/components/loading.dart';
 import 'package:political_think/common/components/location_map.dart';
 import 'package:political_think/common/components/political_position_component.dart';
@@ -114,8 +113,6 @@ class _StoryItemViewState extends ConsumerState<StoryItemView> {
                             )
                           : const SizedBox.shrink(),
                       const Spacer(),
-                      // Terminal HUD: each score gets a dot-matrix micro-label
-                      // so the numbers read as something at a glance.
                       Column(
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.end,
@@ -123,53 +120,38 @@ class _StoryItemViewState extends ConsumerState<StoryItemView> {
                           Row(
                             mainAxisSize: MainAxisSize.min,
                             mainAxisAlignment: MainAxisAlignment.end,
-                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               if (story.newsworthiness != null)
-                                LabeledScore(
-                                  label: "news",
-                                  child: ConfidenceWidget(
-                                    confidence: story.newsworthiness!,
-                                    enabled: false,
-                                    wave: true,
-                                  ),
+                                ConfidenceWidget(
+                                  confidence: story.newsworthiness!,
+                                  enabled: false,
+                                  wave: true,
                                 ),
                               if (story.newsworthiness != null &&
                                   story.location != null)
                                 context.sq,
                               if (story.location != null)
-                                LabeledScore(
-                                  label: "geo",
-                                  child:
-                                      LocationMap(location: story.location!),
-                                ),
+                                LocationMap(location: story.location!),
                             ],
                           ),
                           context.sq,
                           Row(
                             mainAxisSize: MainAxisSize.min,
                             mainAxisAlignment: MainAxisAlignment.end,
-                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               if (story.bias != null)
-                                LabeledScore(
-                                  label: "bias",
-                                  child: PoliticalPositionWidget(
-                                    position: story.bias,
-                                    enabled: false,
-                                    radius: context.iconSizeLarge / 2,
-                                  ),
+                                PoliticalPositionWidget(
+                                  position: story.bias,
+                                  enabled: false,
+                                  radius: context.iconSizeLarge / 2,
                                 ),
                               if (story.bias != null &&
                                   story.confidence != null)
                                 context.sq,
                               if (story.confidence != null)
-                                LabeledScore(
-                                  label: "trust",
-                                  child: ConfidenceWidget(
-                                    confidence: story.confidence!,
-                                    enabled: false,
-                                  ),
+                                ConfidenceWidget(
+                                  confidence: story.confidence!,
+                                  enabled: false,
                                 ),
                             ],
                           ),
