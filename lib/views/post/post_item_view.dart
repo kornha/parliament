@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:political_think/common/components/labeled_score.dart';
 import 'package:political_think/common/components/loading.dart';
 import 'package:political_think/common/components/profile_icon.dart';
-import 'package:political_think/common/components/stats_table.dart';
-import 'package:political_think/common/components/zicon_text.dart';
+import 'package:political_think/common/components/time_component.dart';
 import 'package:political_think/common/components/ztext_button.dart';
+import 'package:political_think/common/constants.dart';
 import 'package:political_think/common/extensions.dart';
 import 'package:political_think/common/models/entity.dart';
 import 'package:political_think/common/models/platform.dart';
@@ -35,6 +36,30 @@ class PostItemView extends ConsumerStatefulWidget {
 }
 
 class _PostViewState extends ConsumerState<PostItemView> {
+  // A dark pill with an icon and a dot-matrix number — engagement stats in
+  // the product's terminal language.
+  Widget _statChip(BuildContext context, IconData icon, int? value) {
+    if (value == null) return const SizedBox.shrink();
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: Margins.half,
+        vertical: Margins.quarter,
+      ),
+      decoration: BoxDecoration(
+        color: context.surfaceColor,
+        borderRadius: BRadius.standard,
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: IconSize.small, color: Palette.lightSlate),
+          context.sq,
+          Text(Utils.numToReadableString(value), style: context.am),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     var storyNewsworthiness = widget.story?.newsworthiness?.value ?? 0.5;
@@ -111,39 +136,60 @@ class _PostViewState extends ConsumerState<PostItemView> {
                             visible: post?.body != null &&
                                 (post!.body?.isNotEmpty ?? false),
                             child: context.sf),
+                        // Engagement as a terminal chip row instead of a
+                        // label/value table.
                         Visibility(
                           visible: post != null,
-                          child: StatsTable(map: {
-                            "Virality": ConfidenceWidget(
-                              confidence: post?.virality,
-                              viral: true,
-                              enabled: false,
-                            ),
-                            "Replies":
-                                Text(Utils.numToReadableString(post?.replies)),
-                            "Reposts":
-                                Text(Utils.numToReadableString(post?.reposts)),
-                            "Likes":
-                                Text(Utils.numToReadableString(post?.likes)),
-                            "Bookmarks": Text(
-                                Utils.numToReadableString(post?.bookmarks)),
-                            "Views":
-                                Text(Utils.numToReadableString(post?.views)),
-                            "Source Created At": Text(Utils.toHumanReadableDate(
-                                post?.sourceCreatedAt)),
-                            "Source": ZTextButton(
-                              onPressed: post?.url == null
-                                  ? null
-                                  : () {
-                                      final Uri url =
-                                          Uri.parse(post?.url ?? "");
-                                      launchUrl(url);
-                                    },
-                              child: Text("link",
-                                  style: context.mb
-                                      .copyWith(color: context.secondaryColor)),
-                            ),
-                          }),
+                          child: Wrap(
+                            alignment: WrapAlignment.center,
+                            spacing: Margins.quarter,
+                            runSpacing: Margins.quarter,
+                            children: [
+                              _statChip(context, FontAwesomeIcons.comment.data,
+                                  post?.replies),
+                              _statChip(context, FontAwesomeIcons.retweet.data,
+                                  post?.reposts),
+                              _statChip(context, FontAwesomeIcons.heart.data,
+                                  post?.likes),
+                              _statChip(context, FontAwesomeIcons.bookmark.data,
+                                  post?.bookmarks),
+                              _statChip(context, FontAwesomeIcons.eye.data,
+                                  post?.views),
+                            ],
+                          ),
+                        ),
+                        context.sf,
+                        Visibility(
+                          visible: post != null,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              if (post?.virality != null)
+                                LabeledScore(
+                                  label: "viral",
+                                  child: ConfidenceWidget(
+                                    confidence: post?.virality,
+                                    viral: true,
+                                    enabled: false,
+                                  ),
+                                ),
+                              if (post?.sourceCreatedAt != null)
+                                TimeComponent(time: post!.sourceCreatedAt!),
+                              ZTextButton(
+                                onPressed: post?.url == null
+                                    ? null
+                                    : () {
+                                        final Uri url =
+                                            Uri.parse(post?.url ?? "");
+                                        launchUrl(url);
+                                      },
+                                child: Text("source",
+                                    style: context.am.copyWith(
+                                        color: context.secondaryColor)),
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     )

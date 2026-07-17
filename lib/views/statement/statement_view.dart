@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:political_think/common/components/icon_grid.dart';
+import 'package:political_think/common/components/labeled_score.dart';
 import 'package:political_think/common/components/loading.dart';
 import 'package:political_think/common/components/zerror.dart';
+import 'package:political_think/common/constants.dart';
 import 'package:political_think/common/extensions.dart';
 import 'package:political_think/common/models/platform.dart';
 import 'package:political_think/common/models/statement.dart';
@@ -76,35 +78,66 @@ class _StatementViewState extends ConsumerState<StatementView> {
                         ),
                       ),
                       const Spacer(),
-                      // TODO: we need to replace this with confidence widget
+                      // Unmeasured claims read as "unverified" rather than
+                      // implying a computed 0.50.
                       Visibility(
                         visible: statement.type == StatementType.claim,
-                        child: ConfidenceWidget(
-                          confidence: statement.confidence,
-                          stid: statement.stid,
-                          enabled: ref.isAdmin,
+                        child: LabeledScore(
+                          label: statement.confidence == null
+                              ? "unverified"
+                              : "trust",
+                          dim: statement.confidence == null,
+                          child: ConfidenceWidget(
+                            confidence: statement.confidence,
+                            stid: statement.stid,
+                            enabled: ref.isAdmin,
+                          ),
                         ),
                       ),
                       Visibility(
                         visible: statement.type == StatementType.opinion,
-                        child: PoliticalPositionWidget(
-                          position: statement.bias,
-                          stid: statement.stid,
-                          enabled: ref.isAdmin,
+                        child: LabeledScore(
+                          label: statement.bias == null ? "unrated" : "lean",
+                          dim: statement.bias == null,
+                          child: PoliticalPositionWidget(
+                            position: statement.bias,
+                            stid: statement.stid,
+                            enabled: ref.isAdmin,
+                          ),
                         ),
                       )
                     ],
                   ),
                   context.sh,
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      proList.isNotEmpty
-                          ? IconGrid(entities: proList)
-                          : const SizedBox.shrink(),
+                      if (proList.isNotEmpty)
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "pro ${statement.pro.length}",
+                              style:
+                                  context.as.copyWith(color: Palette.green),
+                            ),
+                            const SizedBox(height: Margins.least),
+                            IconGrid(entities: proList),
+                          ],
+                        ),
                       const Spacer(),
-                      againstList.isNotEmpty
-                          ? IconGrid(entities: againstList)
-                          : const SizedBox.shrink(),
+                      if (againstList.isNotEmpty)
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                              "against ${statement.against.length}",
+                              style: context.as.copyWith(color: Palette.red),
+                            ),
+                            const SizedBox(height: Margins.least),
+                            IconGrid(entities: againstList),
+                          ],
+                        ),
                       context.sh,
                     ],
                   ),

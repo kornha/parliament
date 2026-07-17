@@ -138,9 +138,11 @@ class _FeedState extends ConsumerState<Feed> {
                 itemBuilder: (context, item, index) {
                   return Column(
                     children: [
+                      // A short, dim rule between stories — editorial spacing
+                      // instead of a full-width bright line.
                       Visibility(
                         visible: index != 0,
-                        child: const ZDivider(),
+                        child: const ZDivider(type: DividerType.TERTIARY),
                       ),
                       Container(
                         width: context.blockSizeLarge.width,
