@@ -74,8 +74,12 @@ const scrapeXFeed = async function(feedUrl, limit) {
     const isHomeFeed = /^https:\/\/(x|twitter)\.com\/?(home\/?)?$/
         .test(feedUrl ?? "");
 
+    // A tall viewport makes X render several tweets per lazy-load batch
+    // (720px shows ~2), multiplying links harvested per scroll step.
+    await page.setViewport({width: 1280, height: 2400});
+
     let count = 0;
-    for await (const link of autoScrollX(page, feedUrl, false, 20000,
+    for await (const link of autoScrollX(page, feedUrl, false, 45000,
         isHomeFeed)) {
       await publishMessage(SHOULD_PROCESS_LINK, {link});
       if (++count >= limit) break; // ⬅️ stop after “limit” links
@@ -478,8 +482,9 @@ const autoScrollX = async function* (
         }
       }
     } else {
-      // If no new height is detected, wait before the next scroll attempt
-      await page.waitForTimeout(2000);
+      // If no new height is detected, wait briefly before the next scroll
+      // attempt — 2s here burned most of the window on slow renders.
+      await page.waitForTimeout(750);
     }
   }
 
