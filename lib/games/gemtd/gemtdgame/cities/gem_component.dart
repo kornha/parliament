@@ -29,6 +29,14 @@ import 'package:political_think/games/gemtd/gemtdgame/cities/gems/special_compan
 import 'package:political_think/games/gemtd/gemtdgame/cities/gems/special_companies/singapore.dart';
 import 'package:political_think/games/gemtd/gemtdgame/cities/gems/special_companies/sierra_leone.dart';
 import 'package:political_think/games/gemtd/gemtdgame/cities/gems/special_companies/galapagos.dart';
+import 'package:political_think/games/gemtd/gemtdgame/cities/gems/special_companies/macau.dart';
+import 'package:political_think/games/gemtd/gemtdgame/cities/gems/special_companies/turkey.dart';
+import 'package:political_think/games/gemtd/gemtdgame/cities/gems/special_companies/monaco.dart';
+import 'package:political_think/games/gemtd/gemtdgame/cities/gems/special_companies/greenland.dart';
+import 'package:political_think/games/gemtd/gemtdgame/cities/gems/special_companies/myanmar.dart';
+import 'package:political_think/games/gemtd/gemtdgame/cities/gems/special_companies/romania.dart';
+import 'package:political_think/games/gemtd/gemtdgame/cities/gems/special_companies/uruguay.dart';
+import 'package:political_think/games/gemtd/gemtdgame/cities/gems/special_companies/madagascar.dart';
 import 'package:political_think/games/gemtd/gemtdgame/cities/weapon_settings.dart';
 import 'package:political_think/games/gemtd/gemtdgame/enemy/enemy_component.dart';
 import 'package:political_think/games/gemtd/gemtdgame/game/game_constants.dart';
@@ -142,6 +150,9 @@ const Map<String, int> flagColors = {
   'hr': 0xFFFF0000, 'be': 0xFFFDDA24, 'kp': 0xFFED1C27,
   'qa': 0xFF8A1538, 'sv': 0xFF0F47AF, 'ec': 0xFFFFDD00,
   'sg': 0xFFEF3340, 'sl': 0xFF1EB53A,
+  'mo': 0xFF00785E, 'tr': 0xFFE30A17, 'mc': 0xFFCE1126,
+  'gl': 0xFFD00C33, 'mm': 0xFF34B233, 'ro': 0xFF002B7F,
+  'uy': 0xFF0038A8, 'mg': 0xFF007E3A,
 };
 
 abstract class GemComponent extends GameComponent
@@ -614,6 +625,14 @@ abstract class GemComponent extends GameComponent
     if (name == "Singapore") return Singapore();
     if (name == "Sierra Leone") return SierraLeone();
     if (name == "Galapagos") return Galapagos();
+    if (name == "Macau") return Macau();
+    if (name == "Turkey") return Turkey();
+    if (name == "Monaco") return Monaco();
+    if (name == "Greenland") return Greenland();
+    if (name == "Myanmar") return Myanmar();
+    if (name == "Romania") return Romania();
+    if (name == "Uruguay") return Uruguay();
+    if (name == "Madagascar") return Madagascar();
 
     return GameConstants.gemByType(gemType)..level = level;
   }

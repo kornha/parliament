@@ -141,7 +141,17 @@ class StatusManager {
     EnemyComponent enemy,
     Set<Buff> buffs,
   ) {
-    tick(dt, buffs);
+    // Myanmar's Timeless aura: while marked, the enemy's debuffs do not
+    // decay — only the marker itself ticks, so leaving the aura frees them.
+    final frozen = buffs.any((b) => b is TimelessBuff);
+    if (frozen) {
+      final markers = buffs.whereType<TimelessBuff>().toSet();
+      tick(dt, markers);
+      buffs.removeWhere(
+          (b) => b is TimelessBuff && !markers.contains(b));
+    } else {
+      tick(dt, buffs);
+    }
     StatusManager.computeEnemyStatus(dt, buffs, enemy);
   }
 

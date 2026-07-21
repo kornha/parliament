@@ -46,6 +46,12 @@ abstract class GemAttributes {
   bool projectLoop = true;
   bool canHitIntermediateTargets = true;
 
+  // Homing bullets chase their target; non-homing bullets fire a straight
+  // lane through the target's position out to full range — used by piercing
+  // charge attacks (Kenya's Stampede, Ghana's Gold Road), which must not
+  // curve after one enemy or die when their seed target does.
+  bool get homingProjectiles => true;
+
   // explosion, not used in Aura
   final double explosionStepTime = 0.06;
   final String explosionImage = "weapon/explosion2.png";

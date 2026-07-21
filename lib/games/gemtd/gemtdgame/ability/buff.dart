@@ -1553,6 +1553,31 @@ class StampedeBuff extends Buff {
   RenderType get renderType => RenderType.GRID;
 }
 
+// Myanmar (Always Be Burma to Me) — while this buff is on an enemy, its OTHER
+// debuffs never tick down (see StatusManager.tickEnemy): time stands still.
+// Only this marker itself decays, so escaping the aura restarts the clock.
+class TimelessBuff extends Buff {
+  TimelessBuff({required super.caster, required super.level});
+
+  @override
+  String name = "Always Be Burma to Me";
+
+  @override
+  String description = "Time stands still — debuffs do not wear off.";
+
+  @override
+  IconData icon = FontAwesomeIcons.hourglassHalf.data;
+
+  @override
+  CityType gemType = CityType.ASEAN;
+
+  @override
+  double? baseDuration = 1.2;
+
+  @override
+  RenderType get renderType => RenderType.GRID;
+}
+
 // Africa (Kinshasa) — Cobalt: an electrocution aura that damages enemies but
 // the jolt SPEEDS THEM UP (negative slow), so place it carefully.
 class CobaltBuff extends Buff {

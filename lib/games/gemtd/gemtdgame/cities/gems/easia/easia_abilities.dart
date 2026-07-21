@@ -229,15 +229,15 @@ class KPop extends Ability {
 class KPopBuff extends bf.Buff {
   KPopBuff({required super.caster, required super.level});
 
-  static const fraction = <double>[6.0, 6.5, 7.0, 7.5, 8.0, 8.5];
+  static const fraction = <double>[10.0, 11.5, 13.0, 14.5, 16.0, 18.0];
 
   @override
   String name = "K-Pop";
 
   @override
   String description =
-      "Attacking drastically faster with weak hits; all chance abilities "
-      "proc, debuffs are short.";
+      "A blur of hits: attacks drastically faster for tiny damage, and every "
+      "chance ability procs — a relentless stream of microstuns.";
 
   @override
   IconData icon = FontAwesomeIcons.music.data;
@@ -254,8 +254,10 @@ class KPopBuff extends bf.Buff {
   @override
   double? get chanceMultiplier => 100.0;
 
+  // Cuts its own debuff durations hard — Khan's stun lands every hit but only
+  // as a microstun, so the lockdown comes from frequency, not duration.
   @override
-  double? get buffMultiplier => 0.25;
+  double? get buffMultiplier => 0.12;
 
   @override
   double? baseDuration = 1.0;

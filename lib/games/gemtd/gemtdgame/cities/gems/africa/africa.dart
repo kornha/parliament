@@ -56,6 +56,12 @@ class AfricaSettings extends GemAttributes {
   bool get canHitIntermediateTargets =>
       cityConfig == kenya || cityConfig == ghana;
 
+  // Charge attacks fire straight lanes — no homing, and the charge survives
+  // its seed target's death.
+  @override
+  bool get homingProjectiles =>
+      !(cityConfig == kenya || cityConfig == ghana);
+
   @override
   int projectileColumns(level) => 1;
 

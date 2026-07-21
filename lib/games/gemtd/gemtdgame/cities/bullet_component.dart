@@ -67,8 +67,21 @@ class BulletComponent extends GameComponent
     // radar
     setRadar();
     onMoveFinish = this.outOfRange;
-    moveToMovable(enemy);
-    enemy.onKilledCallback = onEnemyKilled;
+    if (settings.homingProjectiles) {
+      moveToMovable(enemy);
+      enemy.onKilledCallback = onEnemyKilled;
+    } else {
+      // Lane shot: a straight line through the target's current position out
+      // to the tower's full range. No tracking, and no tie to the seed
+      // target's life — the charge belongs to the lane, not the enemy.
+      var dir = enemy.position - position;
+      if (dir.length2 == 0) {
+        final rad = angleNearTo(enemy.position);
+        dir = Vector2(sin(rad), -cos(rad));
+      }
+      dir.normalize();
+      moveTo(position + dir * (source.radarRange * 1.2));
+    }
 
     setAnimation();
 

@@ -22,6 +22,14 @@ import '../cities/gems/special_companies/el_salvador.dart';
 import '../cities/gems/special_companies/singapore.dart';
 import '../cities/gems/special_companies/sierra_leone.dart';
 import '../cities/gems/special_companies/galapagos.dart';
+import '../cities/gems/special_companies/macau.dart';
+import '../cities/gems/special_companies/turkey.dart';
+import '../cities/gems/special_companies/monaco.dart';
+import '../cities/gems/special_companies/greenland.dart';
+import '../cities/gems/special_companies/myanmar.dart';
+import '../cities/gems/special_companies/romania.dart';
+import '../cities/gems/special_companies/uruguay.dart';
+import '../cities/gems/special_companies/madagascar.dart';
 import '../neutral/neutral_settings.dart';
 
 GameConstants gameSettings = GameConstants();
@@ -295,6 +303,8 @@ class GameConstants {
       ..level = 4,
     [(SAmerica()..level = 4).name, (SAmerica()..level = 4).name]: SAmerica()
       ..level = 5,
+    [(SAmerica()..level = 5).name, (SAmerica()..level = 5).name]: SAmerica()
+      ..level = 6,
     [(Mena()..level = 1).name, (Mena()..level = 1).name]: Mena()
       ..level = 2,
     [(Mena()..level = 2).name, (Mena()..level = 2).name]: Mena()
@@ -303,6 +313,8 @@ class GameConstants {
       ..level = 4,
     [(Mena()..level = 4).name, (Mena()..level = 4).name]: Mena()
       ..level = 5,
+    [(Mena()..level = 5).name, (Mena()..level = 5).name]: Mena()
+      ..level = 6,
     [(SAsia()..level = 1).name, (SAsia()..level = 1).name]: SAsia()
       ..level = 2,
     [(SAsia()..level = 2).name, (SAsia()..level = 2).name]: SAsia()
@@ -397,6 +409,54 @@ class GameConstants {
       (EEurope()..level = 6).name,
       (NAmerica()..level = 3).name,
     ]: SierraLeone(),
+    // Macau (E. Asia) = Hong Kong + Portugal + Thailand
+    [
+      (EAsia()..level = 3).name,
+      (WEurope()..level = 4).name,
+      (Asean()..level = 6).name,
+    ]: Macau(),
+    // Turkey (MENA) = Jamaica + Brazil + Ethiopia
+    [
+      (NAmerica()..level = 2).name,
+      (SAmerica()..level = 6).name,
+      (Africa()..level = 2).name,
+    ]: Turkey(),
+    // Monaco (W. Europe) = Ireland + Ukraine + UAE
+    [
+      (WEurope()..level = 1).name,
+      (EEurope()..level = 4).name,
+      (Mena()..level = 5).name,
+    ]: Monaco(),
+    // Greenland (N. America) = Canada + Mongolia + Chile
+    [
+      (NAmerica()..level = 4).name,
+      (EAsia()..level = 1).name,
+      (SAmerica()..level = 2).name,
+    ]: Greenland(),
+    // Myanmar (ASEAN) = Cambodia + Venezuela + Lebanon
+    [
+      (Asean()..level = 1).name,
+      (SAmerica()..level = 4).name,
+      (Mena()..level = 1).name,
+    ]: Myanmar(),
+    // Romania (E. Europe) = Poland + Israel + Latvia
+    [
+      (EEurope()..level = 5).name,
+      (Mena()..level = 6).name,
+      (EEurope()..level = 1).name,
+    ]: Romania(),
+    // Uruguay (S. America) = Argentina + Japan + Taiwan
+    [
+      (SAmerica()..level = 5).name,
+      (EAsia()..level = 5).name,
+      (EAsia()..level = 2).name,
+    ]: Uruguay(),
+    // Madagascar (Africa) = Ghana + Nigeria + Morocco
+    [
+      (Africa()..level = 1).name,
+      (Africa()..level = 5).name,
+      (Mena()..level = 2).name,
+    ]: Madagascar(),
     // [
     //   (Finance()..level = 1).name, // robinhood
     //   (Mena()..level = 2).name, // reddit
