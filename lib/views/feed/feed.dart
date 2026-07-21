@@ -163,15 +163,11 @@ class _FeedState extends ConsumerState<Feed> {
                   if (currentData == null || latestData == null) {
                     return false;
                   }
-                  if (latestData.length > currentData.length) {
-                    return true;
-                  }
-                  for (var i = 0; i < latestData.length; i++) {
-                    if (currentData[i].sid != latestData[i].sid) {
-                      return true;
-                    }
-                  }
-                  return false;
+                  // Only genuinely NEW stories count. Positional comparison
+                  // fired on every reorder — and newsworthiness re-scoring
+                  // reorders constantly, so the button never rested.
+                  final current = currentData.map((s) => s.sid).toSet();
+                  return latestData.any((s) => !current.contains(s.sid));
                 },
                 pagedBuilder: (controller, builder) {
                   // TODO: sets the page so it can be refreshed elsewhere

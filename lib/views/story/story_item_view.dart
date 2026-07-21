@@ -73,7 +73,12 @@ class _StoryItemViewState extends ConsumerState<StoryItemView> {
 
     return storyRef.isLoading || allPostsRef.isLoading
         ? const Loading(type: LoadingType.post)
-        : story == null || !allPostsRef.hasValue || (allPosts?.isEmpty ?? true)
+        // headline == null means the context pass hasn't finished (or failed)
+        // — skip the half-built shell rather than rendering a raw title.
+        : story == null ||
+                story.headline == null ||
+                !allPostsRef.hasValue ||
+                (allPosts?.isEmpty ?? true)
             ? const SizedBox.shrink()
             : Column(
                 mainAxisAlignment: MainAxisAlignment.center,

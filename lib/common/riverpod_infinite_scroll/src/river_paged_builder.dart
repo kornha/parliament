@@ -224,6 +224,14 @@ class _RiverPagedBuilderState<PageKeyType, ItemType>
     // return a [PagedBuilder]
     var pagedBuilder = widget.pagedBuilder(_pagingController, itemBuilder);
 
+    // Track the stream's latest window. watch() already rebuilds this widget
+    // on change — assigning here (no setState) avoids the setState-in-build
+    // rebuild storm, and doing it BEFORE the hasNewData check below means the
+    // button reflects THIS frame's data, not last frame's.
+    if (widget.newDataProvider != null) {
+      _latestData = ref.watch(widget.newDataProvider!).value ?? _latestData;
+    }
+
     // Display the "New Content Available" button if needed
     var newDataAvailable =
         widget.hasNewData?.call(_pagingController.itemList, _latestData) ??
@@ -263,16 +271,6 @@ class _RiverPagedBuilderState<PageKeyType, ItemType>
           ),
         ],
       );
-    }
-
-    if (widget.newDataProvider != null) {
-      final newDataAsyncValue = ref.watch(widget.newDataProvider!);
-
-      newDataAsyncValue.whenData((latestData) {
-        setState(() {
-          _latestData = latestData ?? [];
-        });
-      });
     }
 
     // Add pull to refresh functionality if specified
