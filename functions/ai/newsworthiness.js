@@ -97,7 +97,12 @@ async function onStoryShouldChangeNewsworthiness(sid) {
   const virality =
     viralityValues.length > 0 ? _.mean(viralityValues) : null;
 
-  const newsworthiness = calculateNewsworthiness(virality, story.bias);
+  // Independent coverage: how many distinct entities are talking about this.
+  const sourceCount = _.uniq(
+      posts.map((post) => post.eid).filter((eid) => eid != null)).length;
+
+  const newsworthiness =
+    calculateNewsworthiness(virality, story.bias, sourceCount);
 
   if (newsworthiness != null) {
     logger.info(`Updating Story newsworthiness: ${sid} ${newsworthiness}`);
@@ -118,9 +123,10 @@ async function onStoryShouldChangeNewsworthiness(sid) {
  * prereqs: virality, bias
  * @param {number|null} virality - the viral score of the story
  * @param {number|null} bias - the story to calculate the newsworthiness for
+ * @param {number} [sourceCount] - distinct entities covering the story
  * @return {number|null} the newsworthiness of the story or null if not prereqs
  */
-function calculateNewsworthiness(virality, bias) {
+function calculateNewsworthiness(virality, bias, sourceCount = 1) {
   if (virality == null) {
     return null;
   }
@@ -129,7 +135,13 @@ function calculateNewsworthiness(virality, bias) {
 
   const biasMultiple = 1 - angleDiff / 720; // 87.5% if right/left, 75% extreme
 
-  const newsworthiness = virality * biasMultiple;
+  // Independent coverage counts as evidence of newsworthiness: one viral
+  // post is halved; ~4+ distinct sources restore full strength.
+  // 1 source = 0.5, 2 = 0.75, 3 = 0.9, 4+ = 1.0
+  const coverageMultiple =
+    Math.min(1, 0.5 + 0.25 * Math.log2(Math.max(1, sourceCount)));
+
+  const newsworthiness = virality * biasMultiple * coverageMultiple;
 
   return _.round(Math.max(0, Math.min(1, newsworthiness)), 2);
 }

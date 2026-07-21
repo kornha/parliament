@@ -245,8 +245,10 @@ const findContext = async function(story, statements, canGather = false) {
     messages: _prompt,
     responseSchema: contextOutputSchema(),
     loggingText: "findContext " + story.sid,
-    // Web search is only worth its cost when we can act on what it finds.
-    useWebSearch: canGather,
+    // Always on for COMPREHENSION (who people are, what the frame is — the
+    // prompt forbids citing the web in prose). Gathering sourceUrls remains
+    // separately gated by canGather.
+    useWebSearch: true,
   });
 
   if (!resp || !resp.sid) {
