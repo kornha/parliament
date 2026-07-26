@@ -213,8 +213,9 @@ class ThousandIslands extends Ability {
 }
 
 // Thailand (capstone) — Beautiful Chaos: keeps Full Moon's huge range + random
-// target, rebranded for ASEAN. (FullMoon is left intact in ability.dart for the
-// Coinbase / Washington DC specials that also use it.)
+// target (FullMoon is left intact in ability.dart for the Coinbase /
+// Washington DC specials that also use it), and every hit strips a RANDOM
+// percentage of the target's armor — rolled fresh per shot.
 class BeautifulChaos extends FullMoon {
   BeautifulChaos({required super.caster, required super.level});
 
@@ -222,8 +223,20 @@ class BeautifulChaos extends FullMoon {
   String name = "Beautiful Chaos";
 
   @override
+  bool get worksOnEnemies => true;
+
+  @override
+  bf.Buff? get buff => bf.BeautifulChaosBuff(caster: caster, level: level);
+
+  @override
   String description =
-      "Greatly increases attack range, but attacks a random target.";
+      "Greatly increases attack range but attacks a random target — and each "
+      "hit removes a random percentage of the target's armor.";
+
+  @override
+  String get subDescription =>
+      "${bf.Telescope.rangePerLevel.join("/")} range.\n"
+      "0-100% of base armor stripped for 2s, rolled per hit.";
 
   @override
   CityType gemType = CityType.ASEAN;

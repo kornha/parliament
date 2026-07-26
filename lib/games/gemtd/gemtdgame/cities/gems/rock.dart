@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'dart:ui';
 
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
@@ -22,6 +23,21 @@ class Rock extends GemComponent with DoubleTapCallbacks {
   // Rocks aren't selectable on a single tap; a double tap builds over them.
   @override
   bool onTapDown(TapDownEvent event) => false;
+
+  // The rock sprite is a white block; modulate-tint it to the theme's
+  // foreground so blocks read black in light mode (and stay white in dark).
+  // Checked per frame so a live theme switch retints existing rocks.
+  Color? _tint;
+
+  @override
+  void update(double dt) {
+    super.update(dt);
+    final c = gameRef.blockColor;
+    if (_tint != c) {
+      _tint = c;
+      paint.colorFilter = ColorFilter.mode(c, BlendMode.modulate);
+    }
+  }
 
   @override
   void onDoubleTapDown(DoubleTapDownEvent event) {

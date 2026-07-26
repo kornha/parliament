@@ -87,6 +87,12 @@ extension ThemeExt on BuildContext {
 
   Color get slate => isDarkMode ? Palette.darkSlate : Palette.lightSlate;
 
+  // For small/thin secondary TEXT: needs the opposite polarity of `slate`
+  // (which tracks surfaces) — light text on dark, dark text on light — or
+  // 13px labels wash out against the background.
+  Color get mutedTextColor =>
+      isDarkMode ? Palette.lightSlate : Palette.darkSlate;
+
   // The app's terminal-green accent (ZTheme colorScheme.secondary).
   Color get accentColor => Theme.of(this).colorScheme.secondary;
 

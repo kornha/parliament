@@ -59,7 +59,7 @@ class StatsTagBase extends StatelessWidget {
         children: [
           Text(
             text,
-            style: TextStyle(color: context.slate, fontSize: 13),
+            style: TextStyle(color: context.mutedTextColor, fontSize: 13),
           ),
           context.sh,
           sub,
@@ -98,7 +98,7 @@ class StatsTagButton extends StatelessWidget {
           children: [
             Text(
               text,
-              style: TextStyle(color: context.slate, fontSize: 13),
+              style: TextStyle(color: context.mutedTextColor, fontSize: 13),
             ),
             context.sh,
             sub,
@@ -131,7 +131,7 @@ class StatsTagTextButton extends StatelessWidget {
           children: [
             Text(
               text,
-              style: TextStyle(color: context.slate, fontSize: 13),
+              style: TextStyle(color: context.mutedTextColor, fontSize: 13),
             ),
           ],
         ),

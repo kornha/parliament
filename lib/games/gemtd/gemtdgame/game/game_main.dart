@@ -25,6 +25,10 @@ class GameMain extends FlameGame with WidgetsBindingObserver {
   Color canvasColor = const Color(0xFF000000);
   Color hudTextColor = Colors.white70;
 
+  // Rocks tint to this (the sprite is a white block, so light mode needs
+  // black blocks to stay visible on the white canvas).
+  Color blockColor = const Color(0xFFFFFFFF);
+
   @override
   Color backgroundColor() => canvasColor;
 

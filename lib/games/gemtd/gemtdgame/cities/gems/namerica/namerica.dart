@@ -88,8 +88,10 @@ class NAmericaSettings extends GemAttributes {
     return cityConfig == cuba ? base * 0.45 : base;
   }
 
+  // Jamaica's Feel Good Man aura reads as the whole neighborhood — keep it
+  // tight; the rest of the region also fires shorter than before (was 3.0).
   @override
-  double baseRange(int level) => 3.0;
+  double baseRange(int level) => cityConfig == jamaica ? 2.2 : 2.6;
 
   @override
   Set<Ability> abilities(int level, covariant NAmerica caster) {

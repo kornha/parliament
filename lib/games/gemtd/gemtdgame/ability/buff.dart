@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:political_think/games/gemtd/common/constants.dart';
@@ -326,7 +328,8 @@ class Lust extends Buff {
   @override
   String description = "Damages enemies over time.";
 
-  static final List<double> reductionPerLevel = [6, 10, 14, 18, 22, 40];
+  // Raised vs Inevitability's exponential armor (was 6/10/14/18/22/40).
+  static final List<double> reductionPerLevel = [10, 16, 24, 34, 46, 80];
 
   @override
   double? armorModifier(EnemyComponent enemy) =>
@@ -501,7 +504,9 @@ class Petronas extends Buff {
 }
 
 class Disruption extends Buff {
-  static const reductionPerLevel = <double>[1.5, 3, 6, 12, 24];
+  // Doubled (and given a level-6 step): Inevitability's armor grows 1.3^level,
+  // so flat reducers need real numbers to stay relevant.
+  static const reductionPerLevel = <double>[3, 6, 12, 24, 48, 80];
 
   Disruption({required super.caster, required super.level});
 
@@ -1096,7 +1101,9 @@ class Sphinx extends Buff {
   @override
   RenderType get renderType => RenderType.NONE;
 
-  static double divider = 100.0;
+  // Lowered from 100 -> 70: stacked Religion shreds ~43% more armor, keeping
+  // pace with heavily-armored late waves (Inevitability).
+  static double divider = 70.0;
 
   @override
   double? armorModifier(EnemyComponent enemy) =>
@@ -1526,6 +1533,38 @@ class StampedeBuff extends Buff {
 
   @override
   RenderType get renderType => RenderType.NONE;
+}
+
+// Thailand (Beautiful Chaos) — every hit strips a RANDOM percentage of the
+// target's base armor. The roll happens per shot (a fresh buff instance is
+// created for each attack), so one hit might shred nothing and the next all
+// of it.
+class BeautifulChaosBuff extends Buff {
+  BeautifulChaosBuff({required super.caster, required super.level});
+
+  final double fraction = Random().nextDouble();
+
+  @override
+  String name = "Beautiful Chaos";
+
+  @override
+  String description = "A random share of armor is gone — beautiful chaos.";
+
+  @override
+  IconData icon = FontAwesomeIcons.dice.data;
+
+  @override
+  CityType gemType = CityType.ASEAN;
+
+  @override
+  double? armorModifier(EnemyComponent enemy) =>
+      enemy.settings.baseArmor(enemy.level) * fraction;
+
+  @override
+  double? baseDuration = 2.0;
+
+  @override
+  RenderType get renderType => RenderType.GRID;
 }
 
 // Myanmar (Always Be Burma to Me) — while this buff is on an enemy, its OTHER

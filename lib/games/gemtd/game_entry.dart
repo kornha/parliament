@@ -10,6 +10,7 @@ import 'package:political_think/games/gemtd/gemtdgame/view/dashboard.dart';
 import 'package:political_think/games/gemtd/gemtdgame/view/enemy_view.dart';
 import 'package:political_think/games/gemtd/gemtdgame/view/gem_button_view.dart';
 import 'package:political_think/games/gemtd/gemtdgame/view/gem_view.dart';
+import 'package:political_think/games/gemtd/gemtdgame/view/tutorial_view.dart';
 
 /// Entry widget for the GemTD game, embedded as a Parliament tab.
 ///
@@ -49,6 +50,7 @@ class _GemTDGameState extends State<GemTDGame> {
     // Keep the Flame canvas + HUD in sync with the app's light/dark theme.
     _game.canvasColor = context.backgroundColor;
     _game.hudTextColor = context.foregroundColorTansluscent;
+    _game.blockColor = context.foregroundColor;
 
     // The game is laid out for a portrait phone (8x11 tile map + bottom
     // dashboard ≈ a 1:2 width:height shape). Constrain it to a centered
@@ -68,6 +70,8 @@ class _GemTDGameState extends State<GemTDGame> {
               Dashboard.name: (context, game) => Dashboard(game: game),
               AbilityView.name: AbilityView.builder,
               EnemyView.name: (context, game) => EnemyView(game: game),
+              TutorialView.name: (context, game) =>
+                  TutorialView(game: game),
               'start': _pauseMenuBuilder,
               'gameover': _gameOverBuilder,
               'gamewon': _gameWonBuilder,
@@ -89,6 +93,12 @@ class _GemTDGameState extends State<GemTDGame> {
       onPressed: () {
         game.start();
         game.overlays.remove('start');
+      },
+      secondaryLabel: 'Tutorial',
+      onSecondary: () {
+        game.start();
+        game.overlays.remove('start');
+        game.overlays.add(TutorialView.name);
       },
     );
   }
@@ -132,7 +142,7 @@ class _GemTDGameState extends State<GemTDGame> {
         ),
         Text(
           'Wave: ${stats.wave}',
-          style: TextStyle(color: context.slate, fontSize: 14),
+          style: TextStyle(color: context.mutedTextColor, fontSize: 14),
         ),
       ],
       buttonLabel: 'Restart',
@@ -145,7 +155,7 @@ class _GemTDGameState extends State<GemTDGame> {
   }
 
   // Menu chrome matching the app: theme surface, thin border, Minecart title,
-  // terminal-green action.
+  // terminal-green action (plus an optional muted secondary action).
   Widget _menuCard({
     required BuildContext context,
     required String title,
@@ -153,6 +163,8 @@ class _GemTDGameState extends State<GemTDGame> {
     required List<Widget> body,
     required String buttonLabel,
     required VoidCallback onPressed,
+    String? secondaryLabel,
+    VoidCallback? onSecondary,
   }) {
     return Center(
       child: Container(
@@ -193,6 +205,22 @@ class _GemTDGameState extends State<GemTDGame> {
               onPressed: onPressed,
               child: Text(buttonLabel),
             ),
+            if (secondaryLabel != null) ...[
+              const SizedBox(height: 6),
+              TextButton(
+                style: TextButton.styleFrom(
+                  foregroundColor: context.mutedTextColor,
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 16.0, vertical: 4.0),
+                  textStyle: const TextStyle(
+                    fontSize: 14,
+                    fontFamily: "Avenir",
+                  ),
+                ),
+                onPressed: onSecondary,
+                child: Text(secondaryLabel),
+              ),
+            ],
           ],
         ),
       ),

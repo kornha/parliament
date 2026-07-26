@@ -273,13 +273,13 @@ class MenaEnemySettings extends EnemySettings {
   Color get color => const Color(0xFF4D7CF0); // sapphire blue
 
   @override
-  double baseLife(int level) => super.baseLife(level) * 0.8;
+  double baseLife(int level) => super.baseLife(level) * 1.05;
   @override
   double baseSpeed(int level) => 1.4 * pow(1.013, level - 1);
   @override
   int spawnCount(int level) => min(12 + level * 2, EnemySettings.maxSpawnCount);
   @override
-  double baseArmor(int level) => 2.0 * pow(1.15, level - 1);
+  double baseArmor(int level) => 2.6 * pow(1.15, level - 1);
 
   // Sparse -> dense: the gap between spawns shrinks as the wave progresses.
   @override

@@ -18,6 +18,7 @@ class Singapore extends GemComponent {
   get currentImagePath => "flags/${countryCodes.first.toLowerCase()}.png";
 
   @override
+  // Matches the highest-level ingredient in the recipe.
   int get level => 6;
 }
 

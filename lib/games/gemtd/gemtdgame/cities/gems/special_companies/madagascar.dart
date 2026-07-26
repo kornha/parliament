@@ -21,7 +21,8 @@ class Madagascar extends GemComponent {
   get currentImagePath => "flags/${countryCodes.first.toLowerCase()}.png";
 
   @override
-  int get level => 6;
+  // Matches the highest-level ingredient in the recipe.
+  int get level => 5;
 }
 
 class MadagascarSettings extends GemAttributes {

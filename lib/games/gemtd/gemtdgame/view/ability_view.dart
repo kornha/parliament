@@ -146,7 +146,7 @@ class _DetailCard extends StatelessWidget {
               Text(
                 description,
                 style: TextStyle(
-                  color: context.slate,
+                  color: context.mutedTextColor,
                   fontSize: 13,
                 ),
               ),
@@ -155,7 +155,7 @@ class _DetailCard extends StatelessWidget {
                 Text(
                   subDescription!,
                   style: TextStyle(
-                    color: context.slate,
+                    color: context.mutedTextColor,
                     fontSize: 13,
                   ),
                 ),
