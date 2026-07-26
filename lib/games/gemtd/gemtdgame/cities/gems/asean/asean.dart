@@ -66,10 +66,10 @@ class AseanSettings extends GemAttributes {
   double get projectileSpeed => 2.95;
 
   @override
-  double get projectileSizeX => 0.2;
+  double get projectileSizeX => 0.28;
 
   @override
-  double get projectileSizeY => 0.5;
+  double get projectileSizeY => 0.65;
 
   @override
   int projectileColumns(level) => 1;

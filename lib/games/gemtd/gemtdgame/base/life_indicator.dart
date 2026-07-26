@@ -64,19 +64,20 @@ mixin LifeIndicator on GameComponent {
     //     Rect.fromLTWH(size.x * 0.05, size.y * 0.05, size.x * 0.9, size.y * 0.9);
 
     if (life > 0 && life < maxLife && durationSame > 0) {
-      textPainter = TextPainter(
-        text: TextSpan(
-          text: (life / maxLife * 100).toStringAsFixed(0),
-          style: TextConstants.gem,
-        ),
-        textDirection: TextDirection.ltr,
-      );
-
-      textPainter.layout();
+      // TextPainter.layout() is expensive — only re-layout when the rendered
+      // percentage actually changes, not every frame.
+      final text = (life / maxLife * 100).toStringAsFixed(0);
+      if (text != _lastLifeText) {
+        _lastLifeText = text;
+        textPainter.text = TextSpan(text: text, style: TextConstants.gem);
+        textPainter.layout();
+      }
 
       textPainter.paint(c, const Offset(0, 0));
     }
   }
+
+  String? _lastLifeText;
 
   void renderBuffs(Canvas c, Set<Buff> buffs, [GameComponent? component]) {
     int i = 0;

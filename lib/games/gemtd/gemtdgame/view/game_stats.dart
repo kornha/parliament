@@ -51,14 +51,14 @@ class GameStats extends GameComponent with DragCallbacks {
   FutureOr<void>? onLoad() {
     waveStatus = TextComponent(
       textRenderer: TextPaint(
-          style: const TextStyle(color: Colors.white70, fontSize: 22)),
+          style: TextStyle(color: gameRef.hudTextColor, fontSize: 22)),
       position: (size / 2),
       anchor: Anchor.center,
     );
 
     killedStatus = TextComponent(
       textRenderer: TextPaint(
-          style: const TextStyle(color: Colors.white70, fontSize: 12)),
+          style: TextStyle(color: gameRef.hudTextColor, fontSize: 12)),
       position: (size / 2)..x = (size.x * (3 / 8)),
       anchor: Anchor.center,
     );

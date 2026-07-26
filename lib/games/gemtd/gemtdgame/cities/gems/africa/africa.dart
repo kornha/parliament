@@ -45,22 +45,19 @@ class AfricaSettings extends GemAttributes {
   @override
   bool auraRing(int level) => cityConfig == drCongo;
 
-  // Nigeria (Afrobeat) fires invisible, fast, frequent, low-damage shots.
-  // Everyone else fires a green tracer (E.Europe-style bullet, kit green).
+  // Every attacker fires the green tracer (E.Europe-style bullet, kit green) —
+  // Nigeria's Afrobeat shots included: at stampede tempo they need to be seen.
   @override
-  String get projectilePath => cityConfig == nigeria ?
-      "weapon/empty_bullet.png" : "weapon/ie_green_bullet.png";
+  String get projectilePath => "weapon/ie_green_bullet.png";
 
-  // Kenya's Stampede and Ghana's Gold Road pierce a column of enemies.
+  // The whole region stampedes: every attacker's shots pierce a column.
   @override
-  bool get canHitIntermediateTargets =>
-      cityConfig == kenya || cityConfig == ghana;
+  bool get canHitIntermediateTargets => cityConfig != drCongo;
 
   // Charge attacks fire straight lanes — no homing, and the charge survives
   // its seed target's death.
   @override
-  bool get homingProjectiles =>
-      !(cityConfig == kenya || cityConfig == ghana);
+  bool get homingProjectiles => cityConfig == drCongo;
 
   @override
   int projectileColumns(level) => 1;
@@ -69,11 +66,12 @@ class AfricaSettings extends GemAttributes {
   @override
   int projectileRows(level) => 1;
 
+  // Fat tracer — the old 0.22 x 0.5 was hard to see at charge speeds.
   @override
-  double get projectileSizeX => 0.22;
+  double get projectileSizeX => 0.34;
 
   @override
-  double get projectileSizeY => 0.5;
+  double get projectileSizeY => 0.85;
 
   @override
   bool get projectLoop => false;
@@ -120,7 +118,7 @@ class AfricaSettings extends GemAttributes {
 
   @override
   double baseDamage(int level) => switch (cityConfig) {
-        nigeria => 1.0 + level * 0.35, // low (machine-gun)
+        nigeria => 0.8 + level * 0.28, // low (machine-gun lanes pierce)
         kenya => 6.5 + level * 3.0, // heavy charge
         drCongo => 0.0, // damage comes from the Cobalt aura buff
         ethiopia => 2.5 + level * 0.9, // light hit; the burst/crash does the rest

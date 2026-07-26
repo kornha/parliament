@@ -50,18 +50,20 @@ class ElSalvadorSettings extends GemAttributes {
   double baseDamage(int level) => _base.settings.baseDamage(level);
   @override
   double get projectileSpeed => _base.settings.projectileSpeed;
+  // Don't inherit USA's invisible Deep State bullet (base is NAmerica L6):
+  // CECOT should be seen coming.
   @override
-  String get projectilePath => _base.settings.projectilePath;
+  String get projectilePath => "weapon/finance_bullet.png";
   @override
-  double get projectileSizeX => _base.settings.projectileSizeX;
+  double get projectileSizeX => 0.3;
   @override
-  double get projectileSizeY => _base.settings.projectileSizeY;
+  double get projectileSizeY => 0.85;
   @override
   int projectileColumns(level) => _base.settings.projectileColumns(level);
   @override
   int projectileRows(level) => _base.settings.projectileRows(level);
   @override
-  bool get projectLoop => _base.settings.projectLoop;
+  bool get projectLoop => true;
   @override
   String get explosionImage => _base.settings.explosionImage;
   @override

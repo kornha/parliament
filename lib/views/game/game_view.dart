@@ -29,7 +29,7 @@ class _GameViewState extends ConsumerState<GameView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: context.backgroundColor,
       body: FutureBuilder<void>(
         future: _loadFuture,
         builder: (context, snapshot) {
@@ -45,7 +45,7 @@ class _GameViewState extends ConsumerState<GameView> {
                 child: Text(
                   "Failed to load the game.\n${snapshot.error}",
                   textAlign: TextAlign.center,
-                  style: const TextStyle(color: Colors.white),
+                  style: TextStyle(color: context.primaryColor),
                 ),
               ),
             );
@@ -70,7 +70,7 @@ class _GameViewState extends ConsumerState<GameView> {
                     child: IconButton(
                       padding: EdgeInsets.zero,
                       iconSize: 22,
-                      icon: const Icon(Icons.close, color: Colors.white),
+                      icon: Icon(Icons.close, color: context.primaryColor),
                       tooltip: 'Exit game',
                       onPressed: () => context.go(Feed.location),
                     ),

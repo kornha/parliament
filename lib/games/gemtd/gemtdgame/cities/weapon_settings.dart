@@ -40,16 +40,17 @@ abstract class GemAttributes {
   int projectileColumns(int level) => 1;
   String projectilePath = "weapon/Bullet2.png";
   double projectileStepTime = 0.1;
-  double projectileSizeX = 0.15;
-  double projectileSizeY = 0.7;
+  // Default tracer size — 0.15 wide was hard to see in the field.
+  double projectileSizeX = 0.26;
+  double projectileSizeY = 0.8;
   double projectileSpeed = 4;
   bool projectLoop = true;
   bool canHitIntermediateTargets = true;
 
   // Homing bullets chase their target; non-homing bullets fire a straight
   // lane through the target's position out to full range — used by piercing
-  // charge attacks (Kenya's Stampede, Ghana's Gold Road), which must not
-  // curve after one enemy or die when their seed target does.
+  // charge attacks (all of Africa's Stampede lanes), which must not curve
+  // after one enemy or die when their seed target does.
   bool get homingProjectiles => true;
 
   // explosion, not used in Aura

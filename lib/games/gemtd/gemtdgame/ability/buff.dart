@@ -87,20 +87,24 @@ abstract class Buff {
   // Size of the on-board buff indicator glyph (override per-buff if needed).
   double get iconFontSize => 9;
 
-  //
+  // The glyph is static per buff instance, so lay it out once and reuse —
+  // this runs per buff per gem per frame.
+  TextPainter? _iconPainter;
+
   void render(Canvas c, Offset o, [GameComponent? component]) {
-    TextPainter textPainter = TextPainter(textDirection: TextDirection.ltr);
-    textPainter.text = TextSpan(
-      text: String.fromCharCode(icon.codePoint),
-      style: TextStyle(
-        color: color,
-        fontFamily: icon.fontFamily,
-        fontSize: iconFontSize,
-        package:
-            icon.fontPackage, // This line is mandatory for external icon packs
-      ),
-    );
-    textPainter.layout();
+    final textPainter =
+        _iconPainter ??= (TextPainter(textDirection: TextDirection.ltr)
+          ..text = TextSpan(
+            text: String.fromCharCode(icon.codePoint),
+            style: TextStyle(
+              color: color,
+              fontFamily: icon.fontFamily,
+              fontSize: iconFontSize,
+              // This line is mandatory for external icon packs
+              package: icon.fontPackage,
+            ),
+          )
+          ..layout());
     o = Offset(o.dx - textPainter.width, o.dy - textPainter.height);
     textPainter.paint(c, o);
   }
@@ -1101,33 +1105,6 @@ class Sphinx extends Buff {
           : null;
 }
 
-class BlackGold extends Buff {
-  BlackGold({required super.caster, required super.level});
-
-  @override
-  String name = "Black Gold";
-
-  @override
-  String description = "Slows enemies in range.";
-
-  @override
-  IconData icon = Icons.oil_barrel;
-
-  @override
-  CityType gemType = CityType.MENA;
-
-  static const slowPerLevel = [0.15, 0.20, 0.25, 0.30, 0.35, 0.40];
-
-  @override
-  double? slow(EnemyComponent enemy) => slowPerLevel.getByLevel(level);
-
-  @override
-  double? baseDuration = 0.4;
-
-  @override
-  RenderType get renderType => RenderType.GRID;
-}
-
 class StartupNation extends Buff {
   StartupNation({required super.caster, required super.level});
 
@@ -1523,16 +1500,17 @@ class Star extends Buff {
 
 // Africa (Nairobi) — Stampede: the charge pierces the whole line (bullet never
 // stops) and tramples (slows) everything it passes through.
+// Pure pierce: the charge tramples straight through the line — no slow, no
+// debuff on the enemy; the buff only rides the bullet to keep it from
+// stopping at the first target.
 class StampedeBuff extends Buff {
   StampedeBuff({required super.caster, required super.level});
-
-  static const slowPerLevel = <double>[0.30, 0.35, 0.40, 0.45, 0.50, 0.60];
 
   @override
   String name = "Stampede";
 
   @override
-  String description = "Trampled by the charging herd.";
+  String description = "The herd charges straight through.";
 
   @override
   IconData icon = FontAwesomeIcons.hippo.data;
@@ -1541,16 +1519,13 @@ class StampedeBuff extends Buff {
   CityType gemType = CityType.AFRICA;
 
   @override
-  double? speedModifier(EnemyComponent enemy) => slowPerLevel.getByLevel(level);
-
-  @override
   bool bulletDidHitEnemy(BulletComponent bullet, EnemyComponent enemy) => false;
 
   @override
   double? baseDuration = 1.0;
 
   @override
-  RenderType get renderType => RenderType.GRID;
+  RenderType get renderType => RenderType.NONE;
 }
 
 // Myanmar (Always Be Burma to Me) — while this buff is on an enemy, its OTHER

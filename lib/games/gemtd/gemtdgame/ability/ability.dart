@@ -63,6 +63,12 @@ abstract class Ability {
     }
   }
 
+  // Whether this ability needs the per-frame ally scan (onAuraScan). Gems
+  // with no such ability skip the Radar ally pass entirely (perf). Abilities
+  // that override onAuraScan WITHOUT setting worksOnSelf/alliesAura must
+  // override this to true or their hook will never fire.
+  bool get needsAuraScan => worksOnSelf || alliesAura;
+
   // Only for allies aura, Use onEnemyAttack for enemy aura
   // final Set<GemComponent> _gems = {};
   void onAuraScan(Set<GemComponent> gems) {
@@ -1552,6 +1558,10 @@ class Immigration extends Ability {
 
   int _nearbyCount = 0;
 
+  // Counts neighbors via the scan without any aura flag set.
+  @override
+  bool get needsAuraScan => true;
+
   @override
   void onAuraScan(Set<GemComponent> gems) {
     _nearbyCount = gems
@@ -1622,6 +1632,14 @@ class WallStreet extends Ability {
   void onGemDestroyed(GemComponent gem) {
     timer.cancel();
     super.onGemDestroyed(gem);
+  }
+
+  // Gems leave the board via conversion (combine/downgrade), not destroy —
+  // without this the periodic timer leaks and fires forever.
+  @override
+  void onGemConverted(GemComponent gem) {
+    timer.cancel();
+    super.onGemConverted(gem);
   }
 
   void nextDamage() {

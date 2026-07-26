@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/container.dart';
 import 'package:flutter/src/widgets/framework.dart';
-import 'package:political_think/games/gemtd/common/constants.dart';
 import 'package:political_think/games/gemtd/common/extensions.dart';
 import 'package:political_think/games/gemtd/gemtdgame/cities/gem_component.dart';
 
@@ -38,7 +37,7 @@ class StatsTag extends StatelessWidget {
       text: text,
       sub: Text(
         subtext,
-        style: TextStyle(color: Palette.white, fontSize: 13),
+        style: TextStyle(color: context.foregroundColor, fontSize: 13),
       ),
     );
   }
@@ -53,14 +52,14 @@ class StatsTagBase extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: Decorations.boxDecoration,
+      decoration: context.gBoxDecoration,
       padding: context.pq.copyWith(top: 2, bottom: 2),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
             text,
-            style: TextStyle(color: Palette.lightSlate, fontSize: 13),
+            style: TextStyle(color: context.slate, fontSize: 13),
           ),
           context.sh,
           sub,
@@ -87,7 +86,7 @@ class StatsTagButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: Decorations.boxDecoration,
+      decoration: context.gBoxDecoration,
       child: TextButton(
         onPressed: onPressed,
         child: Flex(
@@ -99,7 +98,7 @@ class StatsTagButton extends StatelessWidget {
           children: [
             Text(
               text,
-              style: const TextStyle(color: Palette.lightSlate, fontSize: 13),
+              style: TextStyle(color: context.slate, fontSize: 13),
             ),
             context.sh,
             sub,
@@ -124,7 +123,7 @@ class StatsTagTextButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: 33,
-      decoration: Decorations.boxDecoration,
+      decoration: context.gBoxDecoration,
       child: TextButton(
         onPressed: onPressed,
         child: Row(
@@ -132,7 +131,7 @@ class StatsTagTextButton extends StatelessWidget {
           children: [
             Text(
               text,
-              style: const TextStyle(color: Palette.lightSlate, fontSize: 13),
+              style: TextStyle(color: context.slate, fontSize: 13),
             ),
           ],
         ),

@@ -67,10 +67,10 @@ class EEuropeSettings extends GemAttributes {
   String get projectilePath => "weapon/tech_bullet.png";
 
   @override
-  double get projectileSizeX => 0.2;
+  double get projectileSizeX => 0.26;
 
   @override
-  double get projectileSizeY => 0.48;
+  double get projectileSizeY => 0.6;
 
   @override
   int get explosionColumns => 1;

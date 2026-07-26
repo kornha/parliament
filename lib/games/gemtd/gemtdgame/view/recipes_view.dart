@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:political_think/games/gemtd/common/constants.dart';
+import 'package:political_think/games/gemtd/common/extensions.dart';
 import 'package:political_think/games/gemtd/common/utils/utils.dart';
 import 'package:political_think/games/gemtd/gemtdgame/cities/gem_component.dart';
 import 'package:political_think/games/gemtd/gemtdgame/game/game_constants.dart';
@@ -70,10 +70,11 @@ class _RecipesViewState extends State<RecipesView> {
   Widget build(BuildContext context) {
     final entries = widget.recipes.entries.toList();
     return Dialog(
-      backgroundColor: Palette.black,
+      backgroundColor: context.backgroundColor,
       insetPadding: const EdgeInsets.all(16),
       shape: RoundedRectangleBorder(
-        side: const BorderSide(color: Palette.white, width: 0.5),
+        side: BorderSide(
+            color: context.foregroundColorTansluscent, width: 0.5),
         borderRadius: BorderRadius.circular(8),
       ),
       child: ConstrainedBox(
@@ -85,24 +86,24 @@ class _RecipesViewState extends State<RecipesView> {
               padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
               child: Row(
                 children: [
-                  const Expanded(
+                  Expanded(
                     child: Text(
                       "Recipes",
                       style: TextStyle(
-                        color: Palette.white,
+                        color: context.foregroundColor,
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.close, color: Palette.white),
+                    icon: Icon(Icons.close, color: context.foregroundColor),
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                 ],
               ),
             ),
-            const Divider(color: Palette.lightSlate, height: 1),
+            Divider(color: context.slate, height: 1),
             Expanded(
               child: ListView.builder(
                 controller: _controller,
@@ -139,7 +140,8 @@ class _RecipeCard extends StatelessWidget {
   final GemComponent special;
   final bool highlighted;
 
-  Widget _chip(String label, String? code, {double size = 34}) {
+  Widget _chip(BuildContext context, String label, String? code,
+      {double size = 34}) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -160,17 +162,18 @@ class _RecipeCard extends StatelessWidget {
             textAlign: TextAlign.center,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(color: Palette.lightSlate, fontSize: 9),
+            style: TextStyle(color: context.slate, fontSize: 9),
           ),
         ),
       ],
     );
   }
 
-  Widget _op(String s, double fontSize) => Padding(
+  Widget _op(BuildContext context, String s, double fontSize) => Padding(
         padding: const EdgeInsets.symmetric(horizontal: 3),
         child: Text(s,
-            style: TextStyle(color: Palette.white, fontSize: fontSize)),
+            style: TextStyle(
+                color: context.foregroundColor, fontSize: fontSize)),
       );
 
   @override
@@ -180,11 +183,13 @@ class _RecipeCard extends StatelessWidget {
 
     final row = <Widget>[];
     for (var i = 0; i < cities.length; i++) {
-      row.add(_chip(cities[i], GameConstants.countryCodeForName(cities[i])));
-      if (i < cities.length - 1) row.add(_op("+", 14));
+      row.add(_chip(
+          context, cities[i], GameConstants.countryCodeForName(cities[i])));
+      if (i < cities.length - 1) row.add(_op(context, "+", 14));
     }
-    row.add(_op("=", 16));
+    row.add(_op(context, "=", 16));
     row.add(_chip(
+      context,
       special.name,
       special.countryCodes.isNotEmpty ? special.countryCodes.first : null,
       size: 42,
@@ -194,11 +199,13 @@ class _RecipeCard extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: highlighted ? Palette.white.withOpacity(0.08) : null,
+        color: highlighted
+            ? context.accentColor.withOpacity(0.08)
+            : null,
         border: Border.all(
           color: highlighted
-              ? Palette.white
-              : Palette.lightSlate.withOpacity(0.4),
+              ? context.accentColor
+              : context.slate.withOpacity(0.4),
           width: highlighted ? 1.0 : 0.4,
         ),
         borderRadius: BorderRadius.circular(6),
@@ -216,7 +223,7 @@ class _RecipeCard extends StatelessWidget {
               desc,
               maxLines: 3,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(color: Palette.lightSlate, fontSize: 11),
+              style: TextStyle(color: context.slate, fontSize: 11),
             ),
           ),
         ],

@@ -73,7 +73,7 @@ class AbilityView {
               )
             ],
           ),
-          const Divider(color: Palette.lightSlate),
+          Divider(color: context.slate),
           // Expanded keeps the panel a consistent height regardless of how
           // much (or little) ability/buff text there is.
           Expanded(
@@ -121,7 +121,7 @@ class _DetailCard extends StatelessWidget {
     return SizedBox(
       width: _width,
       child: Container(
-        decoration: Decorations.boxDecoration,
+        decoration: context.gBoxDecoration,
         padding: context.pq,
         child: SingleChildScrollView(
           child: Column(
@@ -136,8 +136,8 @@ class _DetailCard extends StatelessWidget {
                   Expanded(
                     child: Text(
                       title,
-                      style:
-                          const TextStyle(color: Palette.white, fontSize: 16),
+                      style: TextStyle(
+                          color: context.foregroundColor, fontSize: 16),
                     ),
                   ),
                 ],
@@ -145,8 +145,8 @@ class _DetailCard extends StatelessWidget {
               context.sq,
               Text(
                 description,
-                style: const TextStyle(
-                  color: Palette.lightSlate,
+                style: TextStyle(
+                  color: context.slate,
                   fontSize: 13,
                 ),
               ),
@@ -154,8 +154,8 @@ class _DetailCard extends StatelessWidget {
                 context.sq,
                 Text(
                   subDescription!,
-                  style: const TextStyle(
-                    color: Palette.lightSlate,
+                  style: TextStyle(
+                    color: context.slate,
                     fontSize: 13,
                   ),
                 ),

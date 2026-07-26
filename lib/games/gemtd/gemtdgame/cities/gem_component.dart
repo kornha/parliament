@@ -311,6 +311,13 @@ abstract class GemComponent extends GameComponent
     }
   }
 
+  // Shared across rings and frames — only the color changes per stroke.
+  static final Paint _auraRingPaint = Paint()
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 2.5
+    ..strokeJoin = StrokeJoin.round
+    ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 1.5);
+
   @override
   void render(Canvas canvas) {
     // Aura towers emit a soft, flag-colored ripple out to their range — but
@@ -346,11 +353,7 @@ abstract class GemComponent extends GameComponent
         path.close();
         canvas.drawPath(
           path,
-          Paint()
-            ..style = PaintingStyle.stroke
-            ..strokeWidth = 2.5
-            ..strokeJoin = StrokeJoin.round
-            ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 1.5)
+          _auraRingPaint
             ..color = color.withOpacity(
                 (0.55 * presence * (1.0 - 0.5 * p)).clamp(0.0, 1.0)),
         );
@@ -507,7 +510,10 @@ abstract class GemComponent extends GameComponent
     radarScanAlert = onEnemyAttack;
     radarScanNothing = null;
     radarCollisionDepth = 0;
-    radarScanAllies = onGemScan;
+    // Only towers whose abilities use the ally scan register for it — the
+    // Radar skips the whole per-frame ally pass when this is null.
+    radarScanAllies =
+        abilities.any((a) => a.needsAuraScan) ? onGemScan : null;
     abilities.forEach((element) {
       element.onGemBuilt(this);
     });

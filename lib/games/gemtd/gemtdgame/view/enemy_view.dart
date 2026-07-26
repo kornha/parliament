@@ -80,7 +80,7 @@ class _EnemyViewState extends State<EnemyView> {
     return Column(
       children: [
         StatsRow(stats: stats),
-        const Divider(color: Palette.white, thickness: 4),
+        Divider(color: context.foregroundColorTansluscent, thickness: 1),
         context.sq,
         Expanded(
           child: Row(
@@ -142,7 +142,9 @@ class _EnemyViewState extends State<EnemyView> {
                     children: [
                       Text(
                         EnemyView.selected?.settings.name ?? "",
-                        style: TextConstants.hackneySmall,
+                        style: TextConstants.hackneySmall.copyWith(
+                          color: context.foregroundColor,
+                        ),
                       ),
                       context.sq,
                       EnemyView.selected == null
@@ -153,7 +155,7 @@ class _EnemyViewState extends State<EnemyView> {
                               child: CircularPercentIndicator(
                                 animationDuration: 20,
                                 radius: 35,
-                                backgroundColor: Palette.darkSlate,
+                                backgroundColor: context.slate,
                                 percent: EnemyView.selected!.life < 0
                                     ? 0
                                     : EnemyView.selected!.life /
@@ -167,7 +169,8 @@ class _EnemyViewState extends State<EnemyView> {
                                                     100)
                                                 .toStringAsFixed(0) +
                                             "%",
-                                    style: TextStyle(color: Colors.white)),
+                                    style: TextStyle(
+                                        color: context.foregroundColor)),
                                 progressColor: EnemyView
                                     .selected!.settings.gemType
                                     .color(),

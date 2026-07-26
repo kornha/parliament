@@ -210,7 +210,7 @@ class KPop extends Ability {
   String get subDescription =>
       "${KPopBuff.fraction.join("/")}x attack speed, damage divided by "
       "the same.\n"
-      "All chance abilities proc 100%; debuff durations reduced 75%.";
+      "All chance abilities proc 100%; debuff durations reduced 94%.";
 
   @override
   bool get worksOnSelf => true;
@@ -229,7 +229,7 @@ class KPop extends Ability {
 class KPopBuff extends bf.Buff {
   KPopBuff({required super.caster, required super.level});
 
-  static const fraction = <double>[10.0, 11.5, 13.0, 14.5, 16.0, 18.0];
+  static const fraction = <double>[12.0, 13.5, 15.0, 16.5, 18.0, 20.0];
 
   @override
   String name = "K-Pop";
@@ -255,9 +255,10 @@ class KPopBuff extends bf.Buff {
   double? get chanceMultiplier => 100.0;
 
   // Cuts its own debuff durations hard — Khan's stun lands every hit but only
-  // as a microstun, so the lockdown comes from frequency, not duration.
+  // as a true microstun (~0.06-0.09s), so the lockdown comes entirely from
+  // frequency, never duration.
   @override
-  double? get buffMultiplier => 0.12;
+  double? get buffMultiplier => 0.06;
 
   @override
   double? baseDuration = 1.0;

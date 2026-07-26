@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:political_think/games/gemtd/common/constants.dart';
 import 'package:political_think/games/gemtd/common/extensions.dart';
 
 class GemViewContainer extends StatelessWidget {
@@ -19,14 +18,14 @@ class GemViewContainer extends StatelessWidget {
       width: width,
       height: height,
       padding: context.ph.copyWith(bottom: context.sf.height),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         border: Border(
           top: BorderSide(
-            color: Palette.white,
-            width: 0.2,
+            color: context.foregroundColorTansluscent,
+            width: 0.5,
           ),
         ),
-        color: Palette.black,
+        color: context.backgroundColor,
       ),
       child: child,
     );

@@ -48,7 +48,9 @@ extension MediaQueryExt on BuildContext {
 
   Brightness get brightness => MediaQuery.of(this).platformBrightness;
 
-  bool get isDarkMode => brightness == Brightness.dark;
+  // Follow the APP's active theme (Parliament's ZTheme on the MaterialApp),
+  // not the OS setting — the game UI must match the surrounding app chrome.
+  bool get isDarkMode => Theme.of(this).brightness == Brightness.dark;
 }
 
 extension ThemeExt on BuildContext {
@@ -84,6 +86,16 @@ extension ThemeExt on BuildContext {
   Color get scaffoldBackgroundColor => Theme.of(this).scaffoldBackgroundColor;
 
   Color get slate => isDarkMode ? Palette.darkSlate : Palette.lightSlate;
+
+  // The app's terminal-green accent (ZTheme colorScheme.secondary).
+  Color get accentColor => Theme.of(this).colorScheme.secondary;
+
+  // Themed replacement for the static Decorations.boxDecoration (which was
+  // hardcoded to a white border and only worked on dark backgrounds).
+  Decoration get gBoxDecoration => BoxDecoration(
+        borderRadius: BRadius.least,
+        border: Border.all(color: foregroundColorTansluscent, width: 0.5),
+      );
 
   AppBarThemeData get appBarTheme => Theme.of(this).appBarTheme;
 

@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:political_think/games/gemtd/common/constants.dart';
-import 'package:neumorphic_button/neumorphic_button.dart';
+import 'package:political_think/games/gemtd/common/extensions.dart';
 
+// Flat action button matching the app's terminal style: thin hairline border,
+// small radius, no shadows. The fill color carries the action's meaning
+// (destroy/confirm/upgrade/special).
 class GTextButton extends StatelessWidget {
   final IconData icon;
   final bool isActive;
@@ -23,22 +26,35 @@ class GTextButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var onPress = isActive ? onPressed : null;
-    return NeumorphicButton(
-      //TODO adjust shadow colors
-      topLeftShadowColor: Colors.grey.shade900,
-      bottomRightShadowColor: Colors.grey.shade800,
-      borderRadius: Curvature.least.x,
-      width: small ? Constants.smallButtonWidth : Constants.textButtonWidth,
-      height: small ? Constants.smallButtonHeight : Constants.textButtonHeight,
-      padding: EdgeInsets.zero,
-      margin: EdgeInsets.zero,
-      backgroundColor: color,
-      onTap: onPress ?? () {},
-      child: Icon(
-        icon,
-        color: iconColor,
-        size: 20,
+    final onPress = isActive ? onPressed : null;
+    return Opacity(
+      opacity: isActive ? 1.0 : 0.4,
+      child: Material(
+        color: color,
+        borderRadius: BRadius.least,
+        child: InkWell(
+          borderRadius: BRadius.least,
+          onTap: onPress,
+          child: Container(
+            width:
+                small ? Constants.smallButtonWidth : Constants.textButtonWidth,
+            height: small
+                ? Constants.smallButtonHeight
+                : Constants.textButtonHeight,
+            decoration: BoxDecoration(
+              borderRadius: BRadius.least,
+              border: Border.all(
+                color: context.foregroundColorTansluscent,
+                width: 0.5,
+              ),
+            ),
+            child: Icon(
+              icon,
+              color: iconColor,
+              size: 20,
+            ),
+          ),
+        ),
       ),
     );
   }

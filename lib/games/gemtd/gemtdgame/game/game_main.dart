@@ -19,6 +19,15 @@ class GameMain extends FlameGame with WidgetsBindingObserver {
   late EnemyFactory enemyFactory;
   late GameStats gameStats;
 
+  // Set from GemTDGame.build so the canvas + HUD text match the app's
+  // light/dark theme (Flame repaints backgroundColor every frame, so theme
+  // switches take effect live).
+  Color canvasColor = const Color(0xFF000000);
+  Color hudTextColor = Colors.white70;
+
+  @override
+  Color backgroundColor() => canvasColor;
+
   bool started = false;
   bool loadDone = false;
 

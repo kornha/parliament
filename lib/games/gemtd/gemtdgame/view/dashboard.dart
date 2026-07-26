@@ -75,7 +75,7 @@ class _DashboardState extends State<Dashboard> {
   Widget _gemView(BuildContext context, GameStats stats) => Column(
         children: [
           StatsRow(stats: stats),
-          const Divider(color: Palette.white, thickness: 4),
+          Divider(color: context.foregroundColorTansluscent, thickness: 1),
           context.sq,
           Expanded(
             child: Row(
@@ -130,6 +130,7 @@ class _DashboardState extends State<Dashboard> {
                           overflow: TextOverflow.ellipsis,
                           style: TextConstants.hackneySmall.copyWith(
                             fontSize: 13,
+                            color: context.foregroundColor,
                           ),
                         ),
                         (Dashboard.selectedGem?.countryCodes.isNotEmpty ??

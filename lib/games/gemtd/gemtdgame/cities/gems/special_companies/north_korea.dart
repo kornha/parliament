@@ -89,6 +89,10 @@ class NorthKoreaSettings extends GemAttributes {
 class Juche extends Ability {
   Juche({required super.caster, required super.level});
 
+  // Strips foreign buffs via the scan without any aura flag set.
+  @override
+  bool get needsAuraScan => true;
+
   @override
   void onAuraScan(Set<GemComponent> gems) {
     caster.buffs.removeWhere((b) => b.caster != caster);

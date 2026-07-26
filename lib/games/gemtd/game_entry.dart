@@ -1,6 +1,7 @@
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:political_think/games/gemtd/common/constants.dart';
+import 'package:political_think/games/gemtd/common/extensions.dart';
 import 'package:political_think/games/gemtd/common/utils/utils.dart';
 import 'package:political_think/games/gemtd/gemtdgame/ability/buff.dart';
 import 'package:political_think/games/gemtd/gemtdgame/game/game_main.dart';
@@ -45,12 +46,16 @@ class _GemTDGameState extends State<GemTDGame> {
 
   @override
   Widget build(BuildContext context) {
+    // Keep the Flame canvas + HUD in sync with the app's light/dark theme.
+    _game.canvasColor = context.backgroundColor;
+    _game.hudTextColor = context.foregroundColorTansluscent;
+
     // The game is laid out for a portrait phone (8x11 tile map + bottom
     // dashboard ≈ a 1:2 width:height shape). Constrain it to a centered
     // portrait box so it always receives the aspect ratio it expects, and is
-    // centered (with black letterboxing) on wide/desktop screens.
+    // centered (letterboxed in the app's background color) on wide screens.
     return Container(
-      color: Palette.black,
+      color: context.backgroundColor,
       child: Center(
         child: AspectRatio(
           aspectRatio: 0.5,
@@ -75,92 +80,122 @@ class _GemTDGameState extends State<GemTDGame> {
   }
 
   Widget _pauseMenuBuilder(BuildContext buildContext, GameMain game) {
-    return Center(
-        child: Container(
-      width: 100,
-      height: 100,
-      color: Colors.orange,
-      child: Center(
-          child: TextButton(
-        style: TextButton.styleFrom(
-          foregroundColor: Colors.white,
-          padding: const EdgeInsets.all(16.0),
-          textStyle: const TextStyle(fontSize: 20),
-        ),
-        onPressed: () {
-          game.start();
-          game.overlays.remove('start');
-        },
-        child: const Text('Start'),
-      )),
-    ));
+    return _menuCard(
+      context: buildContext,
+      title: 'GemTD',
+      titleColor: buildContext.accentColor,
+      body: const [],
+      buttonLabel: 'Start',
+      onPressed: () {
+        game.start();
+        game.overlays.remove('start');
+      },
+    );
   }
 
   Widget _gameOverBuilder(BuildContext buildContext, GameMain game) =>
       _endScreen(
+        context: buildContext,
         game: game,
         overlayName: 'gameover',
-        color: Colors.red,
+        titleColor: Theme.of(buildContext).colorScheme.error,
         title: 'The World Ended',
       );
 
   Widget _gameWonBuilder(BuildContext buildContext, GameMain game) =>
       _endScreen(
+        context: buildContext,
         game: game,
         overlayName: 'gamewon',
-        color: Colors.green,
+        titleColor: buildContext.accentColor,
         title: 'You Outlasted the Apocalypse',
       );
 
   // Shared end-of-run screen: the score is the highest capital held during the
   // run, alongside the wave reached.
   Widget _endScreen({
+    required BuildContext context,
     required GameMain game,
     required String overlayName,
-    required Color color,
+    required Color titleColor,
     required String title,
   }) {
     final stats = game.gameStats;
+    return _menuCard(
+      context: context,
+      title: title,
+      titleColor: titleColor,
+      body: [
+        Text(
+          'Score: ${Utils.getFormattedCapital(stats.maxCapital)}',
+          style: TextStyle(color: context.foregroundColor, fontSize: 16),
+        ),
+        Text(
+          'Wave: ${stats.wave}',
+          style: TextStyle(color: context.slate, fontSize: 14),
+        ),
+      ],
+      buttonLabel: 'Restart',
+      onPressed: () {
+        game.overlays.remove(overlayName);
+        game.resumeEngine();
+        _restartGame();
+      },
+    );
+  }
+
+  // Menu chrome matching the app: theme surface, thin border, Minecart title,
+  // terminal-green action.
+  Widget _menuCard({
+    required BuildContext context,
+    required String title,
+    required Color titleColor,
+    required List<Widget> body,
+    required String buttonLabel,
+    required VoidCallback onPressed,
+  }) {
     return Center(
-        child: Container(
-      padding: const EdgeInsets.all(16.0),
-      color: color,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            title,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+        decoration: BoxDecoration(
+          color: context.backgroundColor,
+          borderRadius: BRadius.standard,
+          border: Border.all(color: context.foregroundColorTansluscent),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: TextConstants.hackneySmall.copyWith(
+                color: titleColor,
+                fontSize: 20,
+              ),
             ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Score: ${Utils.getFormattedCapital(stats.maxCapital)}',
-            style: const TextStyle(color: Colors.white, fontSize: 16),
-          ),
-          Text(
-            'Wave: ${stats.wave}',
-            style: const TextStyle(color: Colors.white, fontSize: 16),
-          ),
-          TextButton(
-            style: TextButton.styleFrom(
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.all(16.0),
-              textStyle: const TextStyle(fontSize: 20),
+            if (body.isNotEmpty) const SizedBox(height: 8),
+            ...body,
+            const SizedBox(height: 8),
+            TextButton(
+              style: TextButton.styleFrom(
+                foregroundColor: context.accentColor,
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 16.0, vertical: 8.0),
+                textStyle: const TextStyle(
+                  fontSize: 18,
+                  fontFamily: "Avenir",
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BRadius.least,
+                  side: BorderSide(color: context.accentColor, width: 1),
+                ),
+              ),
+              onPressed: onPressed,
+              child: Text(buttonLabel),
             ),
-            onPressed: () {
-              game.overlays.remove(overlayName);
-              game.resumeEngine();
-              _restartGame();
-            },
-            child: const Text('Restart'),
-          ),
-        ],
+          ],
+        ),
       ),
-    ));
+    );
   }
 }

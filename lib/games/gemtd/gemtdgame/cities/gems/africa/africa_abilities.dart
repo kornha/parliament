@@ -1,20 +1,30 @@
 part of 'africa.dart';
 
-// Africa — "The Wild": no shared spine; each country IS its own African icon.
+// Africa — "The Wild": every attacker charges in a straight piercing lane
+// (Stampede), each country layering its own icon on top.
 // Ghana(Juju) -> Ethiopia(Caffeination) -> DR Congo(Cobalt) ->
-// Kenya(Stampede) -> Nigeria(Afrobeat) -> South Africa(Great White).
+// Kenya(heavy charge) -> Nigeria(Afrobeat machine-gun) ->
+// South Africa(Great White).
 Set<Ability> africa_abilities(AfricaSettings settings, int level,
         GemComponent caster, CityConfig config) =>
     switch (config) {
       ghana => {
           Juju(level: level, caster: caster),
-          GoldRoad(level: level, caster: caster),
+          Stampede(level: level, caster: caster),
         },
-      ethiopia => {Caffeination(level: level, caster: caster)},
+      ethiopia => {
+          Caffeination(level: level, caster: caster),
+          Stampede(level: level, caster: caster),
+        },
       drCongo => {Cobalt(level: level, caster: caster)},
       kenya => {Stampede(level: level, caster: caster)},
-      nigeria => {Afrobeat(level: level, caster: caster)},
-      southAfrica => {GreatWhite(level: level, caster: caster)},
+      // Nigeria (Afrobeat) is pure tempo: rapid low-damage stampede shots —
+      // the machine-gun stats live in AfricaSettings, no extra ability.
+      nigeria => {Stampede(level: level, caster: caster)},
+      southAfrica => {
+          GreatWhite(level: level, caster: caster),
+          Stampede(level: level, caster: caster),
+        },
       _ => throw UnimplementedError(
           'Unknown ability for level $level and config $config'),
     };
@@ -52,7 +62,8 @@ class GreatWhite extends Ability {
   CityType gemType = CityType.AFRICA;
 }
 
-// Kenya — Stampede: a heavy, slow, piercing charge that tramples the line.
+// Stampede — the region's shared charge: a straight-lane shot that pierces
+// every enemy in its path (no homing, no slow — just the trample).
 class Stampede extends Ability {
   Stampede({required super.caster, required super.level});
 
@@ -67,44 +78,14 @@ class Stampede extends Ability {
 
   @override
   String description =
-      "A piercing charge that tramples and slows the whole line.";
+      "A straight charge that pierces every enemy in its path.";
 
   @override
   String get subDescription =>
-      "Pierces all enemies; ${bf.StampedeBuff.slowPerLevel.map((e) => "${(e * 100).toStringAsFixed(0)}%").join("/")} slow.";
+      "Shots fly straight and never stop at the first target.";
 
   @override
   IconData icon = FontAwesomeIcons.hippo.data;
-
-  @override
-  CityType gemType = CityType.AFRICA;
-}
-
-// Ghana — Gold Road: the trans-Saharan trade route — shots travel the whole
-// line, piercing every enemy in their path (the region's pierce, at tier 1).
-class GoldRoad extends Ability {
-  GoldRoad({required super.caster, required super.level});
-
-  @override
-  bool get worksOnEnemies => true;
-
-  @override
-  bf.Buff? get buff => bf.Pierce(caster: caster, level: level)
-    ..name = name
-    ..icon = icon
-    ..gemType = gemType;
-
-  @override
-  String name = "Gold Road";
-
-  @override
-  String description = "Shots pierce through every enemy in their path.";
-
-  @override
-  String get subDescription => "Projectiles never stop at the first target.";
-
-  @override
-  IconData icon = FontAwesomeIcons.road.data;
 
   @override
   CityType gemType = CityType.AFRICA;
@@ -140,60 +121,6 @@ class Juju extends Ability {
 
   @override
   IconData icon = FontAwesomeIcons.frog.data;
-
-  @override
-  CityType gemType = CityType.AFRICA;
-}
-
-// Nigeria — Afrobeat: a fast machine-gun whose tempo (attack speed) randomly
-// re-rolls every 1.5s, with invisible fast projectiles and low damage.
-class Afrobeat extends Ability {
-  Afrobeat({required super.caster, required super.level}) {
-    timer = Timer.periodic(const Duration(milliseconds: 1500), (_) => nextTempo());
-  }
-
-  late final Timer timer;
-  static const tempoPerLevel = [1.6, 1.7, 1.8, 1.9, 2.0, 2.2];
-  double _multiple = 1.0;
-
-  void nextTempo() {
-    final hi = tempoPerLevel.getByLevel(level);
-    _multiple = (hi - 1 / hi) * Random().nextDouble() + 1 / hi;
-  }
-
-  @override
-  void onGemDestroyed(GemComponent gem) {
-    timer.cancel();
-    super.onGemDestroyed(gem);
-  }
-
-  @override
-  GameComponent? onEnemyAttack(GemComponent gem, EnemyComponent primaryTarget,
-      Set<GameComponent> targets) {
-    gem.buffs.add(bf.AttackSpeedMultiple(
-      caster: caster,
-      level: level,
-      overrideMultiplier: _multiple,
-      overrideDurationType: bf.DurationType.ATTACK,
-    )
-      ..name = name
-      ..gemType = gemType);
-    return null;
-  }
-
-  @override
-  String name = "Afrobeat";
-
-  @override
-  String description =
-      "A fast, fluctuating drumbeat of attacks (random tempo, low damage).";
-
-  @override
-  String get subDescription =>
-      "Random tempo up to ${tempoPerLevel.map((e) => "${e}x").join("/")}.";
-
-  @override
-  IconData icon = FontAwesomeIcons.drum.data;
 
   @override
   CityType gemType = CityType.AFRICA;

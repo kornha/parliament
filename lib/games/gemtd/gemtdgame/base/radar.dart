@@ -30,8 +30,9 @@ mixin Radar<T> on GameComponent {
           .where((e) => ((e is T) && ((e as GameComponent).active)))
           .cast();
 
-      // We currently only allow towers to ally scan for towers
-      if (this is GemComponent) {
+      // We currently only allow towers to ally scan for towers — and only
+      // towers that registered a callback pay for the pass.
+      if (this is GemComponent && radarScanAllies != null) {
         Iterable<GemComponent> _allies = targets
             .where((element) => element is GemComponent && collision(element))
             .cast();
@@ -46,12 +47,6 @@ mixin Radar<T> on GameComponent {
               !(this is GemComponent && value is GemComponent) &&
               _collisionTest(value as GameComponent))
           .forEach((element) {});
-
-      if (radarScanClosest) {
-        _allTargets.toList().sort((a, b) => position
-            .distanceTo(b.position)
-            .compareTo(position.distanceTo(a.position)));
-      }
 
       if (_bestTarget != null) {
         radarScanAlert?.call(_bestTarget!, _allTargets);

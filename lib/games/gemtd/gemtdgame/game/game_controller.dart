@@ -77,14 +77,20 @@ class GameController extends GameComponent {
   /* Process Routine */
   // do we need to dt this??
   void processRadarScan() {
-    Iterable<Component> radars =
-        children.where((e) => e is Radar && e.radarOn).cast();
-    Iterable<Component> scanbles =
-        children.where((e) => e is Scanable && e.scanable).cast();
+    // Materialize both lists in a single pass: the lazy .where() iterables
+    // used to be re-evaluated 2-3x inside every radarScan, and every bullet/
+    // aura/explosion is a radar — with hundreds of children this dominated
+    // the frame cost.
+    final List<Radar> radars = [];
+    final List<Component> scanbles = [];
+    for (final c in children) {
+      if (c is Radar && c.radarOn) radars.add(c);
+      if (c is Scanable && c.scanable) scanbles.add(c);
+    }
 
-    radars.forEach((element) {
-      (element as Radar).radarScan(scanbles);
-    });
+    for (final radar in radars) {
+      radar.radarScan(scanbles);
+    }
   }
 
   void processEnemySmartMove() {

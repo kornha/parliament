@@ -186,9 +186,16 @@ class EnemyComponent extends GameComponent
 
   // The tail's color reflects the enemy's active abilities (combined) — debuffs
   // read as color instead of icons. No abilities => the enemy's own body color
-  // (green globe -> green tail).
+  // (green globe -> green tail). Cached per buff-set change: recomputing (and
+  // iterating buffs) every frame for every enemy adds up in swarms.
+  Color? _cachedTailColor;
+  int _tailColorBuffCount = -1;
+
   Color _tailColor() {
     if (buffs.isEmpty) return settings.color;
+    if (_cachedTailColor != null && buffs.length == _tailColorBuffCount) {
+      return _cachedTailColor!;
+    }
     double r = 0, g = 0, b = 0;
     for (final buff in buffs) {
       final col = buff.color;
@@ -197,9 +204,14 @@ class EnemyComponent extends GameComponent
       b += col.blue;
     }
     final n = buffs.length;
-    return Color.fromARGB(
+    _tailColorBuffCount = n;
+    return _cachedTailColor = Color.fromARGB(
         255, (r / n).round(), (g / n).round(), (b / n).round());
   }
+
+  // Reused across frames — a fresh Paint per blob per enemy per frame is
+  // needless GC churn.
+  static final Paint _tailPaint = Paint();
 
   // A motion-blur tail: fading colored blobs along the enemy's recent path.
   void _renderTail(Canvas c) {
@@ -218,8 +230,8 @@ class EnemyComponent extends GameComponent
       final t = j / (len - 1); // 0 = oldest, 1 = newest
       final radius = size.x * (0.12 + 0.28 * t);
       final alpha = (0.38 * t).clamp(0.0, 1.0);
-      c.drawCircle(
-          local.toOffset(), radius, Paint()..color = col.withOpacity(alpha));
+      c.drawCircle(local.toOffset(), radius,
+          _tailPaint..color = col.withOpacity(alpha));
     }
     c.restore();
   }
