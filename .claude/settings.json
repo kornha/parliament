@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(flutter analyze)",
+      "Bash(flutter analyze *)",
+      "Bash(npx firebase-tools functions:log *)",
+      "Bash(firebase functions:log *)",
+      "Bash(npm run lint)",
+      "Bash(npm run typecheck)",
+      "Bash(./node_modules/.bin/tsc --noEmit)",
+      "Bash(./node_modules/.bin/tsc --noEmit *)",
+      "Bash(flutter test *)",
+      "Bash(gcloud logging read *)",
+      "Bash(node --check *)"
+    ]
+  }
+}
