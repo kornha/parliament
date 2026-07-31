@@ -104,13 +104,23 @@ const onPostShouldFindStories = async function(post, depth) {
       gstory.happenedAt = isoToMillis(gstory.happenedAt);
     }
 
+    // Time fields are established ONCE at story creation and never rewritten
+    // by later joins: createdAt = when coverage started (doc creation),
+    // happenedAt = when the event happened. Rewriting them on every join
+    // dragged old stories' event times toward the newest reaction post and
+    // reset coverage start to "now" — which both misdated stories and
+    // neutered the findStories time lock (it compares against these fields).
     const storyData = {
       title: gstory.title,
       description: gstory.description,
       updatedAt: Timestamp.now().toMillis(),
-      createdAt: Timestamp.now().toMillis(),
       photos: gstory.photos ?? [],
-      happenedAt: gstory.happenedAt,
+      // Coverage frontier: the newest post's platform timestamp. This is the
+      // rolling anchor the findStories time lock uses so continuously-covered
+      // stories stay joinable while dormant ones age out. (Joins are roughly
+      // chronological — a rare out-of-order old post narrows the window,
+      // which errs toward splitting rather than franken-stories.)
+      ...(post.sourceCreatedAt && {lastPostAt: post.sourceCreatedAt}),
       ...(location && {location: location}),
     };
 
@@ -126,6 +136,8 @@ const onPostShouldFindStories = async function(post, depth) {
         createStory({
           sid: sid,
           ...storyData,
+          createdAt: Timestamp.now().toMillis(),
+          happenedAt: gstory.happenedAt,
           status: "draft",
           pids: [post.pid],
           // Inherit the seeding post's gather budget so gathered posts spawn

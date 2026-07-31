@@ -64,10 +64,45 @@ const _launchOptions = {
 const scrapeXFeed = async function(feedUrl, limit) {
   logger.info(`Started scraping X feed. ${feedUrl} (limit=${limit})`);
 
+  // Phase timings: production runs bill ~2x the scroll budget, so log where
+  // the time goes (launch/login vs scroll) to guide further trims.
+  const t0 = Date.now();
   const browser = await puppeteer.launch(_launchOptions);
   try {
     const page = await browser.newPage();
+
+    // Harvest tweet payloads straight from the timeline's GraphQL responses
+    // (see FEED_PAYLOAD_HARVEST). Listener survives navigations, so attach
+    // once before login.
+    const tweetItems = new Map(); // xid -> item
+    page.on("response", async (response) => {
+      try {
+        if (response.request().method() === "OPTIONS" ||
+          response.status() === 204) {
+          return;
+        }
+        if (!response.url().includes("graphql")) {
+          return;
+        }
+        if (!response.headers()["content-type"]?.includes(
+            "application/json")) {
+          return;
+        }
+        const body = await response.json();
+        for (const tweetData of extractTimelineTweets(body)) {
+          const item = tweetDataToItem(tweetData);
+          if (item) {
+            tweetItems.set(item.xid, item);
+          }
+        }
+      } catch (e) {
+        // response bodies can be unavailable after navigation; harvest is
+        // best-effort and the bare-link path covers misses
+      }
+    });
+
     await connectToX(page);
+    const connectMillis = Date.now() - t0;
 
     // Only the home feed has a "Following" tab — don't hunt for it on
     // account/trending pages (it just logs misleading warnings there).
@@ -79,11 +114,23 @@ const scrapeXFeed = async function(feedUrl, limit) {
     await page.setViewport({width: 1280, height: 2400});
 
     let count = 0;
+    let payloadHits = 0;
     for await (const link of autoScrollX(page, feedUrl, false, 45000,
         isHomeFeed)) {
-      await publishMessage(SHOULD_PROCESS_LINK, {link});
+      const item = tweetItems.get(link.split("/").pop());
+      if (item) {
+        payloadHits++;
+      }
+      if (FEED_PAYLOAD_HARVEST && item) {
+        await publishMessage(SHOULD_PROCESS_LINK, {link, item});
+      } else {
+        await publishMessage(SHOULD_PROCESS_LINK, {link});
+      }
       if (++count >= limit) break; // ⬅️ stop after “limit” links
     }
+
+    logger.info(`Feed payload coverage: ${payloadHits}/${count} links ` +
+      `(harvest ${FEED_PAYLOAD_HARVEST ? "on" : "shadow"}).`);
 
     // An empty scrape means X served something unexpected — capture what.
     if (count === 0) {
@@ -91,7 +138,10 @@ const scrapeXFeed = async function(feedUrl, limit) {
     }
 
     logger.info(`Finished scraping X feed after processing ${count}
-      link${count !== 1 ? "s" : ""}.`);
+      link${count !== 1 ? "s" : ""} ` +
+      `(connect=${connectMillis}ms, ` +
+      `scroll=${Date.now() - t0 - connectMillis}ms, ` +
+      `total=${Date.now() - t0}ms).`);
   } catch (error) {
     logger.error("Error in scrapeXFeed:", error);
     throw error;
@@ -308,9 +358,10 @@ const selectFollowingTab = async function(page) {
   try {
     // The tabs hydrate late on cold starts — wait for the tablist itself
     // instead of hoping the page settled already. Throws into the catch
-    // below (graceful fallback) if it never appears.
+    // below (graceful fallback) if it never appears. 8s covers healthy
+    // hydration; longer waits just billed idle time before the fallback.
     await page.waitForSelector("[role='tablist'] [role='tab']",
-        {timeout: 15000});
+        {timeout: 8000});
     const result = await page.evaluate(() => {
       // eslint-disable-next-line no-undef
       const tabs = Array.from(document.querySelectorAll(
@@ -363,10 +414,14 @@ const logXPageDiagnostics = async function(page, url) {
         `articles=${diag.articles} articleLinks=${diag.links} ` +
         `tabs=${diag.tabs} ` +
         `bodyPreview="${diag.bodyPreview.replace(/\s+/g, " ")}"`);
-    const shot = await page.screenshot();
-    const path = `debug/xscrape-${Date.now()}.png`;
-    await setContent(path, shot, "image/png");
-    logger.warn(`X scrape screenshot saved to storage: ${path}`);
+    // Screenshots cost capture time + storage on every empty run; the text
+    // diagnostics above cover most triage, so only sample screenshots.
+    if (Math.random() < 0.2) {
+      const shot = await page.screenshot();
+      const path = `debug/xscrape-${Date.now()}.png`;
+      await setContent(path, shot, "image/png");
+      logger.warn(`X scrape screenshot saved to storage: ${path}`);
+    }
   } catch (error) {
     logger.warn(`Could not capture X scrape diagnostics: ${error.message}`);
   }
@@ -393,6 +448,7 @@ const autoScrollX = async function* (
 ) {
   const uniqueLinksSeen = new Set();
   const responses = [];
+  let timelineRendered = true;
 
   if (yieldResponses) {
     page.on("response", async (response) => {
@@ -423,25 +479,32 @@ const autoScrollX = async function* (
     // Wait for the timeline to actually render instead of trusting a fixed
     // delay — cold containers hydrate X slowly and a 4s sleep often lost the
     // race. One reload retry covers X's occasional empty-shell serve.
-    const timelineReady = async () => {
+    // First probe is short: a healthy render lands in a few seconds, so a long
+    // first wait only delays discovering the failure. The reload retry keeps
+    // the longer window for genuinely slow cold hydration.
+    const timelineReady = async (timeout) => {
       try {
-        await page.waitForSelector("article", {timeout: 20000});
+        await page.waitForSelector("article", {timeout});
         return true;
       } catch (e) {
         return false;
       }
     };
-    if (!(await timelineReady())) {
+    if (!(await timelineReady(8000))) {
       logger.warn(`Timeline did not render for ${url}; reloading once.`);
       await page.reload();
-      if (!(await timelineReady())) {
+      if (!(await timelineReady(20000))) {
         logger.warn(`Timeline still empty after reload for ${url}.`);
+        timelineRendered = false;
       }
     }
   }
 
   // Switch from the default "For you" timeline to "Following" if requested.
-  if (selectFollowing) {
+  // With no timeline on the page the tab hunt can only burn its 15s timeout,
+  // so skip it — the scroll loop below still harvests anything that shows up
+  // late, which is how these runs currently recover.
+  if (selectFollowing && timelineRendered) {
     await selectFollowingTab(page);
   }
 
@@ -464,6 +527,12 @@ const autoScrollX = async function* (
   // eslint-disable-next-line no-undef
   let lastHeight = await page.evaluate(() => document.body.scrollHeight);
   let heightGrowths = 0;
+  // A feed that stops growing AND stops yielding new links is exhausted —
+  // riding out the rest of maxDuration just bills idle scrolling. Only give
+  // up after several consecutive dead scrolls so a slow lazy-load batch
+  // still gets a chance to arrive.
+  const maxStagnantScrolls = 6;
+  let stagnantScrolls = 0;
 
   while (Date.now() - startTime < maxDuration) {
     // eslint-disable-next-line no-undef
@@ -477,14 +546,33 @@ const autoScrollX = async function* (
       heightGrowths++;
 
       if (!yieldResponses) {
-        for (const link of await harvestLinks()) {
+        const newLinks = await harvestLinks();
+        stagnantScrolls = newLinks.length > 0 ? 0 : stagnantScrolls + 1;
+        for (const link of newLinks) {
           yield link;
         }
+      } else {
+        stagnantScrolls = 0;
       }
     } else {
+      stagnantScrolls++;
       // If no new height is detected, wait briefly before the next scroll
       // attempt — 2s here burned most of the window on slow renders.
       await page.waitForTimeout(750);
+    }
+
+    // Only bail once the feed has actually produced something and then gone
+    // quiet — that means exhausted. Having found nothing yet is the opposite
+    // signal: X may still be hydrating, and these runs routinely recover in
+    // the final harvest, so they keep the full window.
+    // Response mode harvests network traffic, not links, so it must ride out
+    // the full window too — only the link scraper can tell it is done early.
+    if (!yieldResponses && uniqueLinksSeen.size > 0 &&
+        stagnantScrolls >= maxStagnantScrolls) {
+      logger.info(`autoScrollX: feed exhausted after ` +
+          `${Date.now() - startTime}ms (${uniqueLinksSeen.size} links); ` +
+          `stopping early.`);
+      break;
     }
   }
 
@@ -652,6 +740,114 @@ const extractTweetLinks = function(tweetData) {
     xLinks: restId ? xLinks.filter((l) => l.xid !== restId) : xLinks,
     externalUrls: externalUrls,
   };
+};
+
+// Feed payload harvest: when ON, tweets captured from the timeline's own
+// GraphQL responses publish WITH their extracted data so the consumer skips
+// the per-tweet browser session (the dominant scrape cost). When OFF, links
+// publish bare as before and the capture only logs would-be coverage, so
+// the rollout can be validated in shadow before flipping.
+const FEED_PAYLOAD_HARVEST = false;
+
+/**
+ * Extracts tweet payloads from a timeline GraphQL response body.
+ * Handles the home timeline and explore shapes, plain timeline items and
+ * conversation modules. Null-safe on partial/odd payloads.
+ * @param {Object} responseBody parsed GraphQL JSON
+ * @return {Array<Object>} unwrapped tweetData objects (may be empty)
+ */
+const extractTimelineTweets = function(responseBody) {
+  const instructions =
+    responseBody?.data?.home?.home_timeline_urt?.instructions ??
+    responseBody?.data?.timeline?.timeline?.instructions ?? [];
+
+  const unwrap = (result) => {
+    if (!result) return null;
+    if (result.__typename === "TweetWithVisibilityResults") {
+      return result.tweet ?? null;
+    }
+    return result.rest_id ? result : null;
+  };
+
+  const tweets = [];
+  for (const instruction of instructions) {
+    for (const entry of instruction.entries ?? []) {
+      const content = entry.content;
+      if (!content) continue;
+      // TimelineTimelineModule nests items; plain items sit on the entry
+      const itemContents = content.items ?
+        content.items.map((i) => i?.item?.itemContent) :
+        [content.itemContent];
+      for (const itemContent of itemContents) {
+        const tweet = unwrap(itemContent?.tweet_results?.result);
+        if (tweet?.legacy) {
+          tweets.push(tweet);
+        }
+      }
+    }
+  }
+
+  return tweets;
+};
+
+/**
+ * Maps a timeline tweet payload to the processItem item shape, replacing
+ * what getContentFromX gathers with a per-tweet browser session. Returns
+ * null when essentials are missing so callers fall back to the browser.
+ * @param {Object} tweetData the unwrapped tweet object
+ * @return {Object|null} item for processItem, with xMeta for linked posts
+ */
+const tweetDataToItem = function(tweetData) {
+  try {
+    const xid = tweetData.rest_id;
+    const handle = tweetData.core?.user_results?.result?.core?.screen_name;
+    const legacy = tweetData.legacy;
+    if (!xid || !handle || !legacy?.full_text || !legacy?.created_at) {
+      return null;
+    }
+
+    const media = legacy.extended_entities?.media ??
+      legacy.entities?.media ?? [];
+    const photoMedia = media.find((m) => m?.type === "photo");
+    const videoMedia = media.find(
+        (m) => m?.type === "video" || m?.type === "animated_gif");
+    const videoURL = videoMedia?.video_info?.variants?.find(
+        (v) => v?.url)?.url ?? null;
+
+    const views = parseInt(tweetData.views?.count || "0", 10);
+    const socialScore = getSocialScore({
+      replies: legacy.reply_count,
+      reposts: legacy.retweet_count,
+      likes: legacy.favorite_count,
+      bookmarks: legacy.bookmark_count,
+      views: views,
+    });
+
+    return {
+      xid: xid,
+      url: `https://x.com/${handle}/status/${xid}`,
+      handle: handle,
+      platformUrl: "x.com",
+      // currently we do not support video (same rule as xupdatePost)
+      status: videoURL ? "unsupported" : "published",
+      title: legacy.full_text,
+      sourceCreatedAt: isoToMillis(legacy.created_at),
+      photo: photoMedia?.media_url_https ?
+        {photoURL: photoMedia.media_url_https} : null,
+      video: videoURL ? {videoURL: videoURL} : null,
+      replies: legacy.reply_count,
+      reposts: legacy.retweet_count,
+      likes: legacy.favorite_count,
+      bookmarks: legacy.bookmark_count,
+      views: views,
+      socialScore: socialScore,
+      // quote/reply/status links for linked fields + ripple publishing
+      xMeta: extractTweetLinks(tweetData),
+    };
+  } catch (e) {
+    logger.warn(`tweetDataToItem failed: ${e.message}`);
+    return null;
+  }
 };
 
 const getContentFromX = async function(url) {
@@ -1074,6 +1270,8 @@ module.exports = {
   //
   getContentFromX,
   extractTweetLinks,
+  extractTimelineTweets,
+  tweetDataToItem,
   buildLinkedFields,
   publishNewLinkedPosts,
   //

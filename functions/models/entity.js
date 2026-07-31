@@ -1,6 +1,6 @@
 const {onDocumentWritten} = require("firebase-functions/v2/firestore");
 const {onMessagePublished} = require("firebase-functions/v2/pubsub");
-const {defaultConfig, scrapeConfig, gbConfig} = require("../common/functions");
+const {defaultConfig, scrapeConfig} = require("../common/functions");
 const {publishMessage, publishRipple,
   ENTITY_SHOULD_CHANGE_IMAGE,
   POST_CHANGED_ENTITY,
@@ -27,12 +27,20 @@ const {updateEntity, getAllStatementsForEntity,
   deleteAttribute,
   getEntity,
   getAverages} = require("../common/database");
-const {Timestamp, FieldValue} = require("firebase-admin/firestore");
+const {Timestamp} = require("firebase-admin/firestore");
 const {handleChangedRelations,
-  isFibonacciNumber, getSocialScore} = require("../common/utils");
+  getSocialScore, movedBeyond, STATS_REFRESH_MS} = require("../common/utils");
 const _ = require("lodash");
-const {onEntityShouldChangeConfidence} = require("../ai/confidence");
-const {onEntityShouldChangeBias} = require("../ai/bias");
+const {onEntityShouldChangeConfidence,
+  confidenceDidCrossThreshold} = require("../ai/confidence");
+const {onEntityShouldChangeBias,
+  biasDidCrossThreshold, getDistance} = require("../ai/bias");
+
+// Ripple damping: an entity value recompute rebroadcasts to every statement
+// of the entity, so sub-epsilon wiggles multiply into hundreds of statement
+// recomputes. Only meaningful moves (or threshold crossings) propagate.
+const CONFIDENCE_RIPPLE_EPS = 0.01;
+const BIAS_RIPPLE_EPS_DEGREES = 2;
 const {didChangeStats} = require("../ai/newsworthiness");
 
 //
@@ -222,6 +230,12 @@ exports.onEntityChangedConfidence = onMessagePublished(
         return Promise.resolve();
       }
 
+      if (!confidenceDidCrossThreshold(before, after) &&
+        !movedBeyond(before?.confidence, after?.confidence,
+            CONFIDENCE_RIPPLE_EPS)) {
+        return Promise.resolve();
+      }
+
       const statements = await getAllStatementsForEntity(eid);
       if (!statements) {
         logger.warn(`No statements found for entity ${eid}`);
@@ -275,6 +289,12 @@ exports.onEntityChangedBias = onMessagePublished(
         return Promise.resolve();
       }
 
+      const biasMoved = before?.bias != null && after?.bias != null &&
+        getDistance(before.bias, after.bias) >= BIAS_RIPPLE_EPS_DEGREES;
+      if (!biasDidCrossThreshold(before, after) && !biasMoved) {
+        return Promise.resolve();
+      }
+
       const statements = await getAllStatementsForEntity(eid);
       if (!statements) {
         logger.warn(`No statements found for entity ${eid}`);
@@ -315,34 +335,28 @@ exports.onEntityShouldChangeStats = onMessagePublished(
         return Promise.resolve();
       }
 
-      // Ensure statsCount is defined
-      if (entity.statsCount == null) {
-        entity.statsCount = 0;
+      const now = Timestamp.now().toMillis();
+      if (now - (entity.lastStatsAt ?? 0) < STATS_REFRESH_MS) {
+        return Promise.resolve();
       }
 
-      const isFibonacci = isFibonacciNumber(entity.statsCount);
+      // Claim the window before the aggregation so concurrent messages
+      // skip instead of double-computing.
+      await updateEntity(eid, {lastStatsAt: now}, 5);
 
-      // increment doesn't work on null. Stats count is technically 1 higher
-      // we move this up here to reduce concurrent cases of the same count
-      await updateEntity(eid, {
-        statsCount: entity.statsCount === 0 ? 1 : FieldValue.increment(1),
-      }, 5);
-
-      if (isFibonacci) {
-        const stats = await getAverages("posts", "eid", eid,
-            ["likes", "reposts", "replies", "bookmarks", "views"]);
-        // can be {} if no stats in child posts
-        if (stats != null && !_.isEmpty(stats)) {
-          // do this here since getAverages is limited to 5
-          stats.avgSocialScore = getSocialScore({
-            likes: stats.avgLikes,
-            reposts: stats.avgReposts,
-            replies: stats.avgReplies,
-            bookmarks: stats.avgBookmarks,
-            views: stats.avgViews,
-          });
-          await updateEntity(eid, stats, 5); // might not exist so skiperror
-        }
+      const stats = await getAverages("posts", "eid", eid,
+          ["likes", "reposts", "replies", "bookmarks", "views"]);
+      // can be {} if no stats in child posts
+      if (stats != null && !_.isEmpty(stats)) {
+        // do this here since getAverages is limited to 5
+        stats.avgSocialScore = getSocialScore({
+          likes: stats.avgLikes,
+          reposts: stats.avgReposts,
+          replies: stats.avgReplies,
+          bookmarks: stats.avgBookmarks,
+          views: stats.avgViews,
+        });
+        await updateEntity(eid, stats, 5); // might not exist so skiperror
       }
 
       return Promise.resolve();
@@ -351,7 +365,7 @@ exports.onEntityShouldChangeStats = onMessagePublished(
 exports.onEntityChangedStats = onMessagePublished(
     {
       topic: ENTITY_CHANGED_STATS,
-      ...gbConfig, // this fetches 1-2k+ posts, might be causing memory issues
+      ...defaultConfig, // fetches at most 20 posts (see below)
     },
     async (event) => {
       const eid = event.data.message.json.eid;

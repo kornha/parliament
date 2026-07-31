@@ -3,7 +3,7 @@
 // Firestore
 
 const {onDocumentWritten} = require("firebase-functions/v2/firestore");
-const {defaultConfig, scrapeConfig, gbConfig} = require("../common/functions");
+const {defaultConfig, scrapeConfig} = require("../common/functions");
 const {publishMessage,
   PLATFORM_SHOULD_CHANGE_IMAGE,
   PLATFORM_CHANGED_POSTS,
@@ -21,9 +21,9 @@ const {updatePlatform,
 } = require("../common/database");
 const {logger} = require("firebase-functions/v2");
 const {
-  isFibonacciNumber,
-  getSocialScore} = require("../common/utils");
-const {FieldValue, Timestamp} = require("firebase-admin/firestore");
+  getSocialScore,
+  STATS_REFRESH_MS} = require("../common/utils");
+const {Timestamp} = require("firebase-admin/firestore");
 const {didChangeStats} = require("../ai/newsworthiness");
 const _ = require("lodash");
 
@@ -81,7 +81,7 @@ exports.onPlatformUpdate = onDocumentWritten(
 exports.onPlatformShouldChangeStats = onMessagePublished(
     {
       topic: PLATFORM_SHOULD_CHANGE_STATS,
-      ...gbConfig, // this fetches 1k posts, might be causing memory issues
+      ...defaultConfig, // aggregation query only, no doc fetches
     },
     async (event) => {
       const plid = event.data.message.json.plid;
@@ -95,35 +95,30 @@ exports.onPlatformShouldChangeStats = onMessagePublished(
         return Promise.resolve();
       }
 
-      if (platform.statsCount == null) {
-        platform.statsCount = 0;
+      const now = Timestamp.now().toMillis();
+      if (now - (platform.lastStatsAt ?? 0) < STATS_REFRESH_MS) {
+        return Promise.resolve();
       }
 
-      const isFibonacci = isFibonacciNumber(platform.statsCount);
+      // Claim the window before the aggregation so concurrent messages
+      // skip instead of double-computing.
+      await updatePlatform(plid, {lastStatsAt: now});
 
-      // increment doesn't work on null. Stats count is technically 1 higher
-      // we move this up here to reduce concurrent cases of the same count
-      await updatePlatform(plid, {statsCount: platform.statsCount == 0 ? 1 :
-              FieldValue.increment(1)});
+      logger.info(`Updating platform stats ${plid}`);
 
-      if (isFibonacci) {
-        logger.info(
-            `Updating platform stats ${plid} count: ${platform.statsCount}`);
-
-        const stats = await getAverages("posts", "plid", plid,
-            ["likes", "reposts", "replies", "bookmarks", "views"]);
-        // can be {} if no stats in child posts
-        if (stats != null && !_.isEmpty(stats)) {
-          // do this here since getAverages is limited to 5
-          stats.avgSocialScore = getSocialScore({
-            likes: stats.avgLikes,
-            reposts: stats.avgReposts,
-            replies: stats.avgReplies,
-            bookmarks: stats.avgBookmarks,
-            views: stats.avgViews,
-          });
-          await updatePlatform(plid, stats, 5);
-        }
+      const stats = await getAverages("posts", "plid", plid,
+          ["likes", "reposts", "replies", "bookmarks", "views"]);
+      // can be {} if no stats in child posts
+      if (stats != null && !_.isEmpty(stats)) {
+        // do this here since getAverages is limited to 5
+        stats.avgSocialScore = getSocialScore({
+          likes: stats.avgLikes,
+          reposts: stats.avgReposts,
+          replies: stats.avgReplies,
+          bookmarks: stats.avgBookmarks,
+          views: stats.avgViews,
+        });
+        await updatePlatform(plid, stats, 5);
       }
 
       return Promise.resolve();
@@ -133,7 +128,7 @@ exports.onPlatformShouldChangeStats = onMessagePublished(
 exports.onPlatformChangedStats = onMessagePublished(
     {
       topic: PLATFORM_CHANGED_STATS,
-      ...gbConfig, // this fetches 1-2k+ posts, might be causing memory issues
+      ...defaultConfig, // fetches at most 20 posts (see below)
     },
     async (event) => {
       const plid = event.data.message.json.plid;

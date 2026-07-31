@@ -26,6 +26,15 @@ exports.gbConfig = {
   maxInstances: 10,
 };
 
+// LLM pipeline tasks spend their time awaiting OpenAI responses; 1GiB covers
+// their graph fan-in reads without paying for 2GiB of idle headroom.
+exports.llmConfig = {
+  timeoutSeconds: 60,
+  memory: "1GiB",
+  secrets: secretsList,
+  maxInstances: 10,
+};
+
 /* puppeteer limitations
  * 1 max concurrency!
  * we increase timeout
@@ -35,6 +44,6 @@ exports.scrapeConfig = {
   timeoutSeconds: 300,
   concurrency: 1,
   maxInstances: 5,
-  memory: "2GiB",
+  memory: "1GiB",
   secrets: secretsList,
 };

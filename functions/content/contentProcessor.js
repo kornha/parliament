@@ -129,12 +129,25 @@ async function processItem(data, platformType, poster = null) {
       ...(data.depth != null && {depth: data.depth}),
     };
 
+    // Feed-harvested items carry quote/reply links; record them on the post
+    // like the browser path does in xupdatePost.
+    if (data.xMeta) {
+      Object.assign(post, buildLinkedFields(post, data.xMeta));
+    }
+
     // skips on duplicate error, in race condition
     const success = await createPost(post, 6);
     // wait fail in duplicate
     if (!success) {
       logger.warn(`Failed to create post for xid: ${xid}`);
       return null;
+    }
+
+    if (data.xMeta) {
+      // Publish with pre-merge linkedPids (none on a new post) so the
+      // dedupe in publishNewLinkedPosts doesn't treat the just-recorded
+      // links as already published.
+      await publishNewLinkedPosts({...post, linkedPids: []}, data.xMeta);
     }
   } else {
     // Use the existing post
@@ -152,13 +165,18 @@ async function processItem(data, platformType, poster = null) {
    * @param {string} platformType - The type of source ('x' or 'news').
    * @param {string|null} poster - UID of the poster, if applicable.
    * @param {number|null} depth - remaining ripple budget for chained ingestion
+   * @param {Object|null} item - feed-harvested item data; skips extraction
    * @return {Promise<string|null>} - Post ID if processed successfully
    */
-async function processLink(link, platformType, poster = null, depth = null) {
-  logger.info(`Processing link: ${link}`);
+async function processLink(link, platformType, poster = null, depth = null,
+    item = null) {
+  logger.info(`Processing link: ${link}` +
+    (item ? " (from feed payload)" : ""));
   let data;
   try {
-    data = await extractDataFromLink(link, platformType, poster);
+    // A feed-harvested item already carries the tweet's data — no browser
+    // session needed to extract it (see xscraper FEED_PAYLOAD_HARVEST).
+    data = item ?? await extractDataFromLink(link, platformType, poster);
   } catch (error) {
     logger.error(`Failed to extract data from link: ${link}`, error);
     return null;
@@ -243,12 +261,51 @@ async function extractDataFromNewsLink(link) {
    */
 async function updatePostWithData(post, platformType, data) {
   if (platformType === "x") {
-    await updatePostWithXData(post);
+    if (data?.xMeta) {
+      // feed-harvested item: refresh from payload, no browser session
+      await updatePostWithXItem(post, data);
+    } else {
+      await updatePostWithXData(post);
+    }
   } else if (platformType === "news") {
     await updatePostWithNewsData(post, data);
   } else {
     throw new Error(`Unsupported source type: ${platformType}`);
   }
+}
+
+/**
+   * Updates a post from a feed-harvested item — mirrors updatePostWithXData
+   * but sources everything from the timeline payload instead of launching a
+   * per-tweet browser session.
+   * @param {Object} post - The post to update.
+   * @param {Object} item - The feed-harvested item (see tweetDataToItem).
+   * @return {Promise<void>}
+   */
+async function updatePostWithXItem(post, item) {
+  const updateData = {
+    title: item.title,
+    photo: item.photo,
+    video: item.video,
+    sourceCreatedAt: item.sourceCreatedAt,
+    replies: item.replies,
+    reposts: item.reposts,
+    likes: item.likes,
+    bookmarks: item.bookmarks,
+    socialScore: item.socialScore,
+    views: item.views,
+    updatedAt: Timestamp.now().toMillis(),
+    // post-to-post links (quotes, replies, embedded status links)
+    ...buildLinkedFields(post, item.xMeta ?? {}),
+  };
+
+  const status = getStatus(updateData, post.status);
+  updateData.status = status;
+
+  await updatePost(post.pid, updateData);
+  logger.info(`Updated post: ${post.pid} from feed payload.`);
+
+  await publishNewLinkedPosts(post, item.xMeta ?? {});
 }
 
 /**

@@ -25,6 +25,13 @@ const generateImageDescriptionPrompt = function(photoURL) {
 // Flagship Prompts
 // ////////////////////////////////////////////////////////////////////////////
 
+// Image inputs bill as input tokens and dominate prompt cost, so candidate
+// stories send at most this many photos each, as low-detail thumbnails —
+// enough for the same-image/crop comparisons the prompt rubric asks for,
+// while text reading is covered by the stored descriptions. Overflow photos
+// ride along as text descriptions (arrays are ordered most-interesting-first).
+const MAX_CANDIDATE_STORY_PHOTOS = 3;
+
 // Returns an `input` array ready for OpenAI Responses API
 const findStoriesPrompt = function({post, stories, training = false, includePhotos = true}) {
   const userParts = [];
@@ -65,10 +72,17 @@ const findStoriesPrompt = function({post, stories, training = false, includePhot
       });
 
       if (!_.isEmpty(story.photos) && includePhotos) {
+        let imageCount = 0;
         story.photos.forEach((photo) => {
           // Skip non-compatible photos; fallback to description when available
-          if (photo?.llmCompatible !== false && photo?.photoURL) {
-            userParts.push({type: "input_image", image_url: photo.photoURL});
+          if (photo?.llmCompatible !== false && photo?.photoURL &&
+              imageCount < MAX_CANDIDATE_STORY_PHOTOS) {
+            imageCount++;
+            userParts.push({
+              type: "input_image",
+              image_url: photo.photoURL,
+              detail: "low",
+            });
           } else if (photo?.description) {
             userParts.push({type: "input_text", text: `Photo Description: ${photo.description}`});
           }

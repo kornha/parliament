@@ -280,12 +280,26 @@ function getSocialScore({
 // Location
 // //////////////////////////////////////////////////////////////////
 
+// In-memory reverse-geocode cache (per warm instance). Country lookups are
+// coarse, so coordinates are bucketed to 0.1 degrees (~11km) — repeat
+// locations skip the paid Geocoding API. Errors are not cached so transient
+// failures can retry.
+const _countryCodeCache = new Map();
+const COUNTRY_CODE_CACHE_MAX = 5000;
+
 /**
  * @param {number} lat
  * @param {number} long
  * @return {Promise<string|null>}
  */
 async function getCountryCode(lat, long) {
+  if (!Number.isFinite(lat) || !Number.isFinite(long)) {
+    return null;
+  }
+  const cacheKey = `${lat.toFixed(1)},${long.toFixed(1)}`;
+  if (_countryCodeCache.has(cacheKey)) {
+    return _countryCodeCache.get(cacheKey);
+  }
   try {
     const response = await axios.get(
         `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${long}&key=${_cloudApiKey.value()}`,
@@ -293,7 +307,13 @@ async function getCountryCode(lat, long) {
     const country = response.data.results.find((result) =>
       result.types.includes("country"),
     );
-    return country ? country.address_components[0].short_name : null;
+    const code = country ? country.address_components[0].short_name : null;
+    if (_countryCodeCache.size >= COUNTRY_CODE_CACHE_MAX) {
+      // evict oldest entry (Map preserves insertion order)
+      _countryCodeCache.delete(_countryCodeCache.keys().next().value);
+    }
+    _countryCodeCache.set(cacheKey, code);
+    return code;
   } catch (error) {
     logger.error("Error fetching country code:", error);
     return null;
@@ -430,10 +450,37 @@ const handleChangedRelations = async (
 };
 
 
+/**
+ * Whether a numeric value moved at least eps between two snapshots.
+ * Null<->value transitions count as moved; null->null does not.
+ * Used to damp ripple republishing on sub-epsilon recompute wiggles.
+ * @param {number|null} before value before the change
+ * @param {number|null} after value after the change
+ * @param {number} eps minimum absolute move that counts
+ * @return {boolean} whether the value moved meaningfully
+ */
+const movedBeyond = function(before, after, eps) {
+  if (before == null && after == null) {
+    return false;
+  }
+  if (before == null || after == null) {
+    return true;
+  }
+  return Math.abs(after - before) >= eps;
+};
+
+// How often entity/platform average-stats may recompute per doc. Replaces
+// the per-message statsCount increment: that wrote the platform doc for
+// every message (~11.5k/day hot-doc writes) while at high counts the
+// Fibonacci schedule stopped refreshing at all.
+const STATS_REFRESH_MS = 6 * 60 * 60 * 1000;
+
 module.exports = {
   isLocal,
   getStatus,
   isUnsupportedStatus,
+  movedBeyond,
+  STATS_REFRESH_MS,
   getSocialScore,
   urlToDomain,
   isFibonacciNumber,

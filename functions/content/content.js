@@ -7,7 +7,8 @@ const {SHOULD_SCRAPE_FEED, publishMessage} = require("../common/pubsub");
 const {findCreatePlatform} = require("../common/database");
 const {scrapeFeed, scrapeMetaFeed} = require("./scraper");
 const {getPlatformType} = require("../common/utils");
-const {processLinks, processItems} = require("./contentProcessor");
+const {processLinks, processLink, processItems} =
+  require("./contentProcessor");
 const {getTopNewsPosts} = require("./news");
 
 // ////////////////////////////
@@ -92,8 +93,10 @@ const onShouldProcessLink = onMessagePublished(
 
       // depth: remaining ripple budget when this link was discovered inside
       // another post (quote/reply chains) — absent for feed/user links.
-      await processLinks([message.json.link],
-          platformType, message.json.poster, message.json.depth);
+      // item: feed-harvested tweet data, when the scraper captured it from
+      // the timeline payload — lets processing skip the browser session.
+      await processLink(message.json.link, platformType,
+          message.json.poster, message.json.depth, message.json.item ?? null);
 
       return;
     },

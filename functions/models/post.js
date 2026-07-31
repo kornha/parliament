@@ -1,6 +1,6 @@
 const {onDocumentWritten} = require("firebase-functions/v2/firestore");
 const {onMessagePublished} = require("firebase-functions/v2/pubsub");
-const {defaultConfig, gbConfig, scrapeConfig} = require("../common/functions");
+const {defaultConfig, llmConfig, scrapeConfig} = require("../common/functions");
 const {onPostShouldFindStories, onPostShouldFindStatements,
   resetPostVector} = require("../ai/post_ai");
 const {logger} = require("firebase-functions/v2");
@@ -301,7 +301,7 @@ exports.onPostShouldChangeBias = onMessagePublished(
 exports.onPostShouldChangeVirality = onMessagePublished(
     {
       topic: POST_SHOULD_CHANGE_VIRALITY,
-      ...gbConfig,
+      ...defaultConfig,
     },
     async (event) => {
       const pid = event.data.message.json.pid;
@@ -370,6 +370,15 @@ exports.onPostChangedXid = onMessagePublished(
       if (!post || !post.xid || !post.plid || !post.eid) {
         return Promise.resolve();
       }
+
+      // Payload-created posts already carry content and stats from the feed
+      // harvest; a browser session here would only re-fetch the same data.
+      if (post.title && post.sourceCreatedAt) {
+        logger.info(
+            `onPostChangedXid: ${pid} payload-complete, skipping fetch.`);
+        return Promise.resolve();
+      }
+
       const entity = await getEntity(post.eid);
       if (!entity) {
         return Promise.resolve();
@@ -493,7 +502,7 @@ exports.onPostShouldFindStoriesTask = onTaskDispatched(
       rateLimits: {
         maxConcurrentDispatches: 1,
       },
-      ...gbConfig,
+      ...llmConfig,
     },
     async (event) => {
       logger.info(
@@ -513,7 +522,7 @@ exports.onPostShouldFindStoriesTask = onTaskDispatched(
 exports.onPostShouldFindStories = onMessagePublished(
     {
       topic: POST_SHOULD_FIND_STORIES,
-      ...gbConfig,
+      ...llmConfig,
     },
     async (event) => {
       logger.info(`onPostShouldFindStoriesPubsub: 
@@ -540,7 +549,7 @@ exports.onPostShouldFindStatementsTask = onTaskDispatched(
       rateLimits: {
         maxConcurrentDispatches: 1,
       },
-      ...gbConfig,
+      ...llmConfig,
     },
     async (event) => {
       logger.info(

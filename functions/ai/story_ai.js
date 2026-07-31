@@ -11,7 +11,6 @@ const {calculateMeanVector,
   retryAsyncFunction,
   isInvalidImageError, extractInvalidImageUrl} = require("../common/utils");
 const _ = require("lodash");
-const {writeTrainingData} = require("./trainer");
 const {findStoriesPrompt, findContextPrompt} = require("./prompts");
 const {storyOutputSchema, contextOutputSchema} = require("./prompt_schemas");
 const {processWebLinks} = require("../content/webscraper");
@@ -30,11 +29,11 @@ const MAX_SOURCE_URLS = 4;
 // time-blind, so recurring topics keep surfacing months-old stories as
 // candidates and posts accrete onto them forever. Candidates are only
 // eligible when the post is within this window of the story's happenedAt
-// (the event is recent relative to the post) OR the story's createdAt (the
-// escape hatch: coverage began recently — keeps retrospective waves about
-// old events clustering instead of spawning one story per post; createdAt is
-// immutable, so ongoing drift can't keep a story eligible the way an
-// activity-based field would). Boundary over-splits self-heal via merge.
+// (the event is recent relative to the post) OR its lastPostAt (the rolling
+// coverage frontier: someone posted about it recently, so a developing saga
+// stays joinable while a dormant story ages out within one window of its
+// last post). happenedAt/createdAt are set once at creation and never
+// rewritten by joins. Boundary over-splits self-heal via merge.
 const STORY_TIME_WINDOW_MILLIS = 14 * 24 * 60 * 60 * 1000;
 
 /** FLAGSHIP FUNCTION
@@ -146,14 +145,18 @@ const findStories = async function(post) {
     (await searchVectors(vector, "stories", CANDIDATE_RETRIEVAL_K)) ?? [];
 
   // Time lock (see STORY_TIME_WINDOW_MILLIS): drop topical look-alikes whose
-  // event AND coverage start are both far from the post's own timestamp.
+  // event AND latest coverage are both far from the post's own timestamp.
+  // Coverage uses lastPostAt (rolling frontier, maintained on every join) so
+  // long-running stories with continuous posting stay joinable; createdAt is
+  // the fallback for stories that predate the field.
   const postAt = post.sourceCreatedAt ?? post.createdAt;
   const eligible = postAt == null ? allCandidates :
     allCandidates.filter((story) => {
+      const coverageAt = story.lastPostAt ?? story.createdAt;
       const eventGap = story.happenedAt != null ?
         Math.abs(postAt - story.happenedAt) : Infinity;
-      const coverageGap = story.createdAt != null ?
-        Math.abs(postAt - story.createdAt) : Infinity;
+      const coverageGap = coverageAt != null ?
+        Math.abs(postAt - coverageAt) : Infinity;
       // keep stories with no time data at all rather than orphaning them
       if (eventGap === Infinity && coverageGap === Infinity) return true;
       return eventGap <= STORY_TIME_WINDOW_MILLIS ||
@@ -212,8 +215,6 @@ const findStories = async function(post) {
     return null;
   }
 
-  writeTrainingData("findStories", post, candidateStories, null, resp);
-
   return resp;
 };
 
@@ -255,8 +256,6 @@ const findContext = async function(story, statements, canGather = false) {
     logger.warn(`Story does not have contextualization! ${story.sid}`);
     return null;
   }
-
-  writeTrainingData("findContext", null, [story], statements, resp);
 
   return resp;
 };

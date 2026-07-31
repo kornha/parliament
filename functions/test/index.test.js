@@ -3,7 +3,6 @@ const {expect} = require("chai");
 const sinon = require("sinon");
 const rewire = require("rewire");
 const storyFunctions = rewire("../ai/story_ai");
-const statementFunctions = rewire("../ai/statement_ai");
 
 describe("AI Tests", () => {
   describe("findStories", () => {
@@ -13,11 +12,8 @@ describe("AI Tests", () => {
       const candidateStories = [];
 
       const searchVectorsStub = sinon.stub().resolves(candidateStories);
-      const writeTrainingDataStub = sinon.stub();
 
       storyFunctions.__set__("searchVectors", searchVectorsStub);
-      storyFunctions.__set__("writeTrainingData", writeTrainingDataStub);
-      statementFunctions.__set__("writeTrainingData", writeTrainingDataStub);
 
       const post = {
         pid: "fd6d6598-fb5a-5aba-9798-d3aa640047f4",
@@ -49,7 +45,6 @@ describe("AI Tests", () => {
       const deltaLatLong = 0.5; // delta for latitude and longitude
 
       expect(searchVectorsStub.calledOnce).to.be.true;
-      expect(writeTrainingDataStub.calledOnce).to.be.true;
       //
       expect(stories).to.be.an("array").that.is.not.empty;
       expect(stories[0]).to.have.property("sid", null);
@@ -132,11 +127,8 @@ describe("AI Tests", () => {
       ];
 
       const searchVectorsStub = sinon.stub().resolves(candidateStories);
-      const writeTrainingDataStub = sinon.stub();
 
       storyFunctions.__set__("searchVectors", searchVectorsStub);
-      storyFunctions.__set__("writeTrainingData", writeTrainingDataStub);
-      statementFunctions.__set__("writeTrainingData", writeTrainingDataStub);
 
       const post = {
         pid: "36aaf14b-1f38-5bff-95de-91d685d9f60e",
@@ -164,7 +156,6 @@ describe("AI Tests", () => {
       const deltaLatLong = 0.5; // delta for latitude and longitude
 
       expect(searchVectorsStub.calledOnce).to.be.true;
-      expect(writeTrainingDataStub.calledOnce).to.be.true;
       //
       expect(stories).to.be.an("array").that.is.not.empty;
       expect(stories[0]).to.have.property("sid").that.is.equal(candidateStories[0].sid);
@@ -215,11 +206,8 @@ describe("AI Tests", () => {
       ];
 
       const searchVectorsStub = sinon.stub().resolves(candidateStories);
-      const writeTrainingDataStub = sinon.stub();
 
       storyFunctions.__set__("searchVectors", searchVectorsStub);
-      storyFunctions.__set__("writeTrainingData", writeTrainingDataStub);
-      statementFunctions.__set__("writeTrainingData", writeTrainingDataStub);
 
       const post = {
         pid: "1e2ce086-cb7c-5bfb-b355-edb4d57b93f7",
@@ -246,7 +234,6 @@ describe("AI Tests", () => {
       const stories = resp.stories;
 
       expect(searchVectorsStub.calledOnce).to.be.true;
-      expect(writeTrainingDataStub.calledOnce).to.be.true;
       //
       expect(stories).to.be.an("array").that.is.not.empty;
       expect(stories[0]).to.have.property("sid").that.is.equal(candidateStories[0].sid);
@@ -289,11 +276,8 @@ describe("AI Tests", () => {
       }];
 
       const searchVectorsStub = sinon.stub().resolves(candidateStories);
-      const writeTrainingDataStub = sinon.stub();
 
       storyFunctions.__set__("searchVectors", searchVectorsStub);
-      storyFunctions.__set__("writeTrainingData", writeTrainingDataStub);
-      statementFunctions.__set__("writeTrainingData", writeTrainingDataStub);
 
       const post = {
         pid: "813416b8-b25f-5bbe-8aad-7f49496efd42",
@@ -317,7 +301,6 @@ describe("AI Tests", () => {
       const stories = resp.stories;
 
       expect(searchVectorsStub.calledOnce).to.be.true;
-      expect(writeTrainingDataStub.calledOnce).to.be.true;
       // allowing one or two stories to be returned since this is very close, ideally should be 1
       expect(stories).to.be.an("array");
       expect(stories.length).to.be.oneOf([1, 2]);
@@ -392,11 +375,8 @@ describe("AI Tests", () => {
       ];
 
       const searchVectorsStub = sinon.stub().resolves(candidateStories);
-      const writeTrainingDataStub = sinon.stub();
 
       storyFunctions.__set__("searchVectors", searchVectorsStub);
-      storyFunctions.__set__("writeTrainingData", writeTrainingDataStub);
-      statementFunctions.__set__("writeTrainingData", writeTrainingDataStub);
 
       const post = {
         pid: "b28b73b9-0567-51a5-8a7d-4dfe304e947c",
@@ -424,7 +404,6 @@ describe("AI Tests", () => {
       const deltaLatLong = 0.5; // delta for latitude and longitude
 
       expect(searchVectorsStub.calledOnce).to.be.true;
-      expect(writeTrainingDataStub.calledOnce).to.be.true;
       //
       expect(stories).to.be.an("array").that.has.lengthOf(1);
       expect(stories[0]).to.have.property("sid", null);
@@ -505,11 +484,8 @@ describe("AI Tests", () => {
       ];
 
       const searchVectorsStub = sinon.stub().resolves(candidateStories);
-      const writeTrainingDataStub = sinon.stub();
 
       storyFunctions.__set__("searchVectors", searchVectorsStub);
-      storyFunctions.__set__("writeTrainingData", writeTrainingDataStub);
-      statementFunctions.__set__("writeTrainingData", writeTrainingDataStub);
 
       const post = {
         pid: "7557196b-f9c8-5859-8f4f-f00ba59d35cc",
@@ -533,7 +509,6 @@ describe("AI Tests", () => {
       const stories = resp.stories;
 
       expect(searchVectorsStub.calledOnce).to.be.true;
-      expect(writeTrainingDataStub.calledOnce).to.be.true;
       //
       expect(stories).to.be.an("array").that.has.lengthOf(1);
       expect(stories[0]).to.have.property("sid", null);
@@ -670,11 +645,8 @@ describe("AI Tests", () => {
       ];
 
       const searchVectorsStub = sinon.stub().resolves(candidateStories);
-      const writeTrainingDataStub = sinon.stub();
 
       storyFunctions.__set__("searchVectors", searchVectorsStub);
-      storyFunctions.__set__("writeTrainingData", writeTrainingDataStub);
-      statementFunctions.__set__("writeTrainingData", writeTrainingDataStub);
 
       const post = {
         pid: "c635708d-7d7a-5de3-a910-edcd0bc793e7",
@@ -702,7 +674,6 @@ describe("AI Tests", () => {
       const removedStories = resp.removedStories;
 
       expect(searchVectorsStub.calledOnce).to.be.true;
-      expect(writeTrainingDataStub.calledOnce).to.be.true;
       //
       expect(removedStories).to.be.an("array").that.has.lengthOf(3);
       expect(stories).to.be.an("array").that.has.lengthOf(1);
@@ -793,11 +764,8 @@ describe("AI Tests", () => {
       ];
 
       const searchVectorsStub = sinon.stub().resolves(candidateStories);
-      const writeTrainingDataStub = sinon.stub();
 
       storyFunctions.__set__("searchVectors", searchVectorsStub);
-      storyFunctions.__set__("writeTrainingData", writeTrainingDataStub);
-      statementFunctions.__set__("writeTrainingData", writeTrainingDataStub);
 
       const post = {
         pid: "0b3ab782-cceb-536b-83f3-98e343e843f8",
@@ -825,7 +793,6 @@ describe("AI Tests", () => {
       const removedStories = resp.removedStories;
 
       expect(searchVectorsStub.calledOnce).to.be.true;
-      expect(writeTrainingDataStub.calledOnce).to.be.true;
       //
       expect(removedStories).to.be.an("array").that.has.lengthOf(3);
       expect(stories).to.be.an("array").that.has.lengthOf(1);

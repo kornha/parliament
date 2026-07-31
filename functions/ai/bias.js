@@ -15,6 +15,16 @@ const {getEntity, updateEntity,
   updatePost} = require("../common/database");
 const {retryAsyncFunction} = require("../common/utils");
 
+// Quantize bias so the statement<->entity recompute reaches an exact fixed
+// point instead of oscillating forever on floating-point noise — same fix as
+// quantizeConfidence in confidence.js. Without this the `!==` guards below
+// never short-circuit (atan2 averages virtually never reproduce a float).
+const BIAS_PRECISION = 10; // 0.1 degrees
+
+function quantizeBias(b) {
+  return Math.round(b * BIAS_PRECISION) / BIAS_PRECISION;
+}
+
 
 // ////////////////////////////////////////////////////////////////////////////
 // POST
@@ -29,7 +39,8 @@ async function onPostShouldChangeBias(pid) {
   const post = await getPost(pid);
   const statements = await getAllStatementsForPost(pid);
 
-  const newBias = calculateAverageBias(statements);
+  const raw = calculateAverageBias(statements);
+  const newBias = raw == null ? null : quantizeBias(raw);
 
   if (newBias != null && post.bias !== newBias) {
     logger.info(`Updating Post bias: ${pid} ${newBias}`);
@@ -51,7 +62,8 @@ async function onStoryShouldChangeBias(sid) {
   const story = await getStory(sid);
   const statements = await getAllStatementsForStory(sid);
 
-  const newBias = calculateAverageBias(statements);
+  const raw = calculateAverageBias(statements);
+  const newBias = raw == null ? null : quantizeBias(raw);
 
   if (newBias != null && story.bias !== newBias) {
     logger.info(`Updating story bias: ${sid} ${newBias}`);
@@ -88,7 +100,8 @@ async function onEntityShouldChangeBias(eid) {
 
   const statements = await getAllStatementsForEntity(eid);
 
-  const newBias = calculateAverageBias(statements, entity, true);
+  const raw = calculateAverageBias(statements, entity, true);
+  const newBias = raw == null ? null : quantizeBias(raw);
 
   if (newBias != null && entity.bias !== newBias) {
     logger.info(`Updating entity bias: ${eid} ${newBias}`);
@@ -125,7 +138,8 @@ async function onStatementShouldChangeBias(stid) {
 
   const entities = await getAllEntitiesForStatement(stid);
 
-  const newBias = calculateAverageBias(entities, statement, false);
+  const raw = calculateAverageBias(entities, statement, false);
+  const newBias = raw == null ? null : quantizeBias(raw);
 
   if (newBias != null && statement.bias !== newBias) {
     logger.info(`Updating statement bias: ${stid} ${newBias}`);

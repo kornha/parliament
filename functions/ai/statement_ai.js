@@ -2,7 +2,6 @@ const functions = require("firebase-functions");
 const {setVector, getStatement,
   markPhotoAsIncompatible} = require("../common/database");
 const {generateEmbeddings, generateCompletions} = require("../common/llm");
-const {writeTrainingData} = require("./trainer");
 const {findStatementsPrompt} = require("./prompts");
 const {statementOutputSchema} = require("./prompt_schemas");
 const {logger} = require("firebase-functions/v2");
@@ -51,8 +50,6 @@ const findStatements = async function(post, statements) {
     logger.warn(`Cannot find Statements for post! ${post.pid}`);
     return null;
   }
-
-  writeTrainingData("findStatements", post, null, statements, resp);
 
   return resp;
 };

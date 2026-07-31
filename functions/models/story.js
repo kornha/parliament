@@ -1,6 +1,6 @@
 const {onDocumentWritten} = require("firebase-functions/v2/firestore");
 const {onMessagePublished} = require("firebase-functions/v2/pubsub");
-const {defaultConfig, gbConfig} = require("../common/functions");
+const {defaultConfig, llmConfig} = require("../common/functions");
 const {
   publishMessage,
   STORY_CHANGED_POSTS,
@@ -22,12 +22,18 @@ const {updateStory,
   getPosts,
   getStory,
   getAverages} = require("../common/database");
-const {handleChangedRelations, getSocialScore} = require("../common/utils");
+const {handleChangedRelations, getSocialScore,
+  isFibonacciNumber} = require("../common/utils");
 const {logger} = require("firebase-functions/v2");
 const {didChangeStats,
   onStoryShouldChangeNewsworthiness,
   calculateNewsworthyAt} = require("../ai/newsworthiness");
-const {onStoryShouldChangeBias} = require("../ai/bias");
+const {onStoryShouldChangeBias,
+  biasDidCrossThreshold, getDistance} = require("../ai/bias");
+
+// A newsworthiness recompute reads every post of the story, so tiny bias
+// wiggles shouldn't trigger it: the bias multiplier moves ~0.3% per 2°.
+const BIAS_RIPPLE_EPS_DEGREES = 2;
 const {onStoryShouldChangeConfidence} = require("../ai/confidence");
 const {tryQueueTask,
   STORY_SHOULD_FIND_CONTEXT_TASK} = require("../common/tasks");
@@ -91,8 +97,15 @@ exports.onStoryUpdate = onDocumentWritten(
         await publishMessage(STORY_SHOULD_CHANGE_CONFIDENCE,
             {sid: after?.sid || before?.sid});
         // skip on delete stid case since this is expensive
-        if (_create || _update && (before.stids ?? [])
-            .length <= (after.stids ?? []).length) {
+        // Milestone gate: every statement join used to re-run the LLM
+        // context pass (status returns to "found", so stories re-qualified
+        // forever — one full pass per joining post). Re-contextualize only
+        // at Fibonacci statement counts; a story with no headline yet always
+        // queues so first contextualization and failure retries never skip.
+        const stidCount = (after?.stids ?? []).length;
+        if ((_create || _update && (before.stids ?? [])
+            .length <= stidCount) &&
+            (!after?.headline || isFibonacciNumber(stidCount))) {
           await tryQueueTask(
               "stories",
               after?.sid || before?.sid,
@@ -123,7 +136,9 @@ exports.onStoryUpdate = onDocumentWritten(
 
       if (
         _create && after.bias ||
-        _update && before.bias != after.bias ||
+        _update && (biasDidCrossThreshold(before, after) ||
+          before.bias != null && after.bias != null &&
+          getDistance(before.bias, after.bias) >= BIAS_RIPPLE_EPS_DEGREES) ||
         _delete && before.bias
       ) {
         await publishMessage(STORY_SHOULD_CHANGE_NEWSWORTHINESS,
@@ -167,9 +182,18 @@ exports.onStoryShouldChangeVector = onMessagePublished(
       ...defaultConfig,
     },
     async (event) => {
+      const before = event.data.message.json.before;
       const story = event.data.message.json.after;
       if (!story || !story.sid) {
       // noop if deleted
+        return Promise.resolve();
+      }
+
+      // Joins already recompute the vector inline in onPostShouldFindStories
+      // (so later posts see it without waiting on this subscriber) — running
+      // here too doubled the K-mean recompute on every join. Only removals
+      // (post deleted/unlinked via onPostChangedStories) still need it.
+      if ((story.pids?.length ?? 0) >= (before?.pids?.length ?? 0)) {
         return Promise.resolve();
       }
 
@@ -191,7 +215,7 @@ exports.onStoryShouldFindContextTask = onTaskDispatched(
       rateLimits: {
         maxConcurrentDispatches: 1,
       },
-      ...gbConfig,
+      ...llmConfig,
     },
     async (event) => {
       logger.info(

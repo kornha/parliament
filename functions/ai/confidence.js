@@ -8,7 +8,9 @@ const {getStatement,
   getAllStatementsForStory,
   updateStory,
   getAllStatementsForPost,
-  updatePost} = require("../common/database");
+  updatePost,
+  getPost,
+  getStory} = require("../common/database");
 const {retryAsyncFunction} = require("../common/utils");
 const {MAX_RIPPLE_DEPTH} = require("../common/pubsub");
 
@@ -49,12 +51,21 @@ async function onPostShouldChangeConfidence(pid) {
   const raw = calculateAverageConfidence(statements);
   const avgConfidence = raw == null ? null : quantizeConfidence(raw);
 
-  if (avgConfidence != null) {
-    logger.info(`Updating Post confidence: ${pid} ${avgConfidence}`);
-    // skipping error case where post is deleted, since this throws errors
-    await retryAsyncFunction(() =>
-      updatePost(pid, {confidence: avgConfidence}, 5));
+  if (avgConfidence == null) {
+    return;
   }
+
+  // An identical write still fires the post document trigger and its
+  // downstream cascade, so the extra read here is the cheaper side.
+  const post = await getPost(pid);
+  if (!post || post.confidence === avgConfidence) {
+    return;
+  }
+
+  logger.info(`Updating Post confidence: ${pid} ${avgConfidence}`);
+  // skipping error case where post is deleted, since this throws errors
+  await retryAsyncFunction(() =>
+    updatePost(pid, {confidence: avgConfidence}, 5));
 }
 
 
@@ -73,11 +84,20 @@ async function onStoryShouldChangeConfidence(sid) {
   const raw = calculateAverageConfidence(statements);
   const avgConfidence = raw == null ? null : quantizeConfidence(raw);
 
-  if (avgConfidence != null) {
-    logger.info(`Updating Story confidence: ${sid} ${avgConfidence}`);
-    await retryAsyncFunction(() =>
-      updateStory(sid, {confidence: avgConfidence}, 5));
+  if (avgConfidence == null) {
+    return;
   }
+
+  // An identical write still fires the story document trigger and its
+  // downstream cascade, so the extra read here is the cheaper side.
+  const story = await getStory(sid);
+  if (!story || story.confidence === avgConfidence) {
+    return;
+  }
+
+  logger.info(`Updating Story confidence: ${sid} ${avgConfidence}`);
+  await retryAsyncFunction(() =>
+    updateStory(sid, {confidence: avgConfidence}, 5));
 }
 
 // ////////////////////////////////////////////////////////////////////////////
