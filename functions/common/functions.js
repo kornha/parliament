@@ -35,15 +35,36 @@ exports.llmConfig = {
   maxInstances: 10,
 };
 
+// Fan-in recompute handlers (entity/story bias+confidence) read every
+// statement of their target; big entities OOM the 256Mi default.
+exports.mediumConfig = {
+  timeoutSeconds: 60,
+  memory: "512MiB",
+  secrets: secretsList,
+  maxInstances: 10,
+};
+
 /* puppeteer limitations
  * 1 max concurrency!
  * we increase timeout
  * we don't want multiple browsers running in the same instance
+ * 1GiB fits single-tweet fetches; the FEED scroll needs feedScrapeConfig
 **/
 exports.scrapeConfig = {
   timeoutSeconds: 300,
   concurrency: 1,
   maxInstances: 5,
   memory: "1GiB",
+  secrets: secretsList,
+};
+
+// Feed scrolls accumulate the lazy-loaded timeline DOM plus harvested
+// GraphQL payloads — they exceed 1GiB in production (and have spiked at
+// 2GiB historically), so they keep the larger instance.
+exports.feedScrapeConfig = {
+  timeoutSeconds: 300,
+  concurrency: 1,
+  maxInstances: 5,
+  memory: "2GiB",
   secrets: secretsList,
 };

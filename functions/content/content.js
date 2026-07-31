@@ -2,7 +2,8 @@ const {onCall, HttpsError} = require("firebase-functions/v2/https");
 const {onMessagePublished} = require("firebase-functions/v2/pubsub");
 const {logger} = require("firebase-functions/v2");
 const {authenticate} = require("../common/auth");
-const {scrapeConfig} = require("../common/functions");
+const {scrapeConfig, feedScrapeConfig} =
+  require("../common/functions");
 const {SHOULD_SCRAPE_FEED, publishMessage} = require("../common/pubsub");
 const {findCreatePlatform} = require("../common/database");
 const {scrapeFeed, scrapeMetaFeed} = require("./scraper");
@@ -50,7 +51,7 @@ const onLinkPaste = onCall(
  * */
 const fetchNews = onCall(
     {
-      ...scrapeConfig,
+      ...feedScrapeConfig,
     },
     async (request) => {
       authenticate(request);
@@ -107,7 +108,7 @@ const onShouldProcessLink = onMessagePublished(
  */
 const onScrapeFeed = onMessagePublished(
     {
-      ...scrapeConfig,
+      ...feedScrapeConfig,
       topic: SHOULD_SCRAPE_FEED,
     },
     async (event) => {

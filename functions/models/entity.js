@@ -1,6 +1,7 @@
 const {onDocumentWritten} = require("firebase-functions/v2/firestore");
 const {onMessagePublished} = require("firebase-functions/v2/pubsub");
-const {defaultConfig, scrapeConfig} = require("../common/functions");
+const {defaultConfig, mediumConfig, scrapeConfig} =
+  require("../common/functions");
 const {publishMessage, publishRipple,
   ENTITY_SHOULD_CHANGE_IMAGE,
   POST_CHANGED_ENTITY,
@@ -201,7 +202,7 @@ exports.onEntityShouldChangeImage = onMessagePublished(
 exports.onEntityShouldChangeConfidence = onMessagePublished(
     {
       topic: ENTITY_SHOULD_CHANGE_CONFIDENCE,
-      ...defaultConfig,
+      ...mediumConfig,
     },
     async (event) => {
       const {eid, depth} = event.data.message.json;
@@ -260,7 +261,7 @@ exports.onEntityChangedConfidence = onMessagePublished(
 exports.onEntityShouldChangeBias = onMessagePublished(
     {
       topic: ENTITY_SHOULD_CHANGE_BIAS,
-      ...defaultConfig,
+      ...mediumConfig,
     },
     async (event) => {
       const eid = event.data.message.json.eid;

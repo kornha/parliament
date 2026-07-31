@@ -1,6 +1,7 @@
 const {onDocumentWritten} = require("firebase-functions/v2/firestore");
 const {onMessagePublished} = require("firebase-functions/v2/pubsub");
-const {defaultConfig, llmConfig} = require("../common/functions");
+const {defaultConfig, llmConfig, mediumConfig} =
+  require("../common/functions");
 const {
   publishMessage,
   STORY_CHANGED_POSTS,
@@ -241,7 +242,7 @@ exports.shouldFindContext = _shouldFindContext;
 exports.onStoryShouldChangeConfidence = onMessagePublished(
     {
       topic: STORY_SHOULD_CHANGE_CONFIDENCE,
-      ...defaultConfig,
+      ...mediumConfig,
     },
     async (event) => {
       const sid = event.data.message.json.sid;
@@ -263,7 +264,7 @@ exports.onStoryShouldChangeConfidence = onMessagePublished(
 exports.onStoryShouldChangeBias = onMessagePublished(
     {
       topic: STORY_SHOULD_CHANGE_BIAS,
-      ...defaultConfig,
+      ...mediumConfig,
     },
     async (event) => {
       const sid = event.data.message.json.sid;
