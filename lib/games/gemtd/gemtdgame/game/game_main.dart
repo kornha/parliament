@@ -22,7 +22,9 @@ class GameMain extends FlameGame with WidgetsBindingObserver {
   // Set from GemTDGame.build so the canvas + HUD text match the app's
   // light/dark theme (Flame repaints backgroundColor every frame, so theme
   // switches take effect live).
-  Color canvasColor = const Color(0xFF000000);
+  // Default matches the app's dark surface so the first frame (before
+  // GemTDGame.build assigns the live theme color) doesn't flash pure black.
+  Color canvasColor = const Color(0xFF0E0E0E);
   Color hudTextColor = Colors.white70;
 
   // Rocks tint to this (the sprite is a white block, so light mode needs

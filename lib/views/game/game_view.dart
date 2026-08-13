@@ -17,6 +17,48 @@ class GameView extends ConsumerStatefulWidget {
   ConsumerState<GameView> createState() => _GameViewState();
 }
 
+// Matches the game's flat action-button idiom (hairline border, small
+// radius, no shadows) — defined app-side because the game library is
+// deferred and can't be imported statically here.
+class _StripButton extends StatelessWidget {
+  const _StripButton({
+    required this.icon,
+    required this.tooltip,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: tooltip,
+      child: Material(
+        color: context.backgroundColor,
+        borderRadius: BorderRadius.circular(2),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(2),
+          onTap: onTap,
+          child: Container(
+            width: 34,
+            height: 30,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(2),
+              border: Border.all(
+                color: context.primaryColor.withOpacity(0.5),
+                width: 0.5,
+              ),
+            ),
+            child: Icon(icon, size: 18, color: context.primaryColor),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _GameViewState extends ConsumerState<GameView> {
   Future<void>? _loadFuture;
 
@@ -65,15 +107,22 @@ class _GameViewState extends ConsumerState<GameView> {
                 bottom: false,
                 child: SizedBox(
                   height: 40,
-                  child: Align(
-                    alignment: Alignment.centerRight,
-                    child: IconButton(
-                      padding: EdgeInsets.zero,
-                      iconSize: 22,
-                      icon: Icon(Icons.close, color: context.primaryColor),
-                      tooltip: 'Exit game',
-                      onPressed: () => context.go(Feed.location),
-                    ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      _StripButton(
+                        icon: Icons.castle,
+                        tooltip: 'All towers',
+                        onTap: () => gemtd.TowersView.show(context),
+                      ),
+                      const SizedBox(width: 6),
+                      _StripButton(
+                        icon: Icons.close,
+                        tooltip: 'Exit game',
+                        onTap: () => context.go(Feed.location),
+                      ),
+                      const SizedBox(width: 8),
+                    ],
                   ),
                 ),
               ),

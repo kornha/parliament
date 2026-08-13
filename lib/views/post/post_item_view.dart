@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -210,11 +212,26 @@ class _PostViewState extends ConsumerState<PostItemView> {
                         Expanded(
                           child: SizedBox(
                             height: context.imageSizeSmall.height,
-                            child: Text(
-                              post?.title ?? "",
-                              style: context.m,
-                              maxLines: 5,
-                              overflow: TextOverflow.ellipsis,
+                            // maxLines must agree with the box height or the
+                            // text clips mid-line before ellipsis engages
+                            // (box height varies per device), so measure a
+                            // line and derive how many actually fit.
+                            child: LayoutBuilder(
+                              builder: (context, constraints) {
+                                final painter = TextPainter(
+                                  text: TextSpan(text: "Ag", style: context.m),
+                                  textDirection: TextDirection.ltr,
+                                  maxLines: 1,
+                                )..layout();
+                                final fit = constraints.maxHeight ~/
+                                    painter.height;
+                                return Text(
+                                  post?.title ?? "",
+                                  style: context.m,
+                                  maxLines: max(1, fit),
+                                  overflow: TextOverflow.ellipsis,
+                                );
+                              },
                             ),
                           ),
                         ),

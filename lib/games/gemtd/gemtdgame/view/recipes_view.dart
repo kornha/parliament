@@ -38,16 +38,26 @@ class _RecipesViewState extends State<RecipesView> {
   static const double _itemExtent = 150;
   final ScrollController _controller = ScrollController();
 
+  // Recipes ordered by the resulting tower's level, low to high (stable:
+  // equal levels keep their original recipe-map order).
+  late final List<MapEntry<List<String>, GemComponent>> _entries;
+
   static bool _sameRecipe(List<String> a, List<String> b) =>
       a.length == b.length && a.every(b.contains);
 
   @override
   void initState() {
     super.initState();
+    final raw = widget.recipes.entries.toList();
+    _entries = [...raw]..sort((a, b) {
+        final byLevel = a.value.level.compareTo(b.value.level);
+        return byLevel != 0
+            ? byLevel
+            : raw.indexOf(a).compareTo(raw.indexOf(b));
+      });
     final highlight = widget.highlight;
     if (highlight != null) {
-      final keys = widget.recipes.keys.toList();
-      final idx = keys.indexWhere((k) => _sameRecipe(k, highlight));
+      final idx = _entries.indexWhere((e) => _sameRecipe(e.key, highlight));
       if (idx > 0) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (_controller.hasClients) {
@@ -68,7 +78,7 @@ class _RecipesViewState extends State<RecipesView> {
 
   @override
   Widget build(BuildContext context) {
-    final entries = widget.recipes.entries.toList();
+    final entries = _entries;
     return Dialog(
       backgroundColor: context.backgroundColor,
       insetPadding: const EdgeInsets.all(16),
@@ -213,9 +223,20 @@ class _RecipeCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(children: row),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(children: row),
+                ),
+              ),
+              Text(
+                "LVL ${special.level}",
+                style: TextStyle(color: context.mutedTextColor, fontSize: 10),
+              ),
+            ],
           ),
           const SizedBox(height: 6),
           Expanded(

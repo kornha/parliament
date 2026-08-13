@@ -1,3 +1,4 @@
 node_modules/
 # X scraper session cookies (live credentials — never commit)
 x.json
+x.json.bak

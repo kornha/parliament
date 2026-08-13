@@ -219,10 +219,24 @@ class _StoryItemViewState extends ConsumerState<StoryItemView> {
                         itemCount: allPosts!.length,
                         itemBuilder: (context, index) {
                           var post = allPosts[index];
-                          return PostItemView(
-                            pid: post.pid,
-                            story: story,
-                            isSubView: true,
+                          return Row(
+                            children: [
+                              Expanded(
+                                child: PostItemView(
+                                  pid: post.pid,
+                                  story: story,
+                                  isSubView: true,
+                                ),
+                              ),
+                              // separates this post from the next page;
+                              // capped height so it doesn't span the strip
+                              if (index < allPosts.length - 1)
+                                SizedBox(
+                                  height: context.blockSizeXS.height * 0.55,
+                                  child: const ZDivider(
+                                      type: DividerType.VERTICAL_SECONDARY),
+                                ),
+                            ],
                           );
                         },
                       ),

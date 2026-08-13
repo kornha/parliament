@@ -64,7 +64,9 @@ extension ThemeExt on BuildContext {
 
   BottomSheetThemeData get bottomSheetTheme => Theme.of(this).bottomSheetTheme;
 
-  Color get backgroundColor => isDarkMode ? Palette.black : Palette.white;
+  // The app's surface color, not the game palette's pure black — the game
+  // canvas sits inside app chrome and a #000000 vs #0E0E0E seam shows.
+  Color get backgroundColor => Theme.of(this).colorScheme.surface;
 
   Color get foregroundColor => isDarkMode ? Palette.white : Palette.black;
 

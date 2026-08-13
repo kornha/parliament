@@ -84,11 +84,10 @@ class AfricaSettings extends GemAttributes {
       };
 
   @override
-  String get explosionImage =>
-      cityConfig == nigeria ? "weapon/coinbase_explosion.png" : "weapon/auto_explosion.png";
+  String get explosionImage => "weapon/auto_explosion.png";
 
   @override
-  int get explosionColumns => cityConfig == nigeria ? 6 : 1;
+  int get explosionColumns => 1;
 
   @override
   int get explosionRows => 1;
@@ -118,12 +117,12 @@ class AfricaSettings extends GemAttributes {
 
   @override
   double baseDamage(int level) => switch (cityConfig) {
-        nigeria => 0.8 + level * 0.28, // low (machine-gun lanes pierce)
-        kenya => 6.5 + level * 3.0, // heavy charge
+        nigeria => 0.7 + level * 0.25, // low (machine-gun lanes pierce)
+        kenya => 6.0 + level * 2.8, // heavy charge
         drCongo => 0.0, // damage comes from the Cobalt aura buff
-        ethiopia => 2.5 + level * 0.9, // light hit; the burst/crash does the rest
-        southAfrica => 2.0, // the bite (% current HP) is the real damage
-        _ => 3.5 + level * 1.4, // ghana
+        ethiopia => 2.2 + level * 0.8, // light hit; the burst/crash does the rest
+        southAfrica => 1.8, // the bite (% current HP) is the real damage
+        _ => 3.2 + level * 1.3, // ghana
       };
 
   @override

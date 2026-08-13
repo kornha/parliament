@@ -225,8 +225,10 @@ class EntertainmentSettings extends EnemySettings {
 
   @override
   double baseLife(int level) => 70.0 * pow(1.70, level - 1);
+  // Was 0.65 — a whole wave of watching one unit crawl was boring. Still the
+  // slowest thing on the board, but it arrives.
   @override
-  double baseSpeed(int level) => 0.65 * pow(1.01, level - 1);
+  double baseSpeed(int level) => 1.1 * pow(1.01, level - 1);
   @override
   int spawnCount(int level) => 1;
   @override

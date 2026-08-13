@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+// for displayFontFamily — the game HUD shares the app's dotted-font toggle
+import 'package:political_think/common/extensions.dart' show displayFontFamily;
 
 class Constants {
   static const String LoadingIndicatorType = 'LOADING';
@@ -190,18 +192,20 @@ class TextConstants {
     fontWeight: FontWeight.bold,
   );
 
-  static const TextStyle hackney = TextStyle(
+  // non-const: fontFamily follows the app-wide displayFontFamily toggle
+  // (lib/common/extensions.dart), so the game HUD matches the app.
+  static final TextStyle hackney = TextStyle(
     fontSize: 35,
     color: Colors.red,
     fontWeight: FontWeight.bold,
-    fontFamily: "Minecart",
+    fontFamily: displayFontFamily,
   );
 
-  static const TextStyle hackneySmall = TextStyle(
+  static final TextStyle hackneySmall = TextStyle(
     fontSize: 18,
     color: Colors.white,
     fontWeight: FontWeight.bold,
-    fontFamily: "Minecart",
+    fontFamily: displayFontFamily,
   );
 
   // TextStyle get w1 => TextStyle(

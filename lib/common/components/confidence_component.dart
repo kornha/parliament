@@ -165,27 +165,52 @@ class ConfidencePainter extends CustomPainter {
                   (currentConfidence.value * (dimension - 1)).toInt();
 
           int crediblePosition;
+          double distance;
 
           if (wave) {
-            var amplitude = (dimension * 0.15).toInt();
-            var frequency = 0.245;
-            var wave =
-                (sin((horizontal ? j : i) * frequency) * amplitude).toInt();
-            crediblePosition = basePosition + wave;
+            // Newsworthiness: an upward chevron ("rising") with ghost
+            // chevrons trailing behind it, each dimmer than the last. The
+            // apex is pinned to the value height and points toward "more"
+            // (up when vertical, right when horizontal — basePosition is
+            // already axis-corrected).
+            // Tuning: slope = arm steepness, 0.18 = echo spacing fraction,
+            // echoFade = per-echo dimming.
+            const slope = 0.6;
+            const echoFade = 0.45;
+            final cross = (horizontal ? rows : columns).toDouble();
+            final along = (horizontal ? i : j).toDouble();
+            final across = (horizontal ? j : i).toDouble();
+            final echoSpacing = max(3.0, dimension * 0.18);
+            // extra "distance" that dims each successive echo by echoFade
+            final echoStep = log(echoFade) / log(min(decay, 0.99));
+            final arm = slope * (across - (cross - 1) / 2).abs();
+            final chev = horizontal ? basePosition - arm : basePosition + arm;
+            final trail = horizontal ? chev - along : along - chev;
+            crediblePosition = basePosition;
+            if (trail < 0) {
+              // ahead of the apex: plain falloff, no echoes
+              distance = -trail;
+            } else {
+              // behind the apex: the chevron repeats every echoSpacing
+              final echo = trail ~/ echoSpacing;
+              final local = trail - echo * echoSpacing;
+              distance = min(local, echoSpacing - local) + echo * echoStep;
+            }
           } else if (viral) {
             var amplitude = (dimension * 0.45).toInt();
             var frequency = 2.245;
             var wave =
                 (sin((horizontal ? j : i) * frequency) * amplitude).toInt();
             crediblePosition = basePosition + wave;
+            distance =
+                (crediblePosition - (horizontal ? i : j)).abs().toDouble();
           } else {
             crediblePosition = basePosition;
+            distance =
+                (crediblePosition - (horizontal ? i : j)).abs().toDouble();
           }
 
-          double exp = pow(
-            decay,
-            (crediblePosition - (horizontal ? i : j)).abs(),
-          ).toDouble();
+          double exp = pow(decay, distance).toDouble();
 
           color = !fadeAbove && crediblePosition > (horizontal ? i : j)
               ? Colors.transparent

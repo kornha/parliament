@@ -8,6 +8,7 @@ import 'package:flutter/widgets.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:political_think/common/components/modal_container.dart';
@@ -439,28 +440,42 @@ extension ConstantsExt on BuildContext {
   double get iconSizeXXXL => IconSize.xxxl;
 }
 
+// ============================================================================
+// DOTTED / DISPLAY FONT TOGGLE
+// The pixel-style font used for score tiles, stats values, timestamps, and
+// the room countdown. Swap it everywhere by changing this ONE line:
+//   - bundled LCD asset:  "Minecart"
+//   - any Google Font:    GoogleFonts.silkscreen().fontFamily!
+//     (other pixel options: GoogleFonts.pixelifySans(), GoogleFonts.vt323(),
+//      GoogleFonts.dotGothic16(), GoogleFonts.shareTechMono())
+// Note: the game HUD (lib/games/gemtd/common/constants.dart) follows this
+// toggle too. Weight: pass fontWeight INSIDE the GoogleFonts call (variable
+// fonts only, e.g. doto w100-w900; Minecart is single-weight).
+// ============================================================================
+final String displayFontFamily = "Minecart";
+
 extension TextExt on BuildContext {
   // TODO: overriding this here and not using from theme
   TextStyle get ah2 => TextStyle(
       fontSize: Theme.of(this).textTheme.headlineMedium!.fontSize,
       color: primaryColor,
-      fontFamily: "Minecart");
+      fontFamily: displayFontFamily);
   TextStyle get ah3 => TextStyle(
       fontSize: Theme.of(this).textTheme.headlineSmall!.fontSize,
       color: primaryColor,
-      fontFamily: "Minecart");
+      fontFamily: displayFontFamily);
   TextStyle get al => TextStyle(
       fontSize: Theme.of(this).textTheme.bodyLarge!.fontSize,
       color: primaryColor,
-      fontFamily: "Minecart");
+      fontFamily: displayFontFamily);
   TextStyle get am => TextStyle(
       fontSize: Theme.of(this).textTheme.bodyMedium!.fontSize,
       color: primaryColor,
-      fontFamily: "Minecart");
+      fontFamily: displayFontFamily);
   TextStyle get as => TextStyle(
       fontSize: Theme.of(this).textTheme.bodySmall!.fontSize! - 2, // magic
       color: primaryColor,
-      fontFamily: "Minecart");
+      fontFamily: displayFontFamily);
 
   TextStyle get d1 => Theme.of(this).textTheme.displayLarge!;
   TextStyle get d2 => Theme.of(this).textTheme.displayMedium!;

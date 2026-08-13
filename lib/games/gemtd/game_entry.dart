@@ -12,6 +12,11 @@ import 'package:political_think/games/gemtd/gemtdgame/view/gem_button_view.dart'
 import 'package:political_think/games/gemtd/gemtdgame/view/gem_view.dart';
 import 'package:political_think/games/gemtd/gemtdgame/view/tutorial_view.dart';
 
+// Re-export so the app shell (which imports this library deferred) can open
+// the towers browser from outside the game.
+export 'package:political_think/games/gemtd/gemtdgame/view/towers_view.dart'
+    show TowersView;
+
 /// Entry widget for the GemTD game, embedded as a Parliament tab.
 ///
 /// This is the deferred-loading boundary: the game's code and the Flame engine
@@ -86,7 +91,7 @@ class _GemTDGameState extends State<GemTDGame> {
   Widget _pauseMenuBuilder(BuildContext buildContext, GameMain game) {
     return _menuCard(
       context: buildContext,
-      title: 'GemTD',
+      title: 'ParliamentTD',
       titleColor: buildContext.accentColor,
       body: const [],
       buttonLabel: 'Start',
