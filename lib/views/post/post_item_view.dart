@@ -14,6 +14,7 @@ import 'package:political_think/common/models/platform.dart';
 import 'package:political_think/common/models/story.dart';
 import 'package:political_think/common/util/utils.dart';
 import 'package:political_think/common/util/zimage.dart';
+import 'package:political_think/common/util/zvideo.dart';
 import 'package:political_think/views/confidence/confidence_widget.dart';
 import 'package:political_think/views/post/post_view.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -115,7 +116,13 @@ class _PostViewState extends ConsumerState<PostItemView> {
                             : const SizedBox.shrink(),
                         storyNewsworthiness > 0.0 &&
                                 post?.photo?.photoURL != null
-                            ? ZImage(photoURL: post?.photo?.photoURL ?? "")
+                            ? (post?.video?.videoURL != null
+                                ? ZVideo(
+                                    photoURL: post?.photo?.photoURL ?? "",
+                                    videoURL: post!.video!.videoURL,
+                                  )
+                                : ZImage(
+                                    photoURL: post?.photo?.photoURL ?? ""))
                             : const SizedBox.shrink(),
                         storyNewsworthiness > 0.0 &&
                                 post?.photo?.photoURL != null
@@ -203,10 +210,16 @@ class _PostViewState extends ConsumerState<PostItemView> {
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         if (post?.photo?.photoURL != null)
-                          ZImage(
-                            photoURL: post?.photo?.photoURL ?? "",
-                            imageSize: ZImageSize.small,
-                          ),
+                          post?.video?.videoURL != null
+                              ? ZVideo(
+                                  photoURL: post?.photo?.photoURL ?? "",
+                                  videoURL: post!.video!.videoURL,
+                                  imageSize: ZImageSize.small,
+                                )
+                              : ZImage(
+                                  photoURL: post?.photo?.photoURL ?? "",
+                                  imageSize: ZImageSize.small,
+                                ),
                         if (post?.photo?.photoURL != null) context.sh,
                         // Use Expanded to allow the text to take up the remaining space
                         Expanded(

@@ -747,7 +747,7 @@ const extractTweetLinks = function(tweetData) {
 // the per-tweet browser session (the dominant scrape cost). When OFF, links
 // publish bare as before and the capture only logs would-be coverage, so
 // the rollout can be validated in shadow before flipping.
-const FEED_PAYLOAD_HARVEST = false;
+const FEED_PAYLOAD_HARVEST = true;
 
 /**
  * Extracts tweet payloads from a timeline GraphQL response body.
@@ -791,6 +791,26 @@ const extractTimelineTweets = function(responseBody) {
 };
 
 /**
+ * Removes X's auto-appended media t.co links from tweet text: every media
+ * tweet's full_text ends with a t.co URL pointing at the media itself,
+ * which reads as noise in titles ("Price gouging https://t.co/...").
+ * Real external links (entities.urls) are left in place.
+ * @param {Object} legacy the tweet's legacy payload
+ * @return {string} full_text without media self-links
+ */
+const stripMediaTcoLinks = function(legacy) {
+  let text = legacy?.full_text ?? "";
+  const media =
+    legacy?.extended_entities?.media ?? legacy?.entities?.media ?? [];
+  for (const m of media) {
+    if (m?.url) {
+      text = text.replace(m.url, "");
+    }
+  }
+  return text.trim();
+};
+
+/**
  * Maps a timeline tweet payload to the processItem item shape, replacing
  * what getContentFromX gathers with a per-tweet browser session. Returns
  * null when essentials are missing so callers fall back to the browser.
@@ -823,17 +843,22 @@ const tweetDataToItem = function(tweetData) {
       views: views,
     });
 
+    // Video posts are treated like photo posts: the poster frame fills the
+    // photo slot (feeding the existing vision-description path) and the
+    // videoURL rides along for client playback.
+    const posterURL =
+        photoMedia?.media_url_https ?? videoMedia?.media_url_https;
+
     return {
       xid: xid,
       url: `https://x.com/${handle}/status/${xid}`,
       handle: handle,
       platformUrl: "x.com",
-      // currently we do not support video (same rule as xupdatePost)
-      status: videoURL ? "unsupported" : "published",
-      title: legacy.full_text,
+      status: "published",
+      // null (not "") when the tweet is caption-less media-only
+      title: stripMediaTcoLinks(legacy) || null,
       sourceCreatedAt: isoToMillis(legacy.created_at),
-      photo: photoMedia?.media_url_https ?
-        {photoURL: photoMedia.media_url_https} : null,
+      photo: posterURL ? {photoURL: posterURL} : null,
       video: videoURL ? {videoURL: videoURL} : null,
       replies: legacy.reply_count,
       reposts: legacy.retweet_count,
@@ -893,7 +918,10 @@ const getContentFromX = async function(url) {
         }
         if (
           request.resourceType() === "image" &&
-          requestUrl.includes("media") &&
+          // "media" = regular photos; "video_thumb" = poster frames of
+          // video/gif tweets (ext_tw_video_thumb, amplify_video_thumb)
+          (requestUrl.includes("media") ||
+            requestUrl.includes("video_thumb")) &&
           !tweetPhotoURL
         ) {
           tweetPhotoURL = requestUrl;
@@ -949,7 +977,7 @@ const getContentFromX = async function(url) {
               }
 
               // Extract the tweet details
-              tweetText = tweetData.legacy.full_text;
+              tweetText = stripMediaTcoLinks(tweetData.legacy);
               tweetAuthor = tweetData.core.user_results.result.core.screen_name;
               tweetTime = tweetData.legacy.created_at;
               tweetReplies = tweetData.legacy.reply_count;
@@ -991,8 +1019,10 @@ const getContentFromX = async function(url) {
       new Promise((resolve) => setTimeout(resolve, 8000)),
     ]);
 
-    // return null if any null values
-    if (!tweetText || !tweetAuthor || !tweetTime) {
+    // return null when there is no author/time or no content at all —
+    // caption-less media tweets are valid (photo/video carries the signal)
+    if (!tweetAuthor || !tweetTime ||
+      (!tweetText && !tweetPhotoURL && !tweetVideoURL)) {
       return null;
     }
 
@@ -1146,17 +1176,13 @@ const xupdatePost = async function(post) {
 
   const time = isoToMillis(xMetaData.isoTime);
 
-  // currently we do not support video
-  const supported = xMetaData.videoURL == null;
-
   // if the post already exists (eg., not scraping, draft, and not null), keep
   // if the post has a poster, set to draft
   // otherwise, if created from backend, set to published
+  // (video posts are first-class — see getStatus in common/utils.js)
   const status =
     post.status != "scraping" && post.status != "draft" && post.status != null ?
       post.status :
-      !supported ?
-      "unsupported" :
       post.poster ?
       "draft" :
       "published";

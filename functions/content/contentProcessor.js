@@ -81,7 +81,11 @@ async function processItem(data, platformType, poster = null) {
   } = data;
 
   if (!xid || !url || !handle || !platformUrl || !handle || !status ||
-    (status != "scraping" && (!platformUrl || !title || !sourceCreatedAt))) {
+    (status != "scraping" &&
+      (!platformUrl || !sourceCreatedAt ||
+        (!title && !photo && !video)))) {
+    // title is optional when media carries the content (caption-less
+    // video/photo posts) — the vision description supplies text later
     logger.error(`Missing required data for item: ${JSON.stringify(data)}`);
     return;
   }

@@ -46,6 +46,7 @@ dependencies:
   google_maps_flutter: ^2.10.0
   http: ^1.1.2
   syncfusion_flutter_sliders: ^28.1.36
+  video_player: ^2.9.2
   syncfusion_flutter_core: ^28.1.36
   country_picker: ^2.0.23
   image_stack: ^2.1.1

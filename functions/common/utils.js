@@ -222,9 +222,9 @@ const getPlatformType = function(platform) {
    * @return {string} - The status of the post.
    */
 function getStatus(post, currStatus) {
-  if (post.video && post.video.videoURL) {
-    return "unsupported";
-  } else if (post.status != "scraping" && post.status != "draft" &&
+  // video posts are first-class: caption -> title, poster frame -> photo
+  // (existing vision-description path), videoURL kept for client playback
+  if (post.status != "scraping" && post.status != "draft" &&
     currStatus != null) {
     return currStatus;
   } else if (post.poster) {
