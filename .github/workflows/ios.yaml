@@ -82,7 +82,12 @@ jobs:
           else
             EXPORT_PLIST="ios/Runner/ExportOptionsSTG.plist"
           fi
-          flutter build ipa --export-options-plist=$EXPORT_PLIST
+          # Build number = CI run number (+100 to stay above historical
+          # manual builds). App Store Connect rejects duplicate build
+          # numbers, so deriving it here means pushes never collide and
+          # pubspec's +N no longer needs a manual bump per upload.
+          flutter build ipa --export-options-plist=$EXPORT_PLIST \
+            --build-number=$(( ${{ github.run_number }} + 100 ))
 
       # Upload the built IPA as an artifact for the deploy jobs to use:
       - name: Collect IPA artifact
