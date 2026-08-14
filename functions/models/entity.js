@@ -220,7 +220,7 @@ exports.onEntityShouldChangeConfidence = onMessagePublished(
 exports.onEntityChangedConfidence = onMessagePublished(
     {
       topic: ENTITY_CHANGED_CONFIDENCE,
-      ...defaultConfig,
+      ...mediumConfig, // reads all statements of the entity
     },
     async (event) => {
       const {before, after, depth} = event.data.message.json;
@@ -279,7 +279,7 @@ exports.onEntityShouldChangeBias = onMessagePublished(
 exports.onEntityChangedBias = onMessagePublished(
     {
       topic: ENTITY_CHANGED_BIAS,
-      ...defaultConfig,
+      ...mediumConfig, // reads all statements of the entity
     },
     async (event) => {
       const {before, after, depth} = event.data.message.json;
