@@ -5,6 +5,18 @@ import 'package:political_think/common/constants.dart';
 import 'package:political_think/common/extensions.dart';
 import 'package:political_think/common/models/confidence.dart';
 
+// ============================================================================
+// SCORE TILE STYLE TOGGLE
+//   - ScoreTileStyle.flat: bold value-colored number over a thin rule with a
+//     small metric label (NEWS / VIRAL / TRUST) — the small-tile default.
+//   - ScoreTileStyle.matrix: the classic dot-matrix painter.
+// The big interactive views (vote slider, loading animations, percent bars)
+// pass ScoreTileStyle.matrix explicitly and are unaffected by this default.
+// ============================================================================
+enum ScoreTileStyle { flat, matrix }
+
+const ScoreTileStyle scoreTileStyle = ScoreTileStyle.flat;
+
 class ConfidenceComponent extends StatefulWidget {
   final Confidence? confidence;
   final Confidence? confidence2;
@@ -25,6 +37,7 @@ class ConfidenceComponent extends StatefulWidget {
   final bool wave;
   final bool viral;
   final bool horizontal; // New flag added here
+  final ScoreTileStyle? style; // null = follow the scoreTileStyle default
 
   ConfidenceComponent({
     Key? key,
@@ -45,6 +58,7 @@ class ConfidenceComponent extends StatefulWidget {
     this.wave = false,
     this.viral = false,
     this.horizontal = false, // Initialize the new flag
+    this.style,
   }) : super(key: key) {
     assert(!viral || !wave);
   }
@@ -56,6 +70,68 @@ class ConfidenceComponent extends StatefulWidget {
 class _ConfidenceComponentState extends State<ConfidenceComponent> {
   @override
   Widget build(BuildContext context) {
+    if ((widget.style ?? scoreTileStyle) == ScoreTileStyle.flat) {
+      return _buildFlat(context);
+    }
+    return _buildMatrix(context);
+  }
+
+  /// Flat stat tile: bold value-colored number over a thin rule, with a
+  /// small muted metric label when there's room.
+  Widget _buildFlat(BuildContext context) {
+    final confidence = widget.confidence;
+    final color = widget.setColor ??
+        confidence?.color ??
+        context.surfaceColor;
+    if (confidence == null && !widget.showNullBackround) {
+      return SizedBox(width: widget.width, height: widget.height);
+    }
+    // metric labels — edit here to rename
+    final label = widget.wave
+        ? "NEWS"
+        : widget.viral
+            ? "VIRAL"
+            : "TRUST";
+    final showLabel = widget.height >= 30;
+    return SizedBox(
+      width: widget.width,
+      height: widget.height,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            confidence?.toString() ?? "--",
+            style: TextStyle(
+              fontFamily: displayFontFamily,
+              fontSize: widget.height * 0.36,
+              color: confidence == null ? context.surfaceColor : color,
+            ),
+          ),
+          Container(
+            height: 2,
+            width: widget.width * 0.72,
+            margin: const EdgeInsets.symmetric(vertical: 1.5),
+            decoration: BoxDecoration(
+              color: confidence == null ? context.surfaceColor : color,
+              borderRadius: BRadius.least,
+            ),
+          ),
+          if (showLabel)
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: widget.height * 0.18,
+                letterSpacing: 0.6,
+                color: context.secondaryColor,
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMatrix(BuildContext context) {
     return Stack(
       alignment: Alignment.center,
       children: [
@@ -288,6 +364,7 @@ class PercentComponent extends ConfidenceComponent {
     showUnselected = false,
   }) : super(
           key: key,
+          style: ScoreTileStyle.matrix,
           width: width,
           height: height,
           showUnselected: showUnselected,

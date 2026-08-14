@@ -272,6 +272,7 @@ class _LoadingConfidenceAnimationState extends State<LoadingConfidenceAnimation>
     prev = _animation.value;
 
     return ConfidenceComponent(
+      style: ScoreTileStyle.matrix,
       width: widget.width,
       height: widget.height,
       confidence: Confidence(

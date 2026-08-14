@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:political_think/common/components/interactive/confidence_slider.dart';
+import 'package:political_think/common/components/confidence_component.dart';
 import 'package:political_think/common/components/interactive/political_position_joystick.dart';
 import 'package:political_think/common/components/loading.dart';
 import 'package:political_think/common/components/zerror.dart';
@@ -129,6 +130,7 @@ class _VoteViewState extends ConsumerState<VoteView> {
                                 },
                               )
                             : ConfidenceSlider(
+                            style: ScoreTileStyle.matrix,
                                 selectedConfidence: vote.confidence,
                                 width: context.iconSizeXL,
                                 height: context.iconSizeXL,

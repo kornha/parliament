@@ -22,6 +22,7 @@ class ConfidenceSlider extends StatefulWidget {
   final bool showNullBackround;
   final bool wave;
   final bool viral;
+  final ScoreTileStyle? style; // null = follow the scoreTileStyle default
 
   ConfidenceSlider({
     super.key,
@@ -40,6 +41,7 @@ class ConfidenceSlider extends StatefulWidget {
     this.showNull3AsLoading = false,
     this.wave = false,
     this.viral = false,
+    this.style,
   }) : assert(!viral || !wave);
 
   @override
@@ -80,6 +82,7 @@ class _ConfidenceSliderState extends State<ConfidenceSlider> {
                   widget.selectedConfidence != null ||
                   widget.showNullBackround,
               child: ConfidenceComponent(
+                      style: widget.style,
                 confidence: widget.selectedConfidence,
                 width: _width,
                 height: widget.height,
@@ -105,6 +108,7 @@ class _ConfidenceSliderState extends State<ConfidenceSlider> {
                       wave: widget.wave,
                     )
                   : ConfidenceComponent(
+                      style: widget.style,
                       confidence: widget.confidence2,
                       width: _width,
                       height: widget.height,
@@ -128,6 +132,7 @@ class _ConfidenceSliderState extends State<ConfidenceSlider> {
                       wave: widget.wave,
                     )
                   : ConfidenceComponent(
+                      style: widget.style,
                       confidence: widget.confidence3,
                       width: _width,
                       height: widget.height,
