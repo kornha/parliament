@@ -727,7 +727,8 @@ const storyToJSON = function(story, includePhotoDescription = true, includeConte
     lat: story.lat,
     long: story.long,
     numPosts: story.pids?.length ?? 1,
-    photos: story.photos.map((photo) => {
+    // photos can be absent on partial story docs (e.g. vector-only shells)
+    photos: (story.photos ?? []).map((photo) => {
       const photoObj = {
         photoURL: photo.photoURL,
       };

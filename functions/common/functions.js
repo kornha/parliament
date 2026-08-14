@@ -36,10 +36,11 @@ exports.llmConfig = {
 };
 
 // Fan-in recompute handlers (entity/story bias+confidence) read every
-// statement of their target; big entities OOM the 256Mi default.
+// statement of their target; big entities OOMed 256Mi, then 512Mi as the
+// denser feed grew top entities — 1GiB gives growth headroom.
 exports.mediumConfig = {
   timeoutSeconds: 60,
-  memory: "512MiB",
+  memory: "1GiB",
   secrets: secretsList,
   maxInstances: 10,
 };

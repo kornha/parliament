@@ -141,8 +141,12 @@ const findStories = async function(post) {
   const CANDIDATE_RETRIEVAL_K = 21;
   const CANDIDATE_PROMPT_K = 7;
 
+  // Drop vector-only shells: a deleted story can be re-created by a stale
+  // resetStoryVector merge as a doc holding nothing but the vector; it has
+  // no sid/title/photos and crashes prompt serialization.
   const allCandidates =
-    (await searchVectors(vector, "stories", CANDIDATE_RETRIEVAL_K)) ?? [];
+    ((await searchVectors(vector, "stories", CANDIDATE_RETRIEVAL_K)) ?? [])
+        .filter((story) => story.sid != null);
 
   // Time lock (see STORY_TIME_WINDOW_MILLIS): drop topical look-alikes whose
   // event AND latest coverage are both far from the post's own timestamp.
