@@ -77,7 +77,8 @@ class PoliticalPainter extends CustomPainter {
   final bool showUnselected;
   final Color? backgroundColor;
 
-  late final double _radiusSmall = radius / (maxCirclesPerRing * 0.4);
+  // smaller factor = larger dots on the ring (was 0.4 originally)
+  late final double _radiusSmall = radius / (maxCirclesPerRing * 0.2);
 
   late final _giveScaled = give * pi;
 

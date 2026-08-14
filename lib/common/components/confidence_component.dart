@@ -86,12 +86,13 @@ class _ConfidenceComponentState extends State<ConfidenceComponent> {
     if (confidence == null && !widget.showNullBackround) {
       return SizedBox(width: widget.width, height: widget.height);
     }
-    // metric labels — edit here to rename
+    // metric labels — abbreviations of whitepaper terms (README.md
+    // vocabulary: Newsworthiness / Virality / Confidence)
     final label = widget.wave
-        ? "NEWS"
+        ? "NWTHY"
         : widget.viral
             ? "VIRAL"
-            : "TRUST";
+            : "CONF";
     final showLabel = widget.height >= 30;
     return SizedBox(
       width: widget.width,
@@ -123,7 +124,7 @@ class _ConfidenceComponentState extends State<ConfidenceComponent> {
               style: TextStyle(
                 fontSize: widget.height * 0.18,
                 letterSpacing: 0.6,
-                color: context.secondaryColor,
+                color: confidence == null ? context.surfaceColor : color,
               ),
             ),
         ],

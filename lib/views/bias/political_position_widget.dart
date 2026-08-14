@@ -10,6 +10,7 @@ class PoliticalPositionWidget extends StatefulWidget {
   final String? eid;
   final String? stid;
   final double? radius;
+  final int rings;
   final bool enabled;
   final bool showModal;
 
@@ -19,6 +20,7 @@ class PoliticalPositionWidget extends StatefulWidget {
     this.eid,
     this.stid,
     this.radius,
+    this.rings = 2,
     this.enabled = true,
     this.showModal = true,
   }); //: assert((eid != null) != (stid != null) || !enabled); // xor
@@ -45,6 +47,7 @@ class _PoliticalPositionWidgetState extends State<PoliticalPositionWidget> {
         child: PoliticalPositionJoystick(
           selectedPosition: widget.position,
           radius: widget.radius ?? context.iconSizeLarge / 2.0,
+          rings: widget.rings,
           onPositionSelected: !widget.enabled
               ? null
               : (conf) {
